@@ -95,6 +95,7 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
     Keys::readKey(*plist_, domain_, "tcc matrix", "total_component_concentration_matrix");
   solid_residue_mass_key_ = Keys::readKey(*plist_, domain_, "solid residue", "solid_residue_mass");
   water_src_key_ = Keys::readKey(*plist_, domain_, "water source", "water_source");
+  water_src_tile_key_ = Keys::readKey(*plist_, domain_, "water source tile", "water_source_tile");
   geochem_src_factor_key_ =
     Keys::readKey(*plist_, domain_, "geochem source factor", "geochem_src_factor");
   water_content_key_ = Keys::readKey(*plist_, domain_, "water content", "water_content");
@@ -220,7 +221,7 @@ Transport_ATS::SetupTransport_()
           if (src_type == "domain coupling" || src_type == "field") {
             // For ETC: This command take "fields" or "source function" in the second arg. Using src_type doesn't work since "volume" is not a sublist. So I put the factory.Create() into if commands.
             Teuchos::RCP<TransportDomainFunction> src =
-              factory.Create(*src_list, "fields", AmanziMesh::Entity_kind::CELL, Kxy, tag_current_);
+              factory.Create(*src_list, "field", AmanziMesh::Entity_kind::CELL, Kxy, tag_current_);
 
             // domain couplings and field functions are special -- they always work on all components
             for (int i = 0; i < num_components; i++) {
@@ -1429,8 +1430,8 @@ Transport_ATS::ComputeAddSourceTerms(double tp,
 {
   int num_vectors = cons_qty.NumVectors();
   int nsrcs = srcs_.size();
-  Epetra_MultiVector& conserve_qty = 
-    *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_).ViewComponent("cell", false);
+  // Epetra_MultiVector& conserve_qty = 
+  //   *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_).ViewComponent("cell", false);
 
   for (int m = 0; m < nsrcs; m++) {
     double t0 = tp - dtp;
@@ -1441,11 +1442,11 @@ Transport_ATS::ComputeAddSourceTerms(double tp,
       int c = it->first;
       std::vector<double>& values = it->second;
 
-      if (c >= conserve_qty.MyLength()) continue;
+      if (c >= cons_qty.MyLength()) continue;
 
 
       if (srcs_[m]->getType() == DomainFunction_kind::COUPLING && n0 == 0) {
-        conserve_qty[num_vectors - 2][c] += values[num_vectors - 2];
+        cons_qty[num_vectors - 2][c] += values[num_vectors - 2];
       }
 
       for (int k = 0; k < tcc_index.size(); ++k) {
