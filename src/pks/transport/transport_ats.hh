@@ -516,7 +516,10 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   int saturation_name_;
   bool vol_flux_conversion_;
 
+  std::unordered_map<std::string, bool> convert_to_field_;
   Key passwd_;
+
+  Teuchos::RCP<CompositeVector> cv;
 
   Teuchos::RCP<CompositeVector> tcc_w_src;
   Teuchos::RCP<CompositeVector> tcc_tmp; // next tcc

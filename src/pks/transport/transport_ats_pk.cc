@@ -40,6 +40,8 @@
 #include "TransportSourceFunction_Alquimia.hh"
 #include "TransportDomainFunction_UnitConversion.hh"
 
+#include "PK_DomainFunction.hh"
+
 #include "transport_ats.hh"
 
 namespace Amanzi {
@@ -215,7 +217,9 @@ Transport_ATS::SetupTransport_()
       for (const auto& it : *conc_sources_list) {
         std::string name = it.first;
         if (conc_sources_list->isSublist(name)) {
-          auto src_list = Teuchos::sublist(conc_sources_list, name);          
+          auto src_list = Teuchos::sublist(conc_sources_list, name);  
+
+          convert_to_field_[name] = src_list->get<bool>("convert to field", false);        
           std::string src_type = src_list->get<std::string>("spatial distribution method", "none");
 
           if (src_type == "domain coupling") {
@@ -259,6 +263,17 @@ Transport_ATS::SetupTransport_()
             for (const auto& n : src->tcc_names()) {
               src->tcc_index().push_back(FindComponentNumber(n));
             }
+
+          if (convert_to_field_[name]) {
+              name = Keys::cleanName(name);
+              if (Keys::getDomain(name)!=domain_){
+                name = Keys::getKey(domain_, name);
+              }
+              requireAtNext(name, Tags::NEXT, *S_, name)
+              .SetMesh(mesh_)
+              ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_components);     
+            }
+
             src->set_state(S_);
             srcs_.push_back(src);
           }
@@ -1456,6 +1471,20 @@ Transport_ATS::ComputeAddSourceTerms(double tp,
       if (srcs_[m]->getType() == DomainFunction_kind::COUPLING && n0 == 0) {
         cons_qty[num_vectors - 2][c] += values[num_vectors - 2];
       }
+
+      if (convert_to_field_[srcs_[m]->getName()]) {
+          std::string name = srcs_[m]->getName();
+          name = Keys::cleanName(name);
+          if (Keys::getDomain(name)!=domain_){
+            name = Keys::getKey(domain_, name);
+          }
+          copyToCompositeVector(*srcs_[m], 
+          S_->GetW<CompositeVector>(name, tag_next_, name)
+          );
+          changedEvaluatorPrimary(name, tag_next_, *S_);
+       }
+
+// const Epetra_MultiVector& flux_interface_ =
 
       for (int k = 0; k < tcc_index.size(); ++k) {
         int i = tcc_index[k];
