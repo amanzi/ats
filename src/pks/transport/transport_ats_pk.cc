@@ -226,7 +226,7 @@ Transport_ATS::SetupTransport_()
             Teuchos::RCP<TransportDomainFunction> src =
               factory.Create(*src_list, "fields", AmanziMesh::Entity_kind::CELL, Kxy, tag_current_);
 
-            // domain couplings and field functions are special -- they always work on all components
+            // domain couplings functions is special -- always work on all components
             for (int i = 0; i < num_components; i++) {
               src->tcc_names().push_back(component_names_[i]);
               src->tcc_index().push_back(i);
@@ -237,7 +237,7 @@ Transport_ATS::SetupTransport_()
             Teuchos::RCP<TransportDomainFunction> src =
               factory.Create(*src_list, "field", AmanziMesh::Entity_kind::CELL, Kxy, tag_current_);
 
-            // domain couplings and field functions are special -- they always work on all components
+            // field function is also special -- always work on all components
             for (int i = 0; i < num_components; i++) {
               src->tcc_names().push_back(component_names_[i]);
               src->tcc_index().push_back(i);
@@ -1165,7 +1165,6 @@ Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
         double tcc_flux = dt_ * u * tcc_prev[i][c1];
         conserve_qty[i][c1] -= tcc_flux;
         if (c2 < 0) mass_solutes_bc_[i] -= tcc_flux;
-        //AmanziGeometry::Point normal = mesh_->getFaceNormal(f);
       }
       conserve_qty[num_components + 1][c1] -= dt_ * u;
 
@@ -1453,8 +1452,6 @@ Transport_ATS::ComputeAddSourceTerms(double tp,
 {
   int num_vectors = cons_qty.NumVectors();
   int nsrcs = srcs_.size();
-  // Epetra_MultiVector& conserve_qty = 
-  //   *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_).ViewComponent("cell", false);
 
   for (int m = 0; m < nsrcs; m++) {
     double t0 = tp - dtp;
@@ -1483,8 +1480,6 @@ Transport_ATS::ComputeAddSourceTerms(double tp,
           );
           changedEvaluatorPrimary(name, tag_next_, *S_);
        }
-
-// const Epetra_MultiVector& flux_interface_ =
 
       for (int k = 0; k < tcc_index.size(); ++k) {
         int i = tcc_index[k];
