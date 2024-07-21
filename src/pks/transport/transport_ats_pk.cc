@@ -218,8 +218,18 @@ Transport_ATS::SetupTransport_()
           auto src_list = Teuchos::sublist(conc_sources_list, name);          
           std::string src_type = src_list->get<std::string>("spatial distribution method", "none");
 
-          if (src_type == "domain coupling" || src_type == "field") {
-            // For ETC: This command take "fields" or "source function" in the second arg. Using src_type doesn't work since "volume" is not a sublist. So I put the factory.Create() into if commands.
+          if (src_type == "domain coupling") {
+            Teuchos::RCP<TransportDomainFunction> src =
+              factory.Create(*src_list, "fields", AmanziMesh::Entity_kind::CELL, Kxy, tag_current_);
+
+            // domain couplings and field functions are special -- they always work on all components
+            for (int i = 0; i < num_components; i++) {
+              src->tcc_names().push_back(component_names_[i]);
+              src->tcc_index().push_back(i);
+            }
+            src->set_state(S_);
+            srcs_.push_back(src);
+          } else if (src_type == "field") {
             Teuchos::RCP<TransportDomainFunction> src =
               factory.Create(*src_list, "field", AmanziMesh::Entity_kind::CELL, Kxy, tag_current_);
 
@@ -228,20 +238,19 @@ Transport_ATS::SetupTransport_()
               src->tcc_names().push_back(component_names_[i]);
               src->tcc_index().push_back(i);
             }
+            src->set_state(S_);
             srcs_.push_back(src);
 
+            // what if there are more than one!?!? --ETC
+            auto field_key = src_list->sublist("field").get<std::string>("field key");
+            auto field_tag = Keys::readTag(src_list->sublist("field"), "tag");
+            requireAtNext(field_key, field_tag, *S_)
+              .SetMesh(mesh_)
+              ->SetGhosted(true)
+              ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_components);
             // NOTE: this code should be moved to the PK_DomainFunctionField,
             // and all other PK_DomainFunction* should be updated to make sure
             // they require their data! --ETC
-            if (src_type == "field") {
-              // what if there are more than one!?!? --ETC
-              auto field_key = src_list->sublist("field").get<std::string>("field key");
-              auto field_tag = Keys::readTag(src_list->sublist("field"), "tag");
-              requireAtNext(field_key, field_tag, *S_)
-                .SetMesh(mesh_)
-                ->SetGhosted(true)
-                ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_components);
-            }
           } else {
             // all others work on a subset of components
             Teuchos::RCP<TransportDomainFunction> src = factory.Create(
@@ -250,7 +259,6 @@ Transport_ATS::SetupTransport_()
             for (const auto& n : src->tcc_names()) {
               src->tcc_index().push_back(FindComponentNumber(n));
             }
-
             src->set_state(S_);
             srcs_.push_back(src);
           }
