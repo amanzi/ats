@@ -7,14 +7,14 @@
   Authors: Phong V.V. Le
 */
 
-#include "tile_mass_sources_evaluator.hh"
+#include "field_mass_source_evaluator.hh"
 
 namespace Amanzi {
 namespace Flow {
 namespace Relations {
 
-Utils::RegisteredFactory<Evaluator, TileMassSourcesEvaluator>
-  TileMassSourcesEvaluator::reg_("tile mass sources");
+Utils::RegisteredFactory<Evaluator, FieldMassSourceEvaluator>
+  FieldMassSourceEvaluator::reg_("field mass source");
 
 } // namespace Relations
 } // namespace Flow

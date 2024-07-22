@@ -26,14 +26,14 @@ namespace Amanzi {
 namespace Flow {
 namespace Relations {
 
-class TileMassSourcesEvaluator : public EvaluatorSecondaryMonotypeCV {
+class FieldMassSourceEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
-  explicit TileMassSourcesEvaluator(Teuchos::ParameterList& plist);
-  TileMassSourcesEvaluator(const TileMassSourcesEvaluator& other) = default;
+  explicit FieldMassSourceEvaluator(Teuchos::ParameterList& plist);
+  FieldMassSourceEvaluator(const FieldMassSourceEvaluator& other) = default;
 
   virtual Teuchos::RCP<Evaluator> Clone() const override
   {
-    return Teuchos::rcp(new TileMassSourcesEvaluator(*this));
+    return Teuchos::rcp(new FieldMassSourceEvaluator(*this));
   }
 
   // virtual void EnsureCompatibility(State& S) override;
@@ -54,11 +54,11 @@ class TileMassSourcesEvaluator : public EvaluatorSecondaryMonotypeCV {
   Key domain_;
   Key cv_key_;
   Key molar_density_key_;
-  Key water_src_tile_key_;
+  Key field_src_key_;
   Teuchos::RCP<Function> QC_curve_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator, TileMassSourcesEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator, FieldMassSourceEvaluator> reg_;
 };
 
 } // namespace Relations
