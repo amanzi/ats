@@ -59,7 +59,8 @@ SurfPumpEvaluator::SurfPumpEvaluator(Teuchos::ParameterList& plist)
 
   // need an extra flag stored in state to indiciate, from
   // timestep-to-timestep, that the pump is on or off.
-  pump_on_key_ = Keys::readKey(plist, domain, "pump on", my_keys_.front().first+"_pump_on_flag");
+  Key default_pump_on = Keys::getVarName(my_keys_.front().first)+"_pump_on_flag";
+  pump_on_key_ = Keys::readKey(plist, domain, "pump on", default_pump_on);
 
   pump_outlet_region_ = plist.get<std::string>("pump outlet region", "");
   pump_inlet_region_ = plist.get<std::string>("pump inlet region");

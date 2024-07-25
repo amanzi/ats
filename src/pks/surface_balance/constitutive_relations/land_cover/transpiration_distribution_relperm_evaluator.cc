@@ -152,7 +152,7 @@ TranspirationDistributionRelPermEvaluator::InitializeFromPlist_()
   nliq_key_ = Keys::readKey(plist_, domain_sub_, "molar density", "molar_density_liquid");
   dependencies_.insert(KeyTag{ nliq_key_, tag });
 
-  // dependency: rooting_depth_fraction
+  // dependency: viscosity
   visc_key_ = Keys::readKey(plist_, domain_sub_, "viscosity", "viscosity_liquid");
   dependencies_.insert(KeyTag{ visc_key_, tag });
 
@@ -222,7 +222,7 @@ TranspirationDistributionRelPermEvaluator::Evaluate_(const State& S,
                   region_lc.second,
                   soil_pc, soil_kr, f_root, potential_trans,
                   rho, nliq, visc, cv, sa,
-                  K_ * perm_scale, krp_ * perm_scale, g);
+                  K_ * perm_scale, krp_ / perm_scale, g);
 
           // compute the flux at max pc
           double pc_plant_max = region_lc.second.maximum_xylem_capillary_pressure;
@@ -315,6 +315,9 @@ TranspirationDistributionRelPermEvaluator::EnsureCompatibility_ToDeps_(State& S)
   S.Require<CompositeVector, CompositeVectorSpace>(f_root_key_, tag).Update(dep_fac);
   S.Require<CompositeVector, CompositeVectorSpace>(soil_pc_key_, tag).Update(dep_fac);
   S.Require<CompositeVector, CompositeVectorSpace>(soil_kr_key_, tag).Update(dep_fac);
+  S.Require<CompositeVector, CompositeVectorSpace>(rho_key_, tag).Update(dep_fac);
+  S.Require<CompositeVector, CompositeVectorSpace>(nliq_key_, tag).Update(dep_fac);
+  S.Require<CompositeVector, CompositeVectorSpace>(visc_key_, tag).Update(dep_fac);
   S.Require<CompositeVector, CompositeVectorSpace>(cv_key_, tag).Update(dep_fac);
 
   // -- next those on the surface mesh
@@ -325,6 +328,8 @@ TranspirationDistributionRelPermEvaluator::EnsureCompatibility_ToDeps_(State& S)
 
   // gravity
   S.Require<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
+
+  // perm rescaling
   S.Require<double>("permeability_rescaling", Tags::DEFAULT);
 }
 
