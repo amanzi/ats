@@ -13,26 +13,26 @@
 #include "Function.hh"
 #include "surface_pump_system_evaluator.hh"
 #include "FunctionFactory.hh"
+#include <Epetra_MultiVector.h>
 
 namespace Amanzi {
 namespace Flow {
 namespace Relations {
 
-//** // Helper function to compute area-weighted average
-// double computeAreaWeightedAverage(const AmanziMesh::Mesh& mesh,
-//                                   const std::vector<int>& entity_list,
-//                                   const CompositeVector& cv,
-//                                   const CompositeVector& var) {
-//     double terms_local[2] = { 0, 0 };
-//     for (auto c : entity_list) {
-//         terms_local[0] += cv[0][c] * var[0][c];
-//         terms_local[1] += cv[0][c];
-//     }
-//     double terms_global[2] = { 0, 0 };
-//     mesh.getComm()->SumAll(terms_local, terms_global, 2);
-//     return terms_global[0] / terms_global[1]; // Area-weighted average
-// }
-//**
+// Helper function to compute area-weighted average
+double computeAreaWeightedAverage(const AmanziMesh::Mesh& mesh,
+                                  const Amanzi::AmanziMesh::MeshCache<Amanzi::MemSpace_kind::HOST>::cEntity_ID_View& entity_list,
+                                  const Epetra_MultiVector& cv,
+                                  const Epetra_MultiVector& var) {
+    double terms_local[2] = { 0, 0 };
+    for (auto c : entity_list) {
+        terms_local[0] += cv[0][c] * var[0][c];
+        terms_local[1] += cv[0][c];
+    }
+    double terms_global[2] = { 0, 0 };
+    mesh.getComm()->SumAll(terms_local, terms_global, 2);
+    return terms_global[0] / terms_global[1]; // Area-weighted average
+}
 
 
 SurfPumpEvaluator::SurfPumpEvaluator(Teuchos::ParameterList& plist)
@@ -50,6 +50,9 @@ SurfPumpEvaluator::SurfPumpEvaluator(Teuchos::ParameterList& plist)
 
   pe_key_ = Keys::readKey(plist, domain, "potential", "pres_elev");
   dependencies_.insert(KeyTag{ pe_key_, tag });
+
+  elev_key_ = Keys::readKey(plist, domain, "elevation", "elevation");
+  dependencies_.insert(KeyTag{ elev_key_, tag });
 
   wc_key_ = Keys::readKey(plist, domain, "water content", "water_content");
   dependencies_.insert(KeyTag{ wc_key_, tag });
@@ -93,39 +96,9 @@ SurfPumpEvaluator::Update_(State& S)
   for (const auto& keytag : my_keys_) {
     results.push_back(&S.GetW<CompositeVector>(keytag.first, keytag.second, keytag.first));
   }
-
   // call the evaluate method
   int& pump_on = S.GetW<int>(pump_on_key_, my_keys_.front().second, my_keys_.front().first);
   Evaluate_(S, results, pump_on);
-
-  // debug
-  if (db_ != Teuchos::null) {
-    std::vector<std::string> names;
-    std::vector<Teuchos::Ptr<const CompositeVector>> vecs;
-
-    for (const auto& dep : dependencies_) {
-      auto dep_ptr = S.GetPtr<CompositeVector>(dep.first, dep.second);
-      if (dep_ptr->Mesh() == db_mesh_) {
-        names.emplace_back(dep.first);
-        vecs.emplace_back(dep_ptr.ptr());
-      }
-    }
-    db_->WriteVectors(names, vecs);
-    db_->WriteDivider();
-
-    names.clear();
-    vecs.clear();
-
-    for (const auto& mykey : my_keys_) {
-      auto my_ptr = S.GetPtr<CompositeVector>(mykey.first, mykey.second);
-      if (my_ptr->Mesh() == db_mesh_) {
-        names.emplace_back(mykey.first);
-        vecs.emplace_back(my_ptr.ptr());
-      }
-    }
-    db_->WriteVectors(names, vecs);
-    db_->WriteDivider();
-  }
 }
 
 
@@ -143,80 +116,48 @@ SurfPumpEvaluator::Evaluate_(const State& S,
   const auto& liq_den = *S.Get<CompositeVector>(liq_den_key_, tag).ViewComponent("cell", false);
   const auto& wc = *S.Get<CompositeVector>(wc_key_, tag).ViewComponent("cell", false);
   const auto& pe = *S.Get<CompositeVector>(pe_key_, tag).ViewComponent("cell", false);
+  const auto& elev = *S.Get<CompositeVector>(elev_key_, tag).ViewComponent("cell", false);
 
   auto& surf_src= *result[0]->ViewComponent("cell"); // not being reference
 
   double total = 0.0;
   const AmanziMesh::Mesh& mesh = *result[0]->Mesh();
 
+  surf_src.PutScalar(0.); // initializing with zero
+
+
+// collect gids in relevant regions 
   auto pump_inlet_id_list = mesh.getSetEntities(
     pump_inlet_region_, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
-  std::vector<int> pump_outlet_id_list;
+  Amanzi::AmanziMesh::MeshCache<Amanzi::MemSpace_kind::HOST>::cEntity_ID_View pump_outlet_id_list;
   if (!pump_outlet_region_.empty()) {
       auto pump_outlet_id_list = mesh.getSetEntities(
       pump_outlet_region_, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
   }
 
-  //** ASPIRATIONAL IMPLEMENTATION  -------------------------------
-  // // Calculate Pump flowrate
-  // // average stage at inlet
-  // double avg_pe_inlet = computeAreaWeightedAverage(mesh, pump_inlet_id_list, cv, pe);
-
-  // // average stage at outlet
-  // double avg_pe_outlet = max_elev_pumpline_;
-  // if (!pump_outlet_region_.empty()) {
-  //     avg_pe_outlet = computeAreaWeightedAverage(mesh, pump_outlet_id_list, cv, pe);
-  // }
-
-  // double head_diff = std::max(max_elev_pumpline_, avg_pe_outlet) - avg_pe_inlet;
-  // double Q = (*Q_pump_)(std::vector<double>{head_diff}); // m^3/s
-  //** -----------------------------------------------------------------
-
-
-    // Calculate Pump flowrate
+  // Calculate Pump flowrate
   // average stage at inlet
-  double avg_pe_inlet_terms_l[2] = { 0, 0 };
-  for (auto c : pump_inlet_id_list) {
-    avg_pe_inlet_terms_l[0] += cv[0][c] * pe[0][c];
-    avg_pe_inlet_terms_l[1] += cv[0][c];
-  }
-  double avg_pe_inlet_terms_g[2] = { 0, 0 };
-  mesh.getComm()->SumAll(avg_pe_inlet_terms_l, avg_pe_inlet_terms_g, 2);
-  double avg_pe_inlet = avg_pe_inlet_terms_g[0] / avg_pe_inlet_terms_g[1]; // area weighted average
+  double avg_pe_inlet = computeAreaWeightedAverage(mesh, pump_inlet_id_list, cv, pe);
 
-  // average stage at outlet
-  double avg_pe_outlet = max_elev_pumpline_;
+  // average stage at outlet if outlet region provided
+  double avg_pe_outlet;
   if (!pump_outlet_region_.empty()) {
-      double avg_pe_outlet_terms_l[2] = { 0, 0 };
-      for (auto c : pump_outlet_id_list) {
-        avg_pe_outlet_terms_l[0] += cv[0][c] * pe[0][c];
-        avg_pe_outlet_terms_l[1] += cv[0][c];
-      }
-      double avg_pe_outlet_terms_g[2] = { 0, 0 };
-      mesh.getComm()->SumAll(avg_pe_outlet_terms_l, avg_pe_outlet_terms_g, 2);
-      double avg_pe_outlet = avg_pe_outlet_terms_g[0] / avg_pe_outlet_terms_g[1];
+      avg_pe_outlet = computeAreaWeightedAverage(mesh, pump_outlet_id_list, cv, pe);
+  } else {
+      avg_pe_outlet = max_elev_pumpline_; // if the pump is at the domain boundary pumping water out of the domain, need to provide max pumpline elevation
   }
 
   double avg_pe_on_off = 0;
   if (on_off_region_.empty()){
       avg_pe_on_off = avg_pe_inlet;
-  } else {
+  } else { // if on off region is separate from the inlet region 
       auto on_off_id_list = mesh.getSetEntities(
       on_off_region_, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
-
-      double avg_pe_on_off_terms_l[2] = { 0, 0 };
-      for (auto c : pump_inlet_id_list) {
-        avg_pe_on_off_terms_l[0] += cv[0][c] * pe[0][c];
-        avg_pe_on_off_terms_l[1] += cv[0][c];
-      }
-      double avg_pe_on_off_terms_g[2] = { 0, 0 };
-      mesh.getComm()->SumAll(avg_pe_on_off_terms_l, avg_pe_on_off_terms_g, 2);
-      avg_pe_on_off = avg_pe_on_off_terms_g[0] / avg_pe_on_off_terms_g[1];
+      avg_pe_on_off = computeAreaWeightedAverage(mesh, on_off_id_list, cv, pe);
   }
 
   // Determine if the pump should be on or off
-  // pump_on = false;
   if (avg_pe_on_off > stage_on_) {
     pump_on = 1;
   } else if (avg_pe_on_off < stage_off_) {
@@ -226,42 +167,47 @@ SurfPumpEvaluator::Evaluate_(const State& S,
     // pass
   }
 
+  double Q;
   if (pump_on) {
-    double head_diff = std::max(max_elev_pumpline_, avg_pe_outlet) - avg_pe_inlet;
-    double Q = (*Q_pump_)(std::vector<double>{head_diff}); // m^3/s
-
-    // average ponded depth for sink distribution based on the available water
-    double avg_pd_inlet_terms_l[2] = { 0, 0 };
-    for (auto c : pump_inlet_id_list) {
-      avg_pd_inlet_terms_l[0] += cv[0][c] * pd[0][c];
-      avg_pd_inlet_terms_l[1] += cv[0][c];
-    }
-    double avg_pd_inlet_terms_g[2] = { 0, 0 };
-    mesh.getComm()->SumAll(avg_pd_inlet_terms_l, avg_pd_inlet_terms_g, 2);
-
-
-    // Pump flowrate as sink to inlet cells
-    for (auto c : pump_inlet_id_list) {
-      if (avg_pd_inlet_terms_g[0] != 0) {
-        surf_src[0][c] = - Q * liq_den[0][c] * pd[0][c] / avg_pd_inlet_terms_g[0]; // mol/(m^2 * s)
-        // surf_src[0][c] = - Q * liq_den[0][c] / avg_pd_terms_g[1];
-      }
-    }
-
-    // Pump flowrate as source to outlet cells
-    if (!pump_outlet_region_.empty()) {
-      double sum_cv_l = 0;
+      double head_diff = std::max(max_elev_pumpline_, avg_pe_outlet) - avg_pe_inlet;
+      Q = (*Q_pump_)(std::vector<double>{head_diff}); // m^3/s
+   
+      // sink distribution based on available water
+      double sum_wc_l = 0;
       for (auto c : pump_outlet_id_list) {
-        sum_cv_l += cv[0][c];
+        sum_wc_l += wc[0][c];
       }
-      double sum_cv_g = 0;
-      mesh.getComm()->SumAll(&sum_cv_l, &sum_cv_g, 1);
+      double sum_wc_g = 0;
+      mesh.getComm()->SumAll(&sum_wc_l, &sum_wc_g, 1);
 
-      for (auto c : pump_outlet_id_list) {
-        surf_src[0][c] = Q * liq_den[0][c] / (sum_cv_g); // mol/(m^2 * s)
+      // Pump flowrate as sink to inlet cells
+      for (auto c : pump_inlet_id_list) {
+        if (sum_wc_g != 0) {
+          surf_src[0][c] = - Q * liq_den[0][c] * wc[0][c]/(sum_wc_g*cv[0][c]); // mol/(m^2 * s)
+        }
       }
-    }
+
+      // Pump flowrate as source to outlet cells
+      if (!pump_outlet_region_.empty()) {
+        double sum_cv_l = 0;
+        for (auto c : pump_outlet_id_list) {
+          sum_cv_l += cv[0][c];
+        }
+        double sum_cv_g = 0;
+        mesh.getComm()->SumAll(&sum_cv_l, &sum_cv_g, 1);
+
+        for (auto c : pump_outlet_id_list) {
+          surf_src[0][c] = Q * liq_den[0][c] / (sum_cv_g); // mol/(m^2 * s)
+        }
+      }
   }
+
+  // double-check mass conservation
+  double mass_balance = 0.0;
+  surf_src.Dot(cv, &mass_balance);
+
+  // Check if the mass balance is zero (or very close to zero, considering numerical precision)
+  AMANZI_ASSERT(std::abs(mass_balance) < 1.e-10);
 
 }
 
