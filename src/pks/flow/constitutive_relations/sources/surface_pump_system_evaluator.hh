@@ -4,23 +4,37 @@
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Authors: Daniil Svyatsky (dasvyat@lanl.gov)
+  Authors: Saubhagya Rathore (rathoress@ornl.gov)
+           Ethan Coon (coonet@ornl.gov)
 */
 
-//! Evaluates water/solute source which represent effect of distributed subsurface tiles on overland flow
+//! An evaluator for stage-based pump systems 
 /*!
 
-.. _surface-distributed-tiles-spec:
-.. admonition:: surface-distributed-tiles-spec
+This evaluator models stage-based pump station model inside 2D flow area. 
+Pump stations can be used to move water between any combination of river reaches, storage areaes or catchment regions. 
+Based on pump on-off conditions and pump-operation curve, water is moved from pump-inlet to -outlet region instantly.
 
-   * `"number of ditches`" ``[int]`` Number of ditches, corresponding to the number of unique IDs.
+
+.. _surface-pump_system-spec:
+.. admonition:: surface-pump_system-spec
+
+   * `"pump inlet region`" ``[str]`` Region of cells from which pump flow is taken out.
+   * `"pump outlet region`" ``[str]`` Region of cells from which pump flow is taken out (optional).
+   * `"on off reference region`" ``[str]`` Region used to determine when the pump should turn on or off (optional). Defaults to "pump inlet region".
+   * `"pump start at stage`" ``[double]`` The water surface elevation that should trigger the pump turning on.
+   * `"pump stop at stage`" ``[double]`` The water surface elevation that should shut the pump down.
+   * `"maximum pumpline elevation`" ``[double]`` Allows the user to enter the highest elevation in the  pump line. E.g., pumping water over top of a levee.
+   * `"pump efficiency  curve`" ``[function]`` This is a function/table of head and flow. Head here is head difference between outlet and inlet (or head by which the water is to be lifted).
 
    KEYS:
-   - `"accumulated source`" **SUBSURFACE_DOMAIN-accumulated_source** Source to the ditch from the tile.
-   - `"catchment ID`" **DOMAIN-catchments_id** ID indicating which ditch a given cell drains to.
-   - `"catchment fraction`" **DOMAIN-catchments_id** 1/dL, the fraction describing the length scale used in connecting the pipe to the ditch.
-   - `"cell volume`"
-
+   - `"cell volume`" **DOMAIN-cell_volume** 
+   - `"ponded depth`" **DOMAIN-ponded_depth** 
+   - `"potential`" **DOMAIN-pres_elev** stage or water surface elevation
+   - `"elevation`" **DOMAIN-elevation** 
+   - `"water content`" **DOMAIN-water_content** 
+   - `"molar liquid density`" **DOMAIN-molar_density_liquid** 
+   - `"pump on`" **DOMAIN-pump_on_flag** status of pump
 */
 
 #pragma once
@@ -82,6 +96,7 @@ class SurfPumpEvaluator : public EvaluatorSecondaryMonotypeCV {
   Key liq_den_key_;
   Key wc_key_;
   Key pe_key_;
+  Key elev_key_;
 
   Key pump_on_key_;
 
