@@ -125,7 +125,6 @@ SurfPumpEvaluator::Evaluate_(const State& S,
 
   surf_src.PutScalar(0.); // initializing with zero
 
-
 // collect gids in relevant regions 
   auto pump_inlet_id_list = mesh.getSetEntities(
     pump_inlet_region_, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
@@ -136,7 +135,13 @@ SurfPumpEvaluator::Evaluate_(const State& S,
       pump_outlet_region_, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
   }
 
-  // Calculate Pump flowrate
+  // stage_on value should be greater than elevation at inlet or inlet is the reference region 
+  if (on_off_region_.empty()){
+    double avg_elev_inlet = computeAreaWeightedAverage(mesh, pump_inlet_id_list, cv, elev);
+    AMANZI_ASSERT(stage_on_ > avg_elev_inlet);
+  }
+
+  // Calculate Stage Difference and Pump Status
   // average stage at inlet
   double avg_pe_inlet = computeAreaWeightedAverage(mesh, pump_inlet_id_list, cv, pe);
 
@@ -167,14 +172,25 @@ SurfPumpEvaluator::Evaluate_(const State& S,
     // pass
   }
 
+  // Calculate pumpflow rate and distribute sources and sinks 
   double Q;
   if (pump_on) {
       double head_diff = std::max(max_elev_pumpline_, avg_pe_outlet) - avg_pe_inlet;
       Q = (*Q_pump_)(std::vector<double>{head_diff}); // m^3/s
+
+      //Down regulate if water demand is greater than water available 
+      double water_avail = 0;
+      for (auto c : pump_inlet_id_list) {
+        water_avail += wc[0][c] / liq_den[0][c]; //m^3
+      }
+      double water_demand = Q * dt; //m^3
+      if (water_demand > water_avail){
+        Q = 0.99*water_avail / (dt);  // m^3/s
+      }
    
       // sink distribution based on available water
       double sum_wc_l = 0;
-      for (auto c : pump_outlet_id_list) {
+      for (auto c : pump_inlet_id_list) {
         sum_wc_l += wc[0][c];
       }
       double sum_wc_g = 0;
@@ -204,10 +220,10 @@ SurfPumpEvaluator::Evaluate_(const State& S,
 
   // double-check mass conservation
   double mass_balance = 0.0;
-  surf_src.Dot(cv, &mass_balance);
-
-  // Check if the mass balance is zero (or very close to zero, considering numerical precision)
-  AMANZI_ASSERT(std::abs(mass_balance) < 1.e-10);
+  if (!pump_outlet_region_.empty()) 
+      surf_src.Dot(cv, &mass_balance);
+      // Check if the mass balance is zero (or very close to zero, considering numerical precision)
+      AMANZI_ASSERT(std::abs(mass_balance) < 1.e-10);
 
 }
 
