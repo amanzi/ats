@@ -13,7 +13,9 @@
 
 #include "Teuchos_Time.hpp"
 #include "Teuchos_RCP.hpp"
+#include "Teuchos_Comm.hpp"
 #include "Teuchos_ParameterList.hpp"
+#include "Teuchos_TimeMonitor.hpp"
 #include "Epetra_MpiComm.h"
 #include "AmanziComm.hh"
 #include "AmanziTypes.hh"

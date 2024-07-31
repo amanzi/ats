@@ -91,7 +91,27 @@ from matplotlib import pyplot as plt
 import ats_xdmf # from $ATS_SRC_DIR/tools/utils/
 
 
-names_dev = {"ponded depth":"surface-ponded_depth.cell.0",
+names_dev = {"ponded depth":"surface-ponded_depth",
+         "surface pressure":"surface-pressure",
+         "pressure":"pressure",
+         "rain":"surface-precipitation_rain",
+         "snow":"surface-precipitation_snow",       
+         "water content":"water_content",
+         "surface water content":"surface-water_content",
+         "saturation":"saturation_liquid",
+         "saturation gas":"saturation_gas",
+         "saturation ice":"saturation_ice",
+         "cell volume":"cell_volume",
+         "surface cell volume":"surface-cell_volume",
+         "surface mass density":"surface-mass_density_liquid",
+         "exfiltration":"surface-surface_subsurface_flux",
+         "evaporation":"surface-evaporative_flux",
+         "transpiration":"transpiration",
+         "surface density": "surface-molar_density_liquid",
+         "density": "molar_density_liquid",
+        }
+
+names_13 = {"ponded depth":"surface-ponded_depth.cell.0",
          "surface pressure":"surface-pressure.cell.0",
          "pressure":"pressure.cell.0",
          "rain":"surface-precipitation_rain.cell.0",
@@ -137,14 +157,20 @@ class MassBalanceFromVis(object):
     _names = names_dev
 
     @classmethod
-    def set_names_dev(cls):
+    def set_names(cls, namestr):
         """Change this class to use dev variable names.
 
         Usage:
           MassBalanceFromVis.set_names_dev()
           sim = MassBalanceFromVis(...)
         """
-        cls._names = names_dev
+        if namestr == '1.3':
+            cls._names = names_13
+        elif namestr == '0.86':
+            cls._names = names_086
+        else:
+            cls._names = names_dev
+
 
     @classmethod
     def set_names_086(cls):
@@ -491,8 +517,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Plot mass balance of a set of runs.")
     parser.add_argument('directories', metavar='dirs', type=str, nargs='+',
                         help="list directories to plot")
-    parser.add_argument('--dev', action="store_true", default=False,
-                        help="use ats-dev variable names")
+    parser.add_argument('--ats-version', type=str, default='dev',
+                        help="use variable names from a given ats version")
     parser.add_argument('--names', type=str, default=None,
                         help="string containing a pythonic dictionary of variable names")
     parser.add_argument('--symbol', '-s', default=None, type=str,
@@ -513,13 +539,12 @@ if __name__ == "__main__":
     else:
         names = None
     
-    if args.dev:
-        MassBalanceFromVis.set_names_dev()
+    MassBalanceFromVis.set_names(args.ats_version)
 
     # loop and plot
     for d in args.directories:
         sim = MassBalanceFromVis(d, names=names)
-        color = colors.next()
+        color = next(colors)
         plot(sim, axs, color, symbol=args.symbol, label=d)
 
     decorate(axs)

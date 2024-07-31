@@ -1,6 +1,6 @@
 # -*- mode: cmake -*-
 
-# # Need this define. Errors from MSTK include files 
+# # Need this define. Errors from MSTK include files
 # # about MPI_COMM_WORLD. --lpritch
 # add_definitions("-DMSTK_HAVE_MPI")
 # add_definitions("-DDISABLE_PHYSICS")
@@ -40,7 +40,7 @@ include_directories(${ATS_SOURCE_DIR}/src/pks)
 include_directories(${ATS_SOURCE_DIR}/src/pks/mpc)
 include_directories(${ATS_SOURCE_DIR}/src/pks/energy)
 include_directories(${ATS_SOURCE_DIR}/src/pks/flow)
-include_directories(${ATS_SOURCE_DIR}/src/pks/deformation)
+include_directories(${ATS_SOURCE_DIR}/src/pks/deform)
 include_directories(${ATS_SOURCE_DIR}/src/pks/transport)
 include_directories(${ATS_SOURCE_DIR}/src/operators/upwinding)
 include_directories(${ATS_SOURCE_DIR}/src/operators/advection)
@@ -85,7 +85,7 @@ set(amanzi_link_libs
   whetstone
   time_integration
   solvers
-  dbg       
+  dbg
   data_structures
   mesh
   mesh_functions
@@ -99,7 +99,7 @@ set(amanzi_link_libs
   #mpc_tree
   transport
   )
-  
+
 set(ats_link_libs
   ats_operators
   ats_generic_evals
@@ -108,7 +108,7 @@ set(ats_link_libs
   ats_eos
   ats_pks
   ats_transport
-  #ats_sed_transport  
+  #ats_sed_transport
   ats_energy
   ats_energy_relations
   ats_flow
@@ -143,9 +143,9 @@ add_amanzi_library(ats_executable
   LINK_LIBS ${amanzi_link_libs} ${tpl_link_libs})
 if (APPLE AND BUILD_SHARED_LIBS)
   set_target_properties(ats_executable PROPERTIES LINK_FLAGS "-Wl,-undefined,dynamic_lookup")
-endif()			  
+endif()
 
-if (BUILD_TESTS) 
+if (BUILD_TESTS)
 
   # Add UnitTest includes
   include_directories(${UnitTest_INCLUDE_DIRS})
@@ -178,6 +178,13 @@ endif()
 
 add_amanzi_executable(ats
   SOURCE main.cc
-  LINK_LIBS ats_executable ${fates_link_libs} ${tpl_link_libs} ${ats_link_libs} ${amanzi_link_libs} 
+  LINK_LIBS ats_executable ${fates_link_libs} ${tpl_link_libs} ${ats_link_libs} ${amanzi_link_libs}
   OUTPUT_NAME ats
   OUTPUT_DIRECTORY ${ATS_BINARY_DIR})
+
+# set this here for now
+# add option to bootstrap before completion
+if (ENABLE_ELM_ATS_API)
+  message("building elm_ats api")
+  add_subdirectory(elm_ats_api)
+endif()
