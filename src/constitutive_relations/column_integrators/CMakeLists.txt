@@ -14,6 +14,8 @@ set(ats_column_integrator_src_files
 
 set(ats_column_integrator_inc_files
   EvaluatorColumnIntegrator.hh
+  WaterTableColumnIntegrator.hh
+  PerchedWaterTableColumnIntegrator.hh
   ColumnSumEvaluator.hh
   activelayer_average_temp_evaluator.hh
   water_table_depth_evaluator.hh

@@ -19,6 +19,7 @@ Computes the depth to a saturated water table.
     KEYS:
 
     - `"saturation of gas`" **SUBSURFACE_DOMAIN-saturation-gas**
+    - `"pressure`" **SUBSURFACE_DOMAIN-pressure**
     - `"subsurface cell volume`" **SUBSURFACE_DOMAIN-cell_volume**
     - `"surface cell volume`" **DOMAIN-cell_volume**
 
@@ -28,7 +29,7 @@ Computes the depth to a saturated water table.
 #pragma once
 
 #include "Factory.hh"
-#include "EvaluatorColumnIntegrator.hh"
+#include "PerchedWaterTableColumnIntegrator.hh"
 
 namespace Amanzi {
 namespace Relations {
@@ -57,8 +58,7 @@ class IntegratorPerchedWaterTableDepth {
 };
 
 using PerchedWaterTableDepthEvaluator =
-  EvaluatorColumnIntegrator<ParserPerchedWaterTableDepth, IntegratorPerchedWaterTableDepth>;
-
+  PerchedWaterTableColumnIntegrator<ParserPerchedWaterTableDepth, IntegratorPerchedWaterTableDepth>;
 
 } //namespace Relations
 } //namespace Amanzi

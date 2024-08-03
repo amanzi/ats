@@ -43,7 +43,6 @@ IntegratorWaterTableDepth::IntegratorWaterTableDepth(Teuchos::ParameterList& pli
   pres_ = deps[1];
   cv_ = deps[2];
   surf_cv_ = deps[3];
-
   is_interp_ = plist.get<bool>("determined by pressure interpolation", false);
 }
 
@@ -55,14 +54,14 @@ IntegratorWaterTableDepth::scan(AmanziMesh::Entity_ID col,
   if ((*sat_)[0][c] == 0.0) {
     p[2] = mesh_->getCellCentroid(c)[2]; // last saturated cell centroid
     if (is_interp_) {
-      p[1] = (*pres_)[0][c]; // last saturated cell pressure
+      p[0] = (*pres_)[0][c]; // last saturated cell pressure
     } else {
-      p[1] = (*cv_)[0][c] * (-1); // last saturated cell volume to be removed     
+      p[0] += (*cv_)[0][c]; // cumulative saturated cell volume
     } 
     return false;  
   }
   if (is_interp_) {
-    p[0] = (*pres_)[0][c]; // first unsaturated cell pressure
+    p[1] = (*pres_)[0][c]; // first unsaturated cell pressure
   }
   return true;
 }
