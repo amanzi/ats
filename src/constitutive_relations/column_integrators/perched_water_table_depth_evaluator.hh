@@ -19,7 +19,7 @@ Computes the depth to a saturated water table.
     KEYS:
 
     - `"saturation of gas`" **SUBSURFACE_DOMAIN-saturation-gas**
-    - `"pressure`" **SUBSURFACE_DOMAIN-pressuer**
+    - `"pressure`" **SUBSURFACE_DOMAIN-pressure**
     - `"subsurface cell volume`" **SUBSURFACE_DOMAIN-cell_volume**
     - `"surface cell volume`" **DOMAIN-cell_volume**
 
@@ -29,20 +29,20 @@ Computes the depth to a saturated water table.
 #pragma once
 
 #include "Factory.hh"
-#include "WaterTableColumnIntegrator.hh"
+#include "PerchedWaterTableColumnIntegrator.hh"
 
 namespace Amanzi {
 namespace Relations {
 
-struct ParserWaterTableDepth {
-  ParserWaterTableDepth(Teuchos::ParameterList& plist, const KeyTag& key_tag);
+struct ParserPerchedWaterTableDepth {
+  ParserPerchedWaterTableDepth(Teuchos::ParameterList& plist, const KeyTag& key_tag);
   KeyTagSet dependencies;
 };
 
 
-class IntegratorWaterTableDepth {
+class IntegratorPerchedWaterTableDepth {
  public:
-  IntegratorWaterTableDepth(Teuchos::ParameterList& plist,
+  IntegratorPerchedWaterTableDepth(Teuchos::ParameterList& plist,
                             std::vector<const Epetra_MultiVector*>& deps,
                             const AmanziMesh::Mesh* mesh);
   int scan(AmanziMesh::Entity_ID col, AmanziMesh::Entity_ID c, AmanziGeometry::Point& p);
@@ -57,8 +57,8 @@ class IntegratorWaterTableDepth {
   bool is_interp_;
 };
 
-using WaterTableDepthEvaluator =
-  WaterTableColumnIntegrator<ParserWaterTableDepth, IntegratorWaterTableDepth>;
+using PerchedWaterTableDepthEvaluator =
+  PerchedWaterTableColumnIntegrator<ParserPerchedWaterTableDepth, IntegratorPerchedWaterTableDepth>;
 
 } //namespace Relations
 } //namespace Amanzi
