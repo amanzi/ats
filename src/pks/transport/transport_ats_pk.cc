@@ -245,7 +245,7 @@ Transport_ATS::SetupTransport_()
             src->set_state(S_);
             srcs_.push_back(src);
 
-            // what if there are more than one!?!? --ETC
+            // what if there are more than one!?!? --ETC // PL: Need a loop here for each field if > 1
             auto field_key = src_list->sublist("field").get<std::string>("field key");
             auto field_tag = Keys::readTag(src_list->sublist("field"), "tag");
             requireAtNext(field_key, field_tag, *S_)

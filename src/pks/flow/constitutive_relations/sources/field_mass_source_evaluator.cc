@@ -58,7 +58,7 @@ FieldMassSourceEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
     // convert discharge from mol/s to m3/s
     double field_flow = water_from_field[0][c] * cv[0][c] / molar_den[0][c];
 
-    // transport source (mass) as a function of particular discharge (e.g. tile, overland)
+    // transport source (mass) as a function of discharge (e.g. tile, overland)
     double source_mass = (*QC_curve_)(std::vector<double>{field_flow});
     surf_src[0][c] = source_mass;
   }
