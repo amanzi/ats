@@ -136,14 +136,6 @@ Transport_ATS::SetupAlquimia(Teuchos::RCP<AmanziChemistry::Alquimia_PK> chem_pk,
     std::vector<std::string> component_names;
     chem_engine_->GetPrimarySpeciesNames(component_names);
     component_names_ = component_names;
-    //
-    // DOES TCC include secondaries?
-    //
-    // for (int i = 0; i < chem_engine_->NumAqueousComplexes(); ++i) {
-    //   char secondary_name[128];
-    //   snprintf(secondary_name, 127, "secondary_%d", i);
-    //   component_names_.push_back(secondary_name);
-    // }
     num_components = component_names_.size();
   }
 }
@@ -237,7 +229,6 @@ Transport_ATS::SetupTransport_()
             Teuchos::RCP<TransportDomainFunction> src =
               factory.Create(*src_list, "field", AmanziMesh::Entity_kind::CELL, Kxy, tag_current_);
 
-            // field function is also special -- always work on all components
             for (int i = 0; i < num_components; i++) {
               src->tcc_names().push_back(component_names_[i]);
               src->tcc_index().push_back(i);
@@ -245,18 +236,19 @@ Transport_ATS::SetupTransport_()
             src->set_state(S_);
             srcs_.push_back(src);
             
-            Teuchos::ParameterList flist = src_list->sublist("field");
+            Teuchos::ParameterList flist = src_list->sublist("field");            
+            // if there are more than one field
             if (flist.isParameter("number of fields")) {
               if (flist.isType<int>("number of fields")) {
-                int nfields = flist.get<int>("number of fields");
-                if (nfields < 1) {
-                  // ERROR -- invalid number of dofs
+                int num_fields = flist.get<int>("number of fields");
+                
+                if (num_fields < 1) { // ERROR -- invalid number of fields
                   AMANZI_ASSERT(0);
                 }
 
-                for (int lcv = 1; lcv != (nfields + 1); ++lcv) {
+                for (int fid = 1; fid != (num_fields + 1); ++fid) {
                   std::stringstream sublist_name;
-                  sublist_name << "field " << lcv << " info";
+                  sublist_name << "field " << fid << " info";
                   auto field_key = flist.sublist(sublist_name.str()).get<std::string>("field key");
                   auto field_tag = Keys::readTag(flist.sublist(sublist_name.str()), "tag");
                   requireAtNext(field_key, field_tag, *S_)
@@ -265,21 +257,18 @@ Transport_ATS::SetupTransport_()
                     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
                 }
               }
-            } else {
-              // what if there are more than one!?!? --ETC // PL: Need a loop here for each field if > 1
+            } else { // if only one field
               auto field_key = src_list->sublist("field").get<std::string>("field key");
               auto field_tag = Keys::readTag(src_list->sublist("field"), "tag");
               requireAtNext(field_key, field_tag, *S_)
                 .SetMesh(mesh_)
                 ->SetGhosted(true)
                 ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_components);
-              // NOTE: this code should be moved to the PK_DomainFunctionField,
-              // and all other PK_DomainFunction* should be updated to make sure
-              // they require their data! --ETC
-              // This will require pk_helper.hh to be included in PK_DomainFunctionField.hh -- PL
+              // NOTE: this code should be moved to the PK_DomainFunctionField, and all other 
+              // PK_DomainFunction* should be updated to make sure they require their data! --ETC
+              // Problem: This requires the pk_helper.hh to be included in PK_DomainFunctionField.hh --PL
             }
-          } else {
-            // all others work on a subset of components
+          } else { // all others work on a subset of components
             Teuchos::RCP<TransportDomainFunction> src = factory.Create(
               *src_list, "source function", AmanziMesh::Entity_kind::CELL, Kxy, tag_current_);
             src->set_tcc_names(src_list->get<Teuchos::Array<std::string>>("component names").toVector());
@@ -287,7 +276,7 @@ Transport_ATS::SetupTransport_()
               src->tcc_index().push_back(FindComponentNumber(n));
             }
 
-          if (convert_to_field_[name]) {
+            if (convert_to_field_[name]) {
               name = Keys::cleanName(name);
               if (Keys::getDomain(name)!=domain_){
                 name = Keys::getKey(domain_, name);
@@ -453,7 +442,6 @@ Transport_ATS::SetupPhysicalEvaluators_()
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  // Require a copy of saturation at the old time tag
   requireAtCurrent(saturation_key_, Tags::CURRENT, *S_);
 
   requireAtNext(porosity_key_, Tags::NEXT, *S_)
@@ -474,8 +462,7 @@ Transport_ATS::SetupPhysicalEvaluators_()
   S_->GetRecordSetW(tcc_key_).set_subfieldnames(component_names_);
   requireAtCurrent(tcc_key_, tag_current_, *S_, passwd_);
 
-  // CellVolume is required here -- it may not be used in this PK, but having
-  // it makes vis nicer
+  // CellVolume it may not be used in this PK, but having it makes vis nicer
   requireAtNext(cv_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
@@ -527,19 +514,12 @@ Transport_ATS::Initialize()
   tcc_tmp = S_->GetPtrW<CompositeVector>(tcc_key_, tag_next_, passwd_);
   tcc = S_->GetPtrW<CompositeVector>(tcc_key_, tag_current_, passwd_);
 
-  // these are bad & will be changed with an interpolation evaluator --ETC & PL
   ws_ = S_->Get<CompositeVector>(saturation_key_, Tags::NEXT).ViewComponent("cell", false);
   ws_prev_ = S_->Get<CompositeVector>(saturation_key_, Tags::CURRENT).ViewComponent("cell", false);
-
-  // these are bad too
   mol_dens_ = S_->Get<CompositeVector>(molar_density_key_, Tags::NEXT).ViewComponent("cell", false);
   mol_dens_prev_ =
     S_->Get<CompositeVector>(molar_density_key_, Tags::CURRENT).ViewComponent("cell", false);
-
-  // flux is fine here, treated implicitly
   flux_ = S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ViewComponent("face", true);
-
-  // do we really need porosity?  How is it used? --ETC  
   phi_ = S_->Get<CompositeVector>(porosity_key_, Tags::NEXT).ViewComponent("cell", false);
 
   // extract control parameters
@@ -631,16 +611,12 @@ Transport_ATS::StableTimeStep()
   S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ScatterMasterToGhosted("face");
   // Get flux at faces for time NEXT
   auto flux = S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ViewComponent("face", true);
-  // std::cout << *flux << std::endl << std::flush;
   IdentifyUpwindCells();
 
-  // local variable, not class variable --ETC
   // Total concentration at current tag
   tcc = S_->GetPtrW<CompositeVector>(tcc_key_, tag_current_, passwd_);
   Epetra_MultiVector& tcc_prev = *tcc->ViewComponent("cell");
-  // Epetra_MultiVector& tcc_prev = *S_->GetPtrW<CompositeVector>(tcc_key_, tag_current_, passwd_)->ViewComponent("cell");
-  // std::cout << tcc_prev << std::endl << std::flush;
-
+  
   int ncells_all =
     mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::ALL);
   int nfaces_all =
