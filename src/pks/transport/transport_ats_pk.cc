@@ -244,17 +244,40 @@ Transport_ATS::SetupTransport_()
             }
             src->set_state(S_);
             srcs_.push_back(src);
+            
+            Teuchos::ParameterList flist = src_list->sublist("field");
+            if (flist.isParameter("number of fields")) {
+              if (flist.isType<int>("number of fields")) {
+                int nfields = flist.get<int>("number of fields");
+                if (nfields < 1) {
+                  // ERROR -- invalid number of dofs
+                  AMANZI_ASSERT(0);
+                }
 
-            // what if there are more than one!?!? --ETC // PL: Need a loop here for each field if > 1
-            auto field_key = src_list->sublist("field").get<std::string>("field key");
-            auto field_tag = Keys::readTag(src_list->sublist("field"), "tag");
-            requireAtNext(field_key, field_tag, *S_)
-              .SetMesh(mesh_)
-              ->SetGhosted(true)
-              ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_components);
-            // NOTE: this code should be moved to the PK_DomainFunctionField,
-            // and all other PK_DomainFunction* should be updated to make sure
-            // they require their data! --ETC
+                for (int lcv = 1; lcv != (nfields + 1); ++lcv) {
+                  std::stringstream sublist_name;
+                  sublist_name << "field " << lcv << " info";
+                  auto field_key = flist.sublist(sublist_name.str()).get<std::string>("field key");
+                  auto field_tag = Keys::readTag(flist.sublist(sublist_name.str()), "tag");
+                  requireAtNext(field_key, field_tag, *S_)
+                    .SetMesh(mesh_)
+                    ->SetGhosted(true)
+                    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+                }
+              }
+            } else {
+              // what if there are more than one!?!? --ETC // PL: Need a loop here for each field if > 1
+              auto field_key = src_list->sublist("field").get<std::string>("field key");
+              auto field_tag = Keys::readTag(src_list->sublist("field"), "tag");
+              requireAtNext(field_key, field_tag, *S_)
+                .SetMesh(mesh_)
+                ->SetGhosted(true)
+                ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_components);
+              // NOTE: this code should be moved to the PK_DomainFunctionField,
+              // and all other PK_DomainFunction* should be updated to make sure
+              // they require their data! --ETC
+              // This will require pk_helper.hh to be included in PK_DomainFunctionField.hh -- PL
+            }
           } else {
             // all others work on a subset of components
             Teuchos::RCP<TransportDomainFunction> src = factory.Create(
