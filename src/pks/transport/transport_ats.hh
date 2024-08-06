@@ -409,7 +409,9 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
 
  private:
   void InitializeFields_();
-
+  void SetupTransport_();
+  void SetupPhysicalEvaluators_();
+  
   // advection members
   void AdvanceDonorUpwind(double dT);
   void AdvanceSecondOrderUpwindRKn(double dT);
@@ -501,24 +503,27 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   Key solid_residue_mass_key_;
   Key water_content_key_;
   Key water_src_key_, solute_src_key_;
+  Key water_src_tile_key_;
   bool has_water_src_key_;
   bool water_src_in_meters_;
+  bool has_water_src_tile_key_;
   Key geochem_src_factor_key_;
   Key conserve_qty_key_;
   Key cv_key_;
 
  private:
-  bool subcycling_;
   int dim;
   int saturation_name_;
   bool vol_flux_conversion_;
 
+  std::unordered_map<std::string, bool> convert_to_field_;
   Key passwd_;
+
+  Teuchos::RCP<CompositeVector> cv;
 
   Teuchos::RCP<CompositeVector> tcc_w_src;
   Teuchos::RCP<CompositeVector> tcc_tmp; // next tcc
   Teuchos::RCP<CompositeVector> tcc;     // smart mirrow of tcc
-  Teuchos::RCP<Epetra_MultiVector> conserve_qty_, solid_qty_, water_qty_;
   Teuchos::RCP<const Epetra_MultiVector> flux_;
   Teuchos::RCP<const Epetra_MultiVector> ws_, ws_prev_, phi_, mol_dens_, mol_dens_prev_;
   Teuchos::RCP<Epetra_MultiVector> flux_copy_;
@@ -528,13 +533,9 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   Teuchos::RCP<AmanziChemistry::ChemistryEngine> chem_engine_;
 #endif
 
-  Teuchos::RCP<Epetra_IntVector> upwind_cell_;
-  Teuchos::RCP<Epetra_IntVector> downwind_cell_;
-
+  Teuchos::RCP<Epetra_IntVector> upwind_cell_, downwind_cell_;
   Teuchos::RCP<const Epetra_MultiVector> ws_current, ws_next;             // data for subcycling
   Teuchos::RCP<const Epetra_MultiVector> mol_dens_current, mol_dens_next; // data for subcycling
-  Teuchos::RCP<Epetra_MultiVector> ws_subcycle_current, ws_subcycle_next;
-  Teuchos::RCP<Epetra_MultiVector> mol_dens_subcycle_current, mol_dens_subcycle_next;
 
   int current_component_; // data for lifting
   Teuchos::RCP<Operators::ReconstructionCellLinear> lifting_;
@@ -570,8 +571,7 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   std::vector<std::string> runtime_solutes_; // solutes tracked for diagnostics
   std::vector<std::string> runtime_regions_;
 
-  int ncells_owned, ncells_wghost;
-  int nfaces_owned, nfaces_wghost;
+  // int nfaces_owned;
   int nnodes_wghost;
 
   std::vector<std::string> component_names_; // details of components
@@ -582,10 +582,7 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
 
   // io
   Utils::Units units_;
-  Tag tag_subcycle_;
-  Tag tag_subcycle_current_;
-  Tag tag_subcycle_next_;
-  Tag tag_flux_next_ts_; // what is this? --ETC
+  Tag flow_tag_;
 
  private:
   // Forbidden.
