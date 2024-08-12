@@ -48,7 +48,7 @@ add_amanzi_library(ats_pks
                    HEADERS ${ats_pks_inc_files}
 		   LINK_LIBS ${ats_pks_link_libs})
 
-
+add_subdirectory(lake_thermo)
 add_subdirectory(energy)
 add_subdirectory(flow)
 add_subdirectory(transport)
