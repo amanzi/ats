@@ -5,7 +5,7 @@ ATS
 
 Authors: Ethan Coon (ecoon@lanl.gov)
 
-FieldEvaluator for enthalpy.
+Evaluator for enthalpy.
 ----------------------------------------------------------------------------- */
 
 
@@ -15,25 +15,26 @@ FieldEvaluator for enthalpy.
 #include "Teuchos_ParameterList.hpp"
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace LakeThermo {
 
-class LakeEnthalpyEvaluator : public SecondaryVariableFieldEvaluator {
+class LakeEnthalpyEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   LakeEnthalpyEvaluator(Teuchos::ParameterList& plist);
-  LakeEnthalpyEvaluator(const LakeEnthalpyEvaluator& other);
+  LakeEnthalpyEvaluator(const LakeEnthalpyEvaluator& other) = default;
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
+  virtual Teuchos::RCP<Evaluator> Clone() const override;
 
-  // Required methods from SecondaryVariableFieldEvaluator
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
  protected:
 
@@ -43,7 +44,7 @@ class LakeEnthalpyEvaluator : public SecondaryVariableFieldEvaluator {
   bool include_work_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,LakeEnthalpyEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator,LakeEnthalpyEvaluator> factory_;
 
 };
 
