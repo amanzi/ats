@@ -16,9 +16,7 @@ namespace LakeThermo {
 
 DensityEvaluator::DensityEvaluator(Teuchos::ParameterList& plist) :
     EvaluatorSecondaryMonotypeCV(plist) {
-
-  // my_key_ = plist_.get<std::string>("density key", "surface-density");
-
+      
   // Set up my dependencies.
   std::string domain_name = Keys::getDomain(my_keys_.front().first);
   Tag tag = my_keys_.front().second;    
