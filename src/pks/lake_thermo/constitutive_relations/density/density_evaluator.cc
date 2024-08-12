@@ -17,7 +17,7 @@ namespace LakeThermo {
 DensityEvaluator::DensityEvaluator(Teuchos::ParameterList& plist) :
     EvaluatorSecondaryMonotypeCV(plist) {
 
-  my_key_ = plist_.get<std::string>("density key", "surface-density");
+  // my_key_ = plist_.get<std::string>("density key", "surface-density");
 
   // Set up my dependencies.
   std::string domain_name = Keys::getDomain(my_keys_.front().first);
@@ -29,10 +29,6 @@ DensityEvaluator::DensityEvaluator(Teuchos::ParameterList& plist) :
 
 };
 
-DensityEvaluator::DensityEvaluator(const DensityEvaluator& other) :
-    EvaluatorSecondaryMonotypeCV(other),
-    temperature_key_(other.temperature_key_) {};
-
 Teuchos::RCP<Evaluator>
 DensityEvaluator::Clone() const {
   return Teuchos::rcp(new DensityEvaluator(*this));
@@ -42,7 +38,9 @@ DensityEvaluator::Clone() const {
 void DensityEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& result)   
 {
 
-  Teuchos::RCP<const CompositeVector> temp = S->GetFieldData(temperature_key_);
+  Tag tag = my_keys_.front().second;
+
+  Teuchos::RCP<const CompositeVector> temp = S.GetPtr<CompositeVector>(temperature_key_,tag);
 
 //  double rho0 = 1.;
   double rho0 = 1000.;
@@ -58,12 +56,12 @@ void DensityEvaluator::Evaluate_(const State& S, const std::vector<CompositeVect
   std::string EOS_type = plist_.get<std::string>("EOS type",
       "none");   
 
-  for (CompositeVector::name_iterator comp=result->begin();
-       comp!=result->end(); ++comp) {
+  for (CompositeVector::name_iterator comp=result[0]->begin();
+       comp!=result[0]->end(); ++comp) {
     const Epetra_MultiVector& temp_v = *temp->ViewComponent(*comp,false);
-    Epetra_MultiVector& result_v = *result->ViewComponent(*comp,false);
+    Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp,false);
 
-    int ncomp = result->size(*comp, false);
+    int ncomp = result[0]->size(*comp, false);
     std::vector<double> rho(ncomp);
     for (int i=0; i!=ncomp; ++i) {
       double T = temp_v[0][i]-273.15;
@@ -97,16 +95,20 @@ void DensityEvaluator::Evaluate_(const State& S, const std::vector<CompositeVect
 };
 
 
-void DensityEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-        Key wrt_key, const Teuchos::Ptr<CompositeVector>& result) {
-  
-  result->PutScalar(0.);
+void DensityEvaluator::EvaluatePartialDerivative_(const State& S,
+                                              const Key& wrt_key,
+                                              const Tag& wrt_tag,
+                                              const std::vector<CompositeVector*>& result)
+{
+  Tag tag = my_keys_.front().second;
+
+  result[0]->PutScalar(0.);
 
   std::string EOS_type = plist_.get<std::string>("EOS type",
       "none");   
 
   if (wrt_key == temperature_key_) {
-    Teuchos::RCP<const CompositeVector> temp = S->GetFieldData(temperature_key_);
+    Teuchos::RCP<const CompositeVector> temp = S.GetPtr<CompositeVector>(temperature_key_,tag);
 
     double rho0 = 1000.;
     double a0 = 800.969e-7;
@@ -118,12 +120,12 @@ void DensityEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>
     double const_ampl = 1.9549e-5;
     double const_power = 1.68;
 
-    for (CompositeVector::name_iterator comp=result->begin();
-         comp!=result->end(); ++comp) {
+    for (CompositeVector::name_iterator comp=result[0]->begin();
+         comp!=result[0]->end(); ++comp) {
       const Epetra_MultiVector& temp_v = *temp->ViewComponent(*comp,false);
-      Epetra_MultiVector& result_v = *result->ViewComponent(*comp,false);
+      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp,false);
 
-      int ncomp = result->size(*comp, false);
+      int ncomp = result[0]->size(*comp, false);
       std::vector<double> drho(ncomp);
       for (int i=0; i!=ncomp; ++i) {
         double T = temp_v[0][i]-273.15;
