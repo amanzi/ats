@@ -9,12 +9,18 @@
 
 /*!
 
-Computes the depth to a saturated water table.
+Computes the depth to the perched water table.
 
-`"evaluator type`" = `"water table depth`"
+`"evaluator type`" = `"perched water table depth`"
 
-.. _water-table-depth-spec:
-.. admonition:: water-table-depth-spec
+.. _perched-water-table-depth-spec:
+.. admonition:: perched-water-table-depth-spec
+
+    * `"interpolate depth from pressure`" ``[bool]`` **false** Default to calculate
+      perched water table depth by locating the bottom face of the last continuously 
+      unsaturated cell from top downward. If true, use the height and pressure at the 
+      centroids of the last continuously unsaturated cell and its adjacent saturated 
+      cell to determine the perched water table depth through interpolation.
 
     KEYS:
 

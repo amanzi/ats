@@ -8,7 +8,7 @@
            Bo Gao (gaob@ornl.gov)
 */
 
-//! Calculates the water table depth where the water table is defined as the top cell with 0 gas saturation.
+//! Calculates the water table depth by locating the end of continuously saturated cells from bottom upwards.
 #include "water_table_depth_evaluator.hh"
 
 namespace Amanzi {
@@ -43,7 +43,7 @@ IntegratorWaterTableDepth::IntegratorWaterTableDepth(Teuchos::ParameterList& pli
   pres_ = deps[1];
   cv_ = deps[2];
   surf_cv_ = deps[3];
-  is_interp_ = plist.get<bool>("determined by pressure interpolation", false);
+  is_interp_ = plist.get<bool>("interpolate depth from pressure", false);
 }
 
 int

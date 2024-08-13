@@ -24,3 +24,10 @@ Arbitrary function
 ^^^^^^^^^^^^^^^^^^
 { EvaluatorSecondaryMonotypeFromFunction }
 
+Perched Water Table Depth
+^^^^^^^^^^^^^^^^^^^^^^^^^
+{ perched_water_table_depth_evaluator }
+
+Water Table Depth
+^^^^^^^^^^^^^^^^^
+{ water_table_depth_evaluator }

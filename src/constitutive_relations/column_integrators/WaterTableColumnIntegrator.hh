@@ -4,17 +4,13 @@
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Authors: Ethan Coon (coonet@ornl.gov)
+  Authors: Bo Gao (gaob@ornl.gov) 
+           Ethan Coon (coonet@ornl.gov)
 */
 
 /*
 
-This is an evaluator for integrating arbitrary functionals across columns to
-get a related quantity.  Example uses might be computing the column-averaged
-temperature, finding the depth to water table, or similar.
-
-Clients should provide a struct functor that does the actual work, and returns
--1 if the loop over columns should break.
+This is an evaluator for calculating water table depth.
 
 */
 
@@ -37,8 +33,8 @@ class WaterTableColumnIntegrator : public EvaluatorColumnIntegrator<Parser, Inte
   // Required methods from EvaluatorColumnIntegrator to overide
   virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
 
-  Teuchos::ParameterList plist_ = EvaluatorColumnIntegrator<Parser, Integrator>::plist_;
-  KeyTagSet dependencies_ = EvaluatorColumnIntegrator<Parser, Integrator>::dependencies_;
+  using EvaluatorColumnIntegrator<Parser, Integrator>::plist_;
+  using EvaluatorColumnIntegrator<Parser, Integrator>::dependencies_;
 
  private:
   static Utils::RegisteredFactory<Evaluator, WaterTableColumnIntegrator<Parser, Integrator>> reg_;
@@ -99,7 +95,7 @@ WaterTableColumnIntegrator<Parser, Integrator>::Evaluate_(
     } else if (val[2] == h_end) { // fail to find satisfied cell util end of loop 
       res[0][col] = h_top - val[2] + h_half1;
     } else {
-      if (plist_.get<bool>("determined by pressure interpolation")) {
+      if (plist_.template get<bool>("interpolate depth from pressure")) {
         res[0][col] = (val[2] - h_end) * (101325. - val[0]) / (val[1] - val[0]) 
                     + (h_top - val[2]);
       } else {
