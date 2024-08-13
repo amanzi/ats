@@ -90,7 +90,7 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
   // print header material
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
     *vo_->os() << "Writing input file ..." << std::endl << std::endl;
-    // Teuchos::writeParameterListToXmlOStream(*plist_, *vo_->os());
+    Teuchos::writeParameterListToXmlOStream(*plist_, *vo_->os());
     *vo_->os() << "  ... completed." << std::endl;
   }
 
