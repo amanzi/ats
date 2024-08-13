@@ -13,7 +13,7 @@
 #include "Teuchos_ParameterList.hpp"
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 #include "Function.hh"
 #include "FunctionFactory.hh"
 
@@ -21,20 +21,21 @@ namespace Amanzi {
 namespace LakeThermo {
 
 class LakeEvaporationRateEvaluator :
-    public SecondaryVariableFieldEvaluator {
+    public EvaluatorSecondaryMonotypeCV {
 
  public:
   // constructor format for all derived classes
   LakeEvaporationRateEvaluator(Teuchos::ParameterList& plist);
-  LakeEvaporationRateEvaluator(const LakeEvaporationRateEvaluator& other);
+  LakeEvaporationRateEvaluator(const LakeEvaporationRateEvaluator& other) = default;
 
-  Teuchos::RCP<FieldEvaluator> Clone() const;
+  Teuchos::RCP<Evaluator> Clone() const override;
 
   // Required methods from SecondaryVariableFieldModel
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
  protected:
   // dependencies
@@ -42,7 +43,7 @@ class LakeEvaporationRateEvaluator :
   Key temperature_key_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,LakeEvaporationRateEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator,LakeEvaporationRateEvaluator> factory_;
 
 };
 

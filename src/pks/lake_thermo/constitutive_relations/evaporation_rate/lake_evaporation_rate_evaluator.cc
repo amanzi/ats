@@ -14,40 +14,28 @@ namespace LakeThermo {
 
 LakeEvaporationRateEvaluator::LakeEvaporationRateEvaluator(
     Teuchos::ParameterList& plist) :
-            SecondaryVariableFieldEvaluator(plist) {
-  if (my_key_ == std::string("")) {
-    my_key_ = plist_.get<std::string>("lake evaporation rate key",
-        "surface-evaporation_rate");
-  }
-
-  Key domain = Keys::getDomain(my_key_);
+            EvaluatorSecondaryMonotypeCV(plist) {
 
   // Set up my dependencies.
-  std::string domain_name = Keys::getDomain(my_key_);
+  std::string domain_name = Keys::getDomain(my_keys_.front().first);
+  Tag tag = my_keys_.front().second;
 
   // -- temperature
   temperature_key_ = Keys::readKey(plist_, domain_name, "temperature", "temperature");
-  dependencies_.insert(temperature_key_);
+  dependencies_.insert(KeyTag{ temperature_key_, tag });
 
 }
 
-LakeEvaporationRateEvaluator::LakeEvaporationRateEvaluator(
-    const LakeEvaporationRateEvaluator& other) :
-            SecondaryVariableFieldEvaluator(other),
-            temperature_key_(other.temperature_key_){}
-
-
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 LakeEvaporationRateEvaluator::Clone() const {
   return Teuchos::rcp(new LakeEvaporationRateEvaluator(*this));
 }
 
-void LakeEvaporationRateEvaluator::EvaluateField_(
-    const Teuchos::Ptr<State>& S,
-    const Teuchos::Ptr<CompositeVector>& result) {
-
+void LakeEvaporationRateEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& result)
+{
+  Tag tag = my_keys_.front().second;
   // get mesh
-  Teuchos::RCP<const AmanziMesh::Mesh> mesh = result->Mesh();
+  Teuchos::RCP<const AmanziMesh::Mesh> mesh = result[0]->Mesh();
 
   // read parameters from the met data
   Teuchos::ParameterList& param_list = plist_.sublist("parameters");
@@ -59,22 +47,22 @@ void LakeEvaporationRateEvaluator::EvaluateField_(
   Teuchos::RCP<Amanzi::Function> P_a_func_ = Teuchos::rcp(fac.Create(param_list.sublist("atmospheric pressure")));
 
   std::vector<double> args(1);
-  args[0] = S->time();
+  args[0] = S.get_time();
   double SS = (*SS_func_)(args);
   double E_a = (*E_a_func_)(args);
   double T_a = (*T_a_func_)(args);
   double q_a = (*H_a_func_)(args);
   double P_a = (*P_a_func_)(args);
 
-  for (CompositeVector::name_iterator comp=result->begin();
-      comp!=result->end(); ++comp) {
+  for (CompositeVector::name_iterator comp=result[0]->begin();
+      comp!=result[0]->end(); ++comp) {
 
-    Epetra_MultiVector& result_v = *result->ViewComponent(*comp,false);
+    Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp,false);
 
-    int ncomp = result->size(*comp, false);
+    int ncomp = result[0]->size(*comp, false);
 
     // get temperature
-    const Epetra_MultiVector& temp_v = *S->GetFieldData(temperature_key_)
+    const Epetra_MultiVector& temp_v = *S.GetPtr<CompositeVector>(temperature_key_,tag)
           ->ViewComponent("cell",false);
 
     double T_s = temp_v[0][ncomp-1];
@@ -133,18 +121,22 @@ void LakeEvaporationRateEvaluator::EvaluateField_(
 }
 
 
-void LakeEvaporationRateEvaluator::EvaluateFieldPartialDerivative_(
-    const Teuchos::Ptr<State>& S, Key wrt_key,
-    const Teuchos::Ptr<CompositeVector>& result) {
-  result->PutScalar(0.0);
+void LakeEvaporationRateEvaluator::EvaluatePartialDerivative_(const State& S,
+                                              const Key& wrt_key,
+                                              const Tag& wrt_tag,
+                                              const std::vector<CompositeVector*>& result)
+{
+  Tag tag = my_keys_.front().second;
+  
+  result[0]->PutScalar(0.0);
 
   //  if (wrt_key == water_content_key_) {
   //
-  //    for (CompositeVector::name_iterator comp=result->begin();
-  //        comp!=result->end(); ++comp) {
-  //      Epetra_MultiVector& result_v = *result->ViewComponent(*comp,false);
+  //    for (CompositeVector::name_iterator comp=result[0]->begin();
+  //        comp!=result[0]->end(); ++comp) {
+  //      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp,false);
   //
-  //      int ncomp = result->size(*comp, false);
+  //      int ncomp = result[0]->size(*comp, false);
   //      for (int i=0; i!=ncomp; ++i) {
   //        result_v[0][i] = cw * 1.8e-5;
   //      }
@@ -152,11 +144,11 @@ void LakeEvaporationRateEvaluator::EvaluateFieldPartialDerivative_(
   //  }
   //  if (wrt_key == ice_content_key_) {
   //
-  //    for (CompositeVector::name_iterator comp=result->begin();
-  //        comp!=result->end(); ++comp) {
-  //      Epetra_MultiVector& result_v = *result->ViewComponent(*comp,false);
+  //    for (CompositeVector::name_iterator comp=result[0]->begin();
+  //        comp!=result[0]->end(); ++comp) {
+  //      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp,false);
   //
-  //      int ncomp = result->size(*comp, false);
+  //      int ncomp = result[0]->size(*comp, false);
   //      for (int i=0; i!=ncomp; ++i) {
   //        result_v[0][i] = ci * 1.8e-5;
   //      }

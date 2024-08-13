@@ -15,32 +15,23 @@ namespace Amanzi {
 namespace LakeThermo {
 
 LakeSurfaceTemperatureEvaluator::LakeSurfaceTemperatureEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist) {
-  if (my_key_.empty()) {
-
-    my_key_ = plist_.get<std::string>("temperature", "temperature");
-  }
-
-  std::cout << "my_key_ = " << my_key_ << std::endl;
+    EvaluatorSecondaryMonotypeCV(plist) {
 
   // Set up my dependencies.
-  std::string domain_name = "domain"; //Keys::getDomain(my_key_);
+  std::string domain_name = Keys::getDomain(my_keys_.front().first);
+  Tag tag = my_keys_.front().second;
 
   std::cout << "surf temp eval domain_name = " << domain_name << std::endl;
 
   // -- temperature
   temperature_key_ = Keys::readKey(plist_, domain_name, "temperature", "temperature");
-  dependencies_.insert(temperature_key_);
+  dependencies_.insert(KeyTag{ temperature_key_, tag });
 
   std::cout << "temperature_key_ = " << temperature_key_ << std::endl;
 
 };
 
-LakeSurfaceTemperatureEvaluator::LakeSurfaceTemperatureEvaluator(const LakeSurfaceTemperatureEvaluator& other) :
-    SecondaryVariableFieldEvaluator(other),
-    temperature_key_(other.temperature_key_){};
-
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 LakeSurfaceTemperatureEvaluator::Clone() const {
   return Teuchos::rcp(new LakeSurfaceTemperatureEvaluator(*this));
 };
@@ -51,13 +42,14 @@ void LakeSurfaceTemperatureEvaluator::EnsureCompatibility(const Teuchos::Ptr<Sta
 }
 
 
-void LakeSurfaceTemperatureEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-        const Teuchos::Ptr<CompositeVector>& result) {
+void LakeSurfaceTemperatureEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& result)
+{
+  Tag tag = my_keys_.front().second;
 
   std::cout << "SurfTempEval check 1 " << std::endl;
   std::cout << "temperature_key_ = " << temperature_key_ << std::endl;
 
-  Teuchos::RCP<const CompositeVector> temp = S->GetFieldData(temperature_key_);
+  Teuchos::RCP<const CompositeVector> temp = S.GetPtr<CompositeVector>(temperature_key_,tag);
   int ncomp_temp = temp->size("cell", false);
   const Epetra_MultiVector& temp_v = *temp->ViewComponent("cell",false);
 
@@ -65,11 +57,11 @@ void LakeSurfaceTemperatureEvaluator::EvaluateField_(const Teuchos::Ptr<State>& 
 
   std::cout << "T_surf = " << T_surf << std::endl;
 
-  for (CompositeVector::name_iterator comp=result->begin();
-       comp!=result->end(); ++comp) {
-    Epetra_MultiVector& result_v = *result->ViewComponent(*comp,false);
+  for (CompositeVector::name_iterator comp=result[0]->begin();
+       comp!=result[0]->end(); ++comp) {
+    Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp,false);
 
-    int ncomp = result->size(*comp, false);
+    int ncomp = result[0]->size(*comp, false);
     for (int i=0; i!=ncomp; ++i) {
       result_v[0][i] = T_surf;
     }
@@ -77,10 +69,14 @@ void LakeSurfaceTemperatureEvaluator::EvaluateField_(const Teuchos::Ptr<State>& 
 };
 
 
-void LakeSurfaceTemperatureEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-        Key wrt_key, const Teuchos::Ptr<CompositeVector>& result) {
+void LakeSurfaceTemperatureEvaluator::EvaluatePartialDerivative_(const State& S,
+                                              const Key& wrt_key,
+                                              const Tag& wrt_tag,
+                                              const std::vector<CompositeVector*>& result)
+{
+  Tag tag = my_keys_.front().second;
 
-  result->PutScalar(0.);
+  result[0]->PutScalar(0.);
 
 };
 
