@@ -12,10 +12,11 @@ c rho dT/dt + q dot grad h = div Ke grad T + S
 ------------------------------------------------------------------------- */
 
 #include "advection.hh"
-#include "FieldEvaluator.hh"
+#include "Evaluator.hh"
 #include "lake_thermo_pk.hh"
 #include "Op.hh"
 #include "pk_helpers.hh"
+#include "MeshAlgorithms.hh"
 
 namespace Amanzi {
 namespace LakeThermo {
@@ -24,46 +25,51 @@ namespace LakeThermo {
 // Accumulation of energy term c rho dT/dt
 // -------------------------------------------------------------
 void Lake_Thermo_PK::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g) {
-  double dt = S_next_->time() - S_inter_->time();
+  double dt = S_->get_time(tag_next_) - S_->get_time(tag_current_);
 
 //  // update the temperature at both the old and new times.
 //  S_next_->GetFieldEvaluator(temperature_key_)->HasFieldChanged(S_next_.ptr(), name_);
 //  S_inter_->GetFieldEvaluator(temperature_key_)->HasFieldChanged(S_inter_.ptr(), name_);
 
   // get the temperature at each time
-  Teuchos::RCP<const CompositeVector> T1 = S_next_->GetFieldData(temperature_key_);
-  Teuchos::RCP<const CompositeVector> T0 = S_inter_->GetFieldData(temperature_key_);
+  Teuchos::RCP<const CompositeVector> T1 = S_->GetPtr<CompositeVector>(temperature_key_,tag_next_);
+  Teuchos::RCP<const CompositeVector> T0 = S_->GetPtr<CompositeVector>(temperature_key_,tag_current_);
 
   // evaluate density
-  S_inter_->GetFieldEvaluator(density_key_)->HasFieldChanged(S_inter_.ptr(), name_);
+  // S_->GetEvaluator(density_key_, tag_current_)->HasFieldChanged(S_.ptr(), name_);
+  S_->GetEvaluator(density_key_, tag_current_).Update(*S_, name_);
   const Epetra_MultiVector& rho =
-      *S_inter_->GetFieldData(density_key_)->ViewComponent("cell",false);
+      *S_->GetPtr<CompositeVector>(density_key_, tag_current_)->ViewComponent("cell",false);
 
   // evaluate heat capacity
-  S_inter_->GetFieldEvaluator(heat_capacity_key_)->HasFieldChanged(S_inter_.ptr(), name_);
+  // S_->GetEvaluator(heat_capacity_key_, tag_current_)->HasFieldChanged(S_.ptr(), name_);
+  S_->GetEvaluator(heat_capacity_key_, tag_current_).Update(*S_, name_);
   const Epetra_MultiVector& cp =
-      *S_inter_->GetFieldData(heat_capacity_key_)->ViewComponent("cell",false);
+      *S_->GetPtr<CompositeVector>(heat_capacity_key_, tag_current_)->ViewComponent("cell",false);
 
   // Update the residual with the accumulation of energy over the
 
-  const Epetra_MultiVector& T1_c = *S_next_->GetFieldData(temperature_key_)->ViewComponent("cell", false);
-  const Epetra_MultiVector& T0_c = *S_inter_->GetFieldData(temperature_key_)->ViewComponent("cell", false);
+  const Epetra_MultiVector& T1_c = *S_->GetPtr<CompositeVector>(temperature_key_, tag_next_)->ViewComponent("cell", false);
+  const Epetra_MultiVector& T0_c = *S_->GetPtr<CompositeVector>(temperature_key_, tag_current_)->ViewComponent("cell", false);
 
   const Epetra_MultiVector& g_c = *g->ViewComponent("cell", false);
 
   const Epetra_MultiVector& cv =
-        *S_inter_->GetFieldData(Keys::getKey(domain_,"cell_volume"))->ViewComponent("cell",false);
+        *S_->GetPtr<CompositeVector>(Keys::getKey(domain_,"cell_volume"), tag_current_)->ViewComponent("cell",false);
+
 
   // get the energy at each time
 
-  S_next_->GetFieldEvaluator(energy_key_)->HasFieldChanged(S_next_.ptr(), name_);
-  S_inter_->GetFieldEvaluator(energy_key_)->HasFieldChanged(S_inter_.ptr(), name_);  
+  // S_next_->GetEvaluator(energy_key_,tag_next_)->HasFieldChanged(S_.ptr(), name_);
+  // S_inter_->GetEvaluator(energy_key_,tag_current_)->HasFieldChanged(S_.ptr(), name_);  
+  S_->GetEvaluator(energy_key_, tag_next_).Update(*S_, name_);
+  S_->GetEvaluator(energy_key_, tag_current_).Update(*S_, name_);
 
-  Teuchos::RCP<const CompositeVector> e1 = S_next_->GetFieldData(energy_key_);
-  Teuchos::RCP<const CompositeVector> e0 = S_inter_->GetFieldData(energy_key_);   
+  Teuchos::RCP<const CompositeVector> e1 = S_->GetPtr<CompositeVector>(energy_key_,tag_next_);
+  Teuchos::RCP<const CompositeVector> e0 = S_->GetPtr<CompositeVector>(energy_key_,tag_current_);   
 
-  const Epetra_MultiVector& e1_c = *S_next_->GetFieldData(energy_key_)->ViewComponent("cell", false);
-  const Epetra_MultiVector& e0_c = *S_inter_->GetFieldData(energy_key_)->ViewComponent("cell", false); 
+  const Epetra_MultiVector& e1_c = *S_->GetPtr<CompositeVector>(energy_key_,tag_next_)->ViewComponent("cell", false);
+  const Epetra_MultiVector& e0_c = *S_->GetPtr<CompositeVector>(energy_key_,tag_current_)->ViewComponent("cell", false); 
 
   unsigned int ncells = g_c.MyLength();
   for (unsigned int c=0; c!=ncells; ++c) {
@@ -81,8 +87,8 @@ void Lake_Thermo_PK::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g) {
 // -------------------------------------------------------------
 // Advective term for transport of enthalpy, q dot grad h.
 // -------------------------------------------------------------
-void Lake_Thermo_PK::AddAdvection_(const Teuchos::Ptr<State>& S,
-    const Teuchos::Ptr<CompositeVector>& g, bool negate) {
+void Lake_Thermo_PK::AddAdvection_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& g, bool negate)
+{
 
   // set up the operator
 
@@ -94,17 +100,19 @@ void Lake_Thermo_PK::AddAdvection_(const Teuchos::Ptr<State>& S,
   // is, we can take the evaluation out of Flow::commit_state(),
   // but for now we'll leave it there and assume it has been updated. --etc
   //  S->GetFieldEvaluator(flux_key_)->HasFieldChanged(S.ptr(), name_);
-  Teuchos::RCP<const CompositeVector> flux = S->GetFieldData(flux_key_);
+  Teuchos::RCP<const CompositeVector> flux = S_->GetPtr<CompositeVector>(flux_key_,tag);
 
   // evaluate density
-  S->GetFieldEvaluator(density_key_)->HasFieldChanged(S.ptr(), name_);
+  // S->GetFieldEvaluator(density_key_)->HasFieldChanged(S.ptr(), name_);
+  S_->GetEvaluator(density_key_, tag).Update(*S_, name_);
   const Epetra_MultiVector& rho_v =
-      *S->GetFieldData(density_key_)->ViewComponent("cell",false);
+      *S_->GetPtr<CompositeVector>(density_key_,tag)->ViewComponent("cell",false);
 
   // evaluate heat capacity
-  S->GetFieldEvaluator(heat_capacity_key_)->HasFieldChanged(S.ptr(), name_);
+  // S->GetFieldEvaluator(heat_capacity_key_)->HasFieldChanged(S.ptr(), name_);
+  S_->GetEvaluator(heat_capacity_key_, tag).Update(*S_, name_);
   const Epetra_MultiVector& cp_v =
-      *S->GetFieldData(heat_capacity_key_)->ViewComponent("cell",false);
+      *S_->GetPtr<CompositeVector>(heat_capacity_key_,tag)->ViewComponent("cell",false);
 
   Teuchos::ParameterList& param_list = plist_->sublist("met data");
   FunctionFactory fac;
@@ -112,20 +120,21 @@ void Lake_Thermo_PK::AddAdvection_(const Teuchos::Ptr<State>& S,
   Teuchos::RCP<Function> E_func_ = Teuchos::rcp(fac.Create(param_list.sublist("evaporation")));
 
   std::vector<double> args(1);
-  args[0] = S->time();
+  args[0] = S_->get_time();
   r_ = (*r_func_)(args);
   E_ = (*E_func_)(args);
 
   // Compute evaporartion rate
-  S->GetFieldEvaluator(evaporation_rate_key_)->HasFieldChanged(S.ptr(), name_);
+  // S->GetFieldEvaluator(evaporation_rate_key_)->HasFieldChanged(S.ptr(), name_);
+  S_->GetEvaluator(evaporation_rate_key_, tag).Update(*S_, name_);
   const Epetra_MultiVector& E_v =
-      *S->GetFieldData(evaporation_rate_key_)->ViewComponent("cell",false);
+      *S_->GetPtr<CompositeVector>(evaporation_rate_key_,tag)->ViewComponent("cell",false);
   E_ = E_v[0][0]; // same everywhere
 
   // set precipitation and evaporation to zero in the winter (for now because we don't have a snow layer anyway)
   unsigned int ncells = g->ViewComponent("cell",false)->MyLength();
   // get temperature
-  const Epetra_MultiVector& temp1 = *S->GetFieldData(temperature_key_)
+  const Epetra_MultiVector& temp1 = *S_->GetPtr<CompositeVector>(temperature_key_,tag)
               ->ViewComponent("cell",false);
 
   // set precipitation and evaporation to zero in the winter (for now because we don't have a snow layer anyway)
@@ -144,15 +153,15 @@ void Lake_Thermo_PK::AddAdvection_(const Teuchos::Ptr<State>& S,
   
   const Epetra_MultiVector& flux_f = *flux->ViewComponent("face", false);
 
-  int nfaces_owned = mesh_->num_entities(AmanziMesh::FACE, AmanziMesh::Parallel_type::OWNED);
+  int nfaces_owned = mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
 
-  double dt = S_next_->time() - S_inter_->time();
+  double dt = S_->get_time(tag_next_) - S_->get_time(tag_current_);
 
   const Epetra_MultiVector& cv =
-          *S_inter_->GetFieldData(Keys::getKey(domain_,"cell_volume"))->ViewComponent("cell",false);
+          *S_->GetPtr<CompositeVector>(Keys::getKey(domain_,"cell_volume"),tag)->ViewComponent("cell",false);
 
   for (int f = 0; f < nfaces_owned; f++) {
-    const AmanziGeometry::Point& xcf = mesh_->face_centroid(f);
+    const AmanziGeometry::Point& xcf = mesh_->getFaceCentroid(f);
 
 //    AmanziGeometry::Point normal = mesh_->face_normal(f);
 //    normal /= norm(normal);
@@ -160,23 +169,22 @@ void Lake_Thermo_PK::AddAdvection_(const Teuchos::Ptr<State>& S,
     double cp;     // cell-based but we need face values for the flux
     double rho;
 
-    AmanziMesh::Entity_ID_List f_cells;
-    mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &f_cells);
+    auto f_cells = mesh_->getFaceCells(f);
 
     int orientation;
-    AmanziGeometry::Point normal = mesh_->face_normal(f, false, f_cells[0], &orientation);
+    AmanziGeometry::Point normal = mesh_->getFaceNormal(f, f_cells[0], &orientation);
 
   //  double *area;
   //  AmanziGeometry::Point centroid;
   //  std::vector<AmanziGeometry::Point> normals;
   //  mesh_->compute_face_geometry_(f,area,centroid,normals);
 
-   AmanziMesh::Entity_ID_List cellfaceids;
-   std::vector<int> cellfacedirs;
+   AmanziMesh::cEntity_ID_View cellfaceids;
+   AmanziMesh::cDirection_View cellfacedirs;
    int dir = 1;
 
-   if (f_cells.size() == 1) mesh_->cell_get_faces_and_dirs(f_cells[0], &cellfaceids, &cellfacedirs);
-   if (f_cells.size() == 2) mesh_->cell_get_faces_and_dirs(f_cells[1], &cellfaceids, &cellfacedirs);
+   if (f_cells.size() == 1) mesh_->getCellFacesAndDirs(f_cells[0], cellfaceids, &cellfacedirs);
+   if (f_cells.size() == 2) mesh_->getCellFacesAndDirs(f_cells[1], cellfaceids, &cellfacedirs);
 
    for (int j = 0; j < cellfaceids.size(); j++) {
      if (cellfaceids[j] == f) {
@@ -218,9 +226,9 @@ void Lake_Thermo_PK::AddAdvection_(const Teuchos::Ptr<State>& S,
   matrix_adv_->UpdateMatrices(flux.ptr());
 
   // apply to temperature
-  Teuchos::RCP<const CompositeVector> temp = S->GetFieldData(temperature_key_);
-  ApplyDirichletBCsToTemperature_(S.ptr());
-  // ApplyDirichletBCsToEnergy_(S.ptr());
+  Teuchos::RCP<const CompositeVector> temp = S_->GetPtr<CompositeVector>(temperature_key_,tag);
+  ApplyDirichletBCsToTemperature_(tag);
+  // ApplyDirichletBCsToEnergy_(tag);
   matrix_adv_->ApplyBCs(false, true, false);
 
   // apply
@@ -234,21 +242,20 @@ void Lake_Thermo_PK::AddAdvection_(const Teuchos::Ptr<State>& S,
 // -------------------------------------------------------------
 // Diffusion term, div K grad T
 // -------------------------------------------------------------
-void Lake_Thermo_PK::ApplyDiffusion_(const Teuchos::Ptr<State>& S,
-    const Teuchos::Ptr<CompositeVector>& g) {
+void Lake_Thermo_PK::ApplyDiffusion_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& g)
+{
   // update the thermal conductivity
-  UpdateConductivityData_(S_next_.ptr());
-  Teuchos::RCP<const CompositeVector> conductivity =
-      S_next_->GetFieldData(uw_conductivity_key_);
+  UpdateConductivityData_(tag);
+  Teuchos::RCP<const CompositeVector> conductivity = S_->GetPtrW<CompositeVector>(uw_conductivity_key_,tag,name_);
 
-  const Epetra_MultiVector& uw_cond_c = *S_next_->GetFieldData(uw_conductivity_key_)->ViewComponent("face", false);
-  int nfaces_owned = mesh_->num_entities(AmanziMesh::FACE, AmanziMesh::Parallel_type::OWNED);
+  const Epetra_MultiVector& uw_cond_c = *S_->GetPtrW<CompositeVector>(uw_conductivity_key_,tag,name_)->ViewComponent("face", false);
+  int nfaces_owned = mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
 
   const Epetra_MultiVector& cv =
-      *S->GetFieldData(Keys::getKey(domain_,"cell_volume"))->ViewComponent("cell",false);
+      *S_->GetPtr<CompositeVector>(Keys::getKey(domain_,"cell_volume"),tag)->ViewComponent("cell",false);
 
   // get temperature
-  const Epetra_MultiVector& temp_v = *S->GetFieldData(temperature_key_)
+  const Epetra_MultiVector& temp_v = *S_->GetPtr<CompositeVector>(temperature_key_,tag)
             ->ViewComponent("cell",false);
 
   Epetra_MultiVector& g_c = *g->ViewComponent("cell",false);    
@@ -259,7 +266,7 @@ void Lake_Thermo_PK::ApplyDiffusion_(const Teuchos::Ptr<State>& S,
 
   }
 
-  Teuchos::RCP<const CompositeVector> temp = S->GetFieldData(key_);
+  Teuchos::RCP<const CompositeVector> temp = S_->GetPtr<CompositeVector>(temperature_key_,tag);
 
   // update the stiffness matrix
   matrix_diff_->global_operator()->Init();
@@ -276,8 +283,8 @@ void Lake_Thermo_PK::ApplyDiffusion_(const Teuchos::Ptr<State>& S,
 // ---------------------------------------------------------------------
 // Add in energy source, which are accumulated by a single evaluator.
 // ---------------------------------------------------------------------
-void Lake_Thermo_PK::AddSources_(const Teuchos::Ptr<State>& S,
-    const Teuchos::Ptr<CompositeVector>& g) {
+void Lake_Thermo_PK::AddSources_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& g)
+{
   Teuchos::OSTab tab = vo_->getOSTab();
 
   is_source_term_ = true;
@@ -291,7 +298,7 @@ void Lake_Thermo_PK::AddSources_(const Teuchos::Ptr<State>& S,
     //    const Epetra_MultiVector& source1 =
     //        *S->GetFieldData(source_key_)->ViewComponent("cell",false);
     const Epetra_MultiVector& cv =
-        *S->GetFieldData(Keys::getKey(domain_,"cell_volume"))->ViewComponent("cell",false);
+        *S_->Get<CompositeVector>(Keys::getKey(domain_,"cell_volume"),tag_current_).ViewComponent("cell",false);
 
     Teuchos::ParameterList& param_list = plist_->sublist("met data");
     FunctionFactory fac;
@@ -300,45 +307,48 @@ void Lake_Thermo_PK::AddSources_(const Teuchos::Ptr<State>& S,
     Teuchos::RCP<Function> SS_func_ = Teuchos::rcp(fac.Create(param_list.sublist("solar radiation")));
 
     std::vector<double> args(1);
-    args[0] = S->time();
+    args[0] = S_->get_time();
     r_ = (*r_func_)(args);
     E_ = (*E_func_)(args);
 
     double SS = (*SS_func_)(args);
 
     // Compute evaporartion rate
-    S->GetFieldEvaluator(evaporation_rate_key_)->HasFieldChanged(S.ptr(), name_);
+    // S->GetFieldEvaluator(evaporation_rate_key_)->HasFieldChanged(S.ptr(), name_);
+    S_->GetEvaluator(evaporation_rate_key_, tag).Update(*S_, name_);
     const Epetra_MultiVector& E_v =
-        *S->GetFieldData(evaporation_rate_key_)->ViewComponent("cell",false);
+        *S_->Get<CompositeVector>(evaporation_rate_key_,tag).ViewComponent("cell",false);
     E_ = E_v[0][0]; // same everywhere
 
     double dhdt = r_ - E_ - R_s_ - R_b_;
     double B_w  = r_ - E_;
 
-    S->GetFieldEvaluator(density_key_)->HasFieldChanged(S.ptr(), name_);
+    // S->GetFieldEvaluator(density_key_)->HasFieldChanged(S.ptr(), name_);
+    S_->GetEvaluator(density_key_, tag).Update(*S_, name_);
 
     // evaluate density
     const Epetra_MultiVector& rho =
-        *S->GetFieldData(density_key_)->ViewComponent("cell",false);
+        *S_->Get<CompositeVector>(density_key_,tag).ViewComponent("cell",false);
 
     // get temperature
-    const Epetra_MultiVector& temp = *S->GetFieldData(temperature_key_)
-              ->ViewComponent("cell",false);
+    const Epetra_MultiVector& temp = *S_->Get<CompositeVector>(temperature_key_,tag).ViewComponent("cell",false);
 
     // get energy
-    S->GetFieldEvaluator(energy_key_)->HasFieldChanged(S.ptr(), name_);
-    const Epetra_MultiVector& enrg = *S->GetFieldData(energy_key_)
-              ->ViewComponent("cell",false);          
+    // S->GetFieldEvaluator(energy_key_)->HasFieldChanged(S.ptr(), name_);
+    S_->GetEvaluator(energy_key_, tag).Update(*S_, name_);
+    const Epetra_MultiVector& enrg = *S_->Get<CompositeVector>(energy_key_,tag).ViewComponent("cell",false);          
 
     // get conductivity
-    S->GetFieldEvaluator(conductivity_key_)->HasFieldChanged(S.ptr(), name_);
+    // S->GetFieldEvaluator(conductivity_key_)->HasFieldChanged(S.ptr(), name_);
+    S_->GetEvaluator(conductivity_key_, tag).Update(*S_, name_);
     const Epetra_MultiVector& lambda_c =
-        *S->GetFieldData(conductivity_key_)->ViewComponent("cell",false);
+        *S_->Get<CompositeVector>(conductivity_key_,tag).ViewComponent("cell",false);
 
     // evaluate heat capacity
-    S->GetFieldEvaluator(heat_capacity_key_)->HasFieldChanged(S.ptr(), name_);
+    // S->GetFieldEvaluator(heat_capacity_key_)->HasFieldChanged(S.ptr(), name_);
+    S_->GetEvaluator(heat_capacity_key_, tag).Update(*S_, name_);
     const Epetra_MultiVector& cp =
-        *S->GetFieldData(heat_capacity_key_)->ViewComponent("cell",false);
+        *S_->Get<CompositeVector>(heat_capacity_key_,tag).ViewComponent("cell",false);
 
     // water extinction coefficient
     alpha_e_w_ = 1.04;
@@ -358,7 +368,7 @@ void Lake_Thermo_PK::AddSources_(const Teuchos::Ptr<State>& S,
     // E_ = (temp[0][ncells-1] < 273.15) ? 0. : E_;
 
     for (unsigned int c=0; c!=ncells; ++c) {
-      const AmanziGeometry::Point& xc = mesh_->cell_centroid(c);
+      const AmanziGeometry::Point& xc = mesh_->getCellCentroid(c);
 
       alpha = (temp[0][c] < 273.15) ? alpha_e_i_ : alpha_e_w_;
 
@@ -366,7 +376,7 @@ void Lake_Thermo_PK::AddSources_(const Teuchos::Ptr<State>& S,
       double interval = 24.;
     //  SS = SS/(hour_sec*interval);    
 
-     int n = int(S->time());
+     int n = int(S_->get_time());
      int day = n / (24 * 3600);
      n = n % (24 * 3600);
      int hour = n / 3600;
@@ -406,7 +416,7 @@ void Lake_Thermo_PK::AddSources_(const Teuchos::Ptr<State>& S,
 
       double snow_depth = 0.;
       if (coupled_to_snow_) {
-        const Epetra_MultiVector& snow_depth_v = *S->GetFieldData("snow-depth")->ViewComponent("cell",false);
+        const Epetra_MultiVector& snow_depth_v = *S_->Get<CompositeVector>("snow-depth", tag).ViewComponent("cell",false);
         snow_depth = snow_depth_v[0][0] ;
       }
       if (snow_depth > 2.e-2) {
@@ -468,7 +478,7 @@ void Lake_Thermo_PK::AddSources_(const Teuchos::Ptr<State>& S,
 }
 
 
-void Lake_Thermo_PK::AddSourcesToPrecon_(const Teuchos::Ptr<State>& S, double h) {
+void Lake_Thermo_PK::AddSourcesToPrecon_(double h) {
 //  // external sources of energy (temperature dependent source)
 //  if (is_source_term_ && is_source_term_differentiable_ &&
 //      S->GetFieldEvaluator(source_key_)->IsDependency(S, key_)) {
@@ -502,18 +512,16 @@ void Lake_Thermo_PK::AddSourcesToPrecon_(const Teuchos::Ptr<State>& S, double h)
 // Plug enthalpy into the boundary faces manually.
 // This will be removed once boundary faces exist.
 // -------------------------------------------------------------
-void Lake_Thermo_PK::ApplyDirichletBCsToTemperature_(const Teuchos::Ptr<State>& S) {
+void Lake_Thermo_PK::ApplyDirichletBCsToTemperature_(const Tag& tag) {
   // put the boundary fluxes in faces for Dirichlet BCs.
   //  S->GetFieldEvaluator(enthalpy_key_)->HasFieldChanged(S, name_);
 
   const Epetra_MultiVector& temp_bf =
-      *S->GetFieldData(temperature_key_)->ViewComponent("boundary_face",false);
-  const Epetra_Map& vandalay_map = mesh_->exterior_face_map(false);
-  const Epetra_Map& face_map = mesh_->face_map(false);
+      *S_->GetPtrW<CompositeVector>(temperature_key_, tag, name_)->ViewComponent("boundary_face",false);
 
   int nbfaces = temp_bf.MyLength();
   for (int bf=0; bf!=nbfaces; ++bf) {
-    AmanziMesh::Entity_ID f = face_map.LID(vandalay_map.GID(bf));
+    AmanziMesh::Entity_ID f = getBoundaryFaceFace(*mesh_, bf);
 
     if (bc_adv_->bc_model()[f] == Operators::OPERATOR_BC_DIRICHLET) {
       bc_adv_->bc_value()[f] = temp_bf[0][bf];
@@ -521,19 +529,18 @@ void Lake_Thermo_PK::ApplyDirichletBCsToTemperature_(const Teuchos::Ptr<State>& 
   }
 }
 
-void Lake_Thermo_PK::ApplyDirichletBCsToEnergy_(const Teuchos::Ptr<State>& S) {
+void Lake_Thermo_PK::ApplyDirichletBCsToEnergy_(const Tag& tag) {
   // put the boundary fluxes in faces for Dirichlet BCs.
   //  S->GetFieldEvaluator(enthalpy_key_)->HasFieldChanged(S, name_);
 
-  S->GetFieldEvaluator(energy_key_)->HasFieldChanged(S, name_);
+  // S->GetFieldEvaluator(energy_key_)->HasFieldChanged(S, name_);
+  S_->GetEvaluator(energy_key_, tag).Update(*S_, name_);
   const Epetra_MultiVector& enrg_bf =
-      *S->GetFieldData(energy_key_)->ViewComponent("boundary_face",false);
-  const Epetra_Map& vandalay_map = mesh_->exterior_face_map(false);
-  const Epetra_Map& face_map = mesh_->face_map(false);
+      *S_->GetPtrW<CompositeVector>(energy_key_,tag,name_)->ViewComponent("boundary_face",false);
 
   int nbfaces = enrg_bf.MyLength();
   for (int bf=0; bf!=nbfaces; ++bf) {
-    AmanziMesh::Entity_ID f = face_map.LID(vandalay_map.GID(bf));
+    AmanziMesh::Entity_ID f = getBoundaryFaceFace(*mesh_, bf);
 
     if (bc_adv_->bc_model()[f] == Operators::OPERATOR_BC_DIRICHLET) {
       bc_adv_->bc_value()[f] = enrg_bf[0][bf];
