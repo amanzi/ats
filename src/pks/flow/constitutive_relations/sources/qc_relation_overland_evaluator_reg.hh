@@ -4,17 +4,17 @@
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Authors: Phong V.V. Le
+  Authors: Phong V.V. Le (lepv@ornl.gov)
 */
 
-#include "field_mass_source_evaluator.hh"
+#include "qc_relation_overland_evaluator.hh"
 
 namespace Amanzi {
 namespace Flow {
 namespace Relations {
 
-Utils::RegisteredFactory<Evaluator, FieldMassSourceEvaluator>
-  FieldMassSourceEvaluator::reg_("field mass source");
+Utils::RegisteredFactory<Evaluator, QCRelationOverlandEvaluator>
+  QCRelationOverlandEvaluator::reg_("q-c overland");
 
 } // namespace Relations
 } // namespace Flow
