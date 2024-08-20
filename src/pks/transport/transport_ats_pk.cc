@@ -274,7 +274,7 @@ Transport_ATS::SetupTransport_()
               *src_list, "source function", AmanziMesh::Entity_kind::CELL, Kxy, tag_current_);
             src->set_tcc_names(src_list->get<Teuchos::Array<std::string>>("component names").toVector());
             for (const auto& n : src->tcc_names()) {
-              src->tcc_index().push_back(FindComponentNumber(n));
+              src->tcc_index().push_back(FindComponentNumber_(n));
             }
 
             src->set_state(S_);
@@ -392,7 +392,7 @@ Transport_ATS::SetupTransport_()
 
           // set the component indicies
           for (const auto& n : bc->tcc_names()) {
-            bc->tcc_index().push_back(FindComponentNumber(n));
+            bc->tcc_index().push_back(FindComponentNumber_(n));
           }
           bcs_.push_back(bc);
         }
@@ -414,7 +414,7 @@ Transport_ATS::SetupTransport_()
       std::vector<std::string>& tcc_names = bc->tcc_names();
 
       for (int i = 0; i < tcc_names.size(); i++) {
-        tcc_index.push_back(FindComponentNumber(tcc_names[i]));
+        tcc_index.push_back(FindComponentNumber_(tcc_names[i]));
       }
 
       bcs_.push_back(bc);
@@ -523,14 +523,14 @@ Transport_ATS::Initialize()
   InitializeAll_(); // Nearly all (maybe all) of this is parsing the parameter list, move into the constructor. --ETC
 
   // upwind
-  IdentifyUpwindCells();
+  IdentifyUpwindCells_();
 
   // mechanical dispersion
-  if (flag_dispersion_) CalculateAxiSymmetryDirection();
+  if (flag_dispersion_) CalculateAxiSymmetryDirection_();
 
   // boundary conditions initialization
   double time = t_physics_;
-  VV_CheckInfluxBC();
+  CheckInfluxBC_();
 
   // Move to Setup() with other sources? --ETC
   // This must be called after S_->setup() since "water_source" data not created before this step. --PL
@@ -555,7 +555,7 @@ Transport_ATS::Initialize()
           S_->Get<CompositeVector>(geochem_src_factor_key_, Tags::NEXT).ViewComponent("cell", false);
         src->set_conversion(-1000., src_factor, false);
 
-        for (const auto& n : src->tcc_names()) { src->tcc_index().push_back(FindComponentNumber(n)); }
+        for (const auto& n : src->tcc_names()) { src->tcc_index().push_back(FindComponentNumber_(n)); }
 
         srcs_.push_back(src);
       }
@@ -574,7 +574,7 @@ Transport_ATS::Initialize()
                << std::endl
                << std::endl;
   }
-  StableTimeStep();
+  ComputeStableTimeStep_();
 }
 
 
@@ -603,12 +603,12 @@ Transport_ATS::InitializeFields_()
 * of an advected mass.
 * ***************************************************************** */
 double
-Transport_ATS::StableTimeStep()
+Transport_ATS::ComputeStableTimeStep_()
 {
   S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ScatterMasterToGhosted("face");
   // Get flux at faces for time NEXT
   auto flux = S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ViewComponent("face", true);
-  IdentifyUpwindCells();
+  IdentifyUpwindCells_();
 
   // Total concentration at current tag
   tcc = S_->GetPtrW<CompositeVector>(tcc_key_, tag_current_, passwd_);
@@ -627,7 +627,7 @@ Transport_ATS::StableTimeStep()
     if (c >= 0) { total_outflux[c] += fabs((*flux)[0][f]); }
   }
 
-  Sinks2TotalOutFlux(tcc_prev, total_outflux, 0, num_aqueous - 1);
+  ComputeSinks2TotalOutFlux_(tcc_prev, total_outflux, 0, num_aqueous - 1);
 
   // loop over cells and calculate minimal time step
   double vol = 0.;
@@ -785,7 +785,7 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
     AMANZI_ASSERT(std::abs(dt_global - dt_MPC) < 1.e-4);
   }
 
-  StableTimeStep();
+  ComputeStableTimeStep_();
   double dt_stable = dt_; // advance routines override dt_
   double dt_sum = 0.0;
   double dt_cycle;
@@ -838,11 +838,11 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
     dt_sum += dt_cycle;
 
     if (spatial_disc_order == 1) { // temporary solution (lipnikov@lanl.gov)
-      AdvanceDonorUpwind(dt_cycle);
+      AdvanceDonorUpwind_(dt_cycle);
     } else if (spatial_disc_order == 2 && temporal_disc_order == 1) {
-      AdvanceSecondOrderUpwindRK1(dt_cycle);
+      AdvanceSecondOrderUpwindRK1_(dt_cycle);
     } else if (spatial_disc_order == 2 && temporal_disc_order == 2) {
-      AdvanceSecondOrderUpwindRK2(dt_cycle);
+      AdvanceSecondOrderUpwindRK2_(dt_cycle);
     }
 
     if (!final_cycle) { // rotate concentrations (we need new memory for tcc)
@@ -856,7 +856,7 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   dt_ = dt_stable; // restore the original time step (just in case)
 
   Epetra_MultiVector& tcc_next = *tcc_tmp->ViewComponent("cell", false);
-  Advance_Dispersion_Diffusion(t_old, t_new);
+  Advance_Dispersion_Diffusion_(t_old, t_new);
   // optional Henry Law for the case of gas diffusion
   if (henry_law_) MakeAirWaterPartitioning_();
 
@@ -866,10 +866,10 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
     *vo_->os() << ncycles << " sub-cycles, dt_stable=" << units_.OutputTime(dt_stable)
                << " [sec]  dt_MPC=" << units_.OutputTime(dt_MPC) << " [sec]" << std::endl;
 
-    VV_PrintSoluteExtrema(tcc_next, dt_MPC);
+    PrintSoluteExtrema(tcc_next, dt_MPC);
   }
 
-  StableTimeStep();
+  ComputeStableTimeStep_();
 
   ChangedSolutionPK(tag_next_);
   return failed;
@@ -877,7 +877,7 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
 
 
 void
-Transport_ATS ::Advance_Dispersion_Diffusion(double t_old, double t_new)
+Transport_ATS ::Advance_Dispersion_Diffusion_(double t_old, double t_new)
 {
   double dt_MPC = t_new - t_old;
   // We define tracer as the species #0 as calculate some statistics.
@@ -906,7 +906,7 @@ Transport_ATS ::Advance_Dispersion_Diffusion(double t_old, double t_new)
       new Operators::BCs(mesh_, AmanziMesh::Entity_kind::FACE, WhetStone::DOF_Type::SCALAR));
     auto& bc_model = bc_dummy->bc_model();
     auto& bc_value = bc_dummy->bc_value();
-    PopulateBoundaryData(bc_model, bc_value, -1);
+    PopulateBoundaryData_(bc_model, bc_value, -1);
 
     // diffusion operator
     Teuchos::ParameterList& op_list = plist_->sublist("diffusion");
@@ -934,7 +934,7 @@ Transport_ATS ::Advance_Dispersion_Diffusion(double t_old, double t_new)
 
     // Disperse and diffuse aqueous components
     for (int i = 0; i < num_aqueous; i++) {
-      FindDiffusionValue(component_names_[i], &md_new, &phase);
+      FindDiffusionValue_(component_names_[i], &md_new, &phase);
       md_change = md_new - md_old;
       md_old = md_new;
 
@@ -1006,7 +1006,7 @@ Transport_ATS ::Advance_Dispersion_Diffusion(double t_old, double t_new)
     D_.clear();
     md_old = 0.0;
     for (int i = num_aqueous; i < num_components; i++) {
-      FindDiffusionValue(component_names_[i], &md_new, &phase);
+      FindDiffusionValue_(component_names_[i], &md_new, &phase);
       md_change = md_new - md_old;
       md_old = md_new;
 
@@ -1025,10 +1025,10 @@ Transport_ATS ::Advance_Dispersion_Diffusion(double t_old, double t_new)
       op1->UpdateMatrices(Teuchos::null, Teuchos::null);
 
       // add boundary conditions and sources for gaseous components
-      PopulateBoundaryData(bc_model, bc_value, i);
+      PopulateBoundaryData_(bc_model, bc_value, i);
 
       Epetra_MultiVector& rhs_cell = *op->rhs()->ViewComponent("cell");
-      ComputeAddSourceTerms(t_new, 1.0, rhs_cell, i, i);
+      ComputeAddSourceTerms_(t_new, 1.0, rhs_cell, i, i);
       op1->ApplyBCs(true, true, true);
 
       // add accumulation term
@@ -1091,9 +1091,9 @@ Transport_ATS::CommitStep(double t_old, double t_new, const Tag& tag_next)
  * A simple first-order transport method
  ****************************************************************** */
 void
-Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
+Transport_ATS::AdvanceDonorUpwind_(double dt_cycle)
 {
-  IdentifyUpwindCells();
+  IdentifyUpwindCells_();
   dt_ = dt_cycle; // overwrite the maximum stable transport step
   mass_solutes_source_.assign(num_aqueous + num_gaseous, 0.0);
   mass_solutes_bc_.assign(num_aqueous + num_gaseous, 0.0);
@@ -1234,7 +1234,7 @@ Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
   // process external sources
   if (srcs_.size() != 0) {
     double time = t_physics_;
-    ComputeAddSourceTerms(time, dt_, conserve_qty, 0, num_aqueous - 1);
+    ComputeAddSourceTerms_(time, dt_, conserve_qty, 0, num_aqueous - 1);
   }
   db_->WriteCellVector("cons (src)", conserve_qty);
 
@@ -1265,7 +1265,7 @@ Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
     }
   }
   db_->WriteCellVector("tcc_new", tcc_next);
-  VV_PrintSoluteExtrema(tcc_next, dt_);
+  PrintSoluteExtrema(tcc_next, dt_);
 
   double mass_final = 0;
   for (int c = 0; c < conserve_qty.MyLength(); c++) {
@@ -1280,7 +1280,7 @@ Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
     mass_solutes_exact_[i] += mass_solutes_source_[i] * dt_;
   }
 
-  if (internal_tests) { VV_CheckGEDproperty(*tcc_tmp->ViewComponent("cell")); }
+  if (internal_tests) { CheckGEDProperty(*tcc_tmp->ViewComponent("cell"), t_physics_); }
 }
 
 
@@ -1291,7 +1291,7 @@ Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
  * transient flow and uses first-order time integrator.
  ****************************************************************** */
 void
-Transport_ATS::AdvanceSecondOrderUpwindRK1(double dt_cycle)
+Transport_ATS::AdvanceSecondOrderUpwindRK1_(double dt_cycle)
 {
   dt_ = dt_cycle; // overwrite the maximum stable transport step
   mass_solutes_source_.assign(num_aqueous + num_gaseous, 0.0);
@@ -1363,7 +1363,7 @@ Transport_ATS::AdvanceSecondOrderUpwindRK1(double dt_cycle)
     mass_solutes_exact_[i] += mass_solutes_source_[i] * dt_;
   }
 
-  if (internal_tests) { VV_CheckGEDproperty(*tcc_tmp->ViewComponent("cell")); }
+  if (internal_tests) { CheckGEDProperty(*tcc_tmp->ViewComponent("cell"), t_physics_); }
 }
 
 
@@ -1373,7 +1373,7 @@ Transport_ATS::AdvanceSecondOrderUpwindRK1(double dt_cycle)
  * uses second-order predictor-corrector time integrator.
  ****************************************************************** */
 void
-Transport_ATS::AdvanceSecondOrderUpwindRK2(double dt_cycle)
+Transport_ATS::AdvanceSecondOrderUpwindRK2_(double dt_cycle)
 {
   // Q: Why we don't have conserve_qty calculation in this function? --PL
 
@@ -1446,7 +1446,7 @@ Transport_ATS::AdvanceSecondOrderUpwindRK2(double dt_cycle)
     mass_solutes_exact_[i] += mass_solutes_source_[i] * dt_ / 2;
   }
 
-  if (internal_tests) { VV_CheckGEDproperty(*tcc_tmp->ViewComponent("cell")); }
+  if (internal_tests) { CheckGEDProperty(*tcc_tmp->ViewComponent("cell"), t_physics_); }
 }
 
 
@@ -1456,7 +1456,7 @@ Transport_ATS::AdvanceSecondOrderUpwindRK2(double dt_cycle)
 * The routine treats two cases of tcc with one and all components.
 ****************************************************************** */
 void
-Transport_ATS::ComputeAddSourceTerms(double tp,
+Transport_ATS::ComputeAddSourceTerms_(double tp,
                                      double dtp,
                                      Epetra_MultiVector& cons_qty,
                                      int n0,
@@ -1514,7 +1514,7 @@ Transport_ATS::ComputeAddSourceTerms(double tp,
 *   - n1: upper number of components
 ****************************************************************** */
 void
-Transport_ATS::Sinks2TotalOutFlux(Epetra_MultiVector& tcc_c,
+Transport_ATS::ComputeSinks2TotalOutFlux_(Epetra_MultiVector& tcc_c,
                                   std::vector<double>& total_outflux,
                                   int n0,
                                   int n1)
@@ -1564,7 +1564,7 @@ Transport_ATS::Sinks2TotalOutFlux(Epetra_MultiVector& tcc_c,
 * Returns true if at least one face was populated.
 ******************************************************************* */
 bool
-Transport_ATS::PopulateBoundaryData(std::vector<int>& bc_model,
+Transport_ATS::PopulateBoundaryData_(std::vector<int>& bc_model,
                                     std::vector<double>& bc_value,
                                     int component)
 {
@@ -1610,7 +1610,7 @@ Transport_ATS::PopulateBoundaryData(std::vector<int>& bc_model,
 * and sign of the  Darcy velocity.
 ******************************************************************* */
 void
-Transport_ATS::IdentifyUpwindCells()
+Transport_ATS::IdentifyUpwindCells_()
 {
   int ncells_all =
     mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::ALL);
@@ -1646,7 +1646,7 @@ Transport_ATS::IdentifyUpwindCells()
 
 
 void
-Transport_ATS::ComputeVolumeDarcyFlux(Teuchos::RCP<const Epetra_MultiVector> flux,
+Transport_ATS::ComputeVolumeDarcyFlux_(Teuchos::RCP<const Epetra_MultiVector> flux,
                                       Teuchos::RCP<const Epetra_MultiVector> molar_density,
                                       Teuchos::RCP<Epetra_MultiVector>& vol_darcy_flux)
 {
@@ -1671,7 +1671,7 @@ Transport_ATS::ComputeVolumeDarcyFlux(Teuchos::RCP<const Epetra_MultiVector> flu
 * interpolated data are at time dt_int.
 ******************************************************************* */
 void
-Transport_ATS::InterpolateCellVector(const Epetra_MultiVector& v0,
+InterpolateCellVector(const Epetra_MultiVector& v0,
                                      const Epetra_MultiVector& v1,
                                      double dt_int,
                                      double dt,

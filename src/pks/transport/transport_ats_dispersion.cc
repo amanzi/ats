@@ -117,7 +117,7 @@ Transport_ATS::CalculateDiffusionTensor_(double md,
 * Check all phases for the given name.
 ****************************************************************** */
 int
-Transport_ATS::FindDiffusionValue(const std::string& tcc_name, double* md, int* phase)
+Transport_ATS::FindDiffusionValue_(const std::string& tcc_name, double* md, int* phase)
 {
   for (int i = 0; i < TRANSPORT_NUMBER_PHASES; i++) {
     if (diffusion_phase_[i] == Teuchos::null) continue;
@@ -138,7 +138,7 @@ Transport_ATS::FindDiffusionValue(const std::string& tcc_name, double* md, int* 
 *  Find direction of axi-symmetry.
 ****************************************************************** */
 void
-Transport_ATS::CalculateAxiSymmetryDirection()
+Transport_ATS::CalculateAxiSymmetryDirection_()
 {
   int ncells_owned =
     mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);

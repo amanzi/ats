@@ -53,9 +53,6 @@ pointers to the original variables.
 namespace Amanzi {
 namespace Transport {
 
-typedef double
-AnalyticFunction(const AmanziGeometry::Point&, const double);
-
 class SedimentTransport_PK : public PK_PhysicalExplicit<Epetra_Vector> {
  public:
   SedimentTransport_PK(Teuchos::ParameterList& pk_tree,
@@ -86,7 +83,7 @@ class SedimentTransport_PK : public PK_PhysicalExplicit<Epetra_Vector> {
 
   // main transport members
   // -- calculation of a stable time step needs saturations and darcy flux
-  double StableTimeStep();
+  double StableTimeStep_();
   void
   Sinks2TotalOutFlux(Epetra_MultiVector& tcc, std::vector<double>& total_outflux, int n0, int n1);
 
@@ -95,15 +92,13 @@ class SedimentTransport_PK : public PK_PhysicalExplicit<Epetra_Vector> {
   Teuchos::RCP<const State> state() { return S_; }
   Teuchos::RCP<CompositeVector> total_component_concentration() { return tcc_tmp; }
 
-  // -- control members
-  void CreateDefaultState(Teuchos::RCP<const AmanziMesh::Mesh>& mesh, int ncomponents);
   // void Policy(Teuchos::Ptr<State> S);
 
-  // void VV_CheckGEDproperty(Epetra_MultiVector& tracer) const;
+  // void CheckGEDProperty(Epetra_MultiVector& tracer) const;
   // void VV_CheckTracerBounds(Epetra_MultiVector& tracer, int component,
   //                           double lower_bound, double upper_bound, double tol = 0.0) const;
   void VV_CheckInfluxBC() const;
-  void VV_PrintSoluteExtrema(const Epetra_MultiVector& tcc_next, double dT_MPC);
+  void PrintSoluteExtrema(const Epetra_MultiVector& tcc_next, double dT_MPC);
   double VV_SoluteVolumeChangePerSecond(int idx_solute);
   double ComputeSolute(const Epetra_MultiVector& tcc, int idx);
   double ComputeSolute(const Epetra_MultiVector& tcc,
@@ -111,13 +106,11 @@ class SedimentTransport_PK : public PK_PhysicalExplicit<Epetra_Vector> {
                        const Epetra_MultiVector& den,
                        int idx);
 
-  void CalculateLpErrors(AnalyticFunction f, double t, Epetra_Vector* sol, double* L1, double* L2);
-
   // -- sources and sinks for components from n0 to n1 including
-  void ComputeAddSourceTerms(double tp, double dtp, Epetra_MultiVector& tcc, int n0, int n1);
+  void ComputeAddSourceTerms_(double tp, double dtp, Epetra_MultiVector& tcc, int n0, int n1);
 
   bool
-  PopulateBoundaryData(std::vector<int>& bc_model, std::vector<double>& bc_value, int component);
+  PopulateBoundaryData_(std::vector<int>& bc_model, std::vector<double>& bc_value, int component);
 
   // -- limiters
   void LimiterBarthJespersen(const int component,
@@ -133,10 +126,10 @@ class SedimentTransport_PK : public PK_PhysicalExplicit<Epetra_Vector> {
   void InitializeFields_(const Teuchos::Ptr<State>& S);
 
   // advection members
-  void AdvanceDonorUpwind(double dT);
-  // void AdvanceSecondOrderUpwindRKn(double dT);
-  // void AdvanceSecondOrderUpwindRK1(double dT);
-  // void AdvanceSecondOrderUpwindRK2(double dT);
+  void AdvanceDonorUpwind_(double dT);
+  // void AdvanceSecondOrderUpwindRKn_(double dT);
+  // void AdvanceSecondOrderUpwindRK1_(double dT);
+  // void AdvanceSecondOrderUpwindRK2_(double dT);
   void Advance_Diffusion(double t_old, double t_new);
 
   // time integration members
@@ -145,7 +138,7 @@ class SedimentTransport_PK : public PK_PhysicalExplicit<Epetra_Vector> {
                                 Epetra_Vector& f_component){};
   //  void Functional(const double t, const Epetra_Vector& component, TreeVector& f_component);
 
-  void IdentifyUpwindCells();
+  void IdentifyUpwindCells_();
 
   void InterpolateCellVector(const Epetra_MultiVector& v0,
                              const Epetra_MultiVector& v1,
@@ -162,7 +155,7 @@ class SedimentTransport_PK : public PK_PhysicalExplicit<Epetra_Vector> {
                                  const Epetra_MultiVector& saturation,
                                  const Epetra_MultiVector& mol_density);
 
-  int FindDiffusionValue(const std::string& tcc_name, double* md, int* phase);
+  int FindDiffusionValue_(const std::string& tcc_name, double* md, int* phase);
 
   void CalculateAxiSymmetryDirection();
 

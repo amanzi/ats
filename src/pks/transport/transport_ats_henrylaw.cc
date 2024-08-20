@@ -30,7 +30,7 @@ Transport_ATS::PrepareAirWaterPartitioning_()
     int ig = num_aqueous + i;
     std::string name_l = Keys::replace_all(component_names_[ig], "(g)", "(l)");
 
-    int il = FindComponentNumber(name_l);
+    int il = FindComponentNumber_(name_l);
     air_water_map_.push_back(il);
 
     if (il < 0 || il >= num_aqueous) {

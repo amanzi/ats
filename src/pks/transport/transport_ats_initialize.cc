@@ -138,7 +138,7 @@ Transport_ATS::InitializeAll_()
   //       int ncomp = tcc_names.size();
 
   //       for (int i = 0; i < ncomp; i++) {
-  //         tcc_index.push_back(FindComponentNumber(tcc_names[i]));
+  //         tcc_index.push_back(FindComponentNumber_(tcc_names[i]));
   //       }
   //     }
   //   } else {
@@ -153,7 +153,7 @@ Transport_ATS::InitializeAll_()
 * Find place of the given component in a multivector.
 **************************************************************** */
 int
-Transport_ATS::FindComponentNumber(const std::string component_name)
+Transport_ATS::FindComponentNumber_(const std::string& component_name)
 {
   int ncomponents = component_names_.size();
   for (int i = 0; i < ncomponents; i++) {

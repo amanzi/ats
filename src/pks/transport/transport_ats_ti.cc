@@ -129,7 +129,7 @@ Transport_ATS::FunctionalTimeDerivative(double t,
 
   // process external sources
   if (srcs_.size() != 0) {
-    ComputeAddSourceTerms(t, 1., f_component, current_component_, current_component_);
+    ComputeAddSourceTerms_(t, 1., f_component, current_component_, current_component_);
   }
 
 

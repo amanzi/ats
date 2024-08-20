@@ -340,7 +340,7 @@ SedimentTransport_PK::Initialize(const Teuchos::Ptr<State>& S)
   upwind_cell_ = Teuchos::rcp(new Epetra_IntVector(fmap_wghost));
   downwind_cell_ = Teuchos::rcp(new Epetra_IntVector(fmap_wghost));
 
-  IdentifyUpwindCells();
+  IdentifyUpwindCells_();
 
   // advection block initialization
   current_component_ = -1;
@@ -609,14 +609,14 @@ SedimentTransport_PK::InitializeAll_()
 * of an advected mass.
 * ***************************************************************** */
 double
-SedimentTransport_PK::StableTimeStep()
+SedimentTransport_PK::StableTimeStep_()
 {
   S_->Get<CompositeVector>(flux_key_, Tags::DEFAULT).ScatterMasterToGhosted("face");
 
   flux_ = S_->Get<CompositeVector>(flux_key_, Tags::DEFAULT).ViewComponent("face", true);
   //*flux_copy_ = *flux_; // copy flux vector from S_next_ to S_;
 
-  IdentifyUpwindCells();
+  IdentifyUpwindCells_();
 
   tcc = S_->GetPtrW<CompositeVector>(tcc_key_, tag_current_, passwd_);
   Epetra_MultiVector& tcc_prev = *tcc->ViewComponent("cell");
@@ -698,7 +698,7 @@ SedimentTransport_PK::get_dt()
     // double norm = 0.;
     // flux_->NormInf(&norm);
     // *vo_->os()<< name()<<" "<<"flux is copied norm:"<<norm<<"\n";
-    StableTimeStep();
+    StableTimeStep_();
     return dt_;
   }
 }
@@ -747,7 +747,7 @@ SedimentTransport_PK::AdvanceStep(double t_old, double t_new, bool reinit)
     AMANZI_ASSERT(std::abs(dt_global - dt_MPC) < 1.e-4);
   }
 
-  StableTimeStep();
+  StableTimeStep_();
   double dt_stable = dt_; // advance routines override dt_
 
   int interpolate_ws = 0; // (dt_ < dt_global) ? 1 : 0;
@@ -834,11 +834,11 @@ SedimentTransport_PK::AdvanceStep(double t_old, double t_new, bool reinit)
     }
 
     if (spatial_disc_order == 1) { // temporary solution (lipnikov@lanl.gov)
-      AdvanceDonorUpwind(dt_cycle);
+      AdvanceDonorUpwind_(dt_cycle);
       // } else if (spatial_disc_order == 2 && temporal_disc_order == 1) {
-      //   AdvanceSecondOrderUpwindRK1(dt_cycle);
+      //   AdvanceSecondOrderUpwindRK1_(dt_cycle);
       // } else if (spatial_disc_order == 2 && temporal_disc_order == 2) {
-      //   AdvanceSecondOrderUpwindRK2(dt_cycle);
+      //   AdvanceSecondOrderUpwindRK2_(dt_cycle);
     }
 
     if (!final_cycle) { // rotate concentrations (we need new memory for tcc)
@@ -863,7 +863,7 @@ SedimentTransport_PK::AdvanceStep(double t_old, double t_new, bool reinit)
     *vo_->os() << ncycles << " sub-cycles, dt_stable=" << units_.OutputTime(dt_stable)
                << " [sec]  dt_MPC=" << units_.OutputTime(dt_MPC) << " [sec]" << std::endl;
 
-    //VV_PrintSoluteExtrema(tcc_next, dt_MPC);
+    //PrintSoluteExtrema(tcc_next, dt_MPC);
   }
 
   return failed;
@@ -891,7 +891,7 @@ SedimentTransport_PK ::Advance_Diffusion(double t_old, double t_new)
     // default boundary conditions (none inside domain and Neumann on its boundary)
     auto& bc_model = bc_dummy->bc_model();
     auto& bc_value = bc_dummy->bc_value();
-    PopulateBoundaryData(bc_model, bc_value, -1);
+    PopulateBoundaryData_(bc_model, bc_value, -1);
 
     Operators::PDE_DiffusionFactory opfactory;
     Teuchos::RCP<Operators::PDE_Diffusion> op1 = opfactory.Create(op_list, mesh_, bc_dummy);
@@ -982,7 +982,7 @@ SedimentTransport_PK::CommitStep(double t_old, double t_new, const Teuchos::RCP<
  * A simple first-order transport method
  ****************************************************************** */
 void
-SedimentTransport_PK::AdvanceDonorUpwind(double dt_cycle)
+SedimentTransport_PK::AdvanceDonorUpwind_(double dt_cycle)
 {
   dt_ = dt_cycle; // overwrite the maximum stable transport step
   mass_sediment_source_ = 0;
@@ -1081,7 +1081,7 @@ SedimentTransport_PK::AdvanceDonorUpwind(double dt_cycle)
   // process external sources
   //if (srcs_.size() != 0) {
   double time = t_physics_;
-  ComputeAddSourceTerms(time, dt_, *conserve_qty_, 0, num_advect - 1);
+  ComputeAddSourceTerms_(time, dt_, *conserve_qty_, 0, num_advect - 1);
   //}
 
   // recover concentration from new conservative state
@@ -1126,7 +1126,7 @@ SedimentTransport_PK::AdvanceDonorUpwind(double dt_cycle)
 
 
   // if (internal_tests) {
-  //   VV_CheckGEDproperty(*tcc_tmp->ViewComponent("cell"));
+  //   CheckGEDProperty(*tcc_tmp->ViewComponent("cell"));
   // }
 
   // if (vo_->getVerbLevel() >= Teuchos::VERB_HIGH){
@@ -1147,7 +1147,7 @@ SedimentTransport_PK::AdvanceDonorUpwind(double dt_cycle)
 //  * tcc_next when owned and ghost data. This is a special routine for
 //  * transient flow and uses first-order time integrator.
 //  ****************************************************************** */
-// void SedimentTransport_PK::AdvanceSecondOrderUpwindRK1(double dt_cycle)
+// void SedimentTransport_PK::AdvanceSecondOrderUpwindRK1_(double dt_cycle)
 // {
 //   dt_ = dt_cycle;  // overwrite the maximum stable transport step
 //   mass_sediment_source_.assign(num_aqueous + num_gaseous, 0.0);
@@ -1205,7 +1205,7 @@ SedimentTransport_PK::AdvanceDonorUpwind(double dt_cycle)
 //   }
 
 //   if (internal_tests) {
-//     VV_CheckGEDproperty(*tcc_tmp->ViewComponent("cell"));
+//     CheckGEDProperty(*tcc_tmp->ViewComponent("cell"));
 //   }
 // }
 
@@ -1215,7 +1215,7 @@ SedimentTransport_PK::AdvanceDonorUpwind(double dt_cycle)
 //  * reconstructions. This is a special routine for transient flow and
 //  * uses second-order predictor-corrector time integrator.
 //  ****************************************************************** */
-// void SedimentTransport_PK::AdvanceSecondOrderUpwindRK2(double dt_cycle)
+// void SedimentTransport_PK::AdvanceSecondOrderUpwindRK2_(double dt_cycle)
 // {
 //   dt_ = dt_cycle;  // overwrite the maximum stable transport step
 //   mass_sediment_source_.assign(num_aqueous + num_gaseous, 0.0);
@@ -1300,7 +1300,7 @@ SedimentTransport_PK::AdvanceDonorUpwind(double dt_cycle)
 //   }
 
 //   if (internal_tests) {
-//     VV_CheckGEDproperty(*tcc_tmp->ViewComponent("cell"));
+//     CheckGEDProperty(*tcc_tmp->ViewComponent("cell"));
 //   }
 
 // }
@@ -1310,7 +1310,7 @@ SedimentTransport_PK::AdvanceDonorUpwind(double dt_cycle)
 // * Advance each component independently due to different field
 // * reconstructions. This routine uses generic explicit time integrator.
 // ******************************************************************* */
-// // void SedimentTransport_PK::AdvanceSecondOrderUpwindRKn(double dt_cycle)
+// // void SedimentTransport_PK::AdvanceSecondOrderUpwindRKn_(double dt_cycle)
 // // {
 // //   dt_ = dt_cycle;  // overwrite the maximum stable transport step
 
@@ -1351,7 +1351,7 @@ SedimentTransport_PK::AdvanceDonorUpwind(double dt_cycle)
 * The routine treats two cases of tcc with one and all components.
 ****************************************************************** */
 void
-SedimentTransport_PK::ComputeAddSourceTerms(double tp,
+SedimentTransport_PK::ComputeAddSourceTerms_(double tp,
                                             double dtp,
                                             Epetra_MultiVector& tcc,
                                             int n0,
@@ -1477,7 +1477,7 @@ SedimentTransport_PK::Sinks2TotalOutFlux(Epetra_MultiVector& tcc,
 * Returns true if at least one face was populated.
 ******************************************************************* */
 bool
-SedimentTransport_PK::PopulateBoundaryData(std::vector<int>& bc_model,
+SedimentTransport_PK::PopulateBoundaryData_(std::vector<int>& bc_model,
                                            std::vector<double>& bc_value,
                                            int component)
 {
@@ -1521,7 +1521,7 @@ SedimentTransport_PK::PopulateBoundaryData(std::vector<int>& bc_model,
 * and sign of the  Darcy velocity.
 ******************************************************************* */
 void
-SedimentTransport_PK::IdentifyUpwindCells()
+SedimentTransport_PK::IdentifyUpwindCells_()
 {
   for (int f = 0; f < nfaces_wghost; f++) {
     (*upwind_cell_)[f] = -1; // negative value indicates boundary
