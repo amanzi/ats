@@ -63,7 +63,8 @@ Transport_ATS::FunctionalTimeDerivative(double t,
     }
   }
 
-  limiter_->Init(recon_list, flux_);
+  Teuchos::RCP<const Epetra_MultiVector> flux = S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ViewComponent("face", true);
+  limiter_->Init(recon_list, flux);
   limiter_->ApplyLimiter(component_tmp, 0, lifting_, bc_model, bc_value);
   lifting_->data()->ScatterMasterToGhosted("cell");
 
@@ -88,7 +89,7 @@ Transport_ATS::FunctionalTimeDerivative(double t,
       u1 = u2 = umin = umax = (*component_tmp)[c2];
     }
 
-    double u = fabs((*flux_)[0][f]);
+    double u = std::abs((*flux)[0][f]);
     const AmanziGeometry::Point& xf = mesh_->getFaceCentroid(f);
 
     double upwind_tcc, tcc_flux;
@@ -132,13 +133,14 @@ Transport_ATS::FunctionalTimeDerivative(double t,
     ComputeAddSourceTerms_(t, 1., f_component, current_component_, current_component_);
   }
 
-
+  S_->GetEvaluator(porosity_key_, Tags::NEXT).Update(*S_, name_);
+  const Epetra_MultiVector& phi = *S_->Get<CompositeVector>(porosity_key_, Tags::NEXT).ViewComponent("cell", false);
   for (int c = 0; c < f_component.MyLength() ; c++) { // calculate conservative quantatity
     double vol_phi_ws_den =
-      mesh_->getCellVolume(c) * (*phi_)[0][c] * (*ws_prev_)[0][c] * (*mol_dens_prev_)[0][c];
+      mesh_->getCellVolume(c) * phi[0][c] * (*ws_prev_)[0][c] * (*mol_dens_prev_)[0][c];
     if ((*ws_prev_)[0][c] < 1e-12)
       vol_phi_ws_den =
-        mesh_->getCellVolume(c) * (*phi_)[0][c] * (*ws_)[0][c] * (*mol_dens_)[0][c];
+        mesh_->getCellVolume(c) * phi[0][c] * (*ws_)[0][c] * (*mol_dens_)[0][c];
 
     if (vol_phi_ws_den > water_tolerance_) { f_component[c] /= vol_phi_ws_den; }
   }
@@ -156,11 +158,11 @@ Transport_ATS::FunctionalTimeDerivative(double t,
           int c2 = (*downwind_cell_)[f];
 
           if (c2 >= 0 && f < nfaces_owned) {
-            double u = fabs((*flux_)[0][f]);
-            double vol_phi_ws_den = mesh_->getCellVolume(c2) * (*phi_)[0][c2] *
+            double u = std::abs((*flux)[0][f]);
+            double vol_phi_ws_den = mesh_->getCellVolume(c2) * phi[0][c2] *
                                     (*ws_prev_)[0][c2] * (*mol_dens_prev_)[0][c2];
             if ((*ws_prev_)[0][c2] < 1e-12)
-              vol_phi_ws_den = mesh_->getCellVolume(c2) * (*phi_)[0][c2] * (*ws_)[0][c2] *
+              vol_phi_ws_den = mesh_->getCellVolume(c2) * phi[0][c2] * (*ws_)[0][c2] *
                                (*mol_dens_)[0][c2];
 
             double tcc_flux = u * values[i];

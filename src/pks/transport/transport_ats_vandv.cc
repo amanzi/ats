@@ -30,7 +30,8 @@ namespace Transport {
 * Calculates extrema of specified solutes and print them.
 ******************************************************************* */
 void
-Transport_ATS::PrintSoluteExtrema(const Epetra_MultiVector& tcc_next, double dT_MPC)
+Transport_ATS::PrintSoluteExtrema(const Epetra_MultiVector& tcc_next,
+        double dT_MPC)
 {
   int num_components_ = tcc_next.NumVectors();
   double tccmin_vec[num_components_];
@@ -38,6 +39,9 @@ Transport_ATS::PrintSoluteExtrema(const Epetra_MultiVector& tcc_next, double dT_
 
   tcc_next.MinValue(tccmin_vec);
   tcc_next.MaxValue(tccmax_vec);
+
+  const Epetra_MultiVector& flux = *S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ViewComponent("face", true);
+  const Epetra_MultiVector& phi = *S_->Get<CompositeVector>(porosity_key_, Tags::NEXT).ViewComponent("cell", false);
 
   for (int n = 0; n < runtime_solutes_.size(); n++) {
     int i = FindComponentNumber_(runtime_solutes_[n]);
@@ -63,7 +67,7 @@ Transport_ATS::PrintSoluteExtrema(const Epetra_MultiVector& tcc_next, double dT_
           int dir, c = cells[0];
 
           const AmanziGeometry::Point& normal = mesh_->getFaceNormal(f, c, &dir);
-          double u = (*flux_)[0][f] * dir;
+          double u = flux[0][f] * dir;
           if (u > 0) solute_flux += u * tcc_next[i][c];
         }
       }
@@ -85,7 +89,7 @@ Transport_ATS::PrintSoluteExtrema(const Epetra_MultiVector& tcc_next, double dT_
     double mass_solute(0.0);
     for (int c = 0; c < tcc_next.MyLength(); c++) {
       double vol = mesh_->getCellVolume(c);
-      mass_solute += (*ws_)[0][c] * (*phi_)[0][c] * tcc_next[i][c] * vol * (*mol_dens_)[0][c];
+      mass_solute += (*ws_)[0][c] * phi[0][c] * tcc_next[i][c] * vol * (*mol_dens_)[0][c];
     }
 
     double tmp1 = mass_solute, tmp2 = mass_solutes_exact_[i], mass_exact;
@@ -103,7 +107,7 @@ Transport_ATS::PrintSoluteExtrema(const Epetra_MultiVector& tcc_next, double dT_
 * Check completeness of influx boundary conditions.
 ****************************************************************** */
 void
-Transport_ATS::CheckInfluxBC_() const
+Transport_ATS::CheckInfluxBC_(const Epetra_MultiVector& flux) const
 {
   int nfaces_all =
     mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::ALL);
@@ -135,7 +139,7 @@ Transport_ATS::CheckInfluxBC_() const
         if (i == tcc_index[k]) {
           for (auto it = bcs_[m]->begin(); it != bcs_[m]->end(); ++it) {
             int f = it->first;
-            if ((*flux_)[0][f] < 0 && influx_face[f] == 0) {
+            if (flux[0][f] < 0 && influx_face[f] == 0) {
               Errors::Message msg;
               msg << "No influx boundary condition has been found for component " << i << ".\n";
               Exceptions::amanzi_throw(msg);

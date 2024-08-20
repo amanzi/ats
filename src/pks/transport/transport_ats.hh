@@ -326,12 +326,15 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   virtual void ChangedSolutionPK(const Tag& tag) override;
 
   // Time integration members
-  void FunctionalTimeDerivative(const double t,
-                                const Epetra_Vector& component,
-                                Epetra_Vector& f_component) override;
+  virtual void FunctionalTimeDerivative(const double t,
+          const Epetra_Vector& component,
+          Epetra_Vector& f_component) override;
 
-  // -- helper functions -- why are these public API? --ETC
-  void PrintSoluteExtrema(const Epetra_MultiVector& tcc_next, double dT_MPC);
+  // -- helper functions
+  // These are in the public API because reactive transport calls them when
+  // chemistry fails.  Probably should go away or become nonmember functions.
+  void PrintSoluteExtrema(const Epetra_MultiVector& tcc_next,
+                          double dT_MPC);
   int get_num_aqueous_component() const {
     return num_aqueous_;
   }
@@ -346,7 +349,7 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   void ComputeSinks2TotalOutFlux_(Epetra_MultiVector& tcc,
           std::vector<double>& total_outflux, int n0, int n1);
 
-  void CheckInfluxBC_() const;
+  void CheckInfluxBC_(const Epetra_MultiVector& flux) const;
   bool PopulateBoundaryData_(std::vector<int>& bc_model, std::vector<double>& bc_value, int component);
 
   // -- sources and sinks for components from n0 to n1 including
@@ -394,10 +397,6 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   // miscaleneous methods
   int FindComponentNumber_(const std::string& component_name);
 
-  void ComputeVolumeDarcyFlux_(Teuchos::RCP<const Epetra_MultiVector> flux,
-                              Teuchos::RCP<const Epetra_MultiVector> mol_den,
-                              Teuchos::RCP<Epetra_MultiVector>& vol_darcy_flux);
-
  protected:
   Key saturation_key_;
   Key flux_key_;
@@ -428,9 +427,7 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   Teuchos::RCP<CompositeVector> tcc_tmp; // next tcc
   Teuchos::RCP<CompositeVector> tcc;     // smart mirrow of tcc
 
-  Teuchos::RCP<const Epetra_MultiVector> flux_;
-  Teuchos::RCP<const Epetra_MultiVector> ws_, ws_prev_, phi_, mol_dens_, mol_dens_prev_;
-  Teuchos::RCP<Epetra_MultiVector> flux_copy_;
+  Teuchos::RCP<const Epetra_MultiVector> ws_, ws_prev_, mol_dens_, mol_dens_prev_;
 
 #ifdef ALQUIMIA_ENABLED
   Teuchos::RCP<AmanziChemistry::Alquimia_PK> chem_pk_;
