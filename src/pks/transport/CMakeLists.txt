@@ -21,7 +21,6 @@ set(ats_transport_src_files
   transport_ats_ti.cc
   transport_ats_henrylaw.cc
   transport_ats_vandv.cc
-  transport_ats_initialize.cc
   transport_ats_pk.cc
   # sediment_transport_pk.cc
  )

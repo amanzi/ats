@@ -62,17 +62,11 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
     internal_tests(0),
     tests_tolerance(TRANSPORT_CONCENTRATION_OVERSHOOT),
     dt_(0.0),
-    dt_debug_(0.0),
+    dt_max_(0.0),
     t_physics_(0.0),
     current_component_(-1),
     flag_dispersion_(false)
 {
-  if (plist_->isParameter("component names")) {
-    component_names_ = plist_->get<Teuchos::Array<std::string>>("component names").toVector();
-    num_components_ = component_names_.size();
-    // otherwise we hopefully get them from chemistry
-  }
-
   if (plist_->isParameter("component molar masses")) {
     mol_masses_ = plist_->get<Teuchos::Array<double>>("component molar masses").toVector();
   } else {
@@ -106,7 +100,35 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
   // other parameters
   water_tolerance_ = plist_->get<double>("water tolerance", 1e-6);
   dissolution_ = plist_->get<bool>("allow dissolution", false);
-  max_tcc_ = plist_->get<double>("maximum concentration", 0.9);
+  max_tcc_ = plist_->get<double>("maximum concentration", -1.0);
+
+  // global transport parameters
+  cfl_ = plist_->get<double>("cfl", 1.0);
+  dt_max_ = plist_->get<double>("maximum time step", TRANSPORT_LARGE_TIME_STEP);
+
+  spatial_disc_order_ = plist_->get<int>("spatial discretization order", 1);
+  if (spatial_disc_order_ < 1 || spatial_disc_order_ > 2) {
+    Errors::Message msg;
+    msg << "Transport_ATS: \"spatial discretization order\" must be 1 or 2, not " << spatial_disc_order_;
+    Exceptions::amanzi_throw(msg);
+  }
+  temporal_disc_order_ = plist_->get<int>("temporal discretization order", 1);
+  if (temporal_disc_order_ < 1 || temporal_disc_order_ > 2) {
+    Errors::Message msg;
+    msg << "Transport_ATS: \"temporal discretization order\" must be 1 or 2, not " << temporal_disc_order_;
+    Exceptions::amanzi_throw(msg);
+  }
+
+
+  if (plist_->isParameter("runtime diagnostics: regions")) {
+    runtime_regions_ =
+      plist_->get<Teuchos::Array<std::string>>("runtime diagnostics: regions").toVector();
+  }
+
+  internal_tests = plist_->get<bool>("enable internal tests", false);
+  tests_tolerance =
+    plist_->get<double>("internal tests tolerance", TRANSPORT_CONCENTRATION_OVERSHOOT);
+
   db_ = Teuchos::rcp(new Debugger(mesh_, name_, *plist_));
 }
 
@@ -131,9 +153,7 @@ Transport_ATS::SetupAlquimia(Teuchos::RCP<AmanziChemistry::Alquimia_PK> chem_pk,
   if (chem_engine_ != Teuchos::null) {
     // Retrieve the component names (primary and secondary) from the chemistry
     // engine.
-    std::vector<std::string> component_names;
-    chem_engine_->GetPrimarySpeciesNames(component_names);
-    component_names_ = component_names;
+    chem_engine_->GetPrimarySpeciesNames(component_names_);
     num_components_ = component_names_.size();
   }
 }
@@ -157,6 +177,31 @@ Transport_ATS::Setup()
 void
 Transport_ATS::SetupTransport_()
 {
+  // a few last things that ought to be in the constructor, but cannot be there
+  // because they depend upon component_names, which may not get set in the
+  // constructor (as they get set by the chemical engine).
+  if (component_names_.size() == 0) {
+    // not set by chemistry... must get set by user
+    component_names_ = plist_->get<Teuchos::Array<std::string>>("component names").toVector();
+    num_components_ = component_names_.size();
+  }
+  num_aqueous_ = plist_->get<int>("number of aqueous components", component_names_.size());
+  num_advect_ = plist_->get<int>("number of aqueous components advected", num_aqueous_);
+  num_gaseous_ = plist_->get<int>("number of gaseous components", 0);
+
+  // statistics of solutes
+  if (plist_->isParameter("runtime diagnostics: solute names")) {
+    runtime_solutes_ =
+      plist_->get<Teuchos::Array<std::string>>("runtime diagnostics: solute names").toVector();
+    if (runtime_solutes_.size() == 1 && runtime_solutes_[0] == "all") {
+      runtime_solutes_ = component_names_;
+    }
+  }
+  mass_solutes_exact_.assign(num_aqueous_ + num_gaseous_, 0.0);
+  mass_solutes_source_.assign(num_aqueous_ + num_gaseous_, 0.0);
+  mass_solutes_bc_.assign(num_aqueous_ + num_gaseous_, 0.0);
+  mass_solutes_stepstart_.assign(num_aqueous_ + num_gaseous_, 0.0);
+
   // cross-coupling of PKs
   Teuchos::RCP<Teuchos::ParameterList> physical_models =
     Teuchos::sublist(plist_, "physical models and assumptions");
@@ -325,8 +370,52 @@ Transport_ATS::SetupTransport_()
 
   // material properties
   if (plist_->isSublist("material properties")) {
-    auto mdm_list = Teuchos::sublist(plist_, "material properties");
-    mdm_ = CreateMDMPartition(mesh_, mdm_list, flag_dispersion_);
+    auto mat_prop_list = Teuchos::sublist(plist_, "material properties");
+    mdm_ = CreateMDMPartition(mesh_, mat_prop_list, flag_dispersion_);
+
+    int nblocks = 0;
+    for (Teuchos::ParameterList::ConstIterator i = mat_prop_list->begin(); i != mat_prop_list->end(); i++) {
+      if (mat_prop_list->isSublist(mat_prop_list->name(i))) nblocks++;
+    }
+
+    mat_properties_.resize(nblocks);
+
+    int iblock = 0;
+    for (Teuchos::ParameterList::ConstIterator i = mat_prop_list->begin(); i != mat_prop_list->end(); i++) {
+      if (mat_prop_list->isSublist(mat_prop_list->name(i))) {
+        mat_properties_[iblock] = Teuchos::rcp(new MaterialProperties());
+
+        Teuchos::ParameterList& model_list = mat_prop_list->sublist(mat_prop_list->name(i));
+
+        mat_properties_[iblock]->tau[0] = model_list.get<double>("aqueous tortuosity", 0.0);
+        mat_properties_[iblock]->tau[1] = model_list.get<double>("gaseous tortuosity", 0.0);
+        mat_properties_[iblock]->regions =
+          model_list.get<Teuchos::Array<std::string>>("regions").toVector();
+        iblock++;
+      }
+    }
+  }
+
+  // transport diffusion (default is none)
+  diffusion_phase_.resize(TRANSPORT_NUMBER_PHASES, Teuchos::null);
+
+  if (plist_->isSublist("molecular diffusion")) {
+    auto diff_list = Teuchos::sublist(plist_, "molecular diffusion");
+    if (diff_list->isParameter("aqueous names")) {
+      diffusion_phase_[0] = Teuchos::rcp(new DiffusionPhase());
+      diffusion_phase_[0]->names() =
+        diff_list->get<Teuchos::Array<std::string>>("aqueous names").toVector();
+      diffusion_phase_[0]->values() =
+        diff_list->get<Teuchos::Array<double>>("aqueous values").toVector();
+    }
+
+    if (diff_list->isParameter("gaseous names")) {
+      diffusion_phase_[1] = Teuchos::rcp(new DiffusionPhase());
+      diffusion_phase_[1]->names() =
+        diff_list->get<Teuchos::Array<std::string>>("gaseous names").toVector();
+      diffusion_phase_[1]->values() =
+        diff_list->get<Teuchos::Array<double>>("gaseous values").toVector();
+    }
   }
 
   // create boundary conditions
@@ -517,9 +606,6 @@ Transport_ATS::Initialize()
   flux_ = S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ViewComponent("face", true);
   phi_ = S_->Get<CompositeVector>(porosity_key_, Tags::NEXT).ViewComponent("cell", false);
 
-  // extract control parameters
-  InitializeAll_(); // Nearly all (maybe all) of this is parsing the parameter list, move into the constructor. --ETC
-
   // upwind
   IdentifyUpwindCells_();
 
@@ -566,8 +652,8 @@ Transport_ATS::Initialize()
 
   if (vo_->os_OK(Teuchos::VERB_MEDIUM)) {
     *vo_->os() << "Number of components: " << tcc->size() << std::endl
-               << "cfl=" << cfl_ << " spatial/temporal discretization: " << spatial_disc_order
-               << " " << temporal_disc_order << std::endl;
+               << "cfl=" << cfl_ << " spatial/temporal discretization: " << spatial_disc_order_
+               << " " << temporal_disc_order_ << std::endl;
     *vo_->os() << vo_->color("green") << "Initalization of PK is complete." << vo_->reset()
                << std::endl
                << std::endl;
@@ -650,7 +736,7 @@ Transport_ATS::ComputeStableTimeStep_()
     }
   }
 
-  if (spatial_disc_order == 2) dt_ /= 2;
+  if (spatial_disc_order_ == 2) dt_ /= 2;
 
   // communicate global time step
   double dt_tmp = dt_;
@@ -658,7 +744,7 @@ Transport_ATS::ComputeStableTimeStep_()
   comm.MinAll(&dt_tmp, &dt_, 1);
 
   // incorporate developers and CFL constraints
-  dt_ = std::min(dt_, dt_debug_);
+  dt_ = std::min(dt_, dt_max_);
   dt_ *= cfl_;
 
   // print optional diagnostics using maximum cell id as the filter
@@ -788,10 +874,7 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   double dt_sum = 0.0;
   double dt_cycle;
   dt_cycle = std::min(dt_stable, dt_MPC);
-  ws_current = ws_prev_;
-  ws_next = ws_;
-  mol_dens_current = mol_dens_prev_;
-  mol_dens_next = mol_dens_;
+
   Tag water_tag_current = Tags::CURRENT;
   Tag water_tag_next = Tags::NEXT;
 
@@ -835,11 +918,11 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
     t_physics_ += dt_cycle;
     dt_sum += dt_cycle;
 
-    if (spatial_disc_order == 1) { // temporary solution (lipnikov@lanl.gov)
+    if (spatial_disc_order_ == 1) { // temporary solution (lipnikov@lanl.gov)
       AdvanceDonorUpwind_(dt_cycle);
-    } else if (spatial_disc_order == 2 && temporal_disc_order == 1) {
+    } else if (spatial_disc_order_ == 2 && temporal_disc_order_ == 1) {
       AdvanceSecondOrderUpwindRK1_(dt_cycle);
-    } else if (spatial_disc_order == 2 && temporal_disc_order == 2) {
+    } else if (spatial_disc_order_ == 2 && temporal_disc_order_ == 2) {
       AdvanceSecondOrderUpwindRK2_(dt_cycle);
     }
 
@@ -1118,17 +1201,18 @@ Transport_ATS::AdvanceDonorUpwind_(double dt_cycle)
 
   for (int c = 0; c < conserve_qty.MyLength(); c++) {
     double vol_phi_ws_den =
-      mesh_->getCellVolume(c) * (*phi_)[0][c] * (*ws_current)[0][c] * (*mol_dens_current)[0][c];
+      mesh_->getCellVolume(c) * (*phi_)[0][c] * (*ws_prev_)[0][c] * (*mol_dens_prev_)[0][c];
     (conserve_qty)[num_components_ + 1][c] = vol_phi_ws_den;
 
     for (int i = 0; i < num_advect_; i++) {
       (conserve_qty)[i][c] = tcc_prev[i][c] * vol_phi_ws_den;       // get and store current solute mass
 
       if (dissolution_) {
-        if (((*ws_current)[0][c] > water_tolerance_) &&
+        if (((*ws_prev_)[0][c] > water_tolerance_) &&
             (solid_qty[i][c] > 0)) { // Dissolve solid residual into liquid
-          double add_mass =
-            std::min(solid_qty[i][c], max_tcc_ * vol_phi_ws_den - conserve_qty[i][c]);
+          double add_mass = max_tcc_ > 0 ?
+            std::min(solid_qty[i][c], max_tcc_ * vol_phi_ws_den - conserve_qty[i][c]) :
+            solid_qty[i][c];
           solid_qty[i][c] -= add_mass;
           conserve_qty[i][c] += add_mass;
         }
@@ -1239,7 +1323,7 @@ Transport_ATS::AdvanceDonorUpwind_(double dt_cycle)
   // recover concentration from new conservative state
   for (int c = 0; c < conserve_qty.MyLength(); c++) {
     double water_new =
-      mesh_->getCellVolume(c) * (*phi_)[0][c] * (*ws_next)[0][c] * (*mol_dens_next)[0][c];  // next water in cell c
+      mesh_->getCellVolume(c) * (*phi_)[0][c] * (*ws_)[0][c] * (*mol_dens_)[0][c];  // next water in cell c
     double water_sink = conserve_qty[num_components_][c];  // current water in cell c (seem always 0 because conserve_qty.PutScalar(0.))
     double water_total = water_new + water_sink;          // unit: mol H20
     AMANZI_ASSERT(water_total >= water_new);
@@ -1316,7 +1400,7 @@ Transport_ATS::AdvanceSecondOrderUpwindRK1_(double dt_cycle)
 
   // prepopulate with initial water for better debugging
   for (int c = 0; c < conserve_qty.MyLength(); c++) {
-    conserve_qty[num_components_ + 1][c] = mesh_->getCellVolume(c) * (*phi_)[0][c] * (*ws_current)[0][c] * (*mol_dens_current)[0][c];
+    conserve_qty[num_components_ + 1][c] = mesh_->getCellVolume(c) * (*phi_)[0][c] * (*ws_prev_)[0][c] * (*mol_dens_prev_)[0][c];
   }
 
   for (int i = 0; i < num_advect_; i++) {
@@ -1331,7 +1415,7 @@ Transport_ATS::AdvanceSecondOrderUpwindRK1_(double dt_cycle)
   for (int c = 0; c < conserve_qty.MyLength(); c++) {
     double water_old = conserve_qty[num_components_ + 1][c];
     double water_new =
-      mesh_->getCellVolume(c) * (*phi_)[0][c] * (*ws_next)[0][c] * (*mol_dens_next)[0][c];
+      mesh_->getCellVolume(c) * (*phi_)[0][c] * (*ws_)[0][c] * (*mol_dens_)[0][c];
     double water_sink = conserve_qty[num_components_][c];
     double water_total = water_sink + water_new;
     conserve_qty[num_components_][c] = water_total;
@@ -1390,13 +1474,13 @@ Transport_ATS::AdvanceSecondOrderUpwindRK2_(double dt_cycle)
   tcc->ScatterMasterToGhosted("cell");
   Epetra_MultiVector& tcc_prev = *tcc->ViewComponent("cell", true);
   Epetra_MultiVector& tcc_next = *tcc_tmp->ViewComponent("cell", true);
-  Epetra_Vector ws_ratio(Copy, *ws_current, 0);
+  Epetra_Vector ws_ratio(Copy, *ws_prev_, 0);
 
   for (int c = 0; c < solid_qty.MyLength(); c++) {
-    if ((*ws_next)[0][c] > 1e-10) {
-      if ((*ws_current)[0][c] > 1e-10) {
-        ws_ratio[c] = ((*ws_current)[0][c] * (*mol_dens_current)[0][c]) /
-                      ((*ws_next)[0][c] * (*mol_dens_next)[0][c]);
+    if ((*ws_)[0][c] > 1e-10) {
+      if ((*ws_prev_)[0][c] > 1e-10) {
+        ws_ratio[c] = ((*ws_prev_)[0][c] * (*mol_dens_prev_)[0][c]) /
+                      ((*ws_)[0][c] * (*mol_dens_)[0][c]);
       } else {
         ws_ratio[c] = 1;
       }
@@ -1432,7 +1516,7 @@ Transport_ATS::AdvanceSecondOrderUpwindRK2_(double dt_cycle)
       tcc_next[i][c] = (tcc_next[i][c] + value) / 2;
       if (tcc_next[i][c] < 0) {
         double vol_phi_ws_den =
-          mesh_->getCellVolume(c) * (*phi_)[0][c] * (*ws_next)[0][c] * (*mol_dens_next)[0][c];
+          mesh_->getCellVolume(c) * (*phi_)[0][c] * (*ws_)[0][c] * (*mol_dens_)[0][c];
         solid_qty[i][c] += abs(tcc_next[i][c]) * vol_phi_ws_den;
         tcc_next[i][c] = 0.;
       }
@@ -1663,28 +1747,28 @@ Transport_ATS::ComputeVolumeDarcyFlux_(Teuchos::RCP<const Epetra_MultiVector> fl
 }
 
 
-/* *******************************************************************
-* Interpolate linearly in time between two values v0 and v1. The time
-* is measuared relative to value v0; so that v1 is at time dt. The
-* interpolated data are at time dt_int.
-******************************************************************* */
-void
-InterpolateCellVector(const Epetra_MultiVector& v0,
-                                     const Epetra_MultiVector& v1,
-                                     double dt_int,
-                                     double dt,
-                                     Epetra_MultiVector& v_int)
-{
-  double a = dt_int / dt;
-  double b = 1.0 - a;
-  v_int.Update(b, v0, a, v1, 0.);
-}
-
 void
 Transport_ATS::ChangedSolutionPK(const Tag& tag)
 {
   changedEvaluatorPrimary(key_, tag, *S_);
 }
+
+/* ****************************************************************
+* Find place of the given component in a multivector.
+**************************************************************** */
+int
+Transport_ATS::FindComponentNumber_(const std::string& component_name)
+{
+  int ncomponents = component_names_.size();
+  for (int i = 0; i < ncomponents; i++) {
+    if (component_names_[i] == component_name) return i;
+  }
+  Errors::Message msg("TransportExplicit_PK: component \"");
+  msg << component_name << "\" was requested, but this is not a known component for this PK.";
+  Exceptions::amanzi_throw(msg);
+  return -1;
+}
+
 
 } // namespace Transport
 } // namespace Amanzi

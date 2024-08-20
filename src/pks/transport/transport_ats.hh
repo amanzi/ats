@@ -354,7 +354,6 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
 
   // -- setup/initialize helper functions
   void InitializeFields_();
-  void InitializeAll_();
 
   void SetupTransport_();
   void SetupPhysicalEvaluators_();
@@ -399,14 +398,6 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
                               Teuchos::RCP<const Epetra_MultiVector> mol_den,
                               Teuchos::RCP<Epetra_MultiVector>& vol_darcy_flux);
 
- public:
-  int MyPID; // parallel information: will be moved to private
-  int spatial_disc_order, temporal_disc_order, limiter_model;
-
-  int nsubcycles; // output information
-  int internal_tests;
-  double tests_tolerance;
-
  protected:
   Key saturation_key_;
   Key flux_key_;
@@ -427,11 +418,12 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   Key conserve_qty_key_;
   Key cv_key_;
 
- protected:
   // control flags
   std::unordered_map<std::string, bool> convert_to_field_;
   Key passwd_;
 
+  // NOTE: these should go away -- instead get vectors from State, then pass as
+  // function arguments if needed.  --ETC
   Teuchos::RCP<CompositeVector> tcc_w_src;
   Teuchos::RCP<CompositeVector> tcc_tmp; // next tcc
   Teuchos::RCP<CompositeVector> tcc;     // smart mirrow of tcc
@@ -446,19 +438,15 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
 #endif
 
   Teuchos::RCP<Epetra_IntVector> upwind_cell_, downwind_cell_;
-  Teuchos::RCP<const Epetra_MultiVector> ws_current, ws_next;             // data for subcycling
-  Teuchos::RCP<const Epetra_MultiVector> mol_dens_current, mol_dens_next; // data for subcycling
 
   int current_component_; // data for lifting
   Teuchos::RCP<Operators::ReconstructionCellLinear> lifting_;
   Teuchos::RCP<Operators::LimiterCell> limiter_;
 
+  // srcs should go away, and instead use vectors from State and evaluators --ETC
   std::vector<Teuchos::RCP<TransportDomainFunction>> srcs_; // Source or sink for components
   std::vector<Teuchos::RCP<TransportDomainFunction>> bcs_;  // influx BC for components
   Teuchos::RCP<Epetra_Vector> Kxy_; // absolute permeability in plane xy
-
-  Teuchos::RCP<Epetra_Import> cell_importer_; // parallel communicators
-  Teuchos::RCP<Epetra_Import> face_importer_;
 
   // mechanical dispersion and molecual diffusion
   Teuchos::RCP<MDMPartition> mdm_;
@@ -475,15 +463,19 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   std::vector<double> kH_;
   std::vector<int> air_water_map_;
 
-  double cfl_, dt_, dt_debug_, t_physics_;
+  // control parameters
+  int spatial_disc_order_, temporal_disc_order_, limiter_model_;
+
+  int nsubcycles; // output information
+  int internal_tests;
+  double tests_tolerance;
+
+  double cfl_, dt_, dt_max_, t_physics_;
 
   std::vector<double> mass_solutes_exact_, mass_solutes_source_; // mass for all solutes
   std::vector<double> mass_solutes_bc_, mass_solutes_stepstart_;
   std::vector<std::string> runtime_solutes_; // solutes tracked for diagnostics
   std::vector<std::string> runtime_regions_;
-
-  // int nfaces_owned;
-  int nnodes_wghost_;
 
   std::vector<std::string> component_names_; // details of components
   std::vector<double> mol_masses_;
@@ -517,12 +509,6 @@ void CheckTracerBounds(const Epetra_MultiVector& tcc,
                        double lower_bound,
                        double upper_bound,
                        double tol = 0.0);
-
-void InterpolateCellVector(const Epetra_MultiVector& v0,
-                            const Epetra_MultiVector& v1,
-                            double dT_int,
-                            double dT,
-                            Epetra_MultiVector& v_int);
 
 } // namespace Transport
 } // namespace Amanzi
