@@ -11,6 +11,7 @@
 #include "activelayer_average_temp_evaluator.hh"
 #include "thaw_depth_evaluator.hh"
 #include "water_table_depth_evaluator.hh"
+#include "perched_water_table_depth_evaluator.hh"
 
 
 namespace Amanzi {
@@ -28,6 +29,9 @@ Utils::RegisteredFactory<Evaluator, ThawDepthEvaluator> ThawDepthEvaluator::reg_
 template <>
 Utils::RegisteredFactory<Evaluator, WaterTableDepthEvaluator>
   WaterTableDepthEvaluator::reg_("water table depth");
+template <>
+Utils::RegisteredFactory<Evaluator, PerchedWaterTableDepthEvaluator>
+  PerchedWaterTableDepthEvaluator::reg_("perched water table depth");
 
 } // namespace Relations
 } // namespace Amanzi

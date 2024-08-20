@@ -9,18 +9,18 @@
 
 /*!
 
-Computes the depth to the water table.
+Computes the depth to the perched water table.
 
-`"evaluator type`" = `"water table depth`"
+`"evaluator type`" = `"perched water table depth`"
 
-.. _water-table-depth-spec:
-.. admonition:: water-table-depth-spec
+.. _perched-water-table-depth-spec:
+.. admonition:: perched-water-table-depth-spec
 
     * `"interpolate depth from pressure`" ``[bool]`` **false** Default to calculate
-      water table depth by locating the top face of the last continuously saturated 
-      cell from bottom upward. If true, use the height and pressure at the centroids 
-      of the last continuously saturated cell and its adjacent unsaturated cell to 
-      determine the water table depth through interpolation.
+      perched water table depth by locating the bottom face of the last continuously 
+      unsaturated cell from top downward. If true, use the height and pressure at the 
+      centroids of the last continuously unsaturated cell and its adjacent saturated 
+      cell to determine the perched water table depth through interpolation.
 
     KEYS:
 
@@ -35,20 +35,20 @@ Computes the depth to the water table.
 #pragma once
 
 #include "Factory.hh"
-#include "WaterTableColumnIntegrator.hh"
+#include "PerchedWaterTableColumnIntegrator.hh"
 
 namespace Amanzi {
 namespace Relations {
 
-struct ParserWaterTableDepth {
-  ParserWaterTableDepth(Teuchos::ParameterList& plist, const KeyTag& key_tag);
+struct ParserPerchedWaterTableDepth {
+  ParserPerchedWaterTableDepth(Teuchos::ParameterList& plist, const KeyTag& key_tag);
   KeyTagSet dependencies;
 };
 
 
-class IntegratorWaterTableDepth {
+class IntegratorPerchedWaterTableDepth {
  public:
-  IntegratorWaterTableDepth(Teuchos::ParameterList& plist,
+  IntegratorPerchedWaterTableDepth(Teuchos::ParameterList& plist,
                             std::vector<const Epetra_MultiVector*>& deps,
                             const AmanziMesh::Mesh* mesh);
   int scan(AmanziMesh::Entity_ID col, AmanziMesh::Entity_ID c, AmanziGeometry::Point& p);
@@ -63,8 +63,8 @@ class IntegratorWaterTableDepth {
   bool is_interp_;
 };
 
-using WaterTableDepthEvaluator =
-  WaterTableColumnIntegrator<ParserWaterTableDepth, IntegratorWaterTableDepth>;
+using PerchedWaterTableDepthEvaluator =
+  PerchedWaterTableColumnIntegrator<ParserPerchedWaterTableDepth, IntegratorPerchedWaterTableDepth>;
 
 } //namespace Relations
 } //namespace Amanzi

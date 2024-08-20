@@ -8,13 +8,13 @@
            Bo Gao (gaob@ornl.gov)
 */
 
-//! Calculates the water table depth by locating the end of continuously saturated cells from bottom upwards.
-#include "water_table_depth_evaluator.hh"
+//! Calculates the water table depth by locating the end of continuously unsaturated cells from top downwards.
+#include "perched_water_table_depth_evaluator.hh"
 
 namespace Amanzi {
 namespace Relations {
 
-ParserWaterTableDepth::ParserWaterTableDepth(Teuchos::ParameterList& plist, const KeyTag& key_tag)
+ParserPerchedWaterTableDepth::ParserPerchedWaterTableDepth(Teuchos::ParameterList& plist, const KeyTag& key_tag)
 {
   Key domain = Keys::getDomain(key_tag.first);
   Tag tag = key_tag.second;
@@ -34,7 +34,7 @@ ParserWaterTableDepth::ParserWaterTableDepth(Teuchos::ParameterList& plist, cons
 }
 
 
-IntegratorWaterTableDepth::IntegratorWaterTableDepth(Teuchos::ParameterList& plist,
+IntegratorPerchedWaterTableDepth::IntegratorPerchedWaterTableDepth(Teuchos::ParameterList& plist,
                                                      std::vector<const Epetra_MultiVector*>& deps,
                                                      const AmanziMesh::Mesh* mesh) : mesh_(mesh)
 {
@@ -47,27 +47,27 @@ IntegratorWaterTableDepth::IntegratorWaterTableDepth(Teuchos::ParameterList& pli
 }
 
 int
-IntegratorWaterTableDepth::scan(AmanziMesh::Entity_ID col,
-                                AmanziMesh::Entity_ID c,
-                                AmanziGeometry::Point& p)
+IntegratorPerchedWaterTableDepth::scan(AmanziMesh::Entity_ID col,
+                                       AmanziMesh::Entity_ID c,
+                                       AmanziGeometry::Point& p)
 {
-  if ((*sat_)[0][c] == 0.0) {
-    p[2] = mesh_->getCellCentroid(c)[2]; // last saturated cell centroid
+  if ((*sat_)[0][c] > 0.0) {
+    p[2] = mesh_->getCellCentroid(c)[2]; // last unsaturated cell centroid
     if (is_interp_) {
-      p[0] = (*pres_)[0][c]; // last saturated cell pressure
+      p[0] = (*pres_)[0][c]; // last unsaturated cell pressure
     } else {
-      p[0] += (*cv_)[0][c]; // cumulative saturated cell volume
-    } 
-    return false;  
+      p[0] += (*cv_)[0][c]; // cumulative unsaturated cell volume
+    }
+    return false;
   }
   if (is_interp_) {
-    p[1] = (*pres_)[0][c]; // first unsaturated cell pressure
+    p[1] = (*pres_)[0][c]; // first saturated cell pressure
   }
   return true;
 }
 
 double
-IntegratorWaterTableDepth::coefficient(AmanziMesh::Entity_ID col)
+IntegratorPerchedWaterTableDepth::coefficient(AmanziMesh::Entity_ID col)
 {
   return 1. / (*surf_cv_)[0][col];
 }
