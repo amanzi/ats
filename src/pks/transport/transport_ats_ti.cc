@@ -145,7 +145,7 @@ Transport_ATS::FunctionalTimeDerivative(double t,
     if (vol_phi_ws_den > water_tolerance_) { f_component[c] /= vol_phi_ws_den; }
   }
 
-  // BOUNDARY CONDITIONS for ADVECTION
+  // boundary conditions for advection
   for (int m = 0; m < bcs_.size(); m++) {
     std::vector<int>& tcc_index = bcs_[m]->tcc_index();
     int ncomp = tcc_index.size();

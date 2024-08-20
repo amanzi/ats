@@ -932,6 +932,8 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
       AdvanceSecondOrderUpwindRK1_(dt_cycle);
     } else if (spatial_disc_order_ == 2 && temporal_disc_order_ == 2) {
       AdvanceSecondOrderUpwindRK2_(dt_cycle);
+    } else {
+      AMANZI_ASSERT(false);
     }
 
     if (!final_cycle) { // rotate concentrations (we need new memory for tcc)
