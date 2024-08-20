@@ -49,19 +49,19 @@ QCRelationFieldEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
   const auto& water_from_field =
     *S.Get<CompositeVector>(field_src_key_, tag).ViewComponent("cell", false);
   auto& surf_src = *result[0]->ViewComponent("cell"); // not being reference
-
-  double total = 0.0;
   const AmanziMesh::Mesh& mesh = *result[0]->Mesh();
 
   // Loop through each cell
   AmanziMesh::Entity_ID ncells = cv.MyLength();
   for (AmanziMesh::Entity_ID c = 0; c != ncells; ++c) {
-    // convert discharge from mol/s to m3/s
-    double field_flow = std::max(water_from_field[0][c], 0.0) * cv[0][c] / molar_den[0][c];
+    // convert discharge from mol/m2/s to m3/s
+    double field_flow = std::max(water_from_field[0][c], 0.) * cv[0][c] / molar_den[0][c];
 
-    // transport source (mass) as a function of discharge from a field (e.g. tile, groundwater)
+    // transport source (concentration) as a function of discharge from a field (e.g. tile, groundwater)
     double source_mass = (*QC_curve_)(std::vector<double>{field_flow});
-    surf_src[0][c] = source_mass;
+
+    // return solute mass by multiplying with discharge (molC/s)
+    surf_src[0][c] = source_mass * field_flow;
   }
 }
 

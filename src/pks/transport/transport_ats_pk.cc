@@ -268,6 +268,7 @@ Transport_ATS::SetupTransport_()
               // PK_DomainFunction* should be updated to make sure they require their data! --ETC
               // Problem: This requires the pk_helper.hh to be included in PK_DomainFunctionField.hh --PL
             }
+            
           } else { // all others work on a subset of components
             Teuchos::RCP<TransportDomainFunction> src = factory.Create(
               *src_list, "source function", AmanziMesh::Entity_kind::CELL, Kxy, tag_current_);
@@ -276,19 +277,19 @@ Transport_ATS::SetupTransport_()
               src->tcc_index().push_back(FindComponentNumber(n));
             }
 
-            if (convert_to_field_[name]) {
-              name = Keys::cleanName(name);
-              if (Keys::getDomain(name)!=domain_){
-                name = Keys::getKey(domain_, name);
-              }
-              requireAtNext(name, Tags::NEXT, *S_, name)
-              .SetMesh(mesh_)
-              ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_components);     
-            }
-
             src->set_state(S_);
             srcs_.push_back(src);
           }
+          
+          if (convert_to_field_[name]) {
+            name = Keys::cleanName(name);
+            if (Keys::getDomain(name)!=domain_){
+              name = Keys::getKey(domain_, name);
+            }
+            requireAtNext(name, Tags::NEXT, *S_, name)
+            .SetMesh(mesh_)
+            ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_components);     
+          }          
         }
       }
     }
@@ -474,15 +475,11 @@ Transport_ATS::SetupPhysicalEvaluators_()
     ->SetGhosted(true)
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_components);
   S_->GetRecordSetW(solid_residue_mass_key_).set_subfieldnames(primary_names);
+  // This vector stores the conserved amount (in mols) of num_components transported solutes, plus two for water.
+  // - The first water component is given by the water content (in mols) at the current (old) time plus dt * all fluxes treated explictly.  
+  // - The second water component is given by the water content at the new time plus dt * all fluxes treated implicitly 
+  //   (notably just DomainCoupling fluxes, which must be able to take all the transported quantity.)
 
-  // This vector stores the conserved amount (in mols) of ncomponent
-  // transported components, plus two for water.  The first water component is
-  // given by the water content (in mols) at the old time plus dt * all fluxes
-  // treated explictly.  The second water component is given by the water
-  // content at the new time plus dt * all fluxes treated implicitly (notably
-  // just DomainCoupling fluxes, which must be able to take all the transported
-  // quantity.)
-  //
   // Note that component_names includes secondaries, but we only need primaries
   primary_names.emplace_back("H2O_old");
   primary_names.emplace_back("H2O_new");
@@ -929,9 +926,11 @@ Transport_ATS ::Advance_Dispersion_Diffusion(double t_old, double t_new)
     // populate the dispersion operator (if any)
     if (flag_dispersion_) { CalculateDispersionTensor_(*flux_, *phi_, *ws_, *mol_dens_); }
 
-    int phase, num_itrs(0);
+    int phase;  // transport phase; 0: liquid, 2: gas
+    int num_itrs(0);
     bool flag_op1(true);
-    double md_change, md_old(0.0), md_new, residual(0.0);
+    double md_change, md_old(0.0), md_new;  // molecular diffusion
+    double residual(0.0);
 
     // Disperse and diffuse aqueous components
     for (int i = 0; i < num_aqueous; i++) {
@@ -1099,21 +1098,23 @@ Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
   mass_solutes_source_.assign(num_aqueous + num_gaseous, 0.0);
   mass_solutes_bc_.assign(num_aqueous + num_gaseous, 0.0);
 
-  // populating next state of concentrations
+  // scattering total concentration from master to others
   tcc->ScatterMasterToGhosted("cell");
-  Epetra_MultiVector& tcc_prev = *tcc->ViewComponent("cell", true);
-  Epetra_MultiVector& tcc_next = *tcc_tmp->ViewComponent("cell", true);
+  Epetra_MultiVector& tcc_prev = *tcc->ViewComponent("cell", true);       // tag current
+  Epetra_MultiVector& tcc_next = *tcc_tmp->ViewComponent("cell", true);   // tag next
 
-  // prepare conservative state in master and slave cells
-  double mass_current = 0., tmp1, mass;
+  double mass_current = 0.; 
+  double tmp1, mass;
   int num_components = tcc_next.NumVectors();
 
-  // populating conserved quantity
+  // populating conserved quantity (unit: molC) 
+  // The conserve_qty has `num_components+2` vectors
   Epetra_MultiVector& conserve_qty = 
     *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_).ViewComponent("cell", false);
-  conserve_qty.PutScalar(0.);
+  conserve_qty.PutScalar(0.);     // set all values in conserve_qty to 0 -- why?
 
-  // populating solid quantity
+  // populating solid quantity (unit: molC)
+  // solid_qty has `num_components` vectors only (solute mass)
   Epetra_MultiVector& solid_qty = 
     *S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, name_).ViewComponent("cell", false);
 
@@ -1123,7 +1124,7 @@ Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
     (conserve_qty)[num_components + 1][c] = vol_phi_ws_den;
 
     for (int i = 0; i < num_advect; i++) {
-      (conserve_qty)[i][c] = tcc_prev[i][c] * vol_phi_ws_den;
+      (conserve_qty)[i][c] = tcc_prev[i][c] * vol_phi_ws_den;       // get and store current solute mass
 
       if (dissolution_) {
         if (((*ws_current)[0][c] > water_tolerance_) &&
@@ -1135,49 +1136,62 @@ Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
         }
       }
 
-      mass_current += conserve_qty[i][c];
+      mass_current += conserve_qty[i][c]; // this includes total current mass of all solutes
     }
   }
 
   db_->WriteCellVector("cons (start)", conserve_qty);
   tmp1 = mass_current;
-  mesh_->getComm()->SumAll(&tmp1, &mass_current, 1);
+  mesh_->getComm()->SumAll(&tmp1, &mass_current, 1);    // sum all mass_current from all processors
   int nfaces_all =
     mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::ALL);
 
   // advance all components at once
-  for (int f = 0; f < nfaces_all; f++) { // loop over master and slave faces
+  for (int f = 0; f < nfaces_all; f++) {
+    // flow moves from upwind cell (c1) to downwind cell (c2). 
+    // If ci < 0 || ci > ncells_owned -> indicates boundary or halo cells (i=1,2)
     int c1 = (*upwind_cell_)[f];
     int c2 = (*downwind_cell_)[f];
     double u = fabs((*flux_)[0][f]);
 
     if (c1 >= 0 && c1 < conserve_qty.MyLength() && c2 >= 0 && c2 < conserve_qty.MyLength()) {
+      // Here c1 & c2 are inside local domain. Update solute fluxes for both cells
       for (int i = 0; i < num_advect; i++) {
         double tcc_flux = dt_ * u * tcc_prev[i][c1];
         conserve_qty[i][c1] -= tcc_flux;
         conserve_qty[i][c2] += tcc_flux;
       }
+      // Update (tag next) water fluxes for both cells
       conserve_qty[num_components + 1][c1] -= dt_ * u;
       conserve_qty[num_components + 1][c2] += dt_ * u;
+
     } else if (c1 >= 0 && c1 < conserve_qty.MyLength() && (c2 >= conserve_qty.MyLength() || c2 < 0)) {
+      // downind cell c2 is boundary or belong to another domain owned by other processors
+      // Update solute flux for c1
       for (int i = 0; i < num_advect; i++) {
         double tcc_flux = dt_ * u * tcc_prev[i][c1];
         conserve_qty[i][c1] -= tcc_flux;
-        if (c2 < 0) mass_solutes_bc_[i] -= tcc_flux;
+        if (c2 < 0) mass_solutes_bc_[i] -= tcc_flux;  // if c2 is boundary, update BC
       }
+      // Update or subtract (tag next) water fluxes for c1
       conserve_qty[num_components + 1][c1] -= dt_ * u;
 
     } else if (c1 >= conserve_qty.MyLength() && c2 >= 0 && c2 < conserve_qty.MyLength()) {
+      // upwind cell c1 is boundary or belong to another domain owned by other processors
+      // Update solute flux for c2
       for (int i = 0; i < num_advect; i++) {
         double tcc_flux = dt_ * u * tcc_prev[i][c1];
         conserve_qty[i][c2] += tcc_flux;
       }
+      // Update or add (tag next) water fluxes for c2
       conserve_qty[num_components + 1][c2] += dt_ * u;
 
     } else if (c2 < 0 && c1 >= 0 && c1 < conserve_qty.MyLength()) {
+      // this case is very similar to line 1165, except c2<0 only. Why we don't update solute flux??? --PL
       conserve_qty[num_components + 1][c1] -= dt_ * u;
 
     } else if (c1 < 0 && c2 >= 0 && c2 < conserve_qty.MyLength()) {
+      // why no solute update??? --PL
       conserve_qty[num_components + 1][c2] += dt_ * u;
     }
   }
@@ -1227,19 +1241,18 @@ Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
   // recover concentration from new conservative state
   for (int c = 0; c < conserve_qty.MyLength(); c++) {
     double water_new =
-      mesh_->getCellVolume(c) * (*phi_)[0][c] * (*ws_next)[0][c] * (*mol_dens_next)[0][c];
-    double water_sink =
-      conserve_qty[num_components]
-                      [c]; // water at the new time + outgoing domain coupling source
-    double water_total = water_new + water_sink;
+      mesh_->getCellVolume(c) * (*phi_)[0][c] * (*ws_next)[0][c] * (*mol_dens_next)[0][c];  // next water in cell c
+    double water_sink = conserve_qty[num_components][c];  // current water in cell c (seem always 0 because conserve_qty.PutScalar(0.))
+    double water_total = water_new + water_sink;          // unit: mol H20
     AMANZI_ASSERT(water_total >= water_new);
-    conserve_qty[num_components][c] = water_total;
+    conserve_qty[num_components][c] = water_total;        // update current water in cell c
 
     for (int i = 0; i < num_advect; i++) {
       if (water_new > water_tolerance_ && conserve_qty[i][c] > 0) {
         // there is both water and stuff present at the new time
         // this is stuff at the new time + stuff leaving through the domain coupling, divided by water of both
         tcc_next[i][c] = conserve_qty[i][c] / water_total;
+        // what if water_total is too small and thus tcc_next is VERY LARGE?        
       } else if (water_sink > water_tolerance_ && conserve_qty[i][c] > 0) {
         // there is water and stuff leaving through the domain coupling, but it all leaves (none at the new time)
         tcc_next[i][c] = 0.;
@@ -1463,7 +1476,6 @@ Transport_ATS::ComputeAddSourceTerms(double tp,
 
       if (c >= cons_qty.MyLength()) continue;
 
-
       if (srcs_[m]->getType() == DomainFunction_kind::COUPLING && n0 == 0) {
         cons_qty[num_vectors - 2][c] += values[num_vectors - 2];
       }
@@ -1475,9 +1487,9 @@ Transport_ATS::ComputeAddSourceTerms(double tp,
             name = Keys::getKey(domain_, name);
           }
           copyToCompositeVector(*srcs_[m], 
-          S_->GetW<CompositeVector>(name, tag_next_, name)
+          S_->GetW<CompositeVector>(name, Tags::NEXT, name)
           );
-          changedEvaluatorPrimary(name, tag_next_, *S_);
+          changedEvaluatorPrimary(name, Tags::NEXT, *S_);
        }
 
       for (int k = 0; k < tcc_index.size(); ++k) {
@@ -1513,8 +1525,8 @@ Transport_ATS::Sinks2TotalOutFlux(Epetra_MultiVector& tcc_c,
   std::vector<double> sink_add(ncells_all, 0.0);
   //Assumption that there is only one sink per component per cell
   double t0 = S_->get_time(tag_current_);
-  int num_vectors = tcc_c.NumVectors();     // number of components (e.g. tracers)
-  int nsrcs = srcs_.size();                 // number of sources or sinks
+  int num_vectors = tcc_c.NumVectors();                 // number of components (e.g. tracers)
+  int nsrcs = srcs_.size();                             // number of sources or sinks
 
   for (int m = 0; m < nsrcs; m++) {
     srcs_[m]->Compute(t0, t0);                          // source term at time t0
@@ -1565,6 +1577,7 @@ Transport_ATS::PopulateBoundaryData(std::vector<int>& bc_model,
     bc_value[i] = 0.0;
   }
 
+  // This is not efficient. We should do this only once, not every time step.
   for (int f = 0; f < nfaces_all; f++) {
     auto cells = mesh_->getFaceCells(f);
     if (cells.size() == 1) bc_model[f] = Operators::OPERATOR_BC_NEUMANN;
@@ -1603,12 +1616,15 @@ Transport_ATS::IdentifyUpwindCells()
     mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::ALL);
   int nfaces_all =
     mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::ALL);
-
+  
+  // initialize all face as boundary first
+  // negative value indicates boundary
   for (int f = 0; f < nfaces_all; f++) {
-    (*upwind_cell_)[f] = -1; // negative value indicates boundary
+    (*upwind_cell_)[f] = -1;
     (*downwind_cell_)[f] = -1;
   }
 
+  // identify upwind and downwind cell of each face
   for (int c = 0; c < ncells_all; c++) {
     const auto& [faces, dirs] = mesh_->getCellFacesAndDirections(c);
 
@@ -1619,7 +1635,7 @@ Transport_ATS::IdentifyUpwindCells()
         (*upwind_cell_)[f] = c;
       } else if (tmp < 0.0) {
         (*downwind_cell_)[f] = c;
-      } else if (dirs[i] > 0) {
+      } else if (dirs[i] > 0) {     // means tmp = 0
         (*upwind_cell_)[f] = c;
       } else {
         (*downwind_cell_)[f] = c;

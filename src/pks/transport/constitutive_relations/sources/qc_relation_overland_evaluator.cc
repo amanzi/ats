@@ -60,18 +60,24 @@ QCRelationOverlandEvaluator::Evaluate_(const State& S, const std::vector<Composi
   for (AmanziMesh::Entity_ID c = 0; c != ncells; ++c) {
     double total_external_flux = 0;
     const auto& [faces, dirs] = mesh.getCellFacesAndDirections(c);
-    for (int f : faces) {
+    int nfaces = faces.size();
+    
+    for (int i = 0; i < nfaces; i++) {
+      int f = faces[i];     // get each face of the cell
+      double dir = dirs[i]; // 1: water goes out of the cell; -1: water goes into the cell
+
       if (mesh.getFaceCells(f).size() == 1) {
         // external faces which contributes sinks/sources
-        total_external_flux += water_from_field[0][f];
+        total_external_flux += std::abs(water_from_field[0][f]) * (-dir);
       }
     }
-    // convert from mol/s to m3/s
-    double total_flux_meter = total_external_flux * cv[0][c] / molar_den[0][c];
+    
+    // convert from mol/s to m3/s. We do NOT multiply with cv here
+    double total_flux_meter = total_external_flux / molar_den[0][c];
 
     // transport source (mass) as a function of discharge (e.g. overland)
     double source_transport = (*QC_curve_)(std::vector<double>{ total_flux_meter });
-    surf_src[0][c] = source_transport;
+    surf_src[0][c] = source_transport * total_flux_meter;
   }
 }
 
