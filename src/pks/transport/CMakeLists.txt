@@ -6,13 +6,15 @@
 #
 
 #================================================
-# register evaluators/factories/pks
+add_subdirectory(constitutive_relations)
 
-include_directories(${CHEMPK_SOURCE_DIR})
-include_directories(${AMANZI_SOURCE_DIR}/src/common/alquimia)
-include_directories(${FUNCTIONS_SOURCE_DIR})
-include_directories(${TRANSPORT_SOURCE_DIR})
+# ATS include directories
 include_directories(${ATS_SOURCE_DIR}/src/pks)
+include_directories(${ATS_SOURCE_DIR}/src/pks/transport/constitutive_relations/sources)
+# include_directories(${ATS_SOURCE_DIR}/src/pks/transport/constitutive_relations/sediment_transport)
+
+# Amanzi include directories
+include_directories(${TRANSPORT_SOURCE_DIR})
 
 set(ats_transport_src_files
   transport_ats_dispersion.cc
@@ -21,21 +23,13 @@ set(ats_transport_src_files
   transport_ats_vandv.cc
   transport_ats_initialize.cc
   transport_ats_pk.cc
-  # sediment_transport/sediment_transport_pk.cc
-  # sediment_transport/erosion_evaluator.cc
-  # sediment_transport/settlement_evaluator.cc
-  # sediment_transport/trapping_evaluator.cc
-  # sediment_transport/organic_matter_evaluator.cc  
+  # sediment_transport_pk.cc
  )
 
 
 set(ats_transport_inc_files
   transport_ats.hh
-  # sediment_transport/sediment_transport_pk.hh
-  # sediment_transport/erosion_evaluator.hh
-  # sediment_transport/settlement_evaluator.hh
-  # sediment_transport/trapping_evaluator.hh
-  # sediment_transport/organic_matter_evaluator.hh
+  # sediment_transport_pk.hh
   )
 
 
@@ -75,28 +69,9 @@ register_evaluator_with_factory(
   )
 
 # register_evaluator_with_factory(
-#   HEADERFILE sediment_transport/sediment_transport_reg.hh
+#   HEADERFILE sediment_transport_reg.hh
 #   LISTNAME   ATS_TRANSPORT_REG
 #   )
-  
-# # sediment diposition and erosion rates
-# register_evaluator_with_factory(
-#   HEADERFILE sediment_transport/erosion_evaluator_reg.hh
-#   LISTNAME ATS_TRANSPORT_REG
-#   )
-# register_evaluator_with_factory(
-#   HEADERFILE sediment_transport/settlement_evaluator_reg.hh
-#   LISTNAME ATS_TRANSPORT_REG
-#   )
-# register_evaluator_with_factory(
-#   HEADERFILE sediment_transport/trapping_evaluator_reg.hh
-#   LISTNAME ATS_TRANSPORT_REG
-#   )
-# register_evaluator_with_factory(
-#   HEADERFILE sediment_transport/organic_matter_evaluator_reg.hh
-#   LISTNAME ATS_TRANSPORT_REG
-#   )
-
   
 generate_evaluators_registration_header(
   HEADERFILE ats_transport_registration.hh
