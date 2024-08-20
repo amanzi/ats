@@ -43,9 +43,9 @@ Transport_ATS::InitializeAll_()
   temporal_disc_order = plist_->get<int>("temporal discretization order", 1);
   if (temporal_disc_order < 1 || temporal_disc_order > 2) temporal_disc_order = 1;
 
-  num_aqueous = plist_->get<int>("number of aqueous components", component_names_.size());
-  num_advect = plist_->get<int>("number of aqueous components advected", num_aqueous);
-  num_gaseous = plist_->get<int>("number of gaseous components", 0);
+  num_aqueous_ = plist_->get<int>("number of aqueous components", component_names_.size());
+  num_advect_ = plist_->get<int>("number of aqueous components advected", num_aqueous_);
+  num_gaseous_ = plist_->get<int>("number of gaseous components", 0);
 
   if (plist_->isSublist("material properties")) {
     Teuchos::ParameterList& dlist = plist_->sublist("material properties");
@@ -103,10 +103,10 @@ Transport_ATS::InitializeAll_()
       runtime_solutes_ = component_names_;
     }
   }
-  mass_solutes_exact_.assign(num_aqueous + num_gaseous, 0.0);
-  mass_solutes_source_.assign(num_aqueous + num_gaseous, 0.0);
-  mass_solutes_bc_.assign(num_aqueous + num_gaseous, 0.0);
-  mass_solutes_stepstart_.assign(num_aqueous + num_gaseous, 0.0);
+  mass_solutes_exact_.assign(num_aqueous_ + num_gaseous_, 0.0);
+  mass_solutes_source_.assign(num_aqueous_ + num_gaseous_, 0.0);
+  mass_solutes_bc_.assign(num_aqueous_ + num_gaseous_, 0.0);
+  mass_solutes_stepstart_.assign(num_aqueous_ + num_gaseous_, 0.0);
 
   if (plist_->isParameter("runtime diagnostics: regions")) {
     runtime_regions_ =

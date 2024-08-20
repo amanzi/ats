@@ -26,14 +26,14 @@ void
 Transport_ATS::PrepareAirWaterPartitioning_()
 {
   henry_law_ = true;
-  for (int i = 0; i < num_gaseous; i++) {
-    int ig = num_aqueous + i;
+  for (int i = 0; i < num_gaseous_; i++) {
+    int ig = num_aqueous_ + i;
     std::string name_l = Keys::replace_all(component_names_[ig], "(g)", "(l)");
 
     int il = FindComponentNumber_(name_l);
     air_water_map_.push_back(il);
 
-    if (il < 0 || il >= num_aqueous) {
+    if (il < 0 || il >= num_aqueous_) {
       henry_law_ = false;
       if (vo_->getVerbLevel() >= Teuchos::VERB_MEDIUM) {
         Teuchos::OSTab tab = vo_->getOSTab();
@@ -64,8 +64,8 @@ Transport_ATS::MakeAirWaterPartitioning_()
   Epetra_MultiVector& tcc_c = *tcc_tmp->ViewComponent("cell", false);
   const Epetra_MultiVector& sat_l = *ws_;
 
-  for (int i = 0; i < num_gaseous; ++i) {
-    int ig = num_aqueous + i;
+  for (int i = 0; i < num_gaseous_; ++i) {
+    int ig = num_aqueous_ + i;
     int il = air_water_map_[i];
 
     for (int c = 0; c < tcc_c.MyLength(); c++) {

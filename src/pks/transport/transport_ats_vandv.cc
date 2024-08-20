@@ -32,9 +32,9 @@ namespace Transport {
 void
 Transport_ATS::PrintSoluteExtrema(const Epetra_MultiVector& tcc_next, double dT_MPC)
 {
-  int num_components = tcc_next.NumVectors();
-  double tccmin_vec[num_components];
-  double tccmax_vec[num_components];
+  int num_components_ = tcc_next.NumVectors();
+  double tccmin_vec[num_components_];
+  double tccmax_vec[num_components_];
 
   tcc_next.MinValue(tccmin_vec);
   tcc_next.MaxValue(tccmax_vec);
@@ -154,17 +154,17 @@ Transport_ATS::CheckInfluxBC_() const
 void
 CheckGEDProperty(const Epetra_MultiVector& tracer, double t_physics)
 {
-  int i, num_components = tracer.NumVectors();
-  double tr_min[num_components];
+  int i, num_components_ = tracer.NumVectors();
+  double tr_min[num_components_];
 
   tracer.MinValue(tr_min);
-  double tr_all_min = *std::min_element(&tr_min[0], &tr_min[num_components]);
+  double tr_all_min = *std::min_element(&tr_min[0], &tr_min[num_components_]);
 
   if (tr_all_min < 0) {
-    double tr_max[num_components];
+    double tr_max[num_components_];
     tracer.MaxValue(tr_max);
     int MyPID = tracer.Comm().MyPID();
-    for (i = 0; i < num_components; i++) {
+    for (i = 0; i < num_components_; i++) {
       if (tr_min[i] < 0) {
         std::cout << "Transport_ATS: concentration violates GED property" << std::endl;
         std::cout << "    Make an Amanzi ticket or turn off internal transport tests" << std::endl;

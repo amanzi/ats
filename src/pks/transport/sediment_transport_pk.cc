@@ -436,7 +436,7 @@ SedimentTransport_PK::Initialize(const Teuchos::Ptr<State>& S)
   // source term initialization: so far only "concentration" is available.
   if (tp_list_->isSublist("source terms")) {
     PK_DomainFunctionFactory<TransportDomainFunction> factory(mesh_, S_);
-    //if (domain_name_ == "domain")  PKUtils_CalculatePermeabilityFactorInWell(S_.ptr(), Kxy);
+    //if (domain_name_ == "domain")  PKUtils_CalculatePermeabilityFactorInWell(S_.ptr(), Kxy_);
 
     Teuchos::ParameterList& clist = tp_list_->sublist("source terms").sublist("concentration");
     for (Teuchos::ParameterList::ConstIterator it = clist.begin(); it != clist.end(); ++it) {
@@ -580,12 +580,12 @@ SedimentTransport_PK::InitializeAll_()
   temporal_disc_order = tp_list_->get<int>("temporal discretization order", 1);
   if (temporal_disc_order < 1 || temporal_disc_order > 2) temporal_disc_order = 1;
 
-  num_aqueous = tp_list_->get<int>("number of sediment components", component_names_.size());
+  num_aqueous_ = tp_list_->get<int>("number of sediment components", component_names_.size());
 
-  // mass_solutes_exact_.assign(num_aqueous + num_gaseous, 0.0);
-  // mass_solutes_source_.assign(num_aqueous + num_gaseous, 0.0);
-  // mass_solutes_bc_.assign(num_aqueous + num_gaseous, 0.0);
-  // mass_solutes_stepstart_.assign(num_aqueous + num_gaseous, 0.0);
+  // mass_solutes_exact_.assign(num_aqueous_ + num_gaseous_, 0.0);
+  // mass_solutes_source_.assign(num_aqueous_ + num_gaseous_, 0.0);
+  // mass_solutes_bc_.assign(num_aqueous_ + num_gaseous_, 0.0);
+  // mass_solutes_stepstart_.assign(num_aqueous_ + num_gaseous_, 0.0);
 
   if (tp_list_->isParameter("runtime diagnostics: regions")) {
     runtime_regions_ =
@@ -629,7 +629,7 @@ SedimentTransport_PK::StableTimeStep_()
     if (c >= 0) total_outflux[c] += fabs((*flux_)[0][f]);
   }
 
-  Sinks2TotalOutFlux(tcc_prev, total_outflux, 0, num_aqueous - 1);
+  Sinks2TotalOutFlux(tcc_prev, total_outflux, 0, num_aqueous_ - 1);
 
   // loop over cells and calculate minimal time step
   double vol, outflux, dt_cell;
@@ -877,7 +877,7 @@ SedimentTransport_PK ::Advance_Diffusion(double t_old, double t_new)
   // We define tracer as the species #0 as calculate some statistics.
   Epetra_MultiVector& tcc_next = *tcc_tmp->ViewComponent("cell", false);
   Epetra_MultiVector& tcc_prev = *tcc->ViewComponent("cell");
-  int num_components = tcc_prev.NumVectors();
+  int num_components_ = tcc_prev.NumVectors();
 
   bool flag_diffusion(true);
 
@@ -915,7 +915,7 @@ SedimentTransport_PK ::Advance_Diffusion(double t_old, double t_new)
     double md_change, md_old(0.0), md_new, residual(0.0);
 
     // Disperse and diffuse aqueous components
-    for (int i = 0; i < num_aqueous; i++) {
+    for (int i = 0; i < num_aqueous_; i++) {
       // set initial guess
       Epetra_MultiVector& sol_cell = *sol.ViewComponent("cell");
       for (int c = 0; c < ncells_owned; c++) { sol_cell[0][c] = tcc_next[i][c]; }
@@ -950,8 +950,8 @@ SedimentTransport_PK ::Advance_Diffusion(double t_old, double t_new)
 
     if (vo_->getVerbLevel() >= Teuchos::VERB_MEDIUM) {
       Teuchos::OSTab tab = vo_->getOSTab();
-      *vo_->os() << "sediment transport solver: ||r||=" << residual / num_components
-                 << " itrs=" << num_itrs / num_components << std::endl;
+      *vo_->os() << "sediment transport solver: ||r||=" << residual / num_components_
+                 << " itrs=" << num_itrs / num_components_ << std::endl;
     }
   }
 }
@@ -998,11 +998,11 @@ SedimentTransport_PK::AdvanceDonorUpwind_(double dt_cycle)
   double mass_start = 0., tmp1, mass;
 
   // We advect only aqueous components.
-  int num_advect = num_aqueous;
+  int num_advect_ = num_aqueous_;
 
   for (int c = 0; c < ncells_owned; c++) {
     vol_ws_den = mesh_->getCellVolume(c) * (*ws_start)[0][c] * (*mol_dens_start)[0][c];
-    for (int i = 0; i < num_advect; i++) {
+    for (int i = 0; i < num_advect_; i++) {
       (*conserve_qty_)[i][c] = tcc_prev[i][c] * vol_ws_den;
       // if ((vol_ws_den > water_tolerance_) && ((*solid_qty_)[i][c] > 0 )){   // Desolve solid residual into liquid
       //   double add_mass = std::min((*solid_qty_)[i][c], max_tcc_* vol_ws_den - (*conserve_qty_)[i][c]);
@@ -1032,21 +1032,21 @@ SedimentTransport_PK::AdvanceDonorUpwind_(double dt_cycle)
     double u = fabs((*flux_)[0][f]);
 
     if (c1 >= 0 && c1 < ncells_owned && c2 >= 0 && c2 < ncells_owned) {
-      for (int i = 0; i < num_advect; i++) {
+      for (int i = 0; i < num_advect_; i++) {
         tcc_flux = dt_ * u * tcc_prev[i][c1];
         (*conserve_qty_)[i][c1] -= tcc_flux;
         (*conserve_qty_)[i][c2] += tcc_flux;
       }
 
     } else if (c1 >= 0 && c1 < ncells_owned && (c2 >= ncells_owned || c2 < 0)) {
-      for (int i = 0; i < num_advect; i++) {
+      for (int i = 0; i < num_advect_; i++) {
         tcc_flux = dt_ * u * tcc_prev[i][c1];
         (*conserve_qty_)[i][c1] -= tcc_flux;
         if (c2 < 0) mass_sediment_bc_ -= tcc_flux;
       }
 
     } else if (c1 >= ncells_owned && c2 >= 0 && c2 < ncells_owned) {
-      for (int i = 0; i < num_advect; i++) {
+      for (int i = 0; i < num_advect_; i++) {
         tcc_flux = dt_ * u * tcc_prev[i][c1];
         (*conserve_qty_)[i][c2] += tcc_flux;
       }
@@ -1067,7 +1067,7 @@ SedimentTransport_PK::AdvanceDonorUpwind_(double dt_cycle)
         double u = fabs((*flux_)[0][f]);
         for (int i = 0; i < ncomp; i++) {
           int k = tcc_index[i];
-          if (k < num_advect) {
+          if (k < num_advect_) {
             tcc_flux = dt_ * u * values[i];
             (*conserve_qty_)[k][c2] += tcc_flux;
             mass_sediment_bc_ += tcc_flux;
@@ -1081,13 +1081,13 @@ SedimentTransport_PK::AdvanceDonorUpwind_(double dt_cycle)
   // process external sources
   //if (srcs_.size() != 0) {
   double time = t_physics_;
-  ComputeAddSourceTerms_(time, dt_, *conserve_qty_, 0, num_advect - 1);
+  ComputeAddSourceTerms_(time, dt_, *conserve_qty_, 0, num_advect_ - 1);
   //}
 
   // recover concentration from new conservative state
   for (int c = 0; c < ncells_owned; c++) {
     vol_ws_den = mesh_->getCellVolume(c) * (*ws_end)[0][c] * (*mol_dens_end)[0][c];
-    for (int i = 0; i < num_advect; i++) {
+    for (int i = 0; i < num_advect_; i++) {
       if ((*ws_end)[0][c] > water_tolerance_ && (*conserve_qty_)[i][c] > 0) {
         tcc_next[i][c] = (*conserve_qty_)[i][c] / vol_ws_den;
 
@@ -1100,7 +1100,7 @@ SedimentTransport_PK::AdvanceDonorUpwind_(double dt_cycle)
 
   double mass_final = 0;
   for (int c = 0; c < ncells_owned; c++) {
-    for (int i = 0; i < num_advect; i++) { mass_final += (*conserve_qty_)[i][c]; }
+    for (int i = 0; i < num_advect_; i++) { mass_final += (*conserve_qty_)[i][c]; }
   }
 
   tmp1 = mass_final;
@@ -1150,7 +1150,7 @@ SedimentTransport_PK::AdvanceDonorUpwind_(double dt_cycle)
 // void SedimentTransport_PK::AdvanceSecondOrderUpwindRK1_(double dt_cycle)
 // {
 //   dt_ = dt_cycle;  // overwrite the maximum stable transport step
-//   mass_sediment_source_.assign(num_aqueous + num_gaseous, 0.0);
+//   mass_sediment_source_.assign(num_aqueous_ + num_gaseous_, 0.0);
 
 //   // work memory
 //   const Epetra_Map& cmap_wghost = mesh_->getMap(AmanziMesh::Entity_kind::CELL,true);
@@ -1179,9 +1179,9 @@ SedimentTransport_PK::AdvanceDonorUpwind_(double dt_cycle)
 
 
 //   // We advect only aqueous components.
-//   int num_advect = num_aqueous;
+//   int num_advect_ = num_aqueous_;
 
-//   for (int i = 0; i < num_advect; i++) {
+//   for (int i = 0; i < num_advect_; i++) {
 //     current_component_ = i;  // needed by BJ
 
 //     double T = t_physics_;
@@ -1200,7 +1200,7 @@ SedimentTransport_PK::AdvanceDonorUpwind_(double dt_cycle)
 //   }
 
 //   // update mass balance
-//   for (int i = 0; i < num_aqueous + num_gaseous; i++) {
+//   for (int i = 0; i < num_aqueous_ + num_gaseous_; i++) {
 //     mass_sediment_exact_[i] += mass_sediment_source_[i] * dt_;
 //   }
 
@@ -1218,7 +1218,7 @@ SedimentTransport_PK::AdvanceDonorUpwind_(double dt_cycle)
 // void SedimentTransport_PK::AdvanceSecondOrderUpwindRK2_(double dt_cycle)
 // {
 //   dt_ = dt_cycle;  // overwrite the maximum stable transport step
-//   mass_sediment_source_.assign(num_aqueous + num_gaseous, 0.0);
+//   mass_sediment_source_.assign(num_aqueous_ + num_gaseous_, 0.0);
 
 //   // work memory
 //   const Epetra_Map& cmap_wghost = mesh_->getMap(AmanziMesh::Entity_kind::CELL,true);
@@ -1243,10 +1243,10 @@ SedimentTransport_PK::AdvanceDonorUpwind_(double dt_cycle)
 //   }
 
 //   // We advect only aqueous components.
-//   int num_advect = num_aqueous;
+//   int num_advect_ = num_aqueous_;
 
 //   // predictor step
-//   for (int i = 0; i < num_advect; i++) {
+//   for (int i = 0; i < num_advect_; i++) {
 //     current_component_ = i;  // needed by BJ
 
 //     double T = t_physics_;
@@ -1267,7 +1267,7 @@ SedimentTransport_PK::AdvanceDonorUpwind_(double dt_cycle)
 //   //}
 
 //   // corrector step
-//   for (int i = 0; i < num_advect; i++) {
+//   for (int i = 0; i < num_advect_; i++) {
 //     current_component_ = i;  // needed by BJ
 
 //     double T = t_physics_;
@@ -1295,7 +1295,7 @@ SedimentTransport_PK::AdvanceDonorUpwind_(double dt_cycle)
 //   //}
 
 //   // update mass balance
-//   for (int i = 0; i < num_aqueous + num_gaseous; i++) {
+//   for (int i = 0; i < num_aqueous_ + num_gaseous_; i++) {
 //     mass_sediment_exact_[i] += mass_sediment_source_[i] * dt_ / 2;
 //   }
 
@@ -1331,7 +1331,7 @@ SedimentTransport_PK::AdvanceDonorUpwind_(double dt_cycle)
 // //   // We interpolate ws using dt which becomes local time.
 // //   double T = 0.0;
 // //   // We advect only aqueous components.
-// //   int ncomponents = num_aqueous;
+// //   int ncomponents = num_aqueous_;
 
 // //   for (int i = 0; i < ncomponents; i++) {
 // //     current_component_ = i;  // it is needed in BJ called inside RK:fun

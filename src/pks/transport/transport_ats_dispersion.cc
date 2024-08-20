@@ -40,6 +40,8 @@ Transport_ATS::CalculateDispersionTensor_(const Epetra_MultiVector& water_flux,
 {
   int ncells_owned =
     mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+  int dim = mesh_->getSpaceDimension();
+
 
   D_.resize(ncells_owned);
   for (int c = 0; c < ncells_owned; c++) D_[c].Init(dim, 1);
@@ -86,7 +88,7 @@ Transport_ATS::CalculateDiffusionTensor_(double md,
 
   if (D_.size() == 0) {
     D_.resize(ncells_owned);
-    for (int c = 0; c < ncells_owned; c++) D_[c].Init(dim, 1);
+    for (int c = 0; c < ncells_owned; c++) D_[c].Init(mesh_->getSpaceDimension(), 1);
   }
 
   for (int mb = 0; mb < mat_properties_.size(); mb++) {

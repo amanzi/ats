@@ -333,7 +333,7 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   // -- helper functions -- why are these public API? --ETC
   void PrintSoluteExtrema(const Epetra_MultiVector& tcc_next, double dT_MPC);
   int get_num_aqueous_component() const {
-    return num_aqueous;
+    return num_aqueous_;
   }
 
  private:
@@ -427,19 +427,15 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   Key conserve_qty_key_;
   Key cv_key_;
 
- private:
-  int dim;
-  int saturation_name_;
-  bool vol_flux_conversion_;
-
+ protected:
+  // control flags
   std::unordered_map<std::string, bool> convert_to_field_;
   Key passwd_;
-
-  Teuchos::RCP<CompositeVector> cv;
 
   Teuchos::RCP<CompositeVector> tcc_w_src;
   Teuchos::RCP<CompositeVector> tcc_tmp; // next tcc
   Teuchos::RCP<CompositeVector> tcc;     // smart mirrow of tcc
+
   Teuchos::RCP<const Epetra_MultiVector> flux_;
   Teuchos::RCP<const Epetra_MultiVector> ws_, ws_prev_, phi_, mol_dens_, mol_dens_prev_;
   Teuchos::RCP<Epetra_MultiVector> flux_copy_;
@@ -459,11 +455,10 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
 
   std::vector<Teuchos::RCP<TransportDomainFunction>> srcs_; // Source or sink for components
   std::vector<Teuchos::RCP<TransportDomainFunction>> bcs_;  // influx BC for components
-  double bc_scaling;
-  Teuchos::RCP<Epetra_Vector> Kxy; // absolute permeability in plane xy
+  Teuchos::RCP<Epetra_Vector> Kxy_; // absolute permeability in plane xy
 
-  Teuchos::RCP<Epetra_Import> cell_importer; // parallel communicators
-  Teuchos::RCP<Epetra_Import> face_importer;
+  Teuchos::RCP<Epetra_Import> cell_importer_; // parallel communicators
+  Teuchos::RCP<Epetra_Import> face_importer_;
 
   // mechanical dispersion and molecual diffusion
   Teuchos::RCP<MDMPartition> mdm_;
@@ -488,11 +483,11 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   std::vector<std::string> runtime_regions_;
 
   // int nfaces_owned;
-  int nnodes_wghost;
+  int nnodes_wghost_;
 
   std::vector<std::string> component_names_; // details of components
   std::vector<double> mol_masses_;
-  int num_aqueous, num_gaseous, num_components, num_primary, num_advect;
+  int num_aqueous_, num_gaseous_, num_components_, num_advect_;
   double water_tolerance_, max_tcc_;
   bool dissolution_;
 
