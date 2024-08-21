@@ -456,7 +456,7 @@ Richards::SetupPhysicalEvaluators_()
 
   // -- Water retention evaluators
   // -- saturation
-  requireAtNext(sat_key_, tag_next_, *S_)
+  requireAtNext(sat_key_, tag_next_, *S_, true)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);

@@ -30,7 +30,7 @@ Transport_ATS::FunctionalTimeDerivative(double t,
                                         Epetra_Vector& f_component)
 {
   int nfaces_owned =
-    mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);  
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
   int nfaces_all =
     mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::ALL);
 
@@ -63,7 +63,7 @@ Transport_ATS::FunctionalTimeDerivative(double t,
     }
   }
 
-  Teuchos::RCP<const Epetra_MultiVector> flux = S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ViewComponent("face", true);
+  Teuchos::RCP<const Epetra_MultiVector> flux = S_->Get<CompositeVector>(flux_key_, tag_next_).ViewComponent("face", true);
   limiter_->Init(recon_list, flux);
   limiter_->ApplyLimiter(component_tmp, 0, lifting_, bc_model, bc_value);
   lifting_->data()->ScatterMasterToGhosted("cell");
@@ -133,8 +133,9 @@ Transport_ATS::FunctionalTimeDerivative(double t,
     ComputeAddSourceTerms_(t, 1., f_component, current_component_, current_component_);
   }
 
-  S_->GetEvaluator(porosity_key_, Tags::NEXT).Update(*S_, name_);
-  const Epetra_MultiVector& phi = *S_->Get<CompositeVector>(porosity_key_, Tags::NEXT).ViewComponent("cell", false);
+  S_->GetEvaluator(porosity_key_, tag_next_).Update(*S_, name_);
+  const Epetra_MultiVector& phi = *S_->Get<CompositeVector>(porosity_key_, tag_next_).ViewComponent("cell", false);
+
   for (int c = 0; c < f_component.MyLength() ; c++) { // calculate conservative quantatity
     double vol_phi_ws_den =
       mesh_->getCellVolume(c) * phi[0][c] * (*ws_prev_)[0][c] * (*mol_dens_prev_)[0][c];

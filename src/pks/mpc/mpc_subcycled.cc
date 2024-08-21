@@ -29,8 +29,6 @@ MPCSubcycled::MPCSubcycled(Teuchos::ParameterList& pk_tree,
   init_();
 
   // NOTE: this must be done prior to set_tags(), therefore before even parseParameterList()
-  //
-  // Master PK is the PK whose timestep size sets the size, the subcycled is subcycled.
   subcycling_ = plist_->get<Teuchos::Array<int>>("subcycle");
   if (subcycling_.size() != sub_pks_.size()) {
     Errors::Message msg(

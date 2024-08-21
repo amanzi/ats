@@ -396,7 +396,7 @@ OverlandPressureFlow::SetupPhysicalEvaluators_()
     wc_bar_key_, tag_next_, key_, tag_next_);
 
   // -- ponded depth
-  requireAtNext(pd_key_, tag_next_, *S_).Update(matrix_->RangeMap())->SetGhosted();
+  requireAtNext(pd_key_, tag_next_, *S_, true).Update(matrix_->RangeMap())->SetGhosted();
   S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(pd_key_, tag_next_, key_, tag_next_);
   //    ...with a copy at the old time
   requireAtCurrent(pd_key_, tag_current_, *S_, pd_key_);

@@ -15,9 +15,11 @@ BDF.
 ------------------------------------------------------------------------- */
 
 #include "Teuchos_TimeMonitor.hpp"
+
+#include "Event.hh"
+#include "State.hh"
 #include "BDF1_TI.hh"
 #include "pk_bdf_default.hh"
-#include "State.hh"
 
 namespace Amanzi {
 
@@ -124,6 +126,21 @@ PK_BDF_Default::AdvanceStep(double t_old, double t_new, bool reinit)
   State_to_Solution(Tags::NEXT, *solution_);
 
   // take a bdf timestep
+  //
+  // Three dts:
+  // --  dt is the requested timestep size.  It must be less than or equal to...
+  // --  dt_internal is the max valid dt, and is set by physics/solvers
+  // --  dt_solver is what the solver wants to do
+  double dt_internal = S_->Get<double>(Keys::cleanName(name_, true) + "_dt_internal", Tags::DEFAULT);
+
+  // roundoff calculation follows that of Amanzi::Utils::isNearEqual() in
+  // Event.hh.  Unfortunately, still cannot have this assertion for manually
+  // overridden runs (where a file controls the timestep). --ETC
+  // if (dt > dt_internal) {
+  //   AMANZI_ASSERT(dt <= dt_internal + std::max(1., std::max(dt, dt_internal)) * 1.e4 * Utils::Event_EPS<double>::value);
+  // }
+
+  double dt_solver = -1;
   bool fail = false;
   try {
     fail = time_stepper_->AdvanceStep(dt, dt_next_, solution_);

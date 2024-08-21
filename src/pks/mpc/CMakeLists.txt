@@ -47,7 +47,7 @@ set(ats_mpc_src_files
   mpc_coupled_transport.cc
   mpc_reactivetransport.cc
   mpc_coupled_reactivetransport.cc
-
+  mpc_flow_transport.cc
   mpc_weak_subdomain.cc
   mpc_coupled_water_split_flux.cc
   mpc_permafrost_split_flux.cc
@@ -74,7 +74,7 @@ set(ats_mpc_inc_files
   mpc_coupled_transport.hh
   mpc_reactivetransport.hh
   mpc_coupled_reactivetransport.hh
-
+  mpc_flow_transport.hh
   mpc_weak_subdomain.hh
   mpc_coupled_water_split_flux.hh
   mpc_permafrost_split_flux.hh

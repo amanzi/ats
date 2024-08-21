@@ -22,9 +22,6 @@
 
 namespace Amanzi {
 
-bool
-aliasVector(State& S, const Key& key, const Tag& target, const Tag& alias);
-
 // -----------------------------------------------------------------------------
 // Given a vector, apply the Dirichlet data to that vector's boundary_face
 // component.
@@ -56,7 +53,16 @@ getBoundaryDirection(const AmanziMesh::Mesh& mesh, AmanziMesh::Entity_ID f);
 
 
 // -----------------------------------------------------------------------------
+// Create an alias -- a pointer is copied such that Tag alias's evaluator and
+// data both point to Tag target's.
+// -----------------------------------------------------------------------------
+bool
+aliasVector(State& S, const Key& key, const Tag& target, const Tag& alias);
+
+// -----------------------------------------------------------------------------
 // Get a primary variable evaluator for a key at tag
+//
+// If or_die is true, throw an error if the xml has a sublist for this key.
 // -----------------------------------------------------------------------------
 Teuchos::RCP<EvaluatorPrimaryCV>
 requireEvaluatorPrimary(const Key& key, const Tag& tag, State& S, bool or_die = true);
@@ -64,27 +70,57 @@ requireEvaluatorPrimary(const Key& key, const Tag& tag, State& S, bool or_die = 
 
 // -----------------------------------------------------------------------------
 // Mark primary variable evaluator as changed.
+//
+// If or_die is true, throw an error if GetEvaluator(key,tag) is not castable
+// to EvaluatorPrimary
 // -----------------------------------------------------------------------------
 bool
 changedEvaluatorPrimary(const Key& key, const Tag& tag, State& S, bool or_die = true);
 
 
 // -----------------------------------------------------------------------------
-// Require a vector and a primary variable evaluator at current tag(s).
+// Require a vector and an evaluator at current tag(s).
+//
+// If owner is not empty, this variable is claimed and a EvaluatorPrimary is
+// created.  Also, a CURRENT variable is also required, independent of tag, to
+// ensure that we have a way to recover from failed timesteps.  This is a
+// separate copy of data, and an "assigment" evaluator.
 // -----------------------------------------------------------------------------
 CompositeVectorSpace&
 requireAtCurrent(const Key& key,
                  const Tag& tag,
                  State& S,
-                 const Key& name = "",
-                 bool is_eval = true);
-
+                 const Key& owner = "");
 
 // -----------------------------------------------------------------------------
 // Require a vector and a primary variable evaluator at next tag(s).
+//
+// If managed_here is true, this indicates that this variable is a quantity
+// that will definitely be computed at tag, and the calling PK will take
+// responsibility for making sure that key@tag is also copied to key@NEXT,
+// thereby allowing other PKs to use it.  Effectively this creates an aliased
+// evaluator from key@NEXT --> key@tag.
+//
+// If owner is not empty, key@tag is claimed by owner, and a EvaluatorPrimary
+// is created.  This also implies managed_here.
 // -----------------------------------------------------------------------------
 CompositeVectorSpace&
-requireAtNext(const Key& key, const Tag& tag, State& S, const Key& name = "");
+requireAtNext(const Key& key,
+              const Tag& tag,
+              State& S,
+              bool managed_here,
+              const Key& owner = "");
+
+inline CompositeVectorSpace&
+requireAtNext(const Key& key,
+              const Tag& tag,
+              State& S,
+              const Key& owner = "") {
+  return requireAtNext(key, tag, S, false, owner);
+}
+
+
+
 
 // -----------------------------------------------------------------------------
 // Require assignment evaluator, which allows tracking old data.

@@ -8,12 +8,20 @@
 */
 
 /*
-  Weakly coupled N PKs, potentially subcycling any of them.
+
+A generic MPC that weakly couples N PKs, potentially subcycling any of them.
+
+`"PK type`" = `"subcycling MPC`"
+
+.. _mpc-subcycled-spec:
+.. admonition:: mpc-subcycled-spec
 
   * `"subcycle`" ``[Array(bool)]`` Array of the same length as sub_pks.
-  * `"minimum subcycled relative dt`" ``[double]`` **1.e-5** Sets the minimum
-    timestep size of the subcycled PKs, as a multiple of the minimum of the
-    non-subcycled PKs' timestep sizes.
+  * `"subcycling target timestep [s]`" ``[double]`` **optional** If provided,
+    this target dt is included, setting a ceiling on the largest timestep size
+    and therefore setting a max dt over which we let the sub-PKs step
+    independently without synchronization.  This is required if all sub-PKs are
+    being subcycled.
 
   INCLUDES:
   - ``[mpc-spec]``

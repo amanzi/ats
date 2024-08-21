@@ -50,12 +50,12 @@ PK_PhysicalBDF_Default::Setup()
     new Operators::BCs(mesh_, AmanziMesh::Entity_kind::FACE, WhetStone::DOF_Type::SCALAR));
 
   // convergence criteria is based on a conserved quantity
-  requireAtNext(conserved_key_, tag_next_, *S_)
+  requireAtNext(conserved_key_, tag_next_, *S_, true)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, true);
   // we also use a copy of the conserved quantity, as this is a better choice in the error norm
-  requireAtCurrent(conserved_key_, tag_current_, *S_, name_, true);
+  requireAtCurrent(conserved_key_, tag_current_, *S_, name_);
 
   // cell volume used throughout
   requireAtNext(cell_vol_key_, tag_next_, *S_)
