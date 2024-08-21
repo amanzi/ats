@@ -184,7 +184,7 @@ requireAtCurrent(const Key& key, const Tag& tag, State& S, const Key& name, bool
 // Require a vector and a primary variable evaluator at next tag(s).
 // -----------------------------------------------------------------------------
 CompositeVectorSpace&
-requireAtNext(const Key& key, const Tag& tag, State& S, const Key& name)
+requireAtNext(const Key& key, const Tag& tag, State& S, const Key& name, bool managed_here)
 {
   CompositeVectorSpace& cvs = S.Require<CompositeVector, CompositeVectorSpace>(key, tag);
   if (!name.empty()) {
@@ -194,7 +194,7 @@ requireAtNext(const Key& key, const Tag& tag, State& S, const Key& name)
     S.RequireEvaluator(key, tag);
   }
 
-  if (tag != Tags::NEXT) { aliasVector(S, key, tag, Tags::NEXT); }
+  if (tag != Tags::NEXT && managed_here) { aliasVector(S, key, tag, Tags::NEXT); }
   return cvs;
 }
 
@@ -217,8 +217,10 @@ void
 assign(const Key& key, const Tag& tag_dest, const Tag& tag_source, State& S)
 {
   S.GetEvaluator(key, tag_source).Update(S, Keys::getKey(key, tag_dest));
-  bool changed = changedEvaluatorPrimary(key, tag_dest, S, false);
-  if (changed) S.Assign(key, tag_dest, tag_source);
+  if (S.HasEvaluator(key, tag_dest)) {
+    bool changed = changedEvaluatorPrimary(key, tag_dest, S, false);
+    if (changed) S.Assign(key, tag_dest, tag_source);
+  }
 }
 
 
