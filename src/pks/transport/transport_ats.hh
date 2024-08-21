@@ -484,7 +484,7 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
 
   // io
   Utils::Units units_;
-  Tag flow_tag_;
+  Tag flow_tag_next_;
 
  private:
   // Forbidden.

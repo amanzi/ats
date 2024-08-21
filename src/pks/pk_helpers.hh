@@ -84,7 +84,7 @@ requireAtCurrent(const Key& key,
 // Require a vector and a primary variable evaluator at next tag(s).
 // -----------------------------------------------------------------------------
 CompositeVectorSpace&
-requireAtNext(const Key& key, const Tag& tag, State& S, const Key& name = "");
+requireAtNext(const Key& key, const Tag& tag, State& S, const Key& name = "", bool managed_here = true);
 
 // -----------------------------------------------------------------------------
 // Require assignment evaluator, which allows tracking old data.
