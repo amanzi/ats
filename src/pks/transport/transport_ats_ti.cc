@@ -29,6 +29,11 @@ Transport_ATS::FunctionalTimeDerivative(double t,
                                         const Epetra_Vector& component,
                                         Epetra_Vector& f_component)
 {
+  int nfaces_owned =
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);  
+  int nfaces_all =
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::ALL);
+
   // distribute vector
   auto component_tmp = Teuchos::rcp(new Epetra_Vector(component));
   component_tmp->Import(component, tcc->importer("cell"), Insert);
@@ -38,8 +43,8 @@ Transport_ATS::FunctionalTimeDerivative(double t,
   lifting_->Compute(component_tmp);
 
   // extract boundary conditions for the current component
-  std::vector<int> bc_model(nfaces_wghost, Operators::OPERATOR_BC_NONE);
-  std::vector<double> bc_value(nfaces_wghost);
+  std::vector<int> bc_model(nfaces_all, Operators::OPERATOR_BC_NONE);
+  std::vector<double> bc_value(nfaces_all);
 
   for (int m = 0; m < bcs_.size(); m++) {
     std::vector<int>& tcc_index = bcs_[m]->tcc_index();
@@ -58,7 +63,8 @@ Transport_ATS::FunctionalTimeDerivative(double t,
     }
   }
 
-  limiter_->Init(recon_list, flux_);
+  Teuchos::RCP<const Epetra_MultiVector> flux = S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ViewComponent("face", true);
+  limiter_->Init(recon_list, flux);
   limiter_->ApplyLimiter(component_tmp, 0, lifting_, bc_model, bc_value);
   lifting_->data()->ScatterMasterToGhosted("cell");
 
@@ -67,7 +73,7 @@ Transport_ATS::FunctionalTimeDerivative(double t,
   // Min-max condition will enforce robustness w.r.t. these errors.
 
   f_component.PutScalar(0.0);
-  for (int f = 0; f < nfaces_wghost; f++) { // loop over master and slave faces
+  for (int f = 0; f < nfaces_all; f++) { // loop over master and slave faces
     int c1 = (*upwind_cell_)[f];
     int c2 = (*downwind_cell_)[f];
 
@@ -83,11 +89,11 @@ Transport_ATS::FunctionalTimeDerivative(double t,
       u1 = u2 = umin = umax = (*component_tmp)[c2];
     }
 
-    double u = fabs((*flux_)[0][f]);
+    double u = std::abs((*flux)[0][f]);
     const AmanziGeometry::Point& xf = mesh_->getFaceCentroid(f);
 
     double upwind_tcc, tcc_flux;
-    if (c1 >= 0 && c1 < ncells_owned && c2 >= 0 && c2 < ncells_owned) {
+    if (c1 >= 0 && c1 < f_component.MyLength() && c2 >= 0 && c2 < f_component.MyLength() ) {
       upwind_tcc = limiter_->getValue(c1, xf);
       upwind_tcc = std::max(upwind_tcc, umin);
       upwind_tcc = std::min(upwind_tcc, umax);
@@ -96,7 +102,7 @@ Transport_ATS::FunctionalTimeDerivative(double t,
       f_component[c1] -= tcc_flux;
       f_component[c2] += tcc_flux;
 
-    } else if (c1 >= 0 && c1 < ncells_owned && (c2 >= ncells_owned || c2 < 0)) {
+    } else if (c1 >= 0 && c1 < f_component.MyLength() && (c2 >= f_component.MyLength() || c2 < 0)) {
       upwind_tcc = limiter_->getValue(c1, xf);
       upwind_tcc = std::max(upwind_tcc, umin);
       upwind_tcc = std::min(upwind_tcc, umax);
@@ -104,7 +110,7 @@ Transport_ATS::FunctionalTimeDerivative(double t,
       tcc_flux = u * upwind_tcc;
       f_component[c1] -= tcc_flux;
 
-    } else if (c1 >= 0 && c1 < ncells_owned && (c2 < 0)) {
+    } else if (c1 >= 0 && c1 < f_component.MyLength() && (c2 < 0)) {
       upwind_tcc = component[c1];
       upwind_tcc = std::max(upwind_tcc, umin);
       upwind_tcc = std::min(upwind_tcc, umax);
@@ -112,7 +118,7 @@ Transport_ATS::FunctionalTimeDerivative(double t,
       tcc_flux = u * upwind_tcc;
       f_component[c1] -= tcc_flux;
 
-    } else if (c1 >= ncells_owned && c2 >= 0 && c2 < ncells_owned) {
+    } else if (c1 >= f_component.MyLength() && c2 >= 0 && c2 < f_component.MyLength() ) {
       upwind_tcc = limiter_->getValue(c1, xf);
       upwind_tcc = std::max(upwind_tcc, umin);
       upwind_tcc = std::min(upwind_tcc, umax);
@@ -124,21 +130,22 @@ Transport_ATS::FunctionalTimeDerivative(double t,
 
   // process external sources
   if (srcs_.size() != 0) {
-    ComputeAddSourceTerms(t, 1., f_component, current_component_, current_component_);
+    ComputeAddSourceTerms_(t, 1., f_component, current_component_, current_component_);
   }
 
-
-  for (int c = 0; c < ncells_owned; c++) { // calculate conservative quantatity
+  S_->GetEvaluator(porosity_key_, Tags::NEXT).Update(*S_, name_);
+  const Epetra_MultiVector& phi = *S_->Get<CompositeVector>(porosity_key_, Tags::NEXT).ViewComponent("cell", false);
+  for (int c = 0; c < f_component.MyLength() ; c++) { // calculate conservative quantatity
     double vol_phi_ws_den =
-      mesh_->getCellVolume(c) * (*phi_)[0][c] * (*ws_current)[0][c] * (*mol_dens_current)[0][c];
-    if ((*ws_current)[0][c] < 1e-12)
+      mesh_->getCellVolume(c) * phi[0][c] * (*ws_prev_)[0][c] * (*mol_dens_prev_)[0][c];
+    if ((*ws_prev_)[0][c] < 1e-12)
       vol_phi_ws_den =
-        mesh_->getCellVolume(c) * (*phi_)[0][c] * (*ws_next)[0][c] * (*mol_dens_next)[0][c];
+        mesh_->getCellVolume(c) * phi[0][c] * (*ws_)[0][c] * (*mol_dens_)[0][c];
 
     if (vol_phi_ws_den > water_tolerance_) { f_component[c] /= vol_phi_ws_den; }
   }
 
-  // BOUNDARY CONDITIONS for ADVECTION
+  // boundary conditions for advection
   for (int m = 0; m < bcs_.size(); m++) {
     std::vector<int>& tcc_index = bcs_[m]->tcc_index();
     int ncomp = tcc_index.size();
@@ -151,12 +158,12 @@ Transport_ATS::FunctionalTimeDerivative(double t,
           int c2 = (*downwind_cell_)[f];
 
           if (c2 >= 0 && f < nfaces_owned) {
-            double u = fabs((*flux_)[0][f]);
-            double vol_phi_ws_den = mesh_->getCellVolume(c2) * (*phi_)[0][c2] *
-                                    (*ws_current)[0][c2] * (*mol_dens_current)[0][c2];
-            if ((*ws_current)[0][c2] < 1e-12)
-              vol_phi_ws_den = mesh_->getCellVolume(c2) * (*phi_)[0][c2] * (*ws_next)[0][c2] *
-                               (*mol_dens_next)[0][c2];
+            double u = std::abs((*flux)[0][f]);
+            double vol_phi_ws_den = mesh_->getCellVolume(c2) * phi[0][c2] *
+                                    (*ws_prev_)[0][c2] * (*mol_dens_prev_)[0][c2];
+            if ((*ws_prev_)[0][c2] < 1e-12)
+              vol_phi_ws_den = mesh_->getCellVolume(c2) * phi[0][c2] * (*ws_)[0][c2] *
+                               (*mol_dens_)[0][c2];
 
             double tcc_flux = u * values[i];
             if (vol_phi_ws_den > water_tolerance_) { f_component[c2] += tcc_flux / vol_phi_ws_den; }
