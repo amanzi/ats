@@ -28,14 +28,18 @@ using namespace ATS::Mesh;
 // -----------------------------------------------------------------------------
 // computes the non-linear functional g = g(t,u,udot)
 // -----------------------------------------------------------------------------
-void Lake_Thermo_PK::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<TreeVector> u_old,
-    Teuchos::RCP<TreeVector> u_new, Teuchos::RCP<TreeVector> g) {
+void Lake_Thermo_PK::FunctionalResidual(double t_old,
+                               double t_new,
+                               Teuchos::RCP<TreeVector> u_old,
+                               Teuchos::RCP<TreeVector> u_new,
+                               Teuchos::RCP<TreeVector> g)
+{
   Teuchos::OSTab tab = vo_->getOSTab();
 
   bool ice_cover_ = false; // first always assume that there is no ice
 
   // get temperature
-  Teuchos::RCP<const CompositeVector> temp = S_inter_->GetFieldData(temperature_key_);
+  Teuchos::RCP<const CompositeVector> temp = S_->GetPtr<CompositeVector>(temperature_key_,tag_current_);
 
   Epetra_MultiVector& g_c = *g->Data()->ViewComponent("cell",false);
   unsigned int ncomp = g_c.MyLength();
@@ -44,19 +48,19 @@ void Lake_Thermo_PK::FunctionalResidual(double t_old, double t_new, Teuchos::RCP
 
   // cell volumes
   const Epetra_MultiVector& cv =
-         *S_inter_->GetFieldData(Keys::getKey(domain_,"cell_volume"))->ViewComponent("cell",false);
+         *S_->Get<CompositeVector>(Keys::getKey(domain_,"cell_volume"),tag_current_).ViewComponent("cell",false);
 
   // get conductivity
-  S_inter_->GetFieldEvaluator(conductivity_key_)->HasFieldChanged(S_inter_.ptr(), name_);
+  S_->GetEvaluator(conductivity_key_,tag_current_).Update(*S_, name_);
   const Epetra_MultiVector& lambda_c =
-      *S_inter_->GetFieldData(conductivity_key_)->ViewComponent("cell",false);
+      *S_->Get<CompositeVector>(conductivity_key_,tag_current_).ViewComponent("cell",false);
 
   // increment, get timestep
   niter_++;
   double h = t_new - t_old;
 
   // pointer-copy temperature into states and update any auxilary data
-  Solution_to_State(*u_new, S_next_);
+  Solution_to_State(*u_new, tag_next_);
   Teuchos::RCP<CompositeVector> u = u_new->Data();
 
 #if DEBUG_FLAG
@@ -67,11 +71,10 @@ void Lake_Thermo_PK::FunctionalResidual(double t_old, double t_new, Teuchos::RCP
 
   // dump u_old, u_new
   db_->WriteCellInfo(true);
-  std::vector<std::string> vnames;
-  vnames.push_back("T_old"); vnames.push_back("T_new");
-  std::vector< Teuchos::Ptr<const CompositeVector> > vecs;
-  vecs.push_back(S_inter_->GetFieldData(key_).ptr()); vecs.push_back(u.ptr());
-  db_->WriteVectors(vnames, vecs, true);
+  std::vector<std::string> vnames{ "T_old", "T_new" };
+  std::vector<Teuchos::Ptr<const CompositeVector>> vecs;
+  vecs.emplace_back(S_->GetPtr<CompositeVector>(key_, tag_current_).ptr());
+  vecs.emplace_back(u.ptr());
 
   // vnames[0] = "sl"; vnames[1] = "si";
   // vecs[0] = S_next_->GetFieldData("saturation_liquid").ptr();
@@ -80,12 +83,12 @@ void Lake_Thermo_PK::FunctionalResidual(double t_old, double t_new, Teuchos::RCP
 #endif
 
   // update boundary conditions
-  bc_temperature_->Compute(t_new);
-  bc_diff_flux_->Compute(t_new);
+  bc_temperature_->Compute(S_->get_time(tag_next_));
+  bc_diff_flux_->Compute(S_->get_time(tag_next_));
   //  bc_flux_->Compute(t_new);
-  UpdateBoundaryConditions_(S_next_.ptr());
+  UpdateBoundaryConditions_(tag_next_);
 
-  S_inter_->GetFieldData(depth_key_,name_)->PutScalar(h_);
+  S_->GetW<CompositeVector>(depth_key_,tag_next_,name_).PutScalar(h_);
 
   /*
   // generate new mesh
@@ -137,14 +140,14 @@ void Lake_Thermo_PK::FunctionalResidual(double t_old, double t_new, Teuchos::RCP
   res->PutScalar(0.0);
 
   // diffusion term, implicit
-  ApplyDiffusion_(S_next_.ptr(), res.ptr());
+  ApplyDiffusion_(tag_next_, res.ptr());
 #if DEBUG_FLAG
-  db_->WriteVector("K",S_next_->GetFieldData(conductivity_key_).ptr(),true);
+  db_->WriteVector("K",S_->GetPtr<CompositeVector>(conductivity_key_,tag_next_).ptr(),true);
   db_->WriteVector("res (diff)", res.ptr(), true);
 #endif
 
   // source terms
-  AddSources_(S_next_.ptr(), res.ptr());
+  AddSources_(tag_next_, res.ptr());
 #if DEBUG_FLAG
   db_->WriteVector("res (src)", res.ptr());
 #endif
@@ -154,17 +157,17 @@ void Lake_Thermo_PK::FunctionalResidual(double t_old, double t_new, Teuchos::RCP
 #if DEBUG_FLAG
   vnames[0] = "T_old";
   vnames[1] = "T_new";
-  vecs[0] = S_inter_->GetFieldData(temperature_key_).ptr();
-  vecs[1] = S_next_->GetFieldData(temperature_key_).ptr();
+  vecs[0] = S_->GetPtr<CompositeVector>(temperature_key_,tag_current_).ptr();
+  vecs[1] = S_->GetPtr<CompositeVector>(temperature_key_,tag_next_).ptr();
   db_->WriteVectors(vnames, vecs, true);
   db_->WriteVector("res (acc)", res.ptr());
 #endif
 
   // advection term
   if (implicit_advection_) {
-    AddAdvection_(S_next_.ptr(), res.ptr(), true);
+    AddAdvection_(tag_next_, res.ptr(), true);
   } else {
-    AddAdvection_(S_inter_.ptr(), res.ptr(), true);
+    AddAdvection_(tag_current_, res.ptr(), true);
   }
 #if DEBUG_FLAG
   db_->WriteVector("res (adv)", res.ptr());
@@ -175,11 +178,11 @@ void Lake_Thermo_PK::FunctionalResidual(double t_old, double t_new, Teuchos::RCP
   if (niter_ < 23) {
     std::stringstream namestream;
     namestream << domain_prefix_ << "energy_residual_" << niter_;
-    *S_next_->GetFieldData(namestream.str(),name_) = *res;
+    *S_->Get<CompositeVector>(namestream.str(),tag_next_,name_) = *res;
 
     std::stringstream solnstream;
     solnstream << domain_prefix_ << "energy_solution_" << niter_;
-    *S_next_->GetFieldData(solnstream.str(),name_) = *u;
+    *S_->Get<CompositeVector>(solnstream.str(),tag_next_,name_) = *u;
   }
 #endif
 
@@ -227,31 +230,31 @@ void Lake_Thermo_PK::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVecto
 
   // update state with the solution up.
 
-  AMANZI_ASSERT(std::abs(S_next_->time() - t) <= 1.e-4*t);
-  PK_PhysicalBDF_Default::Solution_to_State(*up, S_next_);
+  AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t) <= 1.e-4*t);
+  PK_PhysicalBDF_Default::Solution_to_State(*up, tag_next_);
 
-  Teuchos::RCP<const CompositeVector> temp = S_next_ -> GetFieldData(key_);
+  Teuchos::RCP<const CompositeVector> temp = S_->GetPtr<CompositeVector>(key_,tag_next_);
 
   // update boundary conditions
-  bc_temperature_->Compute(S_next_->time());
-  bc_diff_flux_->Compute(S_next_->time());
+  bc_temperature_->Compute(S_->get_time(tag_next_));
+  bc_diff_flux_->Compute(S_->get_time(tag_next_));
   //  bc_flux_->Compute(S_next_->time());
-  UpdateBoundaryConditions_(S_next_.ptr());
+  UpdateBoundaryConditions_(tag_next_);
 
   // div K_e grad u
-  UpdateConductivityData_(S_next_.ptr());
-  if (jacobian_) UpdateConductivityDerivativeData_(S_next_.ptr());
+  UpdateConductivityData_(tag_next_);
+  if (jacobian_) UpdateConductivityDerivativeData_(tag_next_);
 
   Teuchos::RCP<const CompositeVector> conductivity =
-      S_next_->GetFieldData(uw_conductivity_key_);
+      S_->GetPtr<CompositeVector>(uw_conductivity_key_,tag_next_);
 
   // jacobian term
   Teuchos::RCP<const CompositeVector> dKdT = Teuchos::null;
   if (jacobian_) {
     if (!duw_conductivity_key_.empty()) {
-      dKdT = S_next_->GetFieldData(duw_conductivity_key_);
+      dKdT = S_->GetPtr<CompositeVector>(duw_conductivity_key_,tag_next_);
     } else {
-      dKdT = S_next_->GetFieldData(dconductivity_key_);
+      dKdT = S_->GetPtr<CompositeVector>(dconductivity_key_,tag_next_);
     }
   }
 
@@ -264,7 +267,7 @@ void Lake_Thermo_PK::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVecto
   if (jacobian_) {
     Teuchos::RCP<CompositeVector> flux = Teuchos::null;
 
-    flux = S_next_->GetFieldData(energy_flux_key_, name_);
+    flux = S_->GetPtrW<CompositeVector>(energy_flux_key_, tag_next_, name_);
     preconditioner_diff_->UpdateFlux(up->Data().ptr(), flux.ptr());
 
     preconditioner_diff_->UpdateMatricesNewtonCorrection(flux.ptr(), up->Data().ptr());
@@ -272,27 +275,28 @@ void Lake_Thermo_PK::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVecto
 
   // update with accumulation terms
   // -- update the accumulation derivatives, de/dT
-  S_next_->GetFieldEvaluator(energy_key_)
-          ->HasFieldDerivativeChanged(S_next_.ptr(), name_, key_);
-  const Epetra_MultiVector& de_dT = *S_next_->GetFieldData(Keys::getDerivKey(energy_key_, key_))
-          ->ViewComponent("cell",false);
-  unsigned int ncells = de_dT.MyLength();
-
-  CompositeVector acc(S_next_->GetFieldData(energy_key_)->Map());
-  auto& acc_c = *acc.ViewComponent("cell", false);
+  S_->GetEvaluator(conserved_key_, tag_next_).UpdateDerivative(*S_, name_, key_, tag_next_);
+  const auto& de_dT =
+    *S_->GetDerivativePtr<CompositeVector>(conserved_key_, tag_next_, key_, tag_next_)
+       ->ViewComponent("cell", false);
+  CompositeVector acc(S_->GetPtr<CompositeVector>(conserved_key_, tag_next_)->Map());
+  auto& acc_c = *acc.ViewComponent("cell", false); 
 
 #if DEBUG_FLAG
-  //  db_->WriteVector("    de_dT", S_next_->GetFieldData(Keys::getDerivKey(temperature_key_, key_)).ptr());
+  db_->WriteVector(
+    "    de_dT",
+    S_->GetDerivativePtr<CompositeVector>(conserved_key_, tag_next_, key_, tag_next_).ptr());
 #endif
 
+  unsigned int ncells = de_dT.MyLength();
   if (coupled_to_subsurface_via_temp_ || coupled_to_subsurface_via_flux_) {
     // do not add in de/dT if the height is 0
-    const Epetra_MultiVector& pres = *S_next_->GetFieldData(Keys::getKey(domain_,"pressure"))
-            ->ViewComponent("cell",false);
-    const double& patm = *S_next_->GetScalarData("atmospheric_pressure");
+    const auto& pres = *S_->Get<CompositeVector>(Keys::getKey(domain_, "pressure"), tag_next_)
+                          .ViewComponent("cell", false);
+    const double& p_atm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
 
     for (unsigned int c=0; c!=ncells; ++c) {
-      acc_c[0][c] = pres[0][c] >= patm ? de_dT[0][c] / h : 0.;
+      acc_c[0][c] = pres[0][c] >= p_atm ? de_dT[0][c] / h : 0.;
     }
   } else {
     if (precon_used_) {
@@ -313,7 +317,7 @@ void Lake_Thermo_PK::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVecto
   preconditioner_acc_->AddAccumulationTerm(acc, "cell");
 
   // -- update preconditioner with source term derivatives if needed
-  AddSourcesToPrecon_(S_next_.ptr(), h);
+  AddSourcesToPrecon_(h);
 
   //  // update with advection terms
   //  if (implicit_advection_ && implicit_advection_in_pc_) {
@@ -343,7 +347,7 @@ double Lake_Thermo_PK::ErrorNorm(Teuchos::RCP<const TreeVector> u,
   const Epetra_MultiVector& uc = *u->Data()->ViewComponent("cell", false);
   const Epetra_MultiVector& duc = *du->Data()->ViewComponent("cell", false);
 
-  int ncells_owned = mesh_->num_entities(Amanzi::AmanziMesh::CELL, Amanzi::AmanziMesh::Parallel_type::OWNED);
+  int ncells_owned = mesh_->getNumEntities(Amanzi::AmanziMesh::CELL, Amanzi::AmanziMesh::Parallel_kind::OWNED);
 
   double error_t(0.0);
   double ref_temp(273.0);

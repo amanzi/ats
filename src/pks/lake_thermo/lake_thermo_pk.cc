@@ -119,8 +119,8 @@ void Lake_Thermo_PK::SetupLakeThermo_() {
   //  std::string domain_surf;
   //  domain_surf = plist_->get<std::string>("surface domain name", "surface");
   //  surface_flux_key_ = Keys::readKey(*plist_, domain_surf, "surface flux", "surface_flux");
-  //  S->RequireField(surface_flux_key_)
-  //	  ->SetMesh(S->GetMesh(domain_surf))
+  //  S_->RequireField(surface_flux_key_)
+  //	  ->SetMesh(S_->GetMesh(domain_surf))
   //	  ->AddComponent("cell", AmanziMesh::CELL, 1);
 
   // Get data for special-case entities.
@@ -139,42 +139,42 @@ void Lake_Thermo_PK::SetupLakeThermo_() {
 
   bc_adv_ = Teuchos::rcp(new Operators::BCs(mesh_, AmanziMesh::FACE, WhetStone::DOF_Type::SCALAR));
 
-  // -- nonlinear coefficient
-  std::string method_name = plist_->get<std::string>("upwind conductivity method",
-      "arithmetic mean");
+ // -- nonlinear coefficient
+  std::string method_name =
+    plist_->get<std::string>("upwind conductivity method", "arithmetic mean");
   if (method_name == "cell centered") {
-    upwinding_ = Teuchos::rcp(new Operators::UpwindCellCentered(name_,
-        conductivity_key_, uw_conductivity_key_));
+    upwinding_ = Teuchos::rcp(new Operators::UpwindCellCentered(name_, tag_next_));
   } else if (method_name == "arithmetic mean") {
-    upwinding_ = Teuchos::rcp(new Operators::UpwindArithmeticMean(name_,
-        conductivity_key_, uw_conductivity_key_));
+    upwinding_ = Teuchos::rcp(new Operators::UpwindArithmeticMean(name_, tag_next_));
   } else {
-    std::stringstream messagestream;
-    messagestream << "Lake_Thermo PK has no upwinding method named: " << method_name;
-    Errors::Message message(messagestream.str());
+    Errors::Message message;
+    message << "Energy PK has no upwinding method named: " << method_name;
     Exceptions::amanzi_throw(message);
   }
 
   std::string coef_location = upwinding_->CoefficientLocation();
-  if (coef_location == "upwind: face") {  
-    S_->RequireField(uw_conductivity_key_, name_)->SetMesh(mesh_)
-            ->SetGhosted()->SetComponent("face", AmanziMesh::FACE, 1);
+  if (coef_location == "upwind: face") {
+    S_->Require<CompositeVector, CompositeVectorSpace>(uw_conductivity_key_, tag_next_, name_)
+      .SetMesh(mesh_)
+      ->SetGhosted()
+      ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);
   } else if (coef_location == "standard: cell") {
-    S_->RequireField(uw_conductivity_key_, name_)->SetMesh(mesh_)
-            ->SetGhosted()->SetComponent("cell", AmanziMesh::CELL, 1);
+    S_->Require<CompositeVector, CompositeVectorSpace>(uw_conductivity_key_, tag_next_, name_)
+      .SetMesh(mesh_)
+      ->SetGhosted()
+      ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   } else {
     Errors::Message message("Unknown upwind coefficient location in energy.");
     Exceptions::amanzi_throw(message);
   }
-
-  S_->GetField(uw_conductivity_key_,name_)->set_io_vis(false);
+  S_->GetRecordW(uw_conductivity_key_, tag_next_, name_).set_io_vis(false);
 
   // -- create the forward operator for the diffusion term
   Teuchos::ParameterList& mfd_plist = plist_->sublist("diffusion");
   mfd_plist.set("nonlinear coefficient", coef_location);
   Operators::PDE_DiffusionFactory opfactory;
   matrix_diff_ = opfactory.Create(mfd_plist, mesh_, bc_);
-  //  matrix_diff_->SetTensorCoefficient(Teuchos::null);
+  matrix_diff_->SetTensorCoefficient(Teuchos::null);
   matrix_ = matrix_diff_->global_operator();
 
   // -- create the forward operator for the advection term
@@ -221,15 +221,13 @@ void Lake_Thermo_PK::SetupLakeThermo_() {
       dconductivity_key_ = Keys::getDerivKey(conductivity_key_, key_);
       duw_conductivity_key_ = Keys::getDerivKey(uw_conductivity_key_, key_);
 
-      S_->RequireField(duw_conductivity_key_, name_)
-            ->SetMesh(mesh_)->SetGhosted()
+      S_->Require<CompositeVector, CompositeVectorSpace>(duw_conductivity_key_, tag_next_, name_)
+            .SetMesh(mesh_)->SetGhosted()
             ->SetComponent("face", AmanziMesh::FACE, 1);
 
       // upwinding_deriv_ = Teuchos::rcp(new Operators::UpwindArithmeticMean(name_,
       //                                 dconductivity_key_, duw_conductivity_key_));
-      upwinding_deriv_ = Teuchos::rcp(new Operators::UpwindTotalFlux(name_,
-          dconductivity_key_, duw_conductivity_key_,
-          energy_flux_key_, 1.e-8));
+      upwinding_deriv_ = Teuchos::rcp(new Operators::UpwindTotalFlux(name_, tag_next_, energy_flux_key_, 1.e-8));
 
     } else {
       // FV -- no upwinding
@@ -276,7 +274,7 @@ void Lake_Thermo_PK::SetupLakeThermo_() {
   //  }
 
   // -- advection of enthalpy
-  S_->RequireField(enthalpy_key_)->SetMesh(mesh_)
+  S_->Require<CompositeVector, CompositeVectorSpace>(enthalpy_key_,tag_next_).SetMesh(mesh_)
         ->SetGhosted()
         ->AddComponent("cell", AmanziMesh::CELL, 1)
         ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
@@ -284,20 +282,20 @@ void Lake_Thermo_PK::SetupLakeThermo_() {
   enth_plist.set("enthalpy key", enthalpy_key_);
   Teuchos::RCP<LakeEnthalpyEvaluator> enth =
       Teuchos::rcp(new LakeEnthalpyEvaluator(enth_plist));
-  S_->SetFieldEvaluator(enthalpy_key_, enth);
+  S_->SetEvaluator(enthalpy_key_, tag_next_, enth);
 
   // -- density evaluator
-  S_->RequireField(density_key_)->SetMesh(mesh_)
+  S_->Require<CompositeVector, CompositeVectorSpace>(density_key_,tag_next_).SetMesh(mesh_)
         ->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
   // Teuchos::ParameterList den_plist =
   //     plist_->sublist("density evaluator");
   // den_plist.set("evaluator name", density_key_);
   // Teuchos::RCP<LakeThermo::DensityEvaluator> den =
   //     Teuchos::rcp(new LakeThermo::DensityEvaluator(den_plist));
-  // S->SetFieldEvaluator(density_key_, den);
+  // S_->SetEvaluator(density_key_, den);
 
   // -- energy evaluator
-  S_->RequireField(energy_key_)->SetMesh(mesh_)
+  S_->Require<CompositeVector, CompositeVectorSpace>(energy_key_,tag_next_).SetMesh(mesh_)
         ->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1)
         ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
   Teuchos::ParameterList enrg_plist =
@@ -305,7 +303,7 @@ void Lake_Thermo_PK::SetupLakeThermo_() {
   enrg_plist.set("evaluator name", energy_key_);
   Teuchos::RCP<LakeThermo::LakeEnergyEvaluator> enrg =
       Teuchos::rcp(new LakeThermo::LakeEnergyEvaluator(enrg_plist));
-  S_->SetFieldEvaluator(energy_key_, enrg);
+  S_->SetEvaluator(energy_key_, tag_next_, enrg);
 
   // -- surface temperature evaluator
   std::string domain_surf_temp;
@@ -315,72 +313,72 @@ void Lake_Thermo_PK::SetupLakeThermo_() {
     domain_surf_temp = plist_->get<std::string>("surface domain name", "surface_"+domain_);
   }
   std::cout << "domain_surf_temp = " << domain_surf_temp << std::endl;
-  // S->RequireField(surface_temperature_key_)->SetMesh(S->GetMesh(domain_surf_temp))
+  // S_->RequireField(surface_temperature_key_)->SetMesh(S_->GetMesh(domain_surf_temp))
   //       ->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
   // Teuchos::ParameterList surftemp_plist =
   //     plist_->sublist("lake surface temperature evaluator");
   // surftemp_plist.set("evaluator name", surface_temperature_key_);
   // Teuchos::RCP<LakeThermo::LakeSurfaceTemperatureEvaluator> surftemp =
   //     Teuchos::rcp(new LakeThermo::LakeSurfaceTemperatureEvaluator(surftemp_plist));
-  // S->SetFieldEvaluator(surface_temperature_key_, surftemp);
+  // S_->SetEvaluator(surface_temperature_key_, surftemp);
   // std::cout << "surface_temperature_key_ = " << surface_temperature_key_ << std::endl;
   // std::cout << "after creating surface temperature evaluator" << std::endl;
 
   // surface temperature as independent variable
-  S_->RequireField(surface_temperature_key_,name_)->SetMesh(S->GetMesh(domain_surf_temp))
+  S_->Require<CompositeVector, CompositeVectorSpace>(surface_temperature_key_,tag_next_,name_).SetMesh(S_->GetMesh(domain_surf_temp))
           ->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
   Teuchos::ParameterList surftemp_plist;
   surftemp_plist.set<std::string>("evaluator name", surface_temperature_key_);
-  auto surftemp = Teuchos::rcp(new PrimaryVariableFieldEvaluator(surftemp_plist));
-  AMANZI_ASSERT(S != Teuchos::null);
-  S_->SetFieldEvaluator(surface_temperature_key_, surftemp);
+  auto surftemp = Teuchos::rcp(new EvaluatorPrimaryCV(surftemp_plist));
+  AMANZI_ASSERT(S_ != Teuchos::null);
+  S_->SetEvaluator(surface_temperature_key_, tag_next_, surftemp);
 
-  S_->RequireFieldEvaluator(surface_temperature_key_);
+  S_->RequireEvaluator(surface_temperature_key_,tag_next_);
 
-  S_->RequireField(surface_temperature_key_, name_)->SetMesh(S->GetMesh(domain_surf_temp))->SetGhosted()
+  S_->Require<CompositeVector, CompositeVectorSpace>(surface_temperature_key_, tag_next_, name_).SetMesh(S_->GetMesh(domain_surf_temp))->SetGhosted()
 		      ->AddComponent("cell", AmanziMesh::CELL, 1);
 
   // -- thermal conductivity evaluator
-  S_->RequireField(conductivity_key_)->SetMesh(mesh_)
+  S_->Require<CompositeVector, CompositeVectorSpace>(conductivity_key_,tag_next_).SetMesh(mesh_)
         ->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
   Teuchos::ParameterList tcm_plist =
       plist_->sublist("thermal conductivity evaluator");
   tcm_plist.set("evaluator name", conductivity_key_);
   Teuchos::RCP<LakeThermo::ThermalConductivityEvaluator> tcm =
       Teuchos::rcp(new LakeThermo::ThermalConductivityEvaluator(tcm_plist));
-  S_->SetFieldEvaluator(conductivity_key_, tcm);
+  S_->SetEvaluator(conductivity_key_, tag_next_, tcm);
 
   // -- heat capacity evaluator
-  S_->RequireField(heat_capacity_key_)->SetMesh(mesh_)
+  S_->Require<CompositeVector, CompositeVectorSpace>(heat_capacity_key_,tag_next_).SetMesh(mesh_)
         ->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
   Teuchos::ParameterList hc_plist =
       plist_->sublist("heat capacity evaluator");
   hc_plist.set("evaluator name", heat_capacity_key_);
   Teuchos::RCP<LakeThermo::LakeHeatCapacityEvaluator> hc =
       Teuchos::rcp(new LakeThermo::LakeHeatCapacityEvaluator(hc_plist));
-  S_->SetFieldEvaluator(heat_capacity_key_, hc);
+  S_->SetEvaluator(heat_capacity_key_, tag_next_, hc);
 
   // -- evaporation rate evaluator
-  S_->RequireField(evaporation_rate_key_)->SetMesh(mesh_)
+  S_->Require<CompositeVector, CompositeVectorSpace>(evaporation_rate_key_,tag_next_).SetMesh(mesh_)
         ->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
   Teuchos::ParameterList er_plist =
       plist_->sublist("evaporation rate evaluator");
   er_plist.set("evaluator name", evaporation_rate_key_);
   Teuchos::RCP<LakeThermo::LakeEvaporationRateEvaluator> er =
       Teuchos::rcp(new LakeThermo::LakeEvaporationRateEvaluator(er_plist));
-  S_->SetFieldEvaluator(evaporation_rate_key_, er);
+  S_->SetEvaluator(evaporation_rate_key_, tag_next_, er);
 
 
   // THIS SHOULD NOT BE DEFINED ON THE MESH -- > ONLY ONE VALUE FOR THE UPPER BOUNDARY
   // -- surface flux evaluator
-  S_->RequireField(surface_flux_key_)->SetMesh(mesh_)
+  S_->Require<CompositeVector, CompositeVectorSpace>(surface_flux_key_,tag_next_).SetMesh(mesh_)
         ->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
   Teuchos::ParameterList sflx_plist =
       plist_->sublist("surface flux evaluator");
   sflx_plist.set("evaluator name", surface_flux_key_);
   Teuchos::RCP<LakeThermo::HeatFluxBCEvaluator> sflx =
       Teuchos::rcp(new LakeThermo::HeatFluxBCEvaluator(sflx_plist));
-  S_->SetFieldEvaluator(surface_flux_key_, sflx);
+  S_->SetEvaluator(surface_flux_key_, tag_next_, sflx);
 
   //  // source terms
   //  is_source_term_ = plist_->get<bool>("source term");
@@ -388,9 +386,9 @@ void Lake_Thermo_PK::SetupLakeThermo_() {
   //  is_source_term_finite_differentiable_ = plist_->get<bool>("source term finite difference", false);
   //  if (is_source_term_) {
   //    source_key_ = Keys::readKey(*plist_, domain_, "source", "total_energy_source");
-  //    S->RequireField(source_key_)->SetMesh(mesh_)
+  //    S_->RequireField(source_key_)->SetMesh(mesh_)
   //        ->AddComponent("cell", AmanziMesh::CELL, 1);
-  //    S->RequireFieldEvaluator(source_key_);
+  //    S_->RequireEvaluator(source_key_);
   //  }
 
   // // coupling terms
@@ -405,8 +403,8 @@ void Lake_Thermo_PK::SetupLakeThermo_() {
   //     domain_surf = plist_->get<std::string>("surface domain name", "surface_"+domain_);
   //   }
   //   ss_flux_key_ = Keys::readKey(*plist_, domain_surf, "surface-subsurface energy flux", "surface_subsurface_energy_flux");
-  //   S->RequireField(ss_flux_key_)
-  //           ->SetMesh(S->GetMesh(domain_surf))
+  //   S_->RequireField(ss_flux_key_)
+  //           ->SetMesh(S_->GetMesh(domain_surf))
   //           ->AddComponent("cell", AmanziMesh::CELL, 1);
   // }
 
@@ -414,8 +412,8 @@ void Lake_Thermo_PK::SetupLakeThermo_() {
   //     plist_->get<bool>("coupled to surface via temperature", false);
   // if (coupled_to_surface_via_temp_) {
   //   // surface temperature used for BCs
-  //   S->RequireField("surface_temperature")
-  //           ->SetMesh(S->GetMesh("surface"))
+  //   S_->RequireField("surface_temperature")
+  //           ->SetMesh(S_->GetMesh("surface"))
   //           ->AddComponent("cell", AmanziMesh::CELL, 1);
   // }
 
@@ -429,42 +427,42 @@ void Lake_Thermo_PK::SetupLakeThermo_() {
   matrix_cvs.AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1); 
 
   // -- primary variable
-  S_->RequireField(key_, name_)->Update(matrix_cvs)->SetGhosted();
+  S_->Require<CompositeVector, CompositeVectorSpace>(key_, tag_next_, name_).Update(matrix_cvs)->SetGhosted();
 
   // Require a field for the mass flux for advection.
-  flux_exists_ = S_->HasField(flux_key_); // this bool is needed to know if PK
+  flux_exists_ = S_->HasRecord(flux_key_,tag_next_); // this bool is needed to know if PK
   // makes flux or we need an
   // independent variable evaluator
 
-  S_->RequireField(flux_key_, name_)->SetMesh(mesh_)->SetGhosted()
+  S_->Require<CompositeVector, CompositeVectorSpace>(flux_key_, tag_next_, name_).SetMesh(mesh_)->SetGhosted()
           ->AddComponent("face", AmanziMesh::FACE, 1);
 
   // Require a field for water content
-  //  S->RequireField(wc_key_, name_)->SetMesh(mesh_)->SetGhosted()
+  //  S_->RequireField(wc_key_, name_)->SetMesh(mesh_)->SetGhosted()
   //        ->AddComponent("cell", AmanziMesh::CELL, 1);
 
   // Require a field for the energy fluxes.
-  S_->RequireField(energy_flux_key_, name_)->SetMesh(mesh_)->SetGhosted()
+  S_->Require<CompositeVector, CompositeVectorSpace>(energy_flux_key_, tag_next_, name_).SetMesh(mesh_)->SetGhosted()
           ->SetComponent("face", AmanziMesh::FACE, 1);
-  S_->RequireField(adv_energy_flux_key_, name_)->SetMesh(mesh_)->SetGhosted()
+  S_->Require<CompositeVector, CompositeVectorSpace>(adv_energy_flux_key_, tag_next_, name_).SetMesh(mesh_)->SetGhosted()
           ->SetComponent("face", AmanziMesh::FACE, 1);
 
   // ice markers
-  S_->RequireField(cell_is_ice_key_,name_)->SetMesh(mesh_)
+  S_->Require<CompositeVector, CompositeVectorSpace>(cell_is_ice_key_,tag_next_,name_).SetMesh(mesh_)
           ->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
 
   // depth
-  S_->RequireField(depth_key_,name_)->SetMesh(mesh_)
+  S_->Require<CompositeVector, CompositeVectorSpace>(depth_key_,tag_next_,name_).SetMesh(mesh_)
           ->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
   Teuchos::ParameterList elist_depth;
   elist_depth.set<std::string>("evaluator name", depth_key_);
-  auto eval_depth = Teuchos::rcp(new PrimaryVariableFieldEvaluator(elist_depth));
-  AMANZI_ASSERT(S != Teuchos::null);
-  S_->SetFieldEvaluator(depth_key_, eval_depth);
+  auto eval_depth = Teuchos::rcp(new EvaluatorPrimaryCV(elist_depth));
+  AMANZI_ASSERT(S_ != Teuchos::null);
+  S_->SetEvaluator(depth_key_, tag_next_, eval_depth);
 
-  S_->RequireFieldEvaluator(depth_key_);
+  S_->RequireEvaluator(depth_key_,tag_next_);
 
-  S_->RequireField(depth_key_, name_)->SetMesh(mesh_)->SetGhosted()
+  S_->Require<CompositeVector, CompositeVectorSpace>(depth_key_, tag_next_, name_).SetMesh(mesh_)->SetGhosted()
 		      ->AddComponent("cell", AmanziMesh::CELL, 1);
 
   // -- simply limit to close to 0
@@ -481,59 +479,59 @@ void Lake_Thermo_PK::SetupLakeThermo_() {
 // -------------------------------------------------------------
 // Create the physical evaluators that are specific to Lake.
 // -------------------------------------------------------------
-void Lake_Thermo_PK::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
+void Lake_Thermo_PK::SetupPhysicalEvaluators_() {
   // -- Density
-  S->RequireField(density_key_)->SetMesh(mesh_)->SetGhosted()
+  S_->Require<CompositeVector, CompositeVectorSpace>(density_key_,tag_next_).SetMesh(mesh_)->SetGhosted()
           ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(density_key_);
+  S_->RequireEvaluator(density_key_,tag_next_);
 
   // -- Energy
-  S->RequireField(energy_key_)->SetMesh(mesh_)->SetGhosted()
+  S_->Require<CompositeVector, CompositeVectorSpace>(energy_key_,tag_next_).SetMesh(mesh_)->SetGhosted()
           ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(energy_key_);
+  S_->RequireEvaluator(energy_key_,tag_next_);
 
   if (coupled_to_snow_) {
     // setup some evaluators needed for snow
 
     // -- Porosity
-    // S->RequireField("porosity")->SetMesh(mesh_)->SetGhosted()
+    // S_->RequireField("porosity")->SetMesh(mesh_)->SetGhosted()
     //         ->AddComponent("cell", AmanziMesh::CELL, 1);
-    S->RequireFieldEvaluator("porosity");
+    S_->RequireEvaluator("porosity",tag_next_);
 
     // -- saturation_gas
-    // S->RequireField("saturation_gas")->SetMesh(mesh_)->SetGhosted()
+    // S_->RequireField("saturation_gas")->SetMesh(mesh_)->SetGhosted()
     //         ->AddComponent("cell", AmanziMesh::CELL, 1);
-    S->RequireFieldEvaluator("saturation_gas");
+    S_->RequireEvaluator("saturation_gas",tag_next_);
 
     // -- saturation_gas
-    // S->RequireField("snow-precipitation")->SetMesh(S->GetMesh("snow"))->SetGhosted()
+    // S_->RequireField("snow-precipitation")->SetMesh(S_->GetMesh("snow"))->SetGhosted()
     //         ->AddComponent("cell", AmanziMesh::CELL, 1);
-    S->RequireFieldEvaluator("snow-precipitation");
+    S_->RequireEvaluator("snow-precipitation",tag_next_);
 
     // -- surface-air_temperature
-    // S->RequireField("surface-air_temperature")->SetMesh(S->GetMesh("surface"))->SetGhosted()
+    // S_->RequireField("surface-air_temperature")->SetMesh(S_->GetMesh("surface"))->SetGhosted()
     //         ->AddComponent("cell", AmanziMesh::CELL, 1);
-    S->RequireFieldEvaluator("surface-air_temperature");
+    S_->RequireEvaluator("surface-air_temperature",tag_next_);
 
     // -- surface-albedos
-    // S->RequireField("surface-albedos")->SetMesh(S->GetMesh("surface"))->SetGhosted()
+    // S_->RequireField("surface-albedos")->SetMesh(S_->GetMesh("surface"))->SetGhosted()
     //         ->AddComponent("cell", AmanziMesh::CELL, 2);
-    S->RequireFieldEvaluator("surface-albedos");
+    S_->RequireEvaluator("surface-albedos",tag_next_);
 
     // -- surface-ponded_depth
-    // S->RequireField("surface-ponded_depth")->SetMesh(S->GetMesh("surface"))->SetGhosted()
+    // S_->RequireField("surface-ponded_depth")->SetMesh(S_->GetMesh("surface"))->SetGhosted()
     //         ->AddComponent("cell", AmanziMesh::CELL, 1);
-    S->RequireFieldEvaluator("surface-ponded_depth");
+    S_->RequireEvaluator("surface-ponded_depth",tag_next_);
 
     // -- surface-mass_density_liquid
-    // S->RequireField("surface-mass_density_liquid")->SetMesh(S->GetMesh("surface"))->SetGhosted()
+    // S_->RequireField("surface-mass_density_liquid")->SetMesh(S_->GetMesh("surface"))->SetGhosted()
     //         ->AddComponent("cell", AmanziMesh::CELL, 1);
-    S->RequireFieldEvaluator("surface-mass_density_liquid");
+    S_->RequireEvaluator("surface-mass_density_liquid",tag_next_);
 
     // -- surface-molar_density_liquid
-    // S->RequireField("surface-molar_density_liquid")->SetMesh(S->GetMesh("surface"))->SetGhosted()
+    // S_->RequireField("surface-molar_density_liquid")->SetMesh(S_->GetMesh("surface"))->SetGhosted()
     //         ->AddComponent("cell", AmanziMesh::CELL, 1);
-    S->RequireFieldEvaluator("surface-molar_density_liquid");
+    S_->RequireEvaluator("surface-molar_density_liquid",tag_next_);
 
   }
 
@@ -545,34 +543,34 @@ void Lake_Thermo_PK::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
   //   domain_surf_temp = plist_->get<std::string>("surface domain name", "surface_"+domain_);
   // }
   // std::cout << "domain_surf_temp = " << domain_surf_temp << std::endl;
-  // S->RequireField(surface_temperature_key_)->SetMesh(S->GetMesh(domain_surf_temp))->SetGhosted()
+  // S_->RequireField(surface_temperature_key_)->SetMesh(S_->GetMesh(domain_surf_temp))->SetGhosted()
   //         ->AddComponent("cell", AmanziMesh::CELL, 1);
-  // S->RequireFieldEvaluator(surface_temperature_key_);
+  // S_->RequireEvaluator(surface_temperature_key_);
 
   // -- Conductivity
-  S->RequireField(conductivity_key_)->SetMesh(mesh_)->SetGhosted()
+  S_->Require<CompositeVector, CompositeVectorSpace>(conductivity_key_,tag_next_).SetMesh(mesh_)->SetGhosted()
           ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(conductivity_key_);
+  S_->RequireEvaluator(conductivity_key_,tag_next_);
 
   // -- Heat capacity
-  S->RequireField(heat_capacity_key_)->SetMesh(mesh_)->SetGhosted()
+  S_->Require<CompositeVector, CompositeVectorSpace>(heat_capacity_key_,tag_next_).SetMesh(mesh_)->SetGhosted()
           ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(heat_capacity_key_);
+  S_->RequireEvaluator(heat_capacity_key_,tag_next_);
 
   // -- Evaporation rate
-  S->RequireField(evaporation_rate_key_)->SetMesh(mesh_)->SetGhosted()
+  S_->Require<CompositeVector, CompositeVectorSpace>(evaporation_rate_key_,tag_next_).SetMesh(mesh_)->SetGhosted()
           ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(evaporation_rate_key_);
+  S_->RequireEvaluator(evaporation_rate_key_,tag_next_);
 
   // -- Enthalpy
-  S->RequireField(enthalpy_key_)->SetMesh(mesh_)->SetGhosted()
+  S_->Require<CompositeVector, CompositeVectorSpace>(enthalpy_key_,tag_next_).SetMesh(mesh_)->SetGhosted()
           ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(enthalpy_key_);
+  S_->RequireEvaluator(enthalpy_key_,tag_next_);
 
   // -- Surface heat flux
-  S->RequireField(surface_flux_key_)->SetMesh(mesh_)->SetGhosted()
+  S_->Require<CompositeVector, CompositeVectorSpace>(surface_flux_key_,tag_next_).SetMesh(mesh_)->SetGhosted()
           ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(surface_flux_key_);
+  S_->RequireEvaluator(surface_flux_key_,tag_next_);
 
   std::cout << "Lake SetupPhysicalEvaluators_ DONE" << std::endl;
 
@@ -587,7 +585,7 @@ void Lake_Thermo_PK::Initialize() {
   std::cout << "Lake Initialize" << std::endl;
 
   // initialize BDF stuff and physical domain stuff
-  PK_PhysicalBDF_Default::Initialize(S);
+  PK_PhysicalBDF_Default::Initialize();
 
   R_s_ = 0.;
   R_b_ = 0.;
@@ -598,7 +596,7 @@ void Lake_Thermo_PK::Initialize() {
   Teuchos::ParameterList& ic_list = plist_->sublist("initial condition");
   double temp = ic_list.get<double>("initial temperature [K]");
 
-  S->GetFieldData(temperature_key_, name_)->PutScalar(temp);
+  S_->GetW<CompositeVector>(temperature_key_, tag_next_, name_).PutScalar(temp);
 
   // initial depth
   h_ = ic_list.get<double>("initial depth [m]",1.5);
@@ -606,60 +604,60 @@ void Lake_Thermo_PK::Initialize() {
   // initial ice thickness
   h_ice_ = 0.;
 
-  S->GetFieldData(cell_is_ice_key_, name_)->PutScalar(false);
-  S->GetField(cell_is_ice_key_, name_)->set_initialized();
+  S_->GetW<CompositeVector>(cell_is_ice_key_, tag_next_, name_).PutScalar(false);
+  S_->GetRecordW(cell_is_ice_key_, tag_next_, name_).set_initialized();
 
-  S->GetFieldData(depth_key_, name_)->PutScalar(h_);
-  S->GetField(depth_key_, name_)->set_initialized();
+  S_->GetW<CompositeVector>(depth_key_, tag_next_, name_).PutScalar(h_);
+  S_->GetRecordW(depth_key_, tag_next_, name_).set_initialized();
 
 #if MORE_DEBUG_FLAG
   for (int i=1; i!=23; ++i) {
     std::stringstream namestream;
     namestream << domain_prefix_ << "energy_residual_" << i;
-    S->GetFieldData(namestream.str(),name_)->PutScalar(0.);
-    S->GetField(namestream.str(),name_)->set_initialized();
+    S_->GetW<CompositeVector>(namestream.str(),tag_next_,name_).PutScalar(0.);
+    S_->GetRecordW(namestream.str(),tag_next_,name_).set_initialized();
 
     std::stringstream solnstream;
     solnstream << domain_prefix_ << "energy_solution_" << i;
-    S->GetFieldData(solnstream.str(),name_)->PutScalar(0.);
-    S->GetField(solnstream.str(),name_)->set_initialized();
+    S_->GetW<CompositeVector>(solnstream.str(),tag_next_,name_).PutScalar(0.);
+    S_->GetRecordW(solnstream.str(),tag_next_,name_).set_initialized();
   }
 
 #endif
 
   // initialize energy flux
-  S->GetFieldData(energy_flux_key_, name_)->PutScalar(0.0);
-  S->GetField(energy_flux_key_, name_)->set_initialized();
-  S->GetFieldData(adv_energy_flux_key_, name_)->PutScalar(0.0);
-  S->GetField(adv_energy_flux_key_, name_)->set_initialized();
-  S->GetFieldData(uw_conductivity_key_, name_)->PutScalar(0.0);
-  S->GetField(uw_conductivity_key_, name_)->set_initialized();
+  S_->GetW<CompositeVector>(energy_flux_key_, tag_next_, name_).PutScalar(0.0);
+  S_->GetRecordW(energy_flux_key_, tag_next_, name_).set_initialized();
+  S_->GetW<CompositeVector>(adv_energy_flux_key_, tag_next_, name_).PutScalar(0.0);
+  S_->GetRecordW(adv_energy_flux_key_, tag_next_, name_).set_initialized();
+  S_->GetW<CompositeVector>(uw_conductivity_key_, tag_next_, name_).PutScalar(0.0);
+  S_->GetRecordW(uw_conductivity_key_, tag_next_, name_).set_initialized();
   if (!duw_conductivity_key_.empty()) {
-    S->GetFieldData(duw_conductivity_key_, name_)->PutScalar(0.);
-    S->GetField(duw_conductivity_key_, name_)->set_initialized();
+    S_->GetW<CompositeVector>(duw_conductivity_key_, tag_next_, name_).PutScalar(0.);
+    S_->GetRecordW(duw_conductivity_key_, tag_next_, name_).set_initialized();
   }
 
   UpdateConductivityData_(tag_current_);
   Teuchos::RCP<const CompositeVector> conductivity =
-      S->GetFieldData(uw_conductivity_key_);
+      S_->GetPtrW<CompositeVector>(uw_conductivity_key_,tag_next_,name_);
 
-  const Epetra_MultiVector& uw_cond_c = *S->GetFieldData(uw_conductivity_key_)->ViewComponent("face", false);
-  int nfaces_owned = mesh_->num_entities(AmanziMesh::FACE, AmanziMesh::Parallel_type::OWNED);
+  const Epetra_MultiVector& uw_cond_c = *S_->Get<CompositeVector>(uw_conductivity_key_,tag_next_).ViewComponent("face", false);
+  int nfaces_owned = mesh_->getNumEntities(AmanziMesh::FACE, AmanziMesh::Parallel_kind::OWNED);
 
   // potentially initialize mass flux
   //  if (!flux_exists_) {
-  //    S->GetField(flux_key_, name_)->Initialize(plist_->sublist(flux_key_));
+  //    S_->GetField(flux_key_, name_)->Initialize(plist_->sublist(flux_key_));
   //  }
-  S->GetFieldData(flux_key_, name_)->PutScalar(0.0);
-  S->GetField(flux_key_, name_)->set_initialized();
+  S_->GetW<CompositeVector>(flux_key_, tag_next_, name_).PutScalar(0.0);
+  S_->GetRecordW(flux_key_, tag_next_, name_).set_initialized();
 
-  //  S->GetFieldData(wc_key_, name_)->PutScalar(1.0);
-  //  S->GetField(wc_key_, name_)->set_initialized();
+  //  S_->GetW<CompositeVector>(wc_key_, name_).PutScalar(1.0);
+  //  S_->GetRecordW(wc_key_, name_).set_initialized();
 
   /*
   // get temperature
-  const Epetra_MultiVector& temp = *S->GetFieldData(temperature_key_)
-        ->ViewComponent("cell",false);
+  const Epetra_MultiVector& temp = *S_->GetW<CompositeVector>(temperature_key_, tag_next_)
+        .ViewComponent("cell",false);
 
   double T0 = 280., T1 = 400.;
   double zm = 0.5, Tm = 290.;
@@ -667,24 +665,24 @@ void Lake_Thermo_PK::Initialize() {
   double b = (Tm-T0-zm*zm*(T1-T0))/(zm*(1.-zm));
   double a = T1-T0-b;
 
-  int ncells_owned = mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
+  int ncells_owned = mesh_->getNumEntities(AmanziMesh::CELL, AmanziMesh::Parallel_kind::OWNED);
 
   for (int c = 0; c < ncells_owned; c++) {
-      const AmanziGeometry::Point& xc = mesh_->cell_centroid(c);
+      const AmanziGeometry::Point& xc = mesh_->getCellCentroid(c);
       temp[0][c] = a*xc[2]*xc[2] + b*xc[2] + d;
   }
    */
 
-  S->GetField(temperature_key_, name_)->set_initialized();
+  S_->GetRecordW(temperature_key_, tag_next_, name_).set_initialized();
 
-  int ncomp = mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
-  const Epetra_MultiVector& temp_v = *S->GetFieldData(temperature_key_)->ViewComponent("cell",false);
+  int ncomp = mesh_->getNumEntities(AmanziMesh::CELL, AmanziMesh::Parallel_kind::OWNED);
+  const Epetra_MultiVector& temp_v = *S_->Get<CompositeVector>(temperature_key_,tag_next_).ViewComponent("cell",false);
   std::cout << "surface_temperature_key_ = " << surface_temperature_key_ << std::endl;
-  Epetra_MultiVector surf_temp = *S->GetFieldData(surface_temperature_key_)->ViewComponent("cell",false);
+  Epetra_MultiVector surf_temp = *S_->Get<CompositeVector>(surface_temperature_key_,tag_next_).ViewComponent("cell",false);
   std::cout << "name_ = " << name_ << std::endl;
-  S->GetFieldData(surface_temperature_key_, name_)->PutScalar(temp_v[0][ncomp-1]);
+  S_->GetW<CompositeVector>(surface_temperature_key_, tag_next_, name_).PutScalar(temp_v[0][ncomp-1]);
 
-  S->GetField(surface_temperature_key_, name_)->set_initialized();
+  S_->GetRecordW(surface_temperature_key_, tag_next_, name_).set_initialized();
 
   // summary of initialization
   Teuchos::OSTab tab = vo_->getOSTab();
@@ -712,23 +710,23 @@ void Lake_Thermo_PK::CommitStep(double t_old, double t_new, const Tag& tag_next)
   PK_PhysicalBDF_Default::CommitStep(t_old, t_new, tag_next);
 
   // get temperature
-  Teuchos::RCP<const CompositeVector> temp = S->GetFieldData(temperature_key_);
+  Teuchos::RCP<const CompositeVector> temp = S_->GetPtr<CompositeVector>(temperature_key_,tag_next);
   const Epetra_MultiVector& temp_v = *temp->ViewComponent("cell",false);
 
   // cell volumes
   const Epetra_MultiVector& cv =
-         *S->GetFieldData(Keys::getKey(domain_,"cell_volume"))->ViewComponent("cell",false);
+         *S_->Get<CompositeVector>(Keys::getKey(domain_,"cell_volume"),tag_next).ViewComponent("cell",false);
 
   // ice marker
   const Epetra_MultiVector& ice =
-         *S->GetFieldData(cell_is_ice_key_)->ViewComponent("cell",false);
-  S->GetFieldData(cell_is_ice_key_, name_)->PutScalar(false);
+         *S_->Get<CompositeVector>(cell_is_ice_key_,tag_next).ViewComponent("cell",false);
+  S_->GetW<CompositeVector>(cell_is_ice_key_, tag_next_, name_).PutScalar(false);
 
-  int ncomp = mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
+  int ncomp = mesh_->getNumEntities(AmanziMesh::CELL, AmanziMesh::Parallel_kind::OWNED);
 
-  Epetra_MultiVector surf_temp = *S->GetFieldData(surface_temperature_key_)->ViewComponent("cell",false);
+  Epetra_MultiVector surf_temp = *S_->Get<CompositeVector>(surface_temperature_key_,tag_next).ViewComponent("cell",false);
   std::cout << "name_ = " << name_ << std::endl;
-  S->GetFieldData(surface_temperature_key_, name_)->PutScalar(temp_v[0][ncomp-1]);
+  S_->GetW<CompositeVector>(surface_temperature_key_, tag_next, name_).PutScalar(temp_v[0][ncomp-1]);
   surf_temp[0][0] = temp_v[0][ncomp-1];
 
   std::cout << "surface_temperature_key_ = " << surface_temperature_key_ << std::endl;
@@ -842,7 +840,7 @@ void Lake_Thermo_PK::CommitStep(double t_old, double t_new, const Tag& tag_next)
   Teuchos::RCP<Amanzi::Function> T_a_func_ = Teuchos::rcp(fac.Create(param_list.sublist("air temperature")));
 
   std::vector<double> args(1);
-  args[0] = S->time();
+  args[0] = S_->get_time();
   r_ = (*r_func_)(args);
   E_ = (*E_func_)(args);
   double SS = (*SS_func_)(args);
@@ -850,9 +848,9 @@ void Lake_Thermo_PK::CommitStep(double t_old, double t_new, const Tag& tag_next)
   double T_a = (*T_a_func_)(args);
 
   // Compute evaporartion rate
-  S->GetFieldEvaluator(evaporation_rate_key_)->HasFieldChanged(S.ptr(), name_);
+  S_->GetEvaluator(evaporation_rate_key_,tag_next).Update(*S_, name_);
   const Epetra_MultiVector& E_v =
-      *S->GetFieldData(evaporation_rate_key_)->ViewComponent("cell",false);
+      *S_->Get<CompositeVector>(evaporation_rate_key_,tag_next).ViewComponent("cell",false);
   E_ = E_v[0][0]; // same everywhere
 
   // // set precipitation and evaporation to zero in the winter (for now because we don't have a snow layer anyway)
@@ -888,13 +886,13 @@ void Lake_Thermo_PK::CommitStep(double t_old, double t_new, const Tag& tag_next)
   double freeze_rate = (h_ice_-h_ice_prev)/dt*86400./2.54*100.;
   if (freeze_rate > 0.) std::cout << "freeze rate = " << freeze_rate << " inch/day" << std::endl;
 
-  S->GetFieldEvaluator(surface_flux_key_)->HasFieldChanged(S.ptr(), name_);
+  S_->GetEvaluator(surface_flux_key_,tag_next).Update(*S_, name_);
   const Epetra_MultiVector& flux =
-      *S->GetFieldData(surface_flux_key_)->ViewComponent("cell",false);
+      *S_->Get<CompositeVector>(surface_flux_key_,tag_next).ViewComponent("cell",false);
 
   // get temperature
-  const Epetra_MultiVector& cond_v = *S->GetFieldData(conductivity_key_)
-      ->ViewComponent("cell",false);
+  const Epetra_MultiVector& cond_v = *S_->Get<CompositeVector>(conductivity_key_,tag_next)
+      .ViewComponent("cell",false);
 
   double bc_flux = flux[0][ncomp-1]/cond_v[0][ncomp-1]*h_; ///cv[0][ncomp-1];
 
@@ -905,7 +903,7 @@ void Lake_Thermo_PK::CommitStep(double t_old, double t_new, const Tag& tag_next)
     std::ofstream temp_distr;
     temp_distr.open ("temperature_distr_"+ncells+".txt", std::ios::out);
     for (int i = 0; i < ncomp; i++) {
-      const AmanziGeometry::Point& xc = mesh_->cell_centroid(i);
+      const AmanziGeometry::Point& xc = mesh_->getCellCentroid(i);
       temp_distr << xc[2] << " " << temp_v[0][i] << "\n";
     }
 
@@ -920,7 +918,7 @@ void Lake_Thermo_PK::CommitStep(double t_old, double t_new, const Tag& tag_next)
     tempfile_ice << "\n";
 
     if (coupled_to_snow_) {
-      const Epetra_MultiVector& snow_depth_v = *S->GetFieldData("snow-depth")->ViewComponent("cell",false);
+      const Epetra_MultiVector& snow_depth_v = *S_->Get<CompositeVector>("snow-depth",tag_next).ViewComponent("cell",false);
       std::ofstream tempfile_snow;
       tempfile_snow.open ("depth_snow_"+ncells+".txt", std::ios::app);
       tempfile_snow << int(t_new) / 86400 << " " << snow_depth_v[0][0] << " ";
@@ -989,40 +987,40 @@ void Lake_Thermo_PK::CommitStep(double t_old, double t_new, const Tag& tag_next)
   std::cout << "h_ = " << h_ << std::endl;
 //  mesh_scaled_ = meshfactory.create(0.0, 0.0, 0.0, 1.0, 1.0, h_, 1, 1, ncomp, request_faces, request_edges);
 
-  mesh_ = S->GetMesh(domain_);
+  mesh_ = S_->GetMesh(domain_);
   std::cout << "domain_ = " << domain_ << std::endl;
   std::cout << "mesh_ = " << mesh_ << std::endl;
-  mesh_->set_vis_mesh(mesh_);
+  // setVisMesh(mesh_);
 //  mesh_->vis_mesh_ = mesh_; //mesh_scaled_;
 
-  bc_temperature_->Compute(S->time());
-  bc_diff_flux_->Compute(S->time());
-  //  bc_flux_->Compute(S->time());
-  UpdateBoundaryConditions_(S.ptr());
+  bc_temperature_->Compute(S_->get_time());
+  bc_diff_flux_->Compute(S_->get_time());
+  //  bc_flux_->Compute(S_->get_time());
+  UpdateBoundaryConditions_(tag_next);
 
   niter_ = 0;
-  bool update = UpdateConductivityData_(S.ptr());
-  update |= S->GetFieldEvaluator(key_)->HasFieldChanged(S.ptr(), name_);
+  bool update = UpdateConductivityData_(tag_next);
+  update |= S_->GetEvaluator(key_,tag_next).Update(*S_, name_);
 
   if (update) {
-    Teuchos::RCP<const CompositeVector> temp = S->GetFieldData(key_);
-    Teuchos::RCP<const CompositeVector> conductivity = S->GetFieldData(uw_conductivity_key_);
+    Teuchos::RCP<const CompositeVector> temp = S_->GetPtr<CompositeVector>(key_,tag_next);
+    Teuchos::RCP<const CompositeVector> conductivity = S_->GetPtr<CompositeVector>(uw_conductivity_key_,tag_next);
     matrix_diff_->global_operator()->Init();
     matrix_diff_->SetScalarCoefficient(conductivity, Teuchos::null);
     matrix_diff_->UpdateMatrices(Teuchos::null, temp.ptr());
     matrix_diff_->ApplyBCs(true, true, true);
 
-    Teuchos::RCP<CompositeVector> eflux = S->GetFieldData(energy_flux_key_, name_);
+    Teuchos::RCP<CompositeVector> eflux = S_->GetPtrW<CompositeVector>(energy_flux_key_, tag_next, name_);
     matrix_diff_->UpdateFlux(temp.ptr(), eflux.ptr());
 
     // calculate the advected energy as a diagnostic
-    Teuchos::RCP<const CompositeVector> flux = S->GetFieldData(flux_key_);
+    Teuchos::RCP<const CompositeVector> flux = S_->GetPtr<CompositeVector>(flux_key_,tag_next);
     matrix_adv_->Setup(*flux);
-    S->GetFieldEvaluator(enthalpy_key_)->HasFieldChanged(S.ptr(), name_);
-    Teuchos::RCP<const CompositeVector> enth = S->GetFieldData(enthalpy_key_);;
-    ApplyDirichletBCsToTemperature_(S.ptr());
+    S_->GetEvaluator(enthalpy_key_,tag_next).Update(*S_, name_);
+    Teuchos::RCP<const CompositeVector> enth = S_->GetPtr<CompositeVector>(enthalpy_key_,tag_next);
+    ApplyDirichletBCsToTemperature_(tag_next);
 
-    Teuchos::RCP<CompositeVector> adv_energy = S->GetFieldData(adv_energy_flux_key_, name_);  
+    Teuchos::RCP<CompositeVector> adv_energy = S_->GetPtrW<CompositeVector>(adv_energy_flux_key_, tag_next, name_);  
     matrix_adv_->UpdateFlux(enth.ptr(), flux.ptr(), bc_adv_, adv_energy.ptr());
   }
 }
@@ -1032,21 +1030,19 @@ void Lake_Thermo_PK::CommitStep(double t_old, double t_new, const Tag& tag_next)
  ****************************************************************** */
 int Lake_Thermo_PK::BoundaryFaceGetCell(int f) const
 {
-  AmanziMesh::Entity_ID_List cells;
-  mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+  auto cells = mesh_->getFaceCells(f);
   return cells[0];
 }
 
 /* ******************************************************************
  * For FV methods, set the boundary face temp.
  ****************************************************************** */
-void Lake_Thermo_PK::ApplyDirichletBCsToBoundaryFace_(const Teuchos::Ptr<CompositeVector>& temp)
+void Lake_Thermo_PK::ApplyDirichletBCsToBoundaryFace_(const Tag& tag)
 {
 
-  Epetra_MultiVector& temp_bf = *temp->ViewComponent("boundary_face", false);
-  const Epetra_MultiVector& temp_c = *temp->ViewComponent("cell", false);
-  const Epetra_Map& vandalay_map = mesh_->exterior_face_map(false);
-  const Epetra_Map& face_map = mesh_->face_map(false);
+  auto& T_vec = *S_->GetPtrW<CompositeVector>(key_, tag, name_);
+  Epetra_MultiVector& temp_bf = *T_vec.ViewComponent("boundary_face", false);
+  const Epetra_MultiVector& temp_c = *T_vec.ViewComponent("cell", false);
 
   const std::vector<int>& bc_model = bc_->bc_model();
   const std::vector<double>& bc_value = bc_->bc_value();
@@ -1054,7 +1050,7 @@ void Lake_Thermo_PK::ApplyDirichletBCsToBoundaryFace_(const Teuchos::Ptr<Composi
   int nbfaces = temp_bf.MyLength();
 
   for (int bf=0; bf!=nbfaces; ++bf) {
-    AmanziMesh::Entity_ID f = face_map.LID(vandalay_map.GID(bf));
+    AmanziMesh::Entity_ID f = getBoundaryFaceFace(*mesh_, bf);
     if (bc_model[f] == Operators::OPERATOR_BC_DIRICHLET) {
       temp_bf[0][bf] = bc_value[f];
     } else {
@@ -1065,14 +1061,15 @@ void Lake_Thermo_PK::ApplyDirichletBCsToBoundaryFace_(const Teuchos::Ptr<Composi
 
 
 bool Lake_Thermo_PK::UpdateConductivityData_(const Tag& tag) {
-  bool update = S->GetFieldEvaluator(conductivity_key_)->HasFieldChanged(S, name_);
+  Teuchos::RCP<const CompositeVector> cond = S_->GetPtr<CompositeVector>(conductivity_key_, tag);
+  bool update = S_->GetEvaluator(conductivity_key_,tag).Update(*S_, name_);
   if (update) {
-    upwinding_->Update(S);
 
     Teuchos::RCP<CompositeVector> uw_cond =
-        S->GetFieldData(uw_conductivity_key_, name_);
-    if (uw_cond->HasComponent("face"))
-      uw_cond->ScatterMasterToGhosted("face");
+      S_->GetPtrW<CompositeVector>(uw_conductivity_key_, tag, name_);
+    upwinding_->Update(*cond, *uw_cond, *S_);
+
+     if (uw_cond->HasComponent("face")) uw_cond->ScatterMasterToGhosted("face");
   }
   return update;
 }
@@ -1083,20 +1080,20 @@ bool Lake_Thermo_PK::UpdateConductivityDerivativeData_(const Tag& tag) {
   if (vo_->os_OK(Teuchos::VERB_EXTREME))
     *vo_->os() << "  Updating conductivity derivatives? ";
 
-  bool update = S->GetFieldEvaluator(conductivity_key_)
-        ->HasFieldDerivativeChanged(S, name_, key_);
+  bool update = S_->GetEvaluator(conductivity_key_,tag).UpdateDerivative(*S_, name_, key_, tag);
 
   if (update) {
+    Teuchos::RCP<const CompositeVector> dcond =
+      S_->GetDerivativePtr<CompositeVector>(conductivity_key_, tag, key_, tag);
     if (!duw_conductivity_key_.empty()) {
-      upwinding_deriv_->Update(S);
-
+      // get upwind conductivity data
       Teuchos::RCP<CompositeVector> duw_cond =
-          S->GetFieldData(duw_conductivity_key_, name_);
-      if (duw_cond->HasComponent("face"))
-        duw_cond->ScatterMasterToGhosted("face");
+        S_->GetPtrW<CompositeVector>(duw_conductivity_key_, tag, name_);
+      duw_cond->PutScalar(0.);
+      upwinding_deriv_->Update(*dcond, *duw_cond, *S_); 
     } else {
       Teuchos::RCP<const CompositeVector> dcond =
-          S->GetFieldData(dconductivity_key_);
+          S_->GetPtr<CompositeVector>(dconductivity_key_,tag);
       dcond->ScatterMasterToGhosted("cell");
     }
   }
@@ -1106,8 +1103,7 @@ bool Lake_Thermo_PK::UpdateConductivityDerivativeData_(const Tag& tag) {
 // -----------------------------------------------------------------------------
 // Evaluate boundary conditions at the current time.
 // -----------------------------------------------------------------------------
-void Lake_Thermo_PK::UpdateBoundaryConditions_(
-    const Teuchos::Ptr<State>& S) {
+void Lake_Thermo_PK::UpdateBoundaryConditions_(const Tag& tag) {
   Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_EXTREME))
     *vo_->os() << "  Updating BCs." << std::endl;
@@ -1129,13 +1125,13 @@ void Lake_Thermo_PK::UpdateBoundaryConditions_(
 
   if (coupled_to_snow_) {
     // get snow temperature
-    const Epetra_MultiVector& snow_temp_v = *S->GetFieldData("snow-temperature")->ViewComponent("cell",false);
+    const Epetra_MultiVector& snow_temp_v = *S_->Get<CompositeVector>("snow-temperature",tag).ViewComponent("cell",false);
     std::cout << "T_snow = " << snow_temp_v[0][0] << std::endl;
-    const Epetra_MultiVector& snow_depth_v = *S->GetFieldData("snow-depth")->ViewComponent("cell",false);
+    const Epetra_MultiVector& snow_depth_v = *S_->Get<CompositeVector>("snow-depth",tag).ViewComponent("cell",false);
     std::cout << "h_snow = " << snow_depth_v[0][0] << std::endl;
-    const Epetra_MultiVector& surf_temp_v = *S->GetFieldData("surface-temperature")->ViewComponent("cell",false);
+    const Epetra_MultiVector& surf_temp_v = *S_->Get<CompositeVector>("surface-temperature",tag).ViewComponent("cell",false);
     std::cout << "T_surf = " << surf_temp_v[0][0] << std::endl;
-    const Epetra_MultiVector& surf_qE_cond_v = *S->GetFieldData("surface-qE_conducted")->ViewComponent("cell",false);
+    const Epetra_MultiVector& surf_qE_cond_v = *S_->Get<CompositeVector>("surface-qE_conducted",tag).ViewComponent("cell",false);
     std::cout << "surf_qE_cond_v = " << surf_qE_cond_v[0][0] << std::endl; 
     if (snow_depth_v[0][0] > 2.e-2 && h_ice_ > 0.) snow_exists = true;
   }
@@ -1143,21 +1139,21 @@ void Lake_Thermo_PK::UpdateBoundaryConditions_(
   if (snow_exists) { // snow exists 
 
     // get snow temperature
-    const Epetra_MultiVector& snow_temp_v = *S->GetFieldData("snow-temperature")->ViewComponent("cell",false);
+    const Epetra_MultiVector& snow_temp_v = *S_->Get<CompositeVector>("snow-temperature",tag).ViewComponent("cell",false);
     std::cout << "T_snow = " << snow_temp_v[0][0] << std::endl;
-    const Epetra_MultiVector& snow_depth_v = *S->GetFieldData("snow-depth")->ViewComponent("cell",false);
+    const Epetra_MultiVector& snow_depth_v = *S_->Get<CompositeVector>("snow-depth",tag).ViewComponent("cell",false);
     std::cout << "h_snow = " << snow_depth_v[0][0] << std::endl;
-    const Epetra_MultiVector& surf_temp_v = *S->GetFieldData("surface-temperature")->ViewComponent("cell",false);
+    const Epetra_MultiVector& surf_temp_v = *S_->Get<CompositeVector>("surface-temperature",tag).ViewComponent("cell",false);
     std::cout << "T_surf = " << surf_temp_v[0][0] << std::endl;
-    const Epetra_MultiVector& surf_qE_cond_v = *S->GetFieldData("surface-qE_conducted")->ViewComponent("cell",false);
+    const Epetra_MultiVector& surf_qE_cond_v = *S_->Get<CompositeVector>("surface-qE_conducted",tag).ViewComponent("cell",false);
     std::cout << "surf_qE_cond_v = " << surf_qE_cond_v[0][0] << std::endl; 
 
     std::cout << "case 1: snow exists" << std::endl;
 
     const Epetra_MultiVector& cv =
-        *S->GetFieldData(Keys::getKey(domain_,"cell_volume"))->ViewComponent("cell",false);
+        *S_->Get<CompositeVector>(Keys::getKey(domain_,"cell_volume"),tag).ViewComponent("cell",false);
 
-    int ncomp = mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
+    int ncomp = mesh_->getNumEntities(AmanziMesh::CELL, AmanziMesh::Parallel_kind::OWNED);
 
     // Dirichlet temperature boundary conditions
     for (Functions::BoundaryFunction::Iterator bc=bc_temperature_->begin();
@@ -1167,8 +1163,7 @@ void Lake_Thermo_PK::UpdateBoundaryConditions_(
       int f = bc->first;
       markers[f] = Operators::OPERATOR_BC_DIRICHLET;
       adv_markers[f] = Operators::OPERATOR_BC_DIRICHLET;
-      AmanziMesh::Entity_ID_List fcells;
-      mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &fcells);
+      auto fcells = mesh_->getFaceCells(f);
       values[f] = bc->second; 
       adv_values[f] = bc->second; 
       // if (fcells[0] == 0) { //bottom
@@ -1186,8 +1181,7 @@ void Lake_Thermo_PK::UpdateBoundaryConditions_(
     for (Functions::BoundaryFunction::Iterator bc=bc_diff_flux_->begin();
         bc!=bc_diff_flux_->end(); ++bc) {
       int f = bc->first;
-      AmanziMesh::Entity_ID_List fcells;
-      mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &fcells);
+     auto fcells = mesh_->getFaceCells(f);
       markers[f] = Operators::OPERATOR_BC_NEUMANN;
       // if (fcells[0] == 0) { //bottom
       //   values[f] = 0.;
@@ -1220,33 +1214,31 @@ void Lake_Thermo_PK::UpdateBoundaryConditions_(
       int f = bc->first;
       markers[f] = Operators::OPERATOR_BC_DIRICHLET;
       adv_markers[f] = Operators::OPERATOR_BC_DIRICHLET;
-      AmanziMesh::Entity_ID_List fcells;
-      mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &fcells);
+      auto fcells = mesh_->getFaceCells(f);
       values[f] = bc->second; 
       adv_values[f] = bc->second; 
     }
 
   std::cout << "in BC before flux" << std::endl;
-    S->GetFieldEvaluator(surface_flux_key_)->HasFieldChanged(S.ptr(), name_);
+    S_->GetEvaluator(surface_flux_key_,tag_next_).Update(*S_, name_);
     const Epetra_MultiVector& flux =
-        *S->GetFieldData(surface_flux_key_)->ViewComponent("cell",false);
+        *S_->Get<CompositeVector>(surface_flux_key_,tag).ViewComponent("cell",false);
   std::cout << "in BC after flux" << std::endl;
 
 
     // get conductivity
-    const Epetra_MultiVector& cond_v = *S->GetFieldData(conductivity_key_)
-        ->ViewComponent("cell",false);
+    const Epetra_MultiVector& cond_v = *S_->Get<CompositeVector>(conductivity_key_,tag)
+        .ViewComponent("cell",false);
 
     const Epetra_MultiVector& cv =
-            *S->GetFieldData(Keys::getKey(domain_,"cell_volume"))->ViewComponent("cell",false);
+            *S_->Get<CompositeVector>(Keys::getKey(domain_,"cell_volume"),tag).ViewComponent("cell",false);
 
-    int ncomp = mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
+    int ncomp = mesh_->getNumEntities(AmanziMesh::CELL, AmanziMesh::Parallel_kind::OWNED);
     // Neumann diffusive flux, not Neumann TOTAL flux.  Potentially advective flux.
     for (Functions::BoundaryFunction::Iterator bc=bc_diff_flux_->begin();
         bc!=bc_diff_flux_->end(); ++bc) {
       int f = bc->first;
-      AmanziMesh::Entity_ID_List fcells;
-      mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &fcells);
+      auto fcells = mesh_->getFaceCells(f);
       markers[f] = Operators::OPERATOR_BC_NEUMANN;
       // if (fcells[0] == 0) { //bottom
       //   values[f] = 0.;
@@ -1270,8 +1262,8 @@ void Lake_Thermo_PK::UpdateBoundaryConditions_(
   // // Dirichlet temperature boundary conditions from a coupled surface.
   // if (coupled_to_surface_via_temp_) {
   //   // Face is Dirichlet with value of surface temp
-  //   Teuchos::RCP<const AmanziMesh::Mesh> surface = S->GetMesh(Keys::getDomain(ss_flux_key_));
-  //   const Epetra_MultiVector& temp = *S->GetFieldData("surface_temperature")
+  //   Teuchos::RCP<const AmanziMesh::Mesh> surface = S_->GetMesh(Keys::getDomain(ss_flux_key_));
+  //   const Epetra_MultiVector& temp = *S_->GetFieldData("surface_temperature")
   //           ->ViewComponent("cell",false);
 
   //   int ncells_surface = temp.MyLength();
@@ -1292,9 +1284,9 @@ void Lake_Thermo_PK::UpdateBoundaryConditions_(
   //  if (coupled_to_surface_via_flux_) {
   //    // Diffusive fluxes are given by the residual of the surface equation.
   //    // Advective fluxes are given by the surface temperature and whatever flux we have.
-  //    Teuchos::RCP<const AmanziMesh::Mesh> surface = S->GetMesh(Keys::getDomain(ss_flux_key_));
+  //    Teuchos::RCP<const AmanziMesh::Mesh> surface = S_->GetMesh(Keys::getDomain(ss_flux_key_));
   //    const Epetra_MultiVector& flux =
-  //      *S->GetFieldData(ss_flux_key_)->ViewComponent("cell",false);
+  //      *S_->GetFieldData(ss_flux_key_)->ViewComponent("cell",false);
   //
   //    int ncells_surface = flux.MyLength();
   //    for (int c=0; c!=ncells_surface; ++c) {
@@ -1315,11 +1307,10 @@ void Lake_Thermo_PK::UpdateBoundaryConditions_(
   //  }
 
   // mark all remaining boundary conditions as zero diffusive flux conditions
-  AmanziMesh::Entity_ID_List cells;
-  int nfaces_owned = mesh_->num_entities(AmanziMesh::FACE, AmanziMesh::Parallel_type::OWNED);
+  int nfaces_owned = mesh_->getNumEntities(AmanziMesh::FACE, AmanziMesh::Parallel_kind::OWNED);
   for (int f = 0; f < nfaces_owned; f++) {
     if (markers[f] == Operators::OPERATOR_BC_NONE) {
-      mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+      auto cells = mesh_->getFaceCells(f);
       int ncells = cells.size();
 
       if (ncells == 1) {
@@ -1332,9 +1323,9 @@ void Lake_Thermo_PK::UpdateBoundaryConditions_(
   }
 
   // set the face temperature on boundary faces
-  auto temp = S->GetFieldData(key_, name_);
-  if (temp->HasComponent("boundary_face")) {
-    ApplyDirichletBCsToBoundaryFace_(temp.ptr());
+  auto& temp = *S_->GetPtrW<CompositeVector>(key_, tag, name_);
+  if (temp.HasComponent("boundary_face")) {
+    ApplyDirichletBCsToBoundaryFace_(tag);
   }
 };
 
@@ -1390,14 +1381,14 @@ bool Lake_Thermo_PK::IsAdmissible(Teuchos::RCP<const TreeVector> up) {
 
   double minT_l = minT;
   double maxT_l = maxT;
-  mesh_->get_comm()->MaxAll(&maxT_l, &maxT, 1);
-  mesh_->get_comm()->MinAll(&minT_l, &minT, 1);
+  mesh_->getComm()->MaxAll(&maxT_l, &maxT, 1);
+  mesh_->getComm()->MinAll(&minT_l, &minT, 1);
 
   if (vo_->os_OK(Teuchos::VERB_HIGH)) {
     *vo_->os() << "    Admissible T? (min/max): " << minT << ",  " << maxT << std::endl;
   }
 
-  Teuchos::RCP<const Comm_type> comm_p = mesh_->get_comm();
+  Teuchos::RCP<const Comm_type> comm_p = mesh_->getComm();
   Teuchos::RCP<const MpiComm_type> mpi_comm_p =
       Teuchos::rcp_dynamic_cast<const MpiComm_type>(comm_p);
   const MPI_Comm& comm = mpi_comm_p->Comm();
@@ -1454,10 +1445,10 @@ bool Lake_Thermo_PK::ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0
     *vo_->os() << "Modifying predictor:" << std::endl;
 
   // update boundary conditions
-  bc_temperature_->Compute(S_next_->time());
-  bc_diff_flux_->Compute(S_next_->time());
-  //  bc_flux_->Compute(S_next_->time());
-  UpdateBoundaryConditions_(S_next_.ptr());
+  bc_temperature_->Compute(S_->get_time(tag_next_));
+  bc_diff_flux_->Compute(S_->get_time(tag_next_));
+  //  bc_flux_->Compute(S_next_->get_time());
+  UpdateBoundaryConditions_(tag_next_);
 
   //  // push Dirichlet data into predictor
   //  if (u->Data()->HasComponent("boundary_cell")) {
@@ -1501,8 +1492,7 @@ void Lake_Thermo_PK::CalculateConsistentFaces(const Teuchos::Ptr<CompositeVector
 
   int f_owned = u_f.MyLength();
   for (int f=0; f!=f_owned; ++f) {
-    AmanziMesh::Entity_ID_List cells;
-    mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+    auto cells = mesh_->getFaceCells(f);
     int ncells = cells.size();
 
     double face_value = 0.0;
@@ -1515,16 +1505,16 @@ void Lake_Thermo_PK::CalculateConsistentFaces(const Teuchos::Ptr<CompositeVector
 
   // use old BCs
   // // update boundary conditions
-  // bc_temperature_->Compute(S_next_->time());
-  // bc_diff_flux_->Compute(S_next_->time());
-  // bc_flux_->Compute(S_next_->time());
+  // bc_temperature_->Compute(S_next_->get_time());
+  // bc_diff_flux_->Compute(S_next_->get_time());
+  // bc_flux_->Compute(S_next_->get_time());
   // UpdateBoundaryConditions_(S_next_.ptr());
 
   // use old conductivity
   // div K_e grad u
   //  bool update = UpdateConductivityData_(S_next_.ptr());
   Teuchos::RCP<const CompositeVector> conductivity =
-      S_next_->GetFieldData(uw_conductivity_key_);
+       S_->GetPtr<CompositeVector>(uw_conductivity_key_,tag_next_);
 
   // Update the preconditioner
   matrix_diff_->global_operator()->Init();
@@ -1564,7 +1554,7 @@ Lake_Thermo_PK::ModifyCorrection(double h, Teuchos::RCP<const TreeVector> res,
         }
       }
     }
-    mesh_->get_comm()->SumAll(&my_limited, &n_limited, 1);
+    mesh_->getComm()->SumAll(&my_limited, &n_limited, 1);
   }
 
   if (n_limited > 0) {

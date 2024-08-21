@@ -234,7 +234,7 @@ protected:
   //    faces.
   virtual void ApplyDirichletBCsToTemperature_(const Tag& tag);
   virtual void ApplyDirichletBCsToEnergy_(const Tag& tag);
-  virtual void ApplyDirichletBCsToBoundaryFace_(const Teuchos::Ptr<CompositeVector>& temp);
+  virtual void ApplyDirichletBCsToBoundaryFace_(const Tag& tag);
 
   // -- Add any source terms into the residual.
   virtual void AddSources_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& g);
@@ -249,7 +249,7 @@ protected:
 
 
   // boundary condition members
-  virtual void UpdateBoundaryConditions_(const Teuchos::Ptr<State>& S);
+  virtual void UpdateBoundaryConditions_(const Tag& tag);
 
   // physical methods
   // -- accumulation of energy
