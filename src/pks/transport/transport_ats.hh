@@ -475,7 +475,7 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   std::vector<std::string> runtime_regions_;
 
   std::vector<std::string> component_names_; // details of components
-  std::vector<double> mol_masses_;
+  Teuchos::Array<double> tcc_max_;
   int num_aqueous_, num_gaseous_, num_components_, num_advect_;
   double water_tolerance_, max_tcc_;
   bool dissolution_;

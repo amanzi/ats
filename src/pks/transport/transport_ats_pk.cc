@@ -5,6 +5,8 @@
   provided in the top-level COPYRIGHT file.
 
   Authors: Konstantin Lipnikov (lipnikov@lanl.gov)
+           Ethan Coon (ecoont@ornl.gov)
+           Phong Le (lepv@ornl.gov)
 */
 
 /*
@@ -67,13 +69,6 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
     current_component_(-1),
     flag_dispersion_(false)
 {
-  if (plist_->isParameter("component molar masses")) {
-    mol_masses_ = plist_->get<Teuchos::Array<double>>("component molar masses").toVector();
-  } else {
-    Errors::Message msg("Transport PK: parameter \"component molar masses\" is missing.");
-    Exceptions::amanzi_throw(msg);
-  }
-
   // initialize io
   units_.Init(global_plist->sublist("units"));
 
@@ -188,6 +183,9 @@ Transport_ATS::SetupTransport_()
   num_aqueous_ = plist_->get<int>("number of aqueous components", component_names_.size());
   num_advect_ = plist_->get<int>("number of aqueous components advected", num_aqueous_);
   num_gaseous_ = plist_->get<int>("number of gaseous components", 0);
+
+  tcc_max_.resize(num_aqueous_, 1.e10);
+  tcc_max_ = plist_->get<Teuchos::Array<double>>("component max concentrations", tcc_max_);
 
   // statistics of solutes
   if (plist_->isParameter("runtime diagnostics: solute names")) {
@@ -1023,7 +1021,7 @@ Transport_ATS ::Advance_Dispersion_Diffusion_(double t_old, double t_new)
       CalculateDispersionTensor_(flux, phi, *ws_, *mol_dens_);
     }
 
-    int phase;  // transport phase; 0: liquid, 2: gas
+    int phase;  // transport phase -- 0: liquid, 1: gas
     int num_itrs(0);
     bool flag_op1(true);
     double md_change, md_old(0.0), md_new;  // molecular diffusion
@@ -1229,9 +1227,8 @@ Transport_ATS::AdvanceDonorUpwind_(double dt_cycle)
       if (dissolution_) {
         if (((*ws_prev_)[0][c] > water_tolerance_) &&
             (solid_qty[i][c] > 0)) { // Dissolve solid residual into liquid
-          double add_mass = max_tcc_ > 0 ?
-            std::min(solid_qty[i][c], max_tcc_ * vol_phi_ws_den - conserve_qty[i][c]) :
-            solid_qty[i][c];
+          double add_mass = 
+            std::min(solid_qty[i][c], tcc_max_[i] * vol_phi_ws_den - conserve_qty[i][c]);
           solid_qty[i][c] -= add_mass;
           conserve_qty[i][c] += add_mass;
         }
@@ -1346,7 +1343,7 @@ Transport_ATS::AdvanceDonorUpwind_(double dt_cycle)
     double water_new =
       mesh_->getCellVolume(c) * phi[0][c] * (*ws_)[0][c] * (*mol_dens_)[0][c];  // next water in cell c
     double water_sink = conserve_qty[num_components_][c];  // current water in cell c (seem always 0 because conserve_qty.PutScalar(0.))
-    double water_total = water_new + water_sink;          // unit: mol H20
+    double water_total = water_new + water_sink;           // unit: mol H20
     AMANZI_ASSERT(water_total >= water_new);
     conserve_qty[num_components_][c] = water_total;        // update current water in cell c
 
@@ -1355,7 +1352,12 @@ Transport_ATS::AdvanceDonorUpwind_(double dt_cycle)
         // there is both water and stuff present at the new time
         // this is stuff at the new time + stuff leaving through the domain coupling, divided by water of both
         tcc_next[i][c] = conserve_qty[i][c] / water_total;
-        // what if water_total is too small and thus tcc_next is VERY LARGE?
+        
+        // limit tcc_next to tcc_max_, precipitating the remainder as solid residue
+        if (tcc_next[i][c] > tcc_max_[i]) {
+          solid_qty[i][c] += (tcc_next[i][c] - tcc_max_[i]) * water_total;
+          tcc_next[i][c] = tcc_max_[i];
+        }
       } else if (water_sink > water_tolerance_ && conserve_qty[i][c] > 0) {
         // there is water and stuff leaving through the domain coupling, but it all leaves (none at the new time)
         tcc_next[i][c] = 0.;
@@ -1636,14 +1638,14 @@ Transport_ATS::ComputeSinks2TotalOutFlux_(Epetra_MultiVector& tcc_c,
   //Assumption that there is only one sink per component per cell
   double t0 = S_->get_time(tag_current_);
   int num_vectors = tcc_c.NumVectors();                 // number of components (e.g. tracers)
-  int nsrcs = srcs_.size();                             // number of sources or sinks
+  int nsrcs = srcs_.size();                             // number of sources / sinks
 
   for (int m = 0; m < nsrcs; m++) {
-    srcs_[m]->Compute(t0, t0);                          // source term at time t0
-    std::vector<int> index = srcs_[m]->tcc_index();     // get index of the component in the global list
+    srcs_[m]->Compute(t0, t0);                          // compute source term at time t0
+    std::vector<int> index = srcs_[m]->tcc_index();     // get the index of the component in the global list
 
     for (auto it = srcs_[m]->begin(); it != srcs_[m]->end(); ++it) {
-      int c = it->first;                                // key of the source terms?
+      int c = it->first;                                // cell id
       std::vector<double>& values = it->second;         // magnitude of source terms
       double val = 0;
       for (int k = 0; k < index.size(); ++k) {
@@ -1730,6 +1732,7 @@ Transport_ATS::IdentifyUpwindCells_()
 
   S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ScatterMasterToGhosted("face");
   const Epetra_MultiVector& flux = *S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ViewComponent("face", true);
+
   // identify upwind and downwind cell of each face
   for (int c = 0; c < ncells_all; c++) {
     const auto& [faces, dirs] = mesh_->getCellFacesAndDirections(c);
@@ -1741,7 +1744,7 @@ Transport_ATS::IdentifyUpwindCells_()
         (*upwind_cell_)[f] = c;
       } else if (tmp < 0.0) {
         (*downwind_cell_)[f] = c;
-      } else if (dirs[i] > 0) {     // means tmp = 0
+      } else if (dirs[i] > 0) {
         (*upwind_cell_)[f] = c;
       } else {
         (*downwind_cell_)[f] = c;
