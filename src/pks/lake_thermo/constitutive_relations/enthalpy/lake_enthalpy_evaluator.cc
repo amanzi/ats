@@ -17,6 +17,8 @@ namespace LakeThermo {
 LakeEnthalpyEvaluator::LakeEnthalpyEvaluator(Teuchos::ParameterList& plist) :
     EvaluatorSecondaryMonotypeCV(plist) {
 
+  std::cout << "check in LakeEnthalpyEvaluator" << std::endl;
+
   // Set up my dependencies.
   std::string domain_name = Keys::getDomain(my_keys_.front().first);
   Tag tag = my_keys_.front().second;

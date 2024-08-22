@@ -39,6 +39,7 @@ include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/column_integrat
 include_directories(${ATS_SOURCE_DIR}/src/pks)
 include_directories(${ATS_SOURCE_DIR}/src/pks/mpc)
 include_directories(${ATS_SOURCE_DIR}/src/pks/energy)
+include_directories(${ATS_SOURCE_DIR}/src/pks/lake_thermo)
 include_directories(${ATS_SOURCE_DIR}/src/pks/flow)
 include_directories(${ATS_SOURCE_DIR}/src/pks/deform)
 include_directories(${ATS_SOURCE_DIR}/src/pks/transport)
@@ -54,6 +55,8 @@ include_evaluators_directories(LISTNAME ATS_RELATIONS_REG_INCLUDES)
 include_evaluators_directories(LISTNAME ATS_TRANSPORT_REG_INCLUDES)
 include_evaluators_directories(LISTNAME ATS_ENERGY_PKS_REG_INCLUDES)
 include_evaluators_directories(LISTNAME ATS_ENERGY_RELATIONS_REG_INCLUDES)
+include_evaluators_directories(LISTNAME ATS_LAKE_PKS_REG_INCLUDES)
+include_evaluators_directories(LISTNAME ATS_LAKE_THERMO_RELATIONS_REG_INCLUDES)
 include_evaluators_directories(LISTNAME ATS_FLOW_PKS_REG_INCLUDES)
 include_evaluators_directories(LISTNAME ATS_FLOW_RELATIONS_REG_INCLUDES)
 include_evaluators_directories(LISTNAME ATS_DEFORMATION_REG_INCLUDES)
@@ -111,6 +114,8 @@ set(ats_link_libs
   #ats_sed_transport
   ats_energy
   ats_energy_relations
+  ats_lake
+  ats_lake_thermo_relations
   ats_flow
   ats_flow_relations
   ats_deform

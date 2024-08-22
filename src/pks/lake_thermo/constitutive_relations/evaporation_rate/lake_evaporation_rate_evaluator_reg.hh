@@ -4,7 +4,7 @@ namespace Amanzi {
 namespace LakeThermo {
 
 // registry of method
-Utils::RegisteredFactory<FieldEvaluator,LakeEvaporationRateEvaluator> LakeEvaporationRateEvaluator::factory_("lake evaporation rate");
+Utils::RegisteredFactory<Evaluator,LakeEvaporationRateEvaluator> LakeEvaporationRateEvaluator::factory_("lake evaporation rate");
 
 } //namespace
 } //namespace

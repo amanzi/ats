@@ -279,10 +279,18 @@ void Lake_Thermo_PK::SetupLakeThermo_() {
         ->AddComponent("cell", AmanziMesh::CELL, 1)
         ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
   Teuchos::ParameterList enth_plist = plist_->sublist("enthalpy evaluator");
-  enth_plist.set("enthalpy key", enthalpy_key_);
+  std::cout << "plist_ = " << plist_ << std::endl;
+  std::cout << "enth_plist = " << enth_plist << std::endl;
+  // enth_plist.setParameters(plist_->sublist("enthalpy evaluator"));
+  // enth_plist.set("enthalpy key", enthalpy_key_);
+  enth_plist.setParameters(plist_->sublist("enthalpy evaluator"));
+  enth_plist.set<std::string>("evaluator type", "enthalpy");
+  std::cout << "enth_plist = " << enth_plist << std::endl;  
   Teuchos::RCP<LakeEnthalpyEvaluator> enth =
       Teuchos::rcp(new LakeEnthalpyEvaluator(enth_plist));
+  std::cout << "check 1" << std::endl;
   S_->SetEvaluator(enthalpy_key_, tag_next_, enth);
+  std::cout << "check 2" << std::endl;
 
   // -- density evaluator
   S_->Require<CompositeVector, CompositeVectorSpace>(density_key_,tag_next_).SetMesh(mesh_)

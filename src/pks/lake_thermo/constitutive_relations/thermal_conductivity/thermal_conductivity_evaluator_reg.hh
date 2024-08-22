@@ -4,7 +4,7 @@ namespace Amanzi {
 namespace LakeThermo {
 
 // registry of method
-Utils::RegisteredFactory<FieldEvaluator,ThermalConductivityEvaluator> ThermalConductivityEvaluator::factory_("lake thermal conductivity");
+Utils::RegisteredFactory<Evaluator,ThermalConductivityEvaluator> ThermalConductivityEvaluator::factory_("lake thermal conductivity");
 
 } //namespace
 } //namespace

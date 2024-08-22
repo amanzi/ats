@@ -4,7 +4,7 @@ namespace Amanzi {
 namespace LakeThermo {
 
 // registry of method
-Utils::RegisteredFactory<FieldEvaluator,DensityEvaluator> DensityEvaluator::factory_("density");
+Utils::RegisteredFactory<Evaluator,DensityEvaluator> DensityEvaluator::factory_("density");
 
 } //namespace
 } //namespace
