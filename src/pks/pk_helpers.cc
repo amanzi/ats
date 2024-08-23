@@ -18,7 +18,7 @@ bool
 aliasVector(State& S, const Key& key, const Tag& target, const Tag& alias)
 {
   if (S.HasEvaluator(key, target) && !S.HasEvaluator(key, alias)) {
-    S.SetEvaluator(key, alias, S.GetEvaluatorPtr(key, target));
+    S.RequireEvaluator(key, alias, true);
     S.GetRecordSetW(key).AliasRecord(target, alias);
     return true;
   }
@@ -156,26 +156,28 @@ changedEvaluatorPrimary(const Key& key, const Tag& tag, State& S, bool or_die)
 // Require a vector and a primary variable evaluator at current tag(s).
 // -----------------------------------------------------------------------------
 CompositeVectorSpace&
-requireAtCurrent(const Key& key, const Tag& tag, State& S, const Key& name, bool is_eval)
+requireAtCurrent(const Key& key, const Tag& tag, State& S, const Key& owner)
 {
   CompositeVectorSpace& cvs = S.Require<CompositeVector, CompositeVectorSpace>(key, tag);
-  if (!name.empty()) {
-    Key owner = S.GetRecord(key, tag).owner();
-    if (owner.empty()) {
-      S.Require<CompositeVector, CompositeVectorSpace>(key, tag, name);
-      if (is_eval) requireEvaluatorAssign(key, tag, S);
+  if (!owner.empty()) {
+    Key tag_current_owner = S.GetRecord(key, tag).owner();
+    if (tag_current_owner.empty()) {
+      S.Require<CompositeVector, CompositeVectorSpace>(key, tag, owner);
+      requireEvaluatorPrimary(key, tag, S);
     }
 
     if (tag != Tags::CURRENT) {
+      // NOTE, this differs from requireAtNext() -- the CURRENT copy is required
+      // to recover from a failed step.
       S.Require<CompositeVector, CompositeVectorSpace>(key, Tags::CURRENT);
       Key current_owner = S.GetRecord(key, Tags::CURRENT).owner();
-      if (owner.empty()) {
-        S.Require<CompositeVector, CompositeVectorSpace>(key, Tags::CURRENT, name);
-        if (is_eval) requireEvaluatorAssign(key, Tags::CURRENT, S);
+      if (current_owner.empty()) {
+        S.Require<CompositeVector, CompositeVectorSpace>(key, Tags::CURRENT, owner);
+        requireEvaluatorAssign(key, Tags::CURRENT, S);
       }
     }
   } else {
-    if (is_eval) S.RequireEvaluator(key, tag);
+    S.RequireEvaluator(key, tag);
   }
   return cvs;
 }
@@ -185,17 +187,18 @@ requireAtCurrent(const Key& key, const Tag& tag, State& S, const Key& name, bool
 // Require a vector and a primary variable evaluator at next tag(s).
 // -----------------------------------------------------------------------------
 CompositeVectorSpace&
-requireAtNext(const Key& key, const Tag& tag, State& S, const Key& name, bool managed_here)
+requireAtNext(const Key& key, const Tag& tag, State& S, bool managed_here, const Key& owner)
 {
   CompositeVectorSpace& cvs = S.Require<CompositeVector, CompositeVectorSpace>(key, tag);
-  if (!name.empty()) {
-    S.Require<CompositeVector, CompositeVectorSpace>(key, tag, name);
+  if (!owner.empty()) {
+    managed_here = true;
+    S.Require<CompositeVector, CompositeVectorSpace>(key, tag, owner);
     requireEvaluatorPrimary(key, tag, S);
   } else {
     S.RequireEvaluator(key, tag);
   }
 
-  if (tag != Tags::NEXT && managed_here) { aliasVector(S, key, tag, Tags::NEXT); }
+  if (managed_here && tag != Tags::NEXT) { aliasVector(S, key, tag, Tags::NEXT); }
   return cvs;
 }
 

@@ -52,20 +52,20 @@ Permafrost::SetupPhysicalEvaluators_()
     conserved_key_, tag_next_, key_, tag_next_);
 
   //    and at the current time, where it is a copy evaluator
-  requireAtCurrent(conserved_key_, tag_current_, *S_, name_, true);
+  requireAtCurrent(conserved_key_, tag_current_, *S_, name_);
 
   // -- saturation
-  requireAtNext(sat_key_, tag_next_, *S_)
+  requireAtNext(sat_key_, tag_next_, *S_, true)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1)
     ->AddComponent("boundary_face", AmanziMesh::Entity_kind::BOUNDARY_FACE, 1);
-  requireAtNext(sat_gas_key_, tag_next_, *S_)
+  requireAtNext(sat_gas_key_, tag_next_, *S_, true)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1)
     ->AddComponent("boundary_face", AmanziMesh::Entity_kind::BOUNDARY_FACE, 1);
-  requireAtNext(sat_ice_key_, tag_next_, *S_)
+  requireAtNext(sat_ice_key_, tag_next_, *S_, true)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1)

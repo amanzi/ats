@@ -731,6 +731,7 @@ Transport_ATS::ComputeStableTimeStep_()
 
   S_->GetEvaluator(porosity_key_, tag_next_).Update(*S_, name_);
   const Epetra_MultiVector& phi = *S_->Get<CompositeVector>(porosity_key_, tag_next_).ViewComponent("cell", false);
+  phi.Print(std::cout);
 
   for (int c = 0; c < tcc_prev.MyLength(); c++) {
     double outflux = total_outflux[c];
