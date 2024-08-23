@@ -183,7 +183,7 @@ VolumetricDeformation::Setup()
     requireAtCurrent(sat_gas_key_, tag_current_, *S_, name_)
       .SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-    requireAtNext(poro_key_, tag_next_, *S_);
+    requireAtNext(poro_key_, tag_next_, *S_, true);
     requireAtCurrent(poro_key_, tag_current_, *S_, name_)
       .SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
