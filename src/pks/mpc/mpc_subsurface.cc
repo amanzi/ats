@@ -42,7 +42,14 @@ MPCSubsurface::MPCSubsurface(Teuchos::ParameterList& pk_tree_list,
   : PK(pk_tree_list, global_list, S, soln),
     StrongMPC<PK_PhysicalBDF_Default>(pk_tree_list, global_list, S, soln),
     update_pcs_(0)
+{}
+
+
+void
+MPCSubsurface::parseParameterList()
 {
+  StrongMPC<PK_PhysicalBDF_Default>::parseParameterList();
+
   // set up keys
   dump_ = plist_->get<bool>("dump preconditioner", false);
   domain_name_ = plist_->get<std::string>("domain name", "domain");

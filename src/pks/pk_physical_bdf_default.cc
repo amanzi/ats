@@ -19,6 +19,17 @@ PKPhysicalBase and BDF methods of PK_BDF_Default.
 
 namespace Amanzi {
 
+void
+PK_PhysicalBDF_Default::parseParameterList()
+{
+  conserved_key_ = Keys::readKey(*plist_, domain_, "conserved quantity");
+  atol_ = plist_->get<double>("absolute error tolerance", 1.0);
+  rtol_ = plist_->get<double>("relative error tolerance", 1.0);
+  fluxtol_ = plist_->get<double>("flux error tolerance", 1.0);
+
+  cell_vol_key_ = Keys::readKey(*plist_, domain_, "cell volume", "cell_volume");
+}
+
 // -----------------------------------------------------------------------------
 // Setup
 // -----------------------------------------------------------------------------
@@ -34,9 +45,6 @@ PK_PhysicalBDF_Default::Setup()
     new Operators::BCs(mesh_, AmanziMesh::Entity_kind::FACE, WhetStone::DOF_Type::SCALAR));
 
   // convergence criteria is based on a conserved quantity
-  if (conserved_key_.empty()) {
-    conserved_key_ = Keys::readKey(*plist_, domain_, "conserved quantity");
-  }
   requireAtNext(conserved_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
@@ -45,16 +53,9 @@ PK_PhysicalBDF_Default::Setup()
   requireAtCurrent(conserved_key_, tag_current_, *S_, name_, true);
 
   // cell volume used throughout
-  if (cell_vol_key_.empty()) {
-    cell_vol_key_ = Keys::readKey(*plist_, domain_, "cell volume", "cell_volume");
-  }
   requireAtNext(cell_vol_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, true);
-
-  atol_ = plist_->get<double>("absolute error tolerance", 1.0);
-  rtol_ = plist_->get<double>("relative error tolerance", 1.0);
-  fluxtol_ = plist_->get<double>("flux error tolerance", 1.0);
 };
 
 

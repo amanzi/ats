@@ -32,6 +32,14 @@ PK_Physical_Default::PK_Physical_Default(Teuchos::ParameterList& pk_tree,
   max_valid_change_ = plist_->get<double>("max valid change", -1.0);
 }
 
+void
+PK_Physical_Default::modifyParameterList()
+{
+  Teuchos::ParameterList& plist = S_->GetEvaluatorList(key_);
+  plist.set("evaluator type", "primary variable");
+}
+
+
 // -----------------------------------------------------------------------------
 // Construction of data.
 // -----------------------------------------------------------------------------

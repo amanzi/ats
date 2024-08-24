@@ -42,6 +42,8 @@ class StrongMPC : public MPC<PK_t>, public PK_BDF_Default {
             const Teuchos::RCP<State>& S,
             const Teuchos::RCP<TreeVector>& solution);
 
+  virtual void modifyParameterList() override;
+
   //
   // These methods override methods in MPC<PK_t>
   // -----------------------------------------------------------------------------
@@ -126,6 +128,23 @@ StrongMPC<PK_t>::StrongMPC(Teuchos::ParameterList& pk_tree,
     PK_BDF_Default(pk_tree, global_list, S, soln)
 {
   MPC<PK_t>::init_(soln->Comm());
+}
+
+
+
+template <class PK_t>
+void
+StrongMPC<PK_t>::modifyParameterList()
+{
+  // push on a parameter to indicate that sub-pks need not assemble their
+  // operators, as we will do that here (or above here)
+  auto pk_order = plist_->template get<Teuchos::Array<std::string>>("PKs order");
+  for (const auto& pk_name : pk_order) {
+    pks_list_->sublist(pk_name).set("strongly coupled PK", true);
+  }
+
+  PK_BDF_Default::modifyParameterList();
+  MPC<PK_t>::modifyParameterList();
 }
 
 

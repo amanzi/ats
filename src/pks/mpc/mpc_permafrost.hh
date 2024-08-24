@@ -53,6 +53,11 @@ class MPCPermafrost : public MPCSubsurface {
                 const Teuchos::RCP<State>& S,
                 const Teuchos::RCP<TreeVector>& soln);
 
+  // call to allow a PK to modify its own list or lists of its children.
+  virtual void modifyParameterList() override;
+
+  // read said list
+  virtual void parseParameterList() override;
 
   virtual void set_tags(const Tag& tag_current, const Tag& tag_next) override;
 

@@ -20,7 +20,25 @@ SurfaceBalanceBase::SurfaceBalanceBase(Teuchos::ParameterList& pk_tree,
                                        const Teuchos::RCP<State>& S,
                                        const Teuchos::RCP<TreeVector>& solution)
   : PK(pk_tree, global_list, S, solution), PK_PhysicalBDF_Default(pk_tree, global_list, S, solution)
+{}
+
+
+void
+SurfaceBalanceBase::modifyParameterList()
 {
+  // set a default absolute tolerance
+  if (!plist_->isParameter("absolute error tolerance"))
+    plist_->set("absolute error tolerance", .01 * 55000.); // h * nl
+
+  PK_PhysicalBDF_Default::modifyParameterList();
+}
+
+
+void
+SurfaceBalanceBase::parseParameterList()
+{
+  PK_PhysicalBDF_Default::parseParameterList();
+
   // source terms
   eps_ = plist_->get<double>("source term finite difference epsilon", 1.e-8);
   is_source_ = plist_->get<bool>("source term", true);
@@ -39,10 +57,6 @@ SurfaceBalanceBase::SurfaceBalanceBase(Teuchos::ParameterList& pk_tree,
       "SurfaceBalanceBase: \"time discretization theta\" value must be between 0 and 1.");
     Exceptions::amanzi_throw(message);
   }
-
-  // set a default absolute tolerance
-  if (!plist_->isParameter("absolute error tolerance"))
-    plist_->set("absolute error tolerance", .01 * 55000.); // h * nl
 }
 
 

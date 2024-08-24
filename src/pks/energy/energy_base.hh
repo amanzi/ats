@@ -182,6 +182,12 @@ class EnergyBase : public PK_PhysicalBDF_Default {
   // Virtual destructor
   virtual ~EnergyBase() {}
 
+  // call to allow a PK to modify its own list or lists of its children.
+  virtual void modifyParameterList() override;
+
+  // read said list
+  virtual void parseParameterList() override;
+
   // EnergyBase is a PK
   // -- Setup data
   virtual void Setup() override;

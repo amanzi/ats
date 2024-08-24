@@ -32,12 +32,13 @@ MPCPermafrost::MPCPermafrost(Teuchos::ParameterList& pk_tree,
                              const Teuchos::RCP<State>& S,
                              const Teuchos::RCP<TreeVector>& solution)
   : PK(pk_tree, global_plist, S, solution), MPCSubsurface(pk_tree, global_plist, S, solution)
+{}
+
+void
+MPCPermafrost::modifyParameterList()
 {
   // tweak the sub-PK parameter lists
   Teuchos::Array<std::string> names = plist_->get<Teuchos::Array<std::string>>("PKs order");
-
-  //domain_subsurf_ = domain_name_;
-  //domain_surf_ = Keys::readDomainHint(*plist_, domain_subsurf_, "subsurface", "surface");
 
   domain_subsurf_ = pks_list_->sublist(names[0]).get<std::string>("domain name", "domain");
   domain_surf_ = pks_list_->sublist(names[2]).get<std::string>("domain name", "surface");
@@ -47,6 +48,27 @@ MPCPermafrost::MPCPermafrost(Teuchos::ParameterList& pk_tree,
     plist_->sublist("surface ewc delegate").set("domain name", domain_surf_);
   if (plist_->isSublist("ewc delegate"))
     plist_->sublist("ewc delegate").set("domain name", domain_subsurf_);
+
+  // -- turn on coupling
+  pks_list_->sublist(names[0]).set("coupled to surface via flux", true);
+  pks_list_->sublist(names[1]).set("coupled to surface via flux", true);
+  pks_list_->sublist(names[2]).set("coupled to subsurface via flux", true);
+  pks_list_->sublist(names[3]).set("coupled to subsurface via flux", true);
+
+  // -- ensure local ops are suface ops
+  pks_list_->sublist(names[2]).sublist("diffusion preconditioner").set("surface operator", true);
+  pks_list_->sublist(names[2]).sublist("accumulation preconditioner").set("surface operator", true);
+  pks_list_->sublist(names[3]).sublist("diffusion preconditioner").set("surface operator", true);
+  pks_list_->sublist(names[3]).sublist("advection preconditioner").set("surface operator", true);
+  pks_list_->sublist(names[3]).sublist("accumulation preconditioner").set("surface operator", true);
+
+  MPCSubsurface::modifyParameterList();
+}
+
+void
+MPCPermafrost::parseParameterList()
+{
+  MPCSubsurface::parseParameterList();
 
   // exchange flux keys and evaluators
   mass_exchange_key_ =
@@ -66,6 +88,7 @@ MPCPermafrost::MPCPermafrost(Teuchos::ParameterList& pk_tree,
   surf_potential_key_ = Keys::readKey(*plist_, domain_surf_, "surface potential", "pres_elev");
   surf_pd_key_ = Keys::readKey(*plist_, domain_surf_, "ponded depth", "ponded_depth");
   surf_water_flux_key_ = Keys::readKey(*plist_, domain_surf_, "surface water flux", "water_flux");
+
 }
 
 
@@ -73,18 +96,6 @@ void
 MPCPermafrost::Setup()
 {
   Teuchos::Array<std::string> names = plist_->get<Teuchos::Array<std::string>>("PKs order");
-  // -- turn on coupling
-  pks_list_->sublist(names[0]).set("coupled to surface via flux", true);
-  pks_list_->sublist(names[1]).set("coupled to surface via flux", true);
-  pks_list_->sublist(names[2]).set("coupled to subsurface via flux", true);
-  pks_list_->sublist(names[3]).set("coupled to subsurface via flux", true);
-
-  // -- ensure local ops are suface ops
-  pks_list_->sublist(names[2]).sublist("diffusion preconditioner").set("surface operator", true);
-  pks_list_->sublist(names[2]).sublist("accumulation preconditioner").set("surface operator", true);
-  pks_list_->sublist(names[3]).sublist("diffusion preconditioner").set("surface operator", true);
-  pks_list_->sublist(names[3]).sublist("advection preconditioner").set("surface operator", true);
-  pks_list_->sublist(names[3]).sublist("accumulation preconditioner").set("surface operator", true);
 
   // grab the meshes
   surf_mesh_ = S_->GetMesh(domain_surf_);

@@ -25,11 +25,9 @@ MPCCoupledWater::MPCCoupledWater(Teuchos::ParameterList& pk_tree,
     StrongMPC<PK_PhysicalBDF_Default>(pk_tree, global_plist, S, soln)
 {}
 
-
 void
-MPCCoupledWater::Setup()
+MPCCoupledWater::modifyParameterList()
 {
-  // tweak the sub-PK parameter lists
   Teuchos::Array<std::string> names = plist_->get<Teuchos::Array<std::string>>("PKs order");
 
   // -- turn on coupling
@@ -40,9 +38,28 @@ MPCCoupledWater::Setup()
   pks_list_->sublist(names[1]).sublist("diffusion preconditioner").set("surface operator", true);
   pks_list_->sublist(names[1]).sublist("accumulation preconditioner").set("surface operator", true);
 
+  StrongMPC<PK_PhysicalBDF_Default>::modifyParameterList();
+}
+
+
+void
+MPCCoupledWater::parseParameterList()
+{
+  StrongMPC<PK_PhysicalBDF_Default>::parseParameterList();
+
+  Teuchos::Array<std::string> names = plist_->get<Teuchos::Array<std::string>>("PKs order");
   domain_ss_ = pks_list_->sublist(names[0]).get<std::string>("domain name", "domain");
   domain_surf_ = pks_list_->sublist(names[1]).get<std::string>("domain name", "surface");
 
+  // keys
+  exfilt_key_ =
+    Keys::readKey(*plist_, domain_surf_, "exfiltration flux", "surface_subsurface_flux");
+}
+
+
+void
+MPCCoupledWater::Setup()
+{
   // grab the meshes
   surf_mesh_ = S_->GetMesh(domain_surf_);
   domain_mesh_ = S_->GetMesh(domain_ss_);
@@ -55,8 +72,6 @@ MPCCoupledWater::Setup()
   StrongMPC<PK_PhysicalBDF_Default>::Setup();
 
   // require the coupling fields, claim ownership
-  exfilt_key_ =
-    Keys::readKey(*plist_, domain_surf_, "exfiltration flux", "surface_subsurface_flux");
   S_->Require<CompositeVector, CompositeVectorSpace>(exfilt_key_, tag_next_, exfilt_key_)
     .SetMesh(surf_mesh_)
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);

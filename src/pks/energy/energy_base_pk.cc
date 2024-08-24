@@ -49,7 +49,33 @@ EnergyBase::EnergyBase(Teuchos::ParameterList& FElist,
     decoupled_from_subsurface_(false),
     niter_(0),
     flux_exists_(true)
+{}
+
+
+
+// call to allow a PK to modify its own list or lists of its children.
+void
+EnergyBase::modifyParameterList()
 {
+  if (!plist_->isParameter("absolute error tolerance")) {
+    plist_->set("absolute error tolerance", 76.e-6);
+    // energy of 1 degree C of water per mass_atol, in MJ/mol water
+  }
+
+  // set some defaults for inherited PKs
+  if (!plist_->isParameter("conserved quantity key suffix"))
+    plist_->set<std::string>("conserved quantity key suffix", "energy");
+
+  PK_PhysicalBDF_Default::modifyParameterList();
+}
+
+
+// read said list
+void
+EnergyBase::parseParameterList()
+{
+  PK_PhysicalBDF_Default::parseParameterList();
+
   // set a default error tolerance
   if (domain_.find("surface") != std::string::npos) {
     mass_atol_ = plist_->get<double>("mass absolute error tolerance", .01 * 55000.);
@@ -59,10 +85,6 @@ EnergyBase::EnergyBase(Teuchos::ParameterList& FElist,
     soil_atol_ = 0.5 * 2000. * 620.e-6;
     // porosity * particle density soil * heat capacity soil * 1 degree
     // or, dry bulk density soil * heat capacity soil * 1 degree, in MJ
-  }
-  if (!plist_->isParameter("absolute error tolerance")) {
-    plist_->set("absolute error tolerance", 76.e-6);
-    // energy of 1 degree C of water per mass_atol, in MJ/mol water
   }
 
   // source terms
@@ -74,7 +96,6 @@ EnergyBase::EnergyBase(Teuchos::ParameterList& FElist,
   is_source_term_finite_differentiable_ = plist_->get<bool>("source term finite difference", false);
 
   // get keys
-  conserved_key_ = Keys::readKey(*plist_, domain_, "conserved quantity", "energy");
   wc_key_ = Keys::readKey(*plist_, domain_, "water content", "water_content");
   enthalpy_key_ = Keys::readKey(*plist_, domain_, "enthalpy", "enthalpy");
   flux_key_ = Keys::readKey(*plist_, domain_, "water flux", "water_flux");
