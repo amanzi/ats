@@ -287,7 +287,6 @@ Coordinator::setup()
   // order matters here -- PKs set the leaves, then observations can use those
   // if provided, and setup finally deals with all secondaries and allocates memory
   pk_->set_tags(Amanzi::Tags::CURRENT, Amanzi::Tags::NEXT);
-  pk_->modifyParameterList();
   pk_->parseParameterList();
   pk_->Setup();
   for (auto& obs : observations_) obs->Setup(S_.ptr());

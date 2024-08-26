@@ -35,32 +35,24 @@ ImplicitSubgrid::ImplicitSubgrid(Teuchos::ParameterList& pk_tree,
 {}
 
 void
-ImplicitSubgrid::modifyParameterList()
+ImplicitSubgrid::parseParameterList()
 {
   // set the error tolerance for snow
   plist_->set("absolute error tolerance", 0.01);
 
   snow_dens_key_ = Keys::readKey(*plist_, domain_, "snow density", "density");
-  S_->GetEvaluatorList(snow_dens_key_).set("evaluator type", "primary variable");
+  requireAtNext(snow_dens_key_, tag_next_, *S_, name_);
 
   snow_death_rate_key_ = Keys::readKey(*plist_, domain_, "snow death rate", "death_rate");
-  S_->GetEvaluatorList(snow_death_rate_key_).set("evaluator type", "primary variable");
+  requireAtNext(snow_death_rate_key_, tag_next_, *S_, name_);
 
   snow_age_key_ = Keys::readKey(*plist_, domain_, "snow age", "age");
-  S_->GetEvaluatorList(snow_age_key_).set("evaluator type", "primary variable");
-
-  SurfaceBalanceBase::modifyParameterList();
-}
-
-
-void
-ImplicitSubgrid::parseParameterList()
-{
-  SurfaceBalanceBase::parseParameterList();
+  requireAtNext(snow_age_key_, tag_next_, *S_, name_);
 
   new_snow_key_ = Keys::readKey(*plist_, domain_, "new snow source", "source");
-
   density_snow_max_ = plist_->get<double>("max density of snow [kg m^-3]", 600.);
+
+  SurfaceBalanceBase::parseParameterList();
 }
 
 // main methods

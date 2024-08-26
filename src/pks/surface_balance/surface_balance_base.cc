@@ -24,19 +24,12 @@ SurfaceBalanceBase::SurfaceBalanceBase(Teuchos::ParameterList& pk_tree,
 
 
 void
-SurfaceBalanceBase::modifyParameterList()
+SurfaceBalanceBase::parseParameterList()
 {
   // set a default absolute tolerance
   if (!plist_->isParameter("absolute error tolerance"))
     plist_->set("absolute error tolerance", .01 * 55000.); // h * nl
 
-  PK_PhysicalBDF_Default::modifyParameterList();
-}
-
-
-void
-SurfaceBalanceBase::parseParameterList()
-{
   PK_PhysicalBDF_Default::parseParameterList();
 
   // source terms

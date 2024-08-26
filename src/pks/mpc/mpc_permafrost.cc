@@ -35,7 +35,7 @@ MPCPermafrost::MPCPermafrost(Teuchos::ParameterList& pk_tree,
 {}
 
 void
-MPCPermafrost::modifyParameterList()
+MPCPermafrost::parseParameterList()
 {
   // tweak the sub-PK parameter lists
   Teuchos::Array<std::string> names = plist_->get<Teuchos::Array<std::string>>("PKs order");
@@ -65,19 +65,11 @@ MPCPermafrost::modifyParameterList()
   // -- primary exchange flux keys and evaluators
   mass_exchange_key_ =
     Keys::readKey(*plist_, domain_surf_, "mass exchange flux", "surface_subsurface_flux");
-  S_->GetEvaluatorList(mass_exchange_key_).set("evaluator type", "primary variable");
+  requireAtNext(mass_exchange_key_, tag_next_, *S_, name_);
 
   energy_exchange_key_ =
     Keys::readKey(*plist_, domain_surf_, "energy exchange flux", "surface_subsurface_energy_flux");
-  S_->GetEvaluatorList(energy_exchange_key_).set("evaluator type", "primary variable");
-
-  MPCSubsurface::modifyParameterList();
-}
-
-void
-MPCPermafrost::parseParameterList()
-{
-  MPCSubsurface::parseParameterList();
+  requireAtNext(energy_exchange_key_, tag_next_, *S_, name_);
 
   // parse keys
   surf_temp_key_ = Keys::readKey(*plist_, domain_surf_, "surface temperature", "temperature");
@@ -93,6 +85,7 @@ MPCPermafrost::parseParameterList()
   surf_pd_key_ = Keys::readKey(*plist_, domain_surf_, "ponded depth", "ponded_depth");
   surf_water_flux_key_ = Keys::readKey(*plist_, domain_surf_, "surface water flux", "water_flux");
 
+  MPCSubsurface::parseParameterList();
 }
 
 
@@ -150,10 +143,10 @@ MPCPermafrost::Setup()
   MPCSubsurface::Setup();
 
   // require the coupling fields, claim ownership
-  requireAtNext(mass_exchange_key_, tag_next_, *S_, mass_exchange_key_)
+  requireAtNext(mass_exchange_key_, tag_next_, *S_, name_)
     .SetMesh(surf_mesh_)
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  requireAtNext(energy_exchange_key_, tag_next_, *S_, energy_exchange_key_)
+  requireAtNext(energy_exchange_key_, tag_next_, *S_, name_)
     .SetMesh(surf_mesh_)
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
@@ -349,13 +342,13 @@ void
 MPCPermafrost::Initialize()
 {
   // initialize coupling terms
-  S_->GetPtrW<CompositeVector>(mass_exchange_key_, tag_next_, mass_exchange_key_)->PutScalar(0.0);
-  S_->GetRecordW(mass_exchange_key_, tag_next_, mass_exchange_key_).set_initialized();
+  S_->GetPtrW<CompositeVector>(mass_exchange_key_, tag_next_, name_)->PutScalar(0.0);
+  S_->GetRecordW(mass_exchange_key_, tag_next_, name_).set_initialized();
   changedEvaluatorPrimary(mass_exchange_key_, tag_next_, *S_);
 
-  S_->GetPtrW<CompositeVector>(energy_exchange_key_, tag_next_, energy_exchange_key_)
+  S_->GetPtrW<CompositeVector>(energy_exchange_key_, tag_next_, name_)
     ->PutScalar(0.0);
-  S_->GetRecordW(energy_exchange_key_, tag_next_, energy_exchange_key_).set_initialized();
+  S_->GetRecordW(energy_exchange_key_, tag_next_, name_).set_initialized();
   changedEvaluatorPrimary(energy_exchange_key_, tag_next_, *S_);
 
   // Initialize all sub PKs.
@@ -431,7 +424,7 @@ MPCPermafrost::FunctionalResidual(double t_old,
   // The residual of the surface flow equation provides the water flux from
   // subsurface to surface.
   Epetra_MultiVector& source =
-    *S_->GetW<CompositeVector>(mass_exchange_key_, tag_next_, mass_exchange_key_)
+    *S_->GetW<CompositeVector>(mass_exchange_key_, tag_next_, name_)
        .ViewComponent("cell", false);
   source = *g->SubVector(2)->Data()->ViewComponent("cell", false);
   changedEvaluatorPrimary(mass_exchange_key_, tag_next_, *S_);
@@ -451,7 +444,7 @@ MPCPermafrost::FunctionalResidual(double t_old,
   // The residual of the surface energy equation provides the diffusive energy
   // flux from subsurface to surface.
   Epetra_MultiVector& esource =
-    *S_->GetW<CompositeVector>(energy_exchange_key_, tag_next_, energy_exchange_key_)
+    *S_->GetW<CompositeVector>(energy_exchange_key_, tag_next_, name_)
        .ViewComponent("cell", false);
   esource = *g->SubVector(3)->Data()->ViewComponent("cell", false);
   changedEvaluatorPrimary(energy_exchange_key_, tag_next_, *S_);

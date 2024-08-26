@@ -64,7 +64,6 @@ class SurfaceBalanceBase : public PK_PhysicalBDF_Default {
                      const Teuchos::RCP<TreeVector>& solution);
 
   virtual void parseParameterList() override;
-  virtual void modifyParameterList() override;
 
   // main methods
   // -- Setup data.

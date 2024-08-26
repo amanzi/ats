@@ -56,7 +56,7 @@ OverlandPressureFlow::OverlandPressureFlow(Teuchos::ParameterList& pk_tree,
 
 
 void
-OverlandPressureFlow::modifyParameterList()
+OverlandPressureFlow::parseParameterList()
 {
   // set a default absolute tolerance
   if (!plist_->isParameter("absolute error tolerance"))
@@ -66,13 +66,6 @@ OverlandPressureFlow::modifyParameterList()
   if (!plist_->isParameter("conserved quantity key suffix"))
     plist_->set<std::string>("conserved quantity key suffix", "water_content");
 
-  PK_PhysicalBDF_Default::modifyParameterList();
-}
-
-
-void
-OverlandPressureFlow::parseParameterList()
-{
   PK_PhysicalBDF_Default::parseParameterList();
 
   // get keys

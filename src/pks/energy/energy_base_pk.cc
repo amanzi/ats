@@ -55,7 +55,7 @@ EnergyBase::EnergyBase(Teuchos::ParameterList& FElist,
 
 // call to allow a PK to modify its own list or lists of its children.
 void
-EnergyBase::modifyParameterList()
+EnergyBase::parseParameterList()
 {
   if (!plist_->isParameter("absolute error tolerance")) {
     plist_->set("absolute error tolerance", 76.e-6);
@@ -74,14 +74,6 @@ EnergyBase::modifyParameterList()
     enth_list.set<std::string>("evaluator type", "enthalpy");
   }
 
-  PK_PhysicalBDF_Default::modifyParameterList();
-}
-
-
-// read said list
-void
-EnergyBase::parseParameterList()
-{
   PK_PhysicalBDF_Default::parseParameterList();
 
   // set a default error tolerance

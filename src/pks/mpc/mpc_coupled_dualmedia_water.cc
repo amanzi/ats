@@ -24,16 +24,10 @@ MPCCoupledDualMediaWater::MPCCoupledDualMediaWater(
 
 
 void
-MPCCoupledDualMediaWater::modifyParameterList()
-{
-  StrongMPC<PK_BDF_Default>::modifyParameterList();
-
-  pks_list_->sublist(names[1]).set("coupled to subsurface via head", true);
-}
-
-void
 MPCCoupledDualMediaWater::parseParameterList()
 {
+  pks_list_->sublist(names[1]).set("coupled to subsurface via head", true);
+
   StrongMPC<PK_BDF_Default>::parseParameterList();
 
   domain_ = plist_->get<std::string>("domain name", "domain");
@@ -41,6 +35,7 @@ MPCCoupledDualMediaWater::parseParameterList()
   macro_flux_key_ = Keys::readKey(*plist_, domain_macropore_, "macropore water flux", "water_flux");
   macro_flux_key_ = Keys::readKey(*plist_, domain_, "matrix water flux", "water_flux");
 }
+
 
 void
 MPCCoupledDualMediaWater::Setup(const Teuchos::Ptr<State>& S)

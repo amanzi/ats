@@ -42,7 +42,7 @@ class StrongMPC : public MPC<PK_t>, public PK_BDF_Default {
             const Teuchos::RCP<State>& S,
             const Teuchos::RCP<TreeVector>& solution);
 
-  virtual void modifyParameterList() override;
+  virtual void parseParameterList() override;
 
   //
   // These methods override methods in MPC<PK_t>
@@ -134,7 +134,7 @@ StrongMPC<PK_t>::StrongMPC(Teuchos::ParameterList& pk_tree,
 
 template <class PK_t>
 void
-StrongMPC<PK_t>::modifyParameterList()
+StrongMPC<PK_t>::parseParameterList()
 {
   // push on a parameter to indicate that sub-pks need not assemble their
   // operators, as we will do that here (or above here)
@@ -143,8 +143,8 @@ StrongMPC<PK_t>::modifyParameterList()
     pks_list_->sublist(pk_name).set("strongly coupled PK", true);
   }
 
-  PK_BDF_Default::modifyParameterList();
-  MPC<PK_t>::modifyParameterList();
+  PK_BDF_Default::parseParameterList();
+  MPC<PK_t>::parseParameterList();
 }
 
 

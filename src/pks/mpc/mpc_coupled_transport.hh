@@ -32,7 +32,7 @@ class MPCCoupledTransport : public WeakMPC {
                       const Teuchos::RCP<TreeVector>& soln);
 
   // PK methods
-  void modifyParameterList() override;
+  void parseParameterList() override;
   void Setup() override;
   int get_num_aqueous_component();
 

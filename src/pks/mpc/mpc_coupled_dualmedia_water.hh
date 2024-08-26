@@ -32,7 +32,6 @@ class MPCCoupledDualMediaWater : public StrongMPC<PK_BDF_Default> {
                            const Teuchos::RCP<State>& S,
                            const Teuchos::RCP<TreeVector>& soln);
 
-  void modifyParameterList() override;
   void parseParameterList() override;
 
   virtual void Setup(const Teuchos::Ptr<State>& S);

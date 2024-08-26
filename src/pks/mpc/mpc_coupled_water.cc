@@ -26,7 +26,7 @@ MPCCoupledWater::MPCCoupledWater(Teuchos::ParameterList& pk_tree,
 {}
 
 void
-MPCCoupledWater::modifyParameterList()
+MPCCoupledWater::parseParameterList()
 {
   Teuchos::Array<std::string> names = plist_->get<Teuchos::Array<std::string>>("PKs order");
 
@@ -38,22 +38,14 @@ MPCCoupledWater::modifyParameterList()
   pks_list_->sublist(names[1]).sublist("diffusion preconditioner").set("surface operator", true);
   pks_list_->sublist(names[1]).sublist("accumulation preconditioner").set("surface operator", true);
 
-  StrongMPC<PK_PhysicalBDF_Default>::modifyParameterList();
-}
-
-
-void
-MPCCoupledWater::parseParameterList()
-{
-  StrongMPC<PK_PhysicalBDF_Default>::parseParameterList();
-
-  Teuchos::Array<std::string> names = plist_->get<Teuchos::Array<std::string>>("PKs order");
   domain_ss_ = pks_list_->sublist(names[0]).get<std::string>("domain name", "domain");
   domain_surf_ = pks_list_->sublist(names[1]).get<std::string>("domain name", "surface");
 
   // keys
   exfilt_key_ =
     Keys::readKey(*plist_, domain_surf_, "exfiltration flux", "surface_subsurface_flux");
+
+  StrongMPC<PK_PhysicalBDF_Default>::parseParameterList();
 }
 
 

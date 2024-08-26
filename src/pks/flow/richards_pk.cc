@@ -65,7 +65,7 @@ Richards::Richards(Teuchos::ParameterList& pk_tree,
 
 
 void
-Richards::modifyParameterList()
+Richards::parseParameterList()
 {
   // set some defaults for inherited PKs
   if (!plist_->isParameter("conserved quantity key suffix"))
@@ -75,16 +75,6 @@ Richards::modifyParameterList()
   if (!plist_->isParameter("absolute error tolerance"))
     plist_->set("absolute error tolerance", .5 * .1 * 55000.); // phi * s * nl
 
-  PK_PhysicalBDF_Default::modifyParameterList();
-}
-
-
-void
-Richards::parseParameterList()
-{
-  // parse inherited lists
-  PK_PhysicalBDF_Default::parseParameterList();
-
   // get field names
   mass_dens_key_ = Keys::readKey(*plist_, domain_, "mass density", "mass_density_liquid");
   molar_dens_key_ = Keys::readKey(*plist_, domain_, "molar density", "molar_density_liquid");
@@ -92,7 +82,10 @@ Richards::parseParameterList()
   coef_key_ = Keys::readKey(*plist_, domain_, "conductivity", "relative_permeability");
   uw_coef_key_ =
     Keys::readKey(*plist_, domain_, "upwinded conductivity", "upwind_relative_permeability");
+
   flux_key_ = Keys::readKey(*plist_, domain_, "darcy flux", "water_flux");
+  requireAtNext(flux_key_, tag_next_, *S_, name_);
+
   flux_dir_key_ = Keys::readKey(*plist_, domain_, "darcy flux direction", "water_flux_direction");
   velocity_key_ = Keys::readKey(*plist_, domain_, "darcy velocity", "darcy_velocity");
   sat_key_ = Keys::readKey(*plist_, domain_, "saturation", "saturation_liquid");
@@ -135,6 +128,9 @@ Richards::parseParameterList()
     Key domain_surf = Keys::readDomainHint(*plist_, domain_, "subsurface", "surface");
     ss_primary_key_ = Keys::readKey(*plist_, domain_surf, "pressure", "pressure");
   }
+
+  // parse inherited lists
+  PK_PhysicalBDF_Default::parseParameterList();
 }
 
 

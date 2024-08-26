@@ -157,10 +157,7 @@ class OverlandPressureFlow : public PK_PhysicalBDF_Default {
   // Virtual destructor
   virtual ~OverlandPressureFlow() {}
 
-  // call to allow a PK to modify its own list or lists of its children.
-  virtual void modifyParameterList() override;
-
-  // read said list
+  // parse input list
   virtual void parseParameterList() override;
 
   // main methods

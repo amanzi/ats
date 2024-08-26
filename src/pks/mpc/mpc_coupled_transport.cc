@@ -25,7 +25,7 @@ MPCCoupledTransport::MPCCoupledTransport(Teuchos::ParameterList& pk_tree,
 
 
 void
-MPCCoupledTransport::modifyParameterList()
+MPCCoupledTransport::parseParameterList()
 {
   name_ss_ = sub_pks_[0]->name();
   name_surf_ = sub_pks_[1]->name();
@@ -33,21 +33,20 @@ MPCCoupledTransport::modifyParameterList()
   Key domain_ss = pks_list_->sublist(name_ss_).get<std::string>("domain name", "domain");
   Key domain_surf = pks_list_->sublist(name_surf_).get<std::string>("domain name", "surface");
 
-  auto& bc_list =
-    pks_list_->sublist(name_ss_).sublist("boundary conditions").sublist("concentration");
-  auto& src_list =
-    pks_list_->sublist(name_surf_).sublist("source terms").sublist("component mass source");
-
   Key ss_flux_key =
     Keys::readKey(pks_list_->sublist(name_ss_), domain_ss, "water flux", "water_flux");
   Key surf_flux_key =
     Keys::readKey(pks_list_->sublist(name_surf_), domain_surf, "water flux", "water_flux");
 
-  Key ss_tcc_key = Keys::readKey(pks_list_->sublist(name_ss_), domain_ss, "concentration");
-  Key surf_tcc_key = Keys::readKey(pks_list_->sublist(name_surf_), domain_surf, "concentration");
+  Key ss_tcc_key = Keys::readKey(
+    pks_list_->sublist(name_ss_), domain_ss, "concentration", "total_component_concentration");
+  Key surf_tcc_key = Keys::readKey(
+    pks_list_->sublist(name_surf_), domain_surf, "concentration", "total_component_concentration");
   Key surf_tcq_key = Keys::readKey(
     pks_list_->sublist(name_surf_), domain_surf, "conserved quantity", "total_component_quantity");
 
+  auto& bc_list =
+    pks_list_->sublist(name_ss_).sublist("boundary conditions").sublist("concentration");
   if (!bc_list.isSublist("BC coupling")) {
     Teuchos::ParameterList& bc_coupling = bc_list.sublist("BC coupling");
     bc_coupling.set<std::string>("spatial distribution method", "domain coupling");
@@ -62,6 +61,8 @@ MPCCoupledTransport::modifyParameterList()
     tmp.set<std::string>("external field copy key", tag_next_.get());
   }
 
+  auto& src_list =
+    pks_list_->sublist(name_surf_).sublist("source terms").sublist("component mass source");
   if (!src_list.isSublist("surface coupling")) {
     Teuchos::ParameterList& src_coupling = src_list.sublist("surface coupling");
     src_coupling.set<std::string>("spatial distribution method", "domain coupling");
@@ -79,7 +80,7 @@ MPCCoupledTransport::modifyParameterList()
     tmp.set<std::string>("external field copy key", tag_next_.get());
   }
 
-  WeakMPC::modifyParameterList();
+  WeakMPC::parseParameterList();
 }
 
 

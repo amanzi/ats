@@ -67,6 +67,15 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
     current_component_(-1),
     flag_dispersion_(false)
 {
+  // initialize io
+  units_.Init(global_plist->sublist("units"));
+}
+
+void
+Transport_ATS::parseParameterList()
+{
+  PK_PhysicalExplicit<Epetra_Vector>::parseParameterList();
+
   if (plist_->isParameter("component molar masses")) {
     mol_masses_ = plist_->get<Teuchos::Array<double>>("component molar masses").toVector();
   } else {
@@ -74,14 +83,15 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
     Exceptions::amanzi_throw(msg);
   }
 
-  // initialize io
-  units_.Init(global_plist->sublist("units"));
+  // primary variable
+  tcc_key_ = Keys::readKey(*plist_, domain_, "concentration", "total_component_concentration");
+  requireAtNext(tcc_key_, tag_next_, *S_, passwd_);
+  requireAtCurrent(tcc_key_, tag_current_, *S_, passwd_);
 
   // keys, dependencies, etc
   saturation_key_ = Keys::readKey(*plist_, domain_, "saturation liquid", "saturation_liquid");
   flux_key_ = Keys::readKey(*plist_, domain_, "water flux", "water_flux");
   permeability_key_ = Keys::readKey(*plist_, domain_, "permeability", "permeability");
-  tcc_key_ = Keys::readKey(*plist_, domain_, "concentration", "total_component_concentration");
   conserve_qty_key_ =
     Keys::readKey(*plist_, domain_, "conserved quantity", "total_component_quantity");
   porosity_key_ = Keys::readKey(*plist_, domain_, "porosity", "porosity");

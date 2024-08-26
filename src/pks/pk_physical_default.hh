@@ -59,7 +59,6 @@ class PK_Physical_Default : public PK_Physical {
   // Virtual destructor
   virtual ~PK_Physical_Default() = default;
 
-  virtual void modifyParameterList() override;
   virtual void parseParameterList() override;
   virtual bool ValidStep() override;
 
