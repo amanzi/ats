@@ -75,6 +75,12 @@ class MPCPermafrostSplitFlux : public MPCSubcycled {
                          const Teuchos::RCP<TreeVector>& solution);
 
   // PK methods
+  // -- call to allow a PK to modify its own list or lists of its children.
+  virtual void modifyParameterList() override;
+
+  // -- read said list
+  virtual void parseParameterList() override;
+
   // -- initialize in reverse order
   virtual void Initialize() override;
   virtual void Setup() override;

@@ -66,6 +66,14 @@ EnergyBase::modifyParameterList()
   if (!plist_->isParameter("conserved quantity key suffix"))
     plist_->set<std::string>("conserved quantity key suffix", "energy");
 
+  // need to deprecate the use of enthalpy list in the PK! --ETC
+  enthalpy_key_ = Keys::readKey(*plist_, domain_, "enthalpy", "enthalpy");
+  if (plist_->isSublist("enthalpy evaluator")) {
+    Teuchos::ParameterList& enth_list = S_->GetEvaluatorList(enthalpy_key_);
+    enth_list.setParameters(plist_->sublist("enthalpy evaluator"));
+    enth_list.set<std::string>("evaluator type", "enthalpy");
+  }
+
   PK_PhysicalBDF_Default::modifyParameterList();
 }
 
@@ -97,7 +105,6 @@ EnergyBase::parseParameterList()
 
   // get keys
   wc_key_ = Keys::readKey(*plist_, domain_, "water content", "water_content");
-  enthalpy_key_ = Keys::readKey(*plist_, domain_, "enthalpy", "enthalpy");
   flux_key_ = Keys::readKey(*plist_, domain_, "water flux", "water_flux");
   energy_flux_key_ =
     Keys::readKey(*plist_, domain_, "diffusive energy flux", "diffusive_energy_flux");
@@ -307,11 +314,6 @@ EnergyBase::SetupEnergy_()
   // -- set up the evaluator for enthalpy, whether or not we advect the thing,
   //    we may need it for exchange fluxes with surface/subsurface coupling,
   //    etc.
-  if (plist_->isSublist("enthalpy evaluator")) {
-    Teuchos::ParameterList& enth_list = S_->GetEvaluatorList(enthalpy_key_);
-    enth_list.setParameters(plist_->sublist("enthalpy evaluator"));
-    enth_list.set<std::string>("evaluator type", "enthalpy");
-  }
   is_advection_term_ = plist_->get<bool>("include thermal advection", true);
   if (is_advection_term_) {
     // -- create the forward operator for the advection term

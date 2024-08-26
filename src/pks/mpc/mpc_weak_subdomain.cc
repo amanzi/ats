@@ -37,8 +37,15 @@ MPCWeakSubdomain::MPCWeakSubdomain(Teuchos::ParameterList& FElist,
 {
   init_();
 
-  // check whether we are subcycling
+  // check whether we are subcycling -- note this must be known prior to set_tags()
   internal_subcycling_ = plist_->template get<bool>("subcycle", false);
+}
+
+void
+MPCWeakSubdomain::parseParameterList()
+{
+  MPC<PK>::parseParameterList();
+
   if (internal_subcycling_) {
     internal_subcycling_target_dt_ =
       plist_->template get<double>("subcycling target time step [s]");

@@ -25,50 +25,11 @@ MPCCoupledTransport::MPCCoupledTransport(Teuchos::ParameterList& pk_tree,
 
 
 void
-MPCCoupledTransport::Setup()
+MPCCoupledTransport::modifyParameterList()
 {
   name_ss_ = sub_pks_[0]->name();
   name_surf_ = sub_pks_[1]->name();
 
-  // see bug amanzi/ats#125 this is probably backwards
-  pk_ss_ = Teuchos::rcp_dynamic_cast<Transport::Transport_ATS>(sub_pks_[0]);
-  pk_surf_ = Teuchos::rcp_dynamic_cast<Transport::Transport_ATS>(sub_pks_[1]);
-
-  if (pk_ss_ == Teuchos::null || pk_surf_ == Teuchos::null) {
-    Errors::Message msg("MPCCoupledTransport expects to only couple PKs of type \"transport ATS\"");
-    Exceptions::amanzi_throw(msg);
-  }
-
-  SetupCouplingConditions_();
-  WeakMPC::Setup();
-}
-
-// bug, see amanzi/ats#125
-bool
-MPCCoupledTransport::AdvanceStep(double t_old, double t_new, bool reinit)
-{
-  bool fail = pk_surf_->AdvanceStep(t_old, t_new, reinit);
-  if (fail) return fail;
-  fail = pk_ss_->AdvanceStep(t_old, t_new, reinit);
-  return fail;
-}
-
-
-int
-MPCCoupledTransport::get_num_aqueous_component()
-{
-  int num_aq_comp = pk_ss_->get_num_aqueous_component();
-  if (num_aq_comp != pk_surf_->get_num_aqueous_component()) {
-    Errors::Message msg("MPCCoupledTransport:: numbers aqueous component does not match.");
-    Exceptions::amanzi_throw(msg);
-  }
-  return num_aq_comp;
-}
-
-
-void
-MPCCoupledTransport::SetupCouplingConditions_()
-{
   Key domain_ss = pks_list_->sublist(name_ss_).get<std::string>("domain name", "domain");
   Key domain_surf = pks_list_->sublist(name_surf_).get<std::string>("domain name", "surface");
 
@@ -117,6 +78,53 @@ MPCCoupledTransport::SetupCouplingConditions_()
     tmp.set<std::string>("external field key", ss_tcc_key);
     tmp.set<std::string>("external field copy key", tag_next_.get());
   }
+
+  WeakMPC::modifyParameterList();
+}
+
+
+void
+MPCCoupledTransport::Setup()
+{
+  // see bug amanzi/ats#125 this is probably backwards
+  pk_ss_ = Teuchos::rcp_dynamic_cast<Transport::Transport_ATS>(sub_pks_[0]);
+  pk_surf_ = Teuchos::rcp_dynamic_cast<Transport::Transport_ATS>(sub_pks_[1]);
+
+  if (pk_ss_ == Teuchos::null || pk_surf_ == Teuchos::null) {
+    Errors::Message msg("MPCCoupledTransport expects to only couple PKs of type \"transport ATS\"");
+    Exceptions::amanzi_throw(msg);
+  }
+
+  SetupCouplingConditions_();
+  WeakMPC::Setup();
+}
+
+// bug, see amanzi/ats#125
+bool
+MPCCoupledTransport::AdvanceStep(double t_old, double t_new, bool reinit)
+{
+  bool fail = pk_surf_->AdvanceStep(t_old, t_new, reinit);
+  if (fail) return fail;
+  fail = pk_ss_->AdvanceStep(t_old, t_new, reinit);
+  return fail;
+}
+
+
+int
+MPCCoupledTransport::get_num_aqueous_component()
+{
+  int num_aq_comp = pk_ss_->get_num_aqueous_component();
+  if (num_aq_comp != pk_surf_->get_num_aqueous_component()) {
+    Errors::Message msg("MPCCoupledTransport:: numbers aqueous component does not match.");
+    Exceptions::amanzi_throw(msg);
+  }
+  return num_aq_comp;
+}
+
+
+void
+MPCCoupledTransport::SetupCouplingConditions_()
+{
 }
 
 } // namespace Amanzi

@@ -24,19 +24,28 @@ PK_Physical_Default::PK_Physical_Default(Teuchos::ParameterList& pk_tree,
                                          const Teuchos::RCP<Teuchos::ParameterList>& glist,
                                          const Teuchos::RCP<State>& S,
                                          const Teuchos::RCP<TreeVector>& solution)
-  : PK(pk_tree, glist, S, solution), PK_Physical(pk_tree, glist, S, solution)
-{
-  key_ = Keys::readKey(*plist_, domain_, "primary variable");
-
-  // primary variable max change
-  max_valid_change_ = plist_->get<double>("max valid change", -1.0);
-}
+  : PK(pk_tree, glist, S, solution),
+    PK_Physical(pk_tree, glist, S, solution),
+    max_valid_change_(-1.0)
+{}
 
 void
 PK_Physical_Default::modifyParameterList()
 {
+  key_ = Keys::readKey(*plist_, domain_, "primary variable");
   Teuchos::ParameterList& plist = S_->GetEvaluatorList(key_);
   plist.set("evaluator type", "primary variable");
+
+  PK_Physical::modifyParameterList();
+}
+
+void
+PK_Physical_Default::parseParameterList()
+{
+  PK_Physical::parseParameterList();
+
+  // primary variable max change
+  max_valid_change_ = plist_->get<double>("max valid change", -1.0);
 }
 
 

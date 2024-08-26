@@ -62,6 +62,15 @@ MPCPermafrost::modifyParameterList()
   pks_list_->sublist(names[3]).sublist("advection preconditioner").set("surface operator", true);
   pks_list_->sublist(names[3]).sublist("accumulation preconditioner").set("surface operator", true);
 
+  // -- primary exchange flux keys and evaluators
+  mass_exchange_key_ =
+    Keys::readKey(*plist_, domain_surf_, "mass exchange flux", "surface_subsurface_flux");
+  S_->GetEvaluatorList(mass_exchange_key_).set("evaluator type", "primary variable");
+
+  energy_exchange_key_ =
+    Keys::readKey(*plist_, domain_surf_, "energy exchange flux", "surface_subsurface_energy_flux");
+  S_->GetEvaluatorList(energy_exchange_key_).set("evaluator type", "primary variable");
+
   MPCSubsurface::modifyParameterList();
 }
 
@@ -70,12 +79,7 @@ MPCPermafrost::parseParameterList()
 {
   MPCSubsurface::parseParameterList();
 
-  // exchange flux keys and evaluators
-  mass_exchange_key_ =
-    Keys::readKey(*plist_, domain_surf_, "mass exchange flux", "surface_subsurface_flux");
-  energy_exchange_key_ =
-    Keys::readKey(*plist_, domain_surf_, "energy exchange flux", "surface_subsurface_energy_flux");
-
+  // parse keys
   surf_temp_key_ = Keys::readKey(*plist_, domain_surf_, "surface temperature", "temperature");
   surf_pres_key_ = Keys::readKey(*plist_, domain_surf_, "surface pressure", "pressure");
   surf_e_key_ = Keys::readKey(*plist_, domain_surf_, "surface energy", "energy");

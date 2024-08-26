@@ -18,6 +18,10 @@ MPCPermafrostSplitFlux::MPCPermafrostSplitFlux(Teuchos::ParameterList& FElist,
                                                const Teuchos::RCP<State>& S,
                                                const Teuchos::RCP<TreeVector>& solution)
   : PK(FElist, plist, S, solution), MPCSubcycled(FElist, plist, S, solution)
+{}
+
+void
+MPCPermafrostSplitFlux::modifyParameterList()
 {
   // collect domain names
   domain_set_ = Keys::readDomain(*plist_);          // e.g. surface or surface_column:*
@@ -38,6 +42,27 @@ MPCPermafrostSplitFlux::MPCPermafrostSplitFlux(Teuchos::ParameterList& FElist,
 
   domain_sub_ = Keys::readDomainHint(*plist_, domain_set_, "surface", "subsurface");
   domain_snow_ = Keys::readDomainHint(*plist_, domain_set_, "surface", "snow");
+
+  if (coupling_ != "pressure") {
+    p_lateral_flow_source_ =
+      Keys::readKey(*plist_, domain_, "water lateral flow source", "water_lateral_flow_source");
+    p_lateral_flow_source_suffix_ = Keys::getVarName(p_lateral_flow_source_);
+    S_->GetEvaluatorList(p_lateral_flow_source_).set("evaluator type", "primary variable");
+
+    T_lateral_flow_source_ =
+      Keys::readKey(*plist_, domain_, "energy lateral flow source", "energy_lateral_flow_source");
+    T_lateral_flow_source_suffix_ = Keys::getVarName(T_lateral_flow_source_);
+    S_->GetEvaluatorList(T_lateral_flow_source_).set("evaluator type", "primary variable");
+  }
+
+  MPCSubcycled::modifyParameterList();
+}
+
+
+void
+MPCPermafrostSplitFlux::parseParameterList()
+{
+  MPCSubcycled::parseParameterList();
 
   // determine the coupling strategy: "pressure" passes the pressure field,
   // "flux" the flux field, while "hybrid" passes one or the other depending
@@ -87,13 +112,6 @@ MPCPermafrostSplitFlux::MPCPermafrostSplitFlux(Teuchos::ParameterList& FElist,
 
   // -- flux variables for coupling
   if (coupling_ != "pressure") {
-    p_lateral_flow_source_ =
-      Keys::readKey(*plist_, domain_, "water lateral flow source", "water_lateral_flow_source");
-    p_lateral_flow_source_suffix_ = Keys::getVarName(p_lateral_flow_source_);
-    T_lateral_flow_source_ =
-      Keys::readKey(*plist_, domain_, "energy lateral flow source", "energy_lateral_flow_source");
-    T_lateral_flow_source_suffix_ = Keys::getVarName(T_lateral_flow_source_);
-
     cv_key_ = Keys::readKey(*plist_, domain_star_, "cell volume", "cell_volume");
   }
 };
