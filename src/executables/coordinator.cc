@@ -284,8 +284,9 @@ Coordinator::setup()
   S_->require_time(Amanzi::Tags::CURRENT);
   S_->require_time(Amanzi::Tags::NEXT);
 
-  // order matters here -- PKs set the leaves, then observations can use those
-  // if provided, and setup finally deals with all secondaries and allocates memory
+  // order matters here -- PK::Setup() set the leaves, then observations can
+  // use those if provided, and State::Setup finally deals with all secondaries
+  // and allocates memory
   pk_->set_tags(Amanzi::Tags::CURRENT, Amanzi::Tags::NEXT);
   pk_->parseParameterList();
   pk_->Setup();

@@ -442,7 +442,6 @@ Transport_ATS::SetupTransport_()
         std::string bc_type = bc_list.get<std::string>("spatial distribution method", "none");
 
         if (bc_type == "domain coupling") {
-          // See amanzi ticket #646 -- this should probably be tag_current_?
           // domain couplings are special -- they always work on all components
           Teuchos::RCP<TransportDomainFunction> bc =
             factory.Create(bc_list, "fields", AmanziMesh::Entity_kind::FACE, Kxy_, tag_current_);
@@ -462,7 +461,6 @@ Transport_ATS::SetupTransport_()
           int gid = std::stoi(domain_.substr(last_of + 1, domain_.size()));
           bc_list.set("entity_gid_out", gid);
 
-          // See amanzi ticket #646 -- this should probably be tag_current_?
           Teuchos::RCP<TransportDomainFunction> bc = factory.Create(
             bc_list, "boundary concentration", AmanziMesh::Entity_kind::FACE, Kxy_, tag_current_);
 
@@ -474,7 +472,6 @@ Transport_ATS::SetupTransport_()
           bcs_.push_back(bc);
 
         } else {
-          // See amanzi ticket #646 -- this should probably be tag_current_?
           Teuchos::RCP<TransportDomainFunction> bc =
             factory.Create(bc_list,
                            "boundary concentration function",

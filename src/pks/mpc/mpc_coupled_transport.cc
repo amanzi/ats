@@ -72,7 +72,8 @@ MPCCoupledTransport::parseParameterList()
     src_coupling.set<Teuchos::Array<std::string>>("regions", regs);
     Teuchos::ParameterList& tmp = src_coupling.sublist("fields");
     tmp.set<std::string>("flux key", ss_flux_key);
-    // NOTE: FIXME --ETC amanzi/amanzi#646
+    // NOTE: FIXME --ETC amanzi/amanzi#646 Currently flux field is hard-coded
+    // as NEXT both here and as transport PK's flow_tag
     tmp.set<std::string>("flux copy key", Tags::NEXT.get());
     tmp.set<std::string>("conserved quantity key", surf_tcc_key);
     tmp.set<std::string>("conserved quantity copy key", tag_next_.get());
