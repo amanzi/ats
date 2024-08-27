@@ -74,13 +74,11 @@ Solves an advection-diffusion equation for energy:
     * `"source key`" ``[string]`` **DOMAIN-total_energy_source** Typically
       not set, as the default is good. ``[MJ s^-1]``
 
-    * `"source term is differentiable`" ``[bool]`` **true** Can the source term
-      be differentiated with respect to the primary variable?
-
-    * `"source term finite difference`" ``[bool]`` **false** If the source term
-      is not diffferentiable, we can do a finite difference approximation of
-      this derivative anyway.  This is useful for difficult-to-differentiate
-      terms like a surface energy balance, which includes many terms.
+    * `"source term finite difference`" ``[bool]`` **false** Option to do a
+      finite difference approximation of the source term's derivative with
+      respect to the primary variable.  This is useful for
+      difficult-to-differentiate terms like a surface energy balance, which
+      includes many terms.
 
     END
 

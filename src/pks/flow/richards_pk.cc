@@ -59,7 +59,9 @@ Richards::Richards(Teuchos::ParameterList& pk_tree,
     jacobian_lag_(0),
     iter_(0),
     iter_counter_time_(0.),
-    fixed_kr_(false)
+    fixed_kr_(false),
+    is_source_term_(false),
+    is_source_term_differentiable_(false)
 {}
 
 
@@ -111,7 +113,6 @@ Richards::parseParameterList()
     if (source_key_.empty()) {
       source_key_ = Keys::readKey(*plist_, domain_, "source", "water_source");
     }
-    source_term_is_differentiable_ = plist_->get<bool>("source term is differentiable", true);
     explicit_source_ = plist_->get<bool>("explicit source term", false);
   }
 
@@ -378,10 +379,10 @@ Richards::SetupRichardsFlow_()
     requireAtNext(source_key_, tag_next_, *S_)
       .SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-    if (source_term_is_differentiable_) {
+    if (!explicit_source_ && S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
+      is_source_term_differentiable_ = true;
       // require derivative of source
-      S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
-        source_key_, tag_next_, key_, tag_next_);
+      S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(source_key_, tag_next_, key_, tag_next_);
     }
   }
 

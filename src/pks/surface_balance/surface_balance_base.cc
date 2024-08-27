@@ -33,13 +33,15 @@ SurfaceBalanceBase::parseParameterList()
   PK_PhysicalBDF_Default::parseParameterList();
 
   // source terms
-  eps_ = plist_->get<double>("source term finite difference epsilon", 1.e-8);
-  is_source_ = plist_->get<bool>("source term", true);
-  if (is_source_ && source_key_.empty()) {
+  is_source_term_ = plist_->get<bool>("source term", true);
+  if (is_source_term_ && source_key_.empty()) {
     source_key_ = Keys::readKey(*plist_, domain_, "source", "source_sink");
+
+    is_source_term_finite_differentiable_ = plist_->get<bool>("source term finite difference", false);
+    if (is_source_term_finite_differentiable_) {
+      eps_ = plist_->get<double>("source term finite difference epsilon", 1.e-8);
+    }
   }
-  source_finite_difference_ = plist_->get<bool>("source term finite difference", false);
-  is_source_differentiable_ = plist_->get<bool>("source term is differentiable", true);
 
   modify_predictor_positivity_preserving_ =
     plist_->get<bool>("modify predictor positivity preserving", false);
@@ -69,24 +71,17 @@ SurfaceBalanceBase::Setup()
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   // requirements: source terms from above
-  if (is_source_) {
+  if (is_source_term_) {
     if (theta_ > 0) {
       requireAtNext(source_key_, tag_next_, *S_)
         .SetMesh(mesh_)
         ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
-      if (is_source_differentiable_ && !source_finite_difference_
-          // this cannot work in general yet, see amanzi/ats#167
-          //&& S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)
-      ) {
+      if (!is_source_term_finite_differentiable_
+          && S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
+        is_source_term_differentiable_ = true;
         S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
-            source_key_, tag_next_, key_, tag_next_)
-          .SetMesh(mesh_)
-          ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-        // NOTE, remove SetMesh/AddComponent lines after fixing amanzi/ats#167.
-        // The mesh should get set by the evaluator, but when
-        // the evaluator isn't actually differentiable, it
-        // doesn't get done.
+          source_key_, tag_next_, key_, tag_next_);
       }
     }
     if (theta_ < 1) {
@@ -103,13 +98,7 @@ SurfaceBalanceBase::Setup()
       .SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
-      conserved_key_, tag_next_, key_, tag_next_)
-          .SetMesh(mesh_)
-          ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-        // NOTE, remove SetMesh/AddComponent lines after fixing amanzi/ats#167.
-        // The mesh should get set by the evaluator, but when
-        // the evaluator isn't actually differentiable, it
-        // doesn't get done.
+      conserved_key_, tag_next_, key_, tag_next_);
 
     //    and at the current time, where it is a copy evaluator
     requireAtCurrent(conserved_key_, tag_current_, *S_, name_);
@@ -197,7 +186,7 @@ SurfaceBalanceBase::FunctionalResidual(double t_old,
   S_->GetEvaluator(cell_vol_key_, tag_next_).Update(*S_, name_);
   auto& cv = S_->Get<CompositeVector>(cell_vol_key_, tag_next_);
 
-  if (is_source_) {
+  if (is_source_term_) {
     if (theta_ < 1.0) {
       //S_->GetEvaluator(source_key_, tag_current_).Update(*S_, name_);
       g->Data()->Multiply(
@@ -240,14 +229,13 @@ SurfaceBalanceBase::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector
     preconditioner_acc_->AddAccumulationTerm(*dconserved_dT, h, "cell", false);
 
     // add derivative of source wrt primary
-    if (theta_ > 0.0 && is_source_ && is_source_differentiable_ &&
-        S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
+    if (theta_ > 0.0 && is_source_term_) {
       Teuchos::RCP<const CompositeVector> dsource_dT;
-      if (!source_finite_difference_) {
+      if (is_source_term_differentiable_) {
         // evaluate the derivative through chain rule and the DAG
         S_->GetEvaluator(source_key_, tag_next_).UpdateDerivative(*S_, name_, key_, tag_next_);
         dsource_dT = S_->GetDerivativePtr<CompositeVector>(source_key_, tag_next_, key_, tag_next_);
-      } else {
+      } else if (is_source_term_finite_differentiable_) {
         // evaluate the derivative through finite differences
         S_->GetW<CompositeVector>(key_, tag_next_, name_).Shift(eps_);
         ChangedSolution();
@@ -264,8 +252,10 @@ SurfaceBalanceBase::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector
         dsource_dT = dsource_dT_nc;
       }
 
-      db_->WriteVector("d(Q)/d(prim)", dsource_dT.ptr());
-      preconditioner_acc_->AddAccumulationTerm(*dsource_dT, -1.0 / theta_, "cell", true);
+      if (dsource_dT != Teuchos::null) {
+        db_->WriteVector("d(Q)/d(prim)", dsource_dT.ptr());
+        preconditioner_acc_->AddAccumulationTerm(*dsource_dT, -1.0 / theta_, "cell", true);
+      }
     }
   }
 }

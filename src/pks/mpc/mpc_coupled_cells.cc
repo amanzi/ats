@@ -93,10 +93,9 @@ MPCCoupledCells::Setup()
   S_->RequireEvaluator(A_key_, tag_next_);
   S_->RequireEvaluator(y2_key_, tag_next_);
 
-  // BROKEN CONCEPT: See Amanzi ticket #654
-  // if (S_->GetEvaluator(A_key_, tag_next_).IsDifferentiableWRT(*S_, y2_key_, tag_next_))
-  S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
-    A_key_, tag_next_, y2_key_, tag_next_);
+  if (S_->GetEvaluator(A_key_, tag_next_).IsDifferentiableWRT(*S_, y2_key_, tag_next_))
+    S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
+      A_key_, tag_next_, y2_key_, tag_next_);
 
   if (!plist_->get<bool>("no dA/dy2 block", false)) {
     Teuchos::ParameterList& acc_pc_plist = plist_->sublist("dA_dy2 accumulation preconditioner");
@@ -114,10 +113,9 @@ MPCCoupledCells::Setup()
   S_->RequireEvaluator(B_key_, tag_next_);
   S_->RequireEvaluator(y1_key_, tag_next_);
 
-  // BROKEN CONCEPT: See Amanzi ticket #654
-  // if (S_->GetEvaluator(B_key_, tag_next_).IsDifferentiableWRT(*S_, y1_key_, tag_next_))
-  S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
-    B_key_, tag_next_, y1_key_, tag_next_);
+  if (S_->GetEvaluator(B_key_, tag_next_).IsDifferentiableWRT(*S_, y1_key_, tag_next_))
+    S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
+      B_key_, tag_next_, y1_key_, tag_next_);
 
   if (!plist_->get<bool>("no dB/dy1 block", false)) {
     Teuchos::ParameterList& acc_pc_plist = plist_->sublist("dB_dy1 accumulation preconditioner");

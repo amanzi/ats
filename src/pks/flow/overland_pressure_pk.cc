@@ -41,6 +41,7 @@ OverlandPressureFlow::OverlandPressureFlow(Teuchos::ParameterList& pk_tree,
     PK_PhysicalBDF_Default(pk_tree, plist, S, solution),
     standalone_mode_(false),
     is_source_term_(false),
+    is_source_term_differentiable_(false),
     coupled_to_subsurface_via_head_(false),
     coupled_to_subsurface_via_flux_(false),
     perm_update_required_(true),
@@ -379,9 +380,8 @@ OverlandPressureFlow::SetupPhysicalEvaluators_()
       .SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
-
-    source_term_is_differentiable_ = plist_->get<bool>("source term is differentiable", true);
-    if (source_term_is_differentiable_) {
+    if (S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
+      is_source_term_differentiable_ = true;
       // require derivative of source
       S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
         source_key_, tag_next_, key_, tag_next_);

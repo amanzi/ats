@@ -48,7 +48,10 @@ EnergyBase::EnergyBase(Teuchos::ParameterList& FElist,
     coupled_to_surface_via_flux_(false),
     decoupled_from_subsurface_(false),
     niter_(0),
-    flux_exists_(true)
+    flux_exists_(true),
+    is_source_term_(false),
+    is_source_term_differentiable_(false),
+    is_source_term_finite_differentiable_(false)
 {}
 
 
@@ -91,9 +94,8 @@ EnergyBase::parseParameterList()
   is_source_term_ = plist_->get<bool>("source term", false);
   if (is_source_term_ && source_key_.empty()) {
     source_key_ = Keys::readKey(*plist_, domain_, "source", "total_energy_source");
+    is_source_term_finite_differentiable_ = plist_->get<bool>("source term finite difference", false);
   }
-  is_source_term_differentiable_ = plist_->get<bool>("source term is differentiable", true);
-  is_source_term_finite_differentiable_ = plist_->get<bool>("source term finite difference", false);
 
   // get keys
   wc_key_ = Keys::readKey(*plist_, domain_, "water content", "water_content");
@@ -164,18 +166,12 @@ EnergyBase::SetupEnergy_()
       .SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
-    if (is_source_term_differentiable_ && (!is_source_term_finite_differentiable_)) {
-      // NOTE, the following line is commented out because of the bug, amanzi/ats#167
-      //&& S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
+    if (!is_source_term_finite_differentiable_
+        && S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
+      is_source_term_differentiable_ = true;
       // require derivative of source
       S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
-          source_key_, tag_next_, key_, tag_next_)
-        .SetMesh(mesh_)
-        ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-      // NOTE, remove SetMesh/AddComponent lines after fixing amanzi/ats#167.
-      // The mesh should get set by the evaluator, but when
-      // the evaluator isn't actually differentiable, it
-      // doesn't get done.
+        source_key_, tag_next_, key_, tag_next_);
     }
   }
 

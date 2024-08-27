@@ -110,15 +110,14 @@ MPCSubsurface::Setup()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireEvaluator(rho_key_, tag_next_);
 
-  // see amanzi/ats#167
-  // if (S_->GetEvaluator(e_key_, tag_next_).IsDifferentiableWRT(*S_, pres_key_, tag_next_)) {
-  S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
-    e_key_, tag_next_, pres_key_, tag_next_, e_key_);
-  // }
-  // if (S_->GetEvaluator(wc_key_, tag_next_).IsDifferentiableWRT(*S_, temp_key_, tag_next_)) {
-  S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
-    wc_key_, tag_next_, temp_key_, tag_next_, wc_key_);
-  // }
+  if (S_->GetEvaluator(e_key_, tag_next_).IsDifferentiableWRT(*S_, pres_key_, tag_next_)) {
+    S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
+      e_key_, tag_next_, pres_key_, tag_next_, e_key_);
+  }
+  if (S_->GetEvaluator(wc_key_, tag_next_).IsDifferentiableWRT(*S_, temp_key_, tag_next_)) {
+    S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
+      wc_key_, tag_next_, temp_key_, tag_next_, wc_key_);
+  }
 
   // Get the sub-blocks from the sub-PK's preconditioners.
   Teuchos::RCP<Operators::Operator> pcA = sub_pks_[0]->preconditioner();
@@ -213,16 +212,15 @@ MPCSubsurface::Setup()
     }
 
     // -- derivatives of water content with respect to temperature
-    // see amanzi/ats#167
-    // if (S_->GetEvaluator(wc_key_, tag_next_).IsDifferentiableWRT(*S_, temp_key_, tag_next_)) {
-    if (dWC_dT_block_ == Teuchos::null) {
-      dWC_dT_ = Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, mesh_));
-      dWC_dT_block_ = dWC_dT_->global_operator();
-    } else {
-      dWC_dT_ =
-        Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, dWC_dT_block_));
+    if (S_->GetEvaluator(wc_key_, tag_next_).IsDifferentiableWRT(*S_, temp_key_, tag_next_)) {
+      if (dWC_dT_block_ == Teuchos::null) {
+        dWC_dT_ = Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, mesh_));
+        dWC_dT_block_ = dWC_dT_->global_operator();
+      } else {
+        dWC_dT_ =
+          Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, dWC_dT_block_));
+      }
     }
-    // }
 
     // Create the block for derivatives of energy conservation with respect to pressure
     // -- derivatives of thermal conductivity with respect to pressure
@@ -373,16 +371,15 @@ MPCSubsurface::Setup()
     }
 
     // -- derivatives of energy with respect to pressure
-    // see amanzi/ats#167
-    // if (S_->GetEvaluator(wc_key_, tag_next_).IsDifferentiableWRT(*S_, temp_key_, tag_next_)) {
-    if (dE_dp_block_ == Teuchos::null) {
-      dE_dp_ = Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, mesh_));
-      dE_dp_block_ = dE_dp_->global_operator();
-    } else {
-      dE_dp_ =
-        Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, dE_dp_block_));
+    if (S_->GetEvaluator(wc_key_, tag_next_).IsDifferentiableWRT(*S_, temp_key_, tag_next_)) {
+      if (dE_dp_block_ == Teuchos::null) {
+        dE_dp_ = Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, mesh_));
+        dE_dp_block_ = dE_dp_->global_operator();
+      } else {
+        dE_dp_ =
+          Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, dE_dp_block_));
+      }
     }
-    // }
 
     AMANZI_ASSERT(dWC_dT_block_ != Teuchos::null);
     AMANZI_ASSERT(dE_dp_block_ != Teuchos::null);

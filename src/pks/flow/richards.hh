@@ -51,9 +51,6 @@ Solves Richards equation:
 
    * `"source key`" ``[string]`` **DOMAIN-water_source** Typically not
      set, as the default is good. ``[mol s^-1]``
-   * `"source term is differentiable`" ``[bool]`` **true** Can the
-     source term be differentiated with respect to the primary
-     variable?
    * `"explicit source term`" ``[bool]`` **false** Apply the source
      term from the previous time step.
 
@@ -360,7 +357,7 @@ class Richards : public PK_PhysicalBDF_Default {
   bool modify_predictor_wc_;
   bool symmetric_;
   bool is_source_term_;
-  bool source_term_is_differentiable_;
+  bool is_source_term_differentiable_;
   bool explicit_source_;
   std::string clobber_policy_;
   bool clobber_boundary_flux_dir_;
