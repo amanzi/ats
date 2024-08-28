@@ -10,10 +10,8 @@ concepts are introduced here.
 
    domain
    region
-   variable_name
    tag
-   record
-   record_set
+   variables
    evaluator
    state
    pk
