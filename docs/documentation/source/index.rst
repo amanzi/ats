@@ -61,6 +61,8 @@ User Guide
 .. toctree::
    :maxdepth: 1
 
+   developer/concepts/index
+   developer/examples/index
    demos
    input_spec/index
 
