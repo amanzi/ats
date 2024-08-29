@@ -13,9 +13,8 @@ concepts are introduced here.
    tag
    variables
    evaluator
-   state
    pk
-   mpc
+
 
 
 

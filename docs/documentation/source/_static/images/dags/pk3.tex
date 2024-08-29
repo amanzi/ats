@@ -1,0 +1,59 @@
+
+\documentclass{report}
+\usepackage{tikz}
+\usepackage[active,tightpage]{preview}
+\PreviewEnvironment{tikzpicture}
+\setlength\PreviewBorder{5pt}
+\usepackage{subcaption}
+\usepackage{xcolor}
+
+\definecolor{physical}{HTML}{ff8811}
+\definecolor{mpc}{HTML}{9dd9d2}
+
+\begin{document}
+\begin{figure}
+  \begin{tikzpicture}
+      \draw
+        (0.0, 0.0) node[rectangle, shading=axis, left color=mpc!60!white, right color = mpc!30!white,shading angle=-45, anchor=north,style={draw=mpc, align=center},minimum height=2em, minimum width=4em, font=\normalsize,scale=2, rounded corners] (tlc){Top Level Coupler \\ \hrulefill \\ MPC: Custom}
+        (-10.5, -4.0) node[rectangle, shading=axis, left color=mpc!60!white, right color = mpc!30!white,shading angle=-45, anchor=north,style={draw=mpc, align=center},minimum height=2em, minimum width=4em, font=\normalsize,scale=2, rounded corners] (surf_star){Surface Lateral \\ \hrulefill \\ MPC: Custom}
+        (-13.5, -8.0) node[rectangle, shading=axis, left color=physical!60!white, right color = physical!30!white,shading angle=-45, anchor=north,style={draw=physical, align=center},minimum height=2em, minimum width=4em, font=\normalsize,scale=2, rounded corners] (surf_flow){Surface Flow}
+        (-7.5, -8.0) node[rectangle, shading=axis, left color=physical!60!white, right color = physical!30!white,shading angle=-45, anchor=north,style={draw=physical, align=center},minimum height=2em, minimum width=4em, font=\normalsize,scale=2, rounded corners] (surf_energy){Surface Energy \\ Transport}
+        (10.5, -4.0) node[rectangle, shading=axis, left color=mpc!60!white, right color = mpc!30!white,shading angle=-45, anchor=north,style={draw=mpc, align=center},minimum height=2em, minimum width=4em, font=\normalsize,scale=2, rounded corners] (column_coupler){Column Coupler \\ \hrulefill \\ MPC: Subcycling}
+        (-4.5, -12.0) node[rectangle, shading=axis, left color=mpc!60!white, right color = mpc!30!white,shading angle=-45, anchor=north,style={draw=mpc, align=center},minimum height=2em, minimum width=4em, font=\normalsize,scale=2, rounded corners] (permafrost1){}
+        (-13.5, -16.0) node[rectangle, shading=axis, left color=physical!60!white, right color = physical!30!white,shading angle=-45, anchor=north,style={draw=physical, align=center},minimum height=2em, minimum width=4em, font=\normalsize,scale=2, rounded corners] (richards1){}
+        (-7.5, -16.0) node[rectangle, shading=axis, left color=physical!60!white, right color = physical!30!white,shading angle=-45, anchor=north,style={draw=physical, align=center},minimum height=2em, minimum width=4em, font=\normalsize,scale=2, rounded corners] (sub_energy1){}
+        (-1.5, -16.0) node[rectangle, shading=axis, left color=physical!60!white, right color = physical!30!white,shading angle=-45, anchor=north,style={draw=physical, align=center},minimum height=2em, minimum width=4em, font=\normalsize,scale=2, rounded corners] (overland1){}
+        (4.5, -16.0) node[rectangle, shading=axis, left color=physical!60!white, right color = physical!30!white,shading angle=-45, anchor=north,style={draw=physical, align=center},minimum height=2em, minimum width=4em, font=\normalsize,scale=2, rounded corners] (surf_energy1){}
+        (-1.5, -8.0) node[rectangle, shading=axis, left color=mpc!60!white, right color = mpc!30!white,shading angle=-45, anchor=north,style={draw=mpc, align=center},minimum height=2em, minimum width=4em, font=\normalsize,scale=2, rounded corners] (coupler1){Column 0}
+        (1.5, -12.0) node[rectangle, shading=axis, left color=physical!60!white, right color = physical!30!white,shading angle=-45, anchor=north,style={draw=physical, align=center},minimum height=2em, minimum width=4em, font=\normalsize,scale=2, rounded corners] (snow1){}
+        (19.5, -12.0) node[rectangle, shading=axis, left color=mpc!60!white, right color = mpc!30!white,shading angle=-45, anchor=north,style={draw=mpc, align=center},minimum height=2em, minimum width=4em, font=\normalsize,scale=2, rounded corners] (permafrost2){}
+        (10.5, -16.0) node[rectangle, shading=axis, left color=physical!60!white, right color = physical!30!white,shading angle=-45, anchor=north,style={draw=physical, align=center},minimum height=2em, minimum width=4em, font=\normalsize,scale=2, rounded corners] (richards2){}
+        (16.5, -16.0) node[rectangle, shading=axis, left color=physical!60!white, right color = physical!30!white,shading angle=-45, anchor=north,style={draw=physical, align=center},minimum height=2em, minimum width=4em, font=\normalsize,scale=2, rounded corners] (sub_energy2){}
+        (22.5, -16.0) node[rectangle, shading=axis, left color=physical!60!white, right color = physical!30!white,shading angle=-45, anchor=north,style={draw=physical, align=center},minimum height=2em, minimum width=4em, font=\normalsize,scale=2, rounded corners] (overland2){}
+        (28.5, -16.0) node[rectangle, shading=axis, left color=physical!60!white, right color = physical!30!white,shading angle=-45, anchor=north,style={draw=physical, align=center},minimum height=2em, minimum width=4em, font=\normalsize,scale=2, rounded corners] (surf_energy2){}
+        (22.5, -8.0) node[rectangle, shading=axis, left color=mpc!60!white, right color = mpc!30!white,shading angle=-45, anchor=north,style={draw=mpc, align=center},minimum height=2em, minimum width=4em, font=\normalsize,scale=2, rounded corners] (coupler2){Column N}
+        (25.5, -12.0) node[rectangle, shading=axis, left color=physical!60!white, right color = physical!30!white,shading angle=-45, anchor=north,style={draw=physical, align=center},minimum height=2em, minimum width=4em, font=\normalsize,scale=2, rounded corners] (snow2){};
+      \begin{scope}[->]
+        \draw (tlc) to (surf_star);
+        \draw (tlc) to (column_coupler);
+        \draw (surf_star) to (surf_flow);
+        \draw (surf_star) to (surf_energy);
+        \draw (column_coupler) to (coupler1);
+        \draw (column_coupler) to (coupler2);
+        \draw (permafrost1) to (richards1);
+        \draw (permafrost1) to (overland1);
+        \draw (permafrost1) to (sub_energy1);
+        \draw (permafrost1) to (surf_energy1);
+        \draw (coupler1) to (permafrost1);
+        \draw (coupler1) to (snow1);
+        \draw (permafrost2) to (richards2);
+        \draw (permafrost2) to (overland2);
+        \draw (permafrost2) to (sub_energy2);
+        \draw (permafrost2) to (surf_energy2);
+        \draw (coupler2) to (permafrost2);
+        \draw (coupler2) to (snow2);
+      \end{scope}
+      \draw[loosely dashed, line width=5] (coupler1) to (coupler2);
+  \end{tikzpicture}
+\end{figure}
+\end{document}

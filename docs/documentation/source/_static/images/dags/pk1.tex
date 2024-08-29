@@ -1,0 +1,26 @@
+
+\documentclass{report}
+\usepackage{tikz}
+\usepackage[active,tightpage]{preview}
+\PreviewEnvironment{tikzpicture}
+\setlength\PreviewBorder{5pt}
+\usepackage{subcaption}
+\usepackage{xcolor}
+
+\definecolor{physical}{HTML}{ff8811}
+\definecolor{mpc}{HTML}{9dd9d2}
+
+\begin{document}
+\begin{figure}
+  \begin{tikzpicture}
+      \draw
+        (0.0, 0.0) node[rectangle, shading=axis, left color=mpc!60!white, right color = mpc!30!white,shading angle=-45, anchor=north,style={draw=mpc, align=center},minimum height=2em, minimum width=4em, font=\normalsize,scale=2, rounded corners] (coupled water){Coupled Water \\ \hrulefill \\ MPC: Custom}
+        (-3.0, -4.0) node[rectangle, shading=axis, left color=physical!60!white, right color = physical!30!white,shading angle=-45, anchor=north,style={draw=physical, align=center},minimum height=2em, minimum width=4em, font=\normalsize,scale=2, rounded corners] (richards){Richards Flow}
+        (3.0, -4.0) node[rectangle, shading=axis, left color=physical!60!white, right color = physical!30!white,shading angle=-45, anchor=north,style={draw=physical, align=center},minimum height=2em, minimum width=4em, font=\normalsize,scale=2, rounded corners] (overland){Overland Flow};
+      \begin{scope}[->]
+        \draw (coupled water) to (richards);
+        \draw (coupled water) to (overland);
+      \end{scope}
+    \end{tikzpicture}
+\end{figure}
+\end{document}
