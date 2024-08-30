@@ -19,7 +19,11 @@ SurfaceBalanceBase::SurfaceBalanceBase(Teuchos::ParameterList& pk_tree,
                                        const Teuchos::RCP<Teuchos::ParameterList>& global_list,
                                        const Teuchos::RCP<State>& S,
                                        const Teuchos::RCP<TreeVector>& solution)
-  : PK(pk_tree, global_list, S, solution), PK_PhysicalBDF_Default(pk_tree, global_list, S, solution)
+  : PK(pk_tree, global_list, S, solution),
+    PK_PhysicalBDF_Default(pk_tree, global_list, S, solution),
+    is_source_term_(false),
+    is_source_term_differentiable_(false),
+    is_source_term_finite_differentiable_(false)
 {}
 
 
