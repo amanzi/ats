@@ -48,8 +48,37 @@ EnergyBase::EnergyBase(Teuchos::ParameterList& FElist,
     coupled_to_surface_via_flux_(false),
     decoupled_from_subsurface_(false),
     niter_(0),
-    flux_exists_(true)
+    flux_exists_(true),
+    is_source_term_(false),
+    is_source_term_differentiable_(false),
+    is_source_term_finite_differentiable_(false)
+{}
+
+
+
+// call to allow a PK to modify its own list or lists of its children.
+void
+EnergyBase::parseParameterList()
 {
+  if (!plist_->isParameter("absolute error tolerance")) {
+    plist_->set("absolute error tolerance", 76.e-6);
+    // energy of 1 degree C of water per mass_atol, in MJ/mol water
+  }
+
+  // set some defaults for inherited PKs
+  if (!plist_->isParameter("conserved quantity key suffix"))
+    plist_->set<std::string>("conserved quantity key suffix", "energy");
+
+  // need to deprecate the use of enthalpy list in the PK! --ETC
+  enthalpy_key_ = Keys::readKey(*plist_, domain_, "enthalpy", "enthalpy");
+  if (plist_->isSublist("enthalpy evaluator")) {
+    Teuchos::ParameterList& enth_list = S_->GetEvaluatorList(enthalpy_key_);
+    enth_list.setParameters(plist_->sublist("enthalpy evaluator"));
+    enth_list.set<std::string>("evaluator type", "enthalpy");
+  }
+
+  PK_PhysicalBDF_Default::parseParameterList();
+
   // set a default error tolerance
   if (domain_.find("surface") != std::string::npos) {
     mass_atol_ = plist_->get<double>("mass absolute error tolerance", .01 * 55000.);
@@ -60,23 +89,16 @@ EnergyBase::EnergyBase(Teuchos::ParameterList& FElist,
     // porosity * particle density soil * heat capacity soil * 1 degree
     // or, dry bulk density soil * heat capacity soil * 1 degree, in MJ
   }
-  if (!plist_->isParameter("absolute error tolerance")) {
-    plist_->set("absolute error tolerance", 76.e-6);
-    // energy of 1 degree C of water per mass_atol, in MJ/mol water
-  }
 
   // source terms
   is_source_term_ = plist_->get<bool>("source term", false);
   if (is_source_term_ && source_key_.empty()) {
     source_key_ = Keys::readKey(*plist_, domain_, "source", "total_energy_source");
+    is_source_term_finite_differentiable_ = plist_->get<bool>("source term finite difference", false);
   }
-  is_source_term_differentiable_ = plist_->get<bool>("source term is differentiable", true);
-  is_source_term_finite_differentiable_ = plist_->get<bool>("source term finite difference", false);
 
   // get keys
-  conserved_key_ = Keys::readKey(*plist_, domain_, "conserved quantity", "energy");
   wc_key_ = Keys::readKey(*plist_, domain_, "water content", "water_content");
-  enthalpy_key_ = Keys::readKey(*plist_, domain_, "enthalpy", "enthalpy");
   flux_key_ = Keys::readKey(*plist_, domain_, "water flux", "water_flux");
   energy_flux_key_ =
     Keys::readKey(*plist_, domain_, "diffusive energy flux", "diffusive_energy_flux");
@@ -144,18 +166,12 @@ EnergyBase::SetupEnergy_()
       .SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
-    if (is_source_term_differentiable_ && (!is_source_term_finite_differentiable_)) {
-      // NOTE, the following line is commented out because of the bug, amanzi/ats#167
-      //&& S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
+    if (!is_source_term_finite_differentiable_
+        && S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
+      is_source_term_differentiable_ = true;
       // require derivative of source
       S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
-          source_key_, tag_next_, key_, tag_next_)
-        .SetMesh(mesh_)
-        ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-      // NOTE, remove SetMesh/AddComponent lines after fixing amanzi/ats#167.
-      // The mesh should get set by the evaluator, but when
-      // the evaluator isn't actually differentiable, it
-      // doesn't get done.
+        source_key_, tag_next_, key_, tag_next_);
     }
   }
 
@@ -286,11 +302,6 @@ EnergyBase::SetupEnergy_()
   // -- set up the evaluator for enthalpy, whether or not we advect the thing,
   //    we may need it for exchange fluxes with surface/subsurface coupling,
   //    etc.
-  if (plist_->isSublist("enthalpy evaluator")) {
-    Teuchos::ParameterList& enth_list = S_->GetEvaluatorList(enthalpy_key_);
-    enth_list.setParameters(plist_->sublist("enthalpy evaluator"));
-    enth_list.set<std::string>("evaluator type", "enthalpy");
-  }
   is_advection_term_ = plist_->get<bool>("include thermal advection", true);
   if (is_advection_term_) {
     // -- create the forward operator for the advection term

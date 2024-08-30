@@ -304,6 +304,8 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
 
   ~Transport_ATS() = default;
 
+  void parseParameterList() override;
+
   // members required by PK interface
   virtual void Setup() override;
 

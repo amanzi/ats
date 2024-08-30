@@ -67,6 +67,15 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
     current_component_(-1),
     flag_dispersion_(false)
 {
+  // initialize io
+  units_.Init(global_plist->sublist("units"));
+}
+
+void
+Transport_ATS::parseParameterList()
+{
+  PK_PhysicalExplicit<Epetra_Vector>::parseParameterList();
+
   if (plist_->isParameter("component molar masses")) {
     mol_masses_ = plist_->get<Teuchos::Array<double>>("component molar masses").toVector();
   } else {
@@ -74,14 +83,15 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
     Exceptions::amanzi_throw(msg);
   }
 
-  // initialize io
-  units_.Init(global_plist->sublist("units"));
+  // primary variable
+  tcc_key_ = Keys::readKey(*plist_, domain_, "concentration", "total_component_concentration");
+  requireAtNext(tcc_key_, tag_next_, *S_, passwd_);
+  requireAtCurrent(tcc_key_, tag_current_, *S_, passwd_);
 
   // keys, dependencies, etc
   saturation_key_ = Keys::readKey(*plist_, domain_, "saturation liquid", "saturation_liquid");
   flux_key_ = Keys::readKey(*plist_, domain_, "water flux", "water_flux");
   permeability_key_ = Keys::readKey(*plist_, domain_, "permeability", "permeability");
-  tcc_key_ = Keys::readKey(*plist_, domain_, "concentration", "total_component_concentration");
   conserve_qty_key_ =
     Keys::readKey(*plist_, domain_, "conserved quantity", "total_component_quantity");
   porosity_key_ = Keys::readKey(*plist_, domain_, "porosity", "porosity");
@@ -432,7 +442,6 @@ Transport_ATS::SetupTransport_()
         std::string bc_type = bc_list.get<std::string>("spatial distribution method", "none");
 
         if (bc_type == "domain coupling") {
-          // See amanzi ticket #646 -- this should probably be tag_current_?
           // domain couplings are special -- they always work on all components
           Teuchos::RCP<TransportDomainFunction> bc =
             factory.Create(bc_list, "fields", AmanziMesh::Entity_kind::FACE, Kxy_, tag_current_);
@@ -452,7 +461,6 @@ Transport_ATS::SetupTransport_()
           int gid = std::stoi(domain_.substr(last_of + 1, domain_.size()));
           bc_list.set("entity_gid_out", gid);
 
-          // See amanzi ticket #646 -- this should probably be tag_current_?
           Teuchos::RCP<TransportDomainFunction> bc = factory.Create(
             bc_list, "boundary concentration", AmanziMesh::Entity_kind::FACE, Kxy_, tag_current_);
 
@@ -464,7 +472,6 @@ Transport_ATS::SetupTransport_()
           bcs_.push_back(bc);
 
         } else {
-          // See amanzi ticket #646 -- this should probably be tag_current_?
           Teuchos::RCP<TransportDomainFunction> bc =
             factory.Create(bc_list,
                            "boundary concentration function",

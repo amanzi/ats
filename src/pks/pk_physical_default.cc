@@ -24,13 +24,25 @@ PK_Physical_Default::PK_Physical_Default(Teuchos::ParameterList& pk_tree,
                                          const Teuchos::RCP<Teuchos::ParameterList>& glist,
                                          const Teuchos::RCP<State>& S,
                                          const Teuchos::RCP<TreeVector>& solution)
-  : PK(pk_tree, glist, S, solution), PK_Physical(pk_tree, glist, S, solution)
+  : PK(pk_tree, glist, S, solution),
+    PK_Physical(pk_tree, glist, S, solution),
+    max_valid_change_(-1.0)
+{}
+
+void
+PK_Physical_Default::parseParameterList()
 {
+  // require primary variable evaluators
   key_ = Keys::readKey(*plist_, domain_, "primary variable");
+  requireAtNext(key_, tag_next_, *S_, name_);
+  requireAtCurrent(key_, tag_current_, *S_, name_);
 
   // primary variable max change
   max_valid_change_ = plist_->get<double>("max valid change", -1.0);
+
+  PK_Physical::parseParameterList();
 }
+
 
 // -----------------------------------------------------------------------------
 // Construction of data.
@@ -39,9 +51,6 @@ PK_Physical_Default::PK_Physical_Default(Teuchos::ParameterList& pk_tree,
 void
 PK_Physical_Default::Setup()
 {
-  // get the mesh
-  mesh_ = S_->GetMesh(domain_);
-
   // set up the debugger
   Teuchos::RCP<Teuchos::ParameterList> vo_plist = plist_;
   if (plist_->isSublist(name_ + " verbose object")) {
@@ -50,10 +59,6 @@ PK_Physical_Default::Setup()
   }
 
   db_ = Teuchos::rcp(new Debugger(mesh_, name_, *vo_plist));
-
-  // require primary variable evaluators
-  requireAtNext(key_, tag_next_, *S_, name_);
-  requireAtCurrent(key_, tag_current_, *S_, name_);
 };
 
 

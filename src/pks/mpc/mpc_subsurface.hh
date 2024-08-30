@@ -164,6 +164,10 @@ class MPCSubsurface : public StrongMPC<PK_PhysicalBDF_Default> {
                 const Teuchos::RCP<State>& S,
                 const Teuchos::RCP<TreeVector>& soln);
 
+  // read said list
+  virtual void parseParameterList() override;
+
+
   // -- Initialize owned (dependent) variables.
   virtual void Setup() override;
   virtual void Initialize() override;

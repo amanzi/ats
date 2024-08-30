@@ -34,6 +34,9 @@ class MPCCoupledReactiveTransport : public WeakMPC {
                               const Teuchos::RCP<State>& S,
                               const Teuchos::RCP<TreeVector>& soln);
 
+
+  void parseParameterList() override;
+
   // PK methods
   virtual double get_dt() override;
   virtual void Setup() override;

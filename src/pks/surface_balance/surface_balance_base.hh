@@ -63,6 +63,8 @@ class SurfaceBalanceBase : public PK_PhysicalBDF_Default {
                      const Teuchos::RCP<State>& S,
                      const Teuchos::RCP<TreeVector>& solution);
 
+  virtual void parseParameterList() override;
+
   // main methods
   // -- Setup data.
   virtual void Setup() override;
@@ -90,7 +92,9 @@ class SurfaceBalanceBase : public PK_PhysicalBDF_Default {
 
  protected:
   bool conserved_quantity_;
-  bool is_source_, is_source_differentiable_, source_finite_difference_;
+  bool is_source_term_;
+  bool is_source_term_differentiable_;
+  bool is_source_term_finite_differentiable_;
   Key source_key_;
 
   double theta_;

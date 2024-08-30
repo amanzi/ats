@@ -76,6 +76,7 @@ class MPCCoupledCells : public StrongMPC<PK_PhysicalBDF_Default> {
     : PK(FElist, plist, S, solution), StrongMPC<PK_PhysicalBDF_Default>(FElist, plist, S, solution)
   {}
 
+  void parseParameterList() override;
   virtual void Setup() override;
 
   // applies preconditioner to u and returns the result in Pu

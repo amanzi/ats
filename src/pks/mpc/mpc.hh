@@ -64,6 +64,9 @@ class MPC : virtual public PK {
   {}
 
   // PK methods
+  // -- parsing plist
+  virtual void parseParameterList() override;
+
   // -- setup
   virtual void Setup() override;
 
@@ -115,6 +118,14 @@ class MPC : virtual public PK {
 
   SubPKList sub_pks_;
 };
+
+
+template <class PK_t>
+void
+MPC<PK_t>::parseParameterList()
+{
+  for (auto& pk : sub_pks_) pk->parseParameterList();
+}
 
 
 // -----------------------------------------------------------------------------

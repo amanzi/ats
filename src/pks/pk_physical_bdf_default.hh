@@ -75,6 +75,8 @@ class PK_PhysicalBDF_Default : public PK_BDF_Default, public PK_Physical_Default
       PK_Physical_Default(pk_tree, glist, S, solution)
   {}
 
+  virtual void parseParameterList() override;
+
   virtual void Setup() override;
 
   // initialize.  Note both BDFBase and PhysicalBase have initialize()
