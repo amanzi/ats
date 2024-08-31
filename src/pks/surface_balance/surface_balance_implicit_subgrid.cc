@@ -32,21 +32,27 @@ ImplicitSubgrid::ImplicitSubgrid(Teuchos::ParameterList& pk_tree,
                                  const Teuchos::RCP<State>& S,
                                  const Teuchos::RCP<TreeVector>& solution)
   : PK(pk_tree, global_list, S, solution), SurfaceBalanceBase(pk_tree, global_list, S, solution)
+{}
+
+void
+ImplicitSubgrid::parseParameterList()
 {
-  if (!plist_->isParameter("conserved quantity key suffix"))
-    plist_->set("conserved quantity key suffix", "snow_water_equivalent");
-
-  // set up keys
-  Key domain_surf = Keys::readDomainHint(*plist_, domain_, "snow", "surface");
-  snow_dens_key_ = Keys::readKey(*plist_, domain_, "snow density", "density");
-  snow_age_key_ = Keys::readKey(*plist_, domain_, "snow age", "age");
-  new_snow_key_ = Keys::readKey(*plist_, domain_, "new snow source", "source");
-  snow_death_rate_key_ = Keys::readKey(*plist_, domain_, "snow death rate", "death_rate");
-
-  density_snow_max_ = plist_->get<double>("max density of snow [kg m^-3]", 600.);
-
   // set the error tolerance for snow
   plist_->set("absolute error tolerance", 0.01);
+
+  snow_dens_key_ = Keys::readKey(*plist_, domain_, "snow density", "density");
+  requireAtNext(snow_dens_key_, tag_next_, *S_, name_);
+
+  snow_death_rate_key_ = Keys::readKey(*plist_, domain_, "snow death rate", "death_rate");
+  requireAtNext(snow_death_rate_key_, tag_next_, *S_, name_);
+
+  snow_age_key_ = Keys::readKey(*plist_, domain_, "snow age", "age");
+  requireAtNext(snow_age_key_, tag_next_, *S_, name_);
+
+  new_snow_key_ = Keys::readKey(*plist_, domain_, "new snow source", "source");
+  density_snow_max_ = plist_->get<double>("max density of snow [kg m^-3]", 600.);
+
+  SurfaceBalanceBase::parseParameterList();
 }
 
 // main methods

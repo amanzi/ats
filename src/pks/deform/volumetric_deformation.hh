@@ -129,7 +129,8 @@ class VolumetricDeformation : public PK_Physical_Default {
                         const Teuchos::RCP<State>& S,
                         const Teuchos::RCP<TreeVector>& solution);
 
-  // ConstantTemperature is a PK
+  void parseParameterList() override;
+
   // -- Setup data
   virtual void Setup() override;
 

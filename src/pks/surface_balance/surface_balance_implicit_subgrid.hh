@@ -61,6 +61,9 @@ class ImplicitSubgrid : public SurfaceBalanceBase {
                   const Teuchos::RCP<State>& S,
                   const Teuchos::RCP<TreeVector>& solution);
 
+  // call to allow a PK to modify its own list or lists of its children.
+  virtual void parseParameterList() override;
+
   // main methods
   // -- Setup data.
   virtual void Setup() override;

@@ -24,20 +24,25 @@ MPCCoupledDualMediaWater::MPCCoupledDualMediaWater(
 
 
 void
+MPCCoupledDualMediaWater::parseParameterList()
+{
+  pks_list_->sublist(names[1]).set("coupled to subsurface via head", true);
+
+  StrongMPC<PK_BDF_Default>::parseParameterList();
+
+  domain_ = plist_->get<std::string>("domain name", "domain");
+  domain_macropore_ = Keys::readDomainHint(*plist_, domain_, "domain", "macropore");
+  macro_flux_key_ = Keys::readKey(*plist_, domain_macropore_, "macropore water flux", "water_flux");
+  macro_flux_key_ = Keys::readKey(*plist_, domain_, "matrix water flux", "water_flux");
+}
+
+
+void
 MPCCoupledDualMediaWater::Setup(const Teuchos::Ptr<State>& S)
 {
   // tweak the sub-PK parameter lists
   StrongMPC<PK_BDF_Default>::Setup(S);
 
-  std::cout << "Setup\n";
-  Teuchos::Array<std::string> names = plist_->get<Teuchos::Array<std::string>>("PKs order");
-  int npks = names.size();
-  for (int i = 0; i != npks; ++i) {
-    Teuchos::RCP<const CompositeVectorSpace> tmp = solution_->Map().SubVector(i)->Data();
-    std::cout << names[i] << " " << tmp << "\n";
-  }
-
-  pks_list_->sublist(names[1]).set("coupled to subsurface via head", true);
   // cast the PKs
   integrated_flow_pk_ = Teuchos::rcp_dynamic_cast<StrongMPC<PK_PhysicalBDF_Default>>(sub_pks_[0]);
   AMANZI_ASSERT(integrated_flow_pk_ != Teuchos::null);
@@ -45,9 +50,6 @@ MPCCoupledDualMediaWater::Setup(const Teuchos::Ptr<State>& S)
   macro_flow_pk_ = sub_pks_[1];
   matrix_flow_pk_ = integrated_flow_pk_->get_subpk(0);
   surf_flow_pk_ = integrated_flow_pk_->get_subpk(1);
-
-  macro_flux_key_ = "macropore-mass_flux";
-  matrix_flux_key_ = "water_flux";
 }
 
 void
@@ -78,8 +80,8 @@ MPCCoupledDualMediaWater::Initialize(const Teuchos::Ptr<State>& S)
 
   // off-diagonal blocks are coupled PDEs
   // -- minimum composite vector spaces containing the coupling term
-  auto mesh_matrix = S_->GetMesh("domain");
-  auto mesh_macropore = S_->GetMesh("macropore");
+  auto mesh_matrix = S_->GetMesh(domain_);
+  auto mesh_macropore = S_->GetMesh(domain_macropore_);
 
   auto& mmap0 = solution_->SubVector(0)->SubVector(0)->Data()->ViewComponent("face", false)->Map();
   auto& gmap0 = solution_->SubVector(0)->SubVector(0)->Data()->ViewComponent("face", true)->Map();

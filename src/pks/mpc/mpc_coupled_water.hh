@@ -55,6 +55,9 @@ class MPCCoupledWater : public StrongMPC<PK_PhysicalBDF_Default> {
                   const Teuchos::RCP<State>& S,
                   const Teuchos::RCP<TreeVector>& soln);
 
+  // Parse the local parameter list and add entries to the global list
+  virtual void parseParameterList() override;
+
   virtual void Setup() override;
   virtual void Initialize() override;
 

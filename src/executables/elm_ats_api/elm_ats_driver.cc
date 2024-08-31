@@ -212,22 +212,17 @@ ELM_ATSDriver::setup()
   requireAtNext(wc_key_, Amanzi::Tags::NEXT, *S_)
     .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
-
-
   requireAtNext(evap_key_, Amanzi::Tags::NEXT, *S_)
    .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
   requireAtNext(trans_key_, Amanzi::Tags::NEXT, *S_)
    .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
-
-  Coordinator::setup();
-  // NOTE: These must be called after Coordinator::setup() until PK_Phys_Default modifies the state eval
-  // list in constructor -- otherwise this primary variable is not available
-  // yet. See amanzi/ats#167 --ETC
   requireAtNext(infilt_key_, Amanzi::Tags::NEXT, *S_)
     .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
   requireAtNext(pres_key_, Amanzi::Tags::NEXT, *S_, "flow")
     .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
+
+  Coordinator::setup();
 }
 
 

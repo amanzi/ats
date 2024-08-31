@@ -63,6 +63,8 @@ class MPCCoupledWaterSplitFlux : public MPCSubcycled {
                            const Teuchos::RCP<TreeVector>& solution);
 
   // PK methods
+  void parseParameterList() override;
+
   // -- initialize in reverse order
   virtual void Initialize() override;
   virtual void Setup() override;

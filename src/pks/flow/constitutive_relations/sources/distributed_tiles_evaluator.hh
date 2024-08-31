@@ -56,6 +56,11 @@ class DistributedTilesRateEvaluator : public EvaluatorSecondary {
 
   virtual void EnsureCompatibility(State& S) override;
 
+  // derivatives aren't implemented here
+  bool IsDifferentiableWRT(const State& S, const Key& wrt_key, const Tag& wrt_tag) const override {
+    return false;
+  }
+
  protected:
   // Required methods from EvaluatorSecondary
   virtual void Update_(State& S) override;

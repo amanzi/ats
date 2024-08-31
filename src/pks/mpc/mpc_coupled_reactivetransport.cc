@@ -32,6 +32,12 @@ MPCCoupledReactiveTransport::MPCCoupledReactiveTransport(
 
   alquimia_timer_ = Teuchos::TimeMonitor::getNewCounter("alquimia " + name());
   alquimia_surf_timer_ = Teuchos::TimeMonitor::getNewCounter("alquimia surface " + name());
+}
+
+void
+MPCCoupledReactiveTransport::parseParameterList()
+{
+  WeakMPC::parseParameterList();
 
   domain_ = Keys::readDomain(*plist_, "domain", "domain");
   domain_surf_ = Keys::readDomainHint(*plist_, domain_, "domain", "surface");
