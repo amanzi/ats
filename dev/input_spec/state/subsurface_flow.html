@@ -1,13 +1,12 @@
 
-
 <!DOCTYPE html>
 
 
-<html lang="en" data-content_root="" >
+<html lang="en" data-content_root="../../" >
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Subsurface flow evaluators &#8212; Amanzi-ATS</title>
   
@@ -19,41 +18,41 @@
   </script>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
-<link href="../../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
-<link href="../../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
 
   
-  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
   <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/styles/custom_theme.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/custom_theme.css?v=a03f4c85" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
-<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
-  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../_static/documentation_options.js?v=3ce10a4d"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'input_spec/state/subsurface_flow';</script>
     <script>
-        DOCUMENTATION_OPTIONS.theme_version = '0.15.3';
+        DOCUMENTATION_OPTIONS.theme_version = '0.15.4';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
         DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
         DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
         </script>
     <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
-    <script src="../../_static/main.js"></script>
+    <script src="../../_static/main.js?v=b10558fa"></script>
     <link rel="icon" href="../../_static/favicon.ico"/>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -114,7 +113,7 @@
   
     <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
 <div class="bd-header__inner bd-page-width">
-  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
     <span class="fa-solid fa-bars"></span>
   </button>
   
@@ -123,6 +122,8 @@
     
       <div class="navbar-item">
 
+  
+    
   
 
 <a class="navbar-brand logo" href="../../index.html">
@@ -149,17 +150,24 @@
     <div class="me-auto navbar-header-items__center">
       
         <div class="navbar-item">
-<nav class="navbar-nav">
+<nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item pst-header-nav-item">
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../concepts/index.html">
+    Amanzi-ATS Concepts
+  </a>
+</li>
+
+
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../../demos.html">
     ATS Demo Problems
   </a>
 </li>
 
 
-<li class="nav-item pst-header-nav-item current active">
+<li class="nav-item current active">
   <a class="nav-link nav-internal" href="../index.html">
     ATS Input Specification
   </a>
@@ -178,7 +186,7 @@
 
  <script>
  document.write(`
-   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass"></i>
     <span class="search-button__default-text">Search</span>
     <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
@@ -192,10 +200,10 @@
 
 <script>
 document.write(`
-  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
-    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
-    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
   </button>
 `);
 </script></div>
@@ -209,7 +217,7 @@ document.write(`
 
  <script>
  document.write(`
-   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass"></i>
     <span class="search-button__default-text">Search</span>
     <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
@@ -242,17 +250,24 @@ document.write(`
           
           
             <div class="navbar-item">
-<nav class="navbar-nav">
+<nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item pst-header-nav-item">
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../concepts/index.html">
+    Amanzi-ATS Concepts
+  </a>
+</li>
+
+
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../../demos.html">
     ATS Demo Problems
   </a>
 </li>
 
 
-<li class="nav-item pst-header-nav-item current active">
+<li class="nav-item current active">
   <a class="nav-link nav-internal" href="../index.html">
     ATS Input Specification
   </a>
@@ -272,10 +287,10 @@ document.write(`
 
 <script>
 document.write(`
-  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
-    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
-    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
   </button>
 `);
 </script></div>
@@ -293,7 +308,7 @@ document.write(`
   <div class="version-switcher__container dropdown">
     <button id="pst-version-switcher-button-2"
       type="button"
-      class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle"
+      class="version-switcher__button btn btn-sm dropdown-toggle"
       data-bs-toggle="dropdown"
       aria-haspopup="listbox"
       aria-controls="pst-version-switcher-list-2"
@@ -469,7 +484,7 @@ document.write(`
                 <article class="bd-article">
                   
   <section id="subsurface-flow-evaluators">
-<h1>Subsurface flow evaluators<a class="headerlink" href="#subsurface-flow-evaluators" title="Permalink to this heading">#</a></h1>
+<h1>Subsurface flow evaluators<a class="headerlink" href="#subsurface-flow-evaluators" title="Link to this heading">#</a></h1>
 <p>Assorted evaluators used for subsurface flow processes,
 including water retention curves, compressible pore space, relative
 permeability, and their frozen equivalents.</p>
@@ -477,7 +492,7 @@ permeability, and their frozen equivalents.</p>
 subsurface flow of water is the core process underlying all of ATS
 physics.  For real examples, see <a class="reference external" href="https://github.com/amanzi/ats-demos">ats-demos</a></p>
 <section id="capillary-pressure">
-<h2>Capillary pressure<a class="headerlink" href="#capillary-pressure" title="Permalink to this heading">#</a></h2>
+<h2>Capillary pressure<a class="headerlink" href="#capillary-pressure" title="Link to this heading">#</a></h2>
 <blockquote>
 <div><p>Capillary pressure for gas on a liquid.</p>
 </div></blockquote>
@@ -490,10 +505,10 @@ physics.  For real examples, see <a class="reference external" href="https://git
 </div>
 </section>
 <section id="capillary-pressure-of-liquid-on-ice">
-<h2>Capillary pressure of liquid on ice<a class="headerlink" href="#capillary-pressure-of-liquid-on-ice" title="Permalink to this heading">#</a></h2>
+<h2>Capillary pressure of liquid on ice<a class="headerlink" href="#capillary-pressure-of-liquid-on-ice" title="Link to this heading">#</a></h2>
 </section>
 <section id="water-retention-model-and-relative-permeability">
-<h2>Water Retention Model and Relative Permeability<a class="headerlink" href="#water-retention-model-and-relative-permeability" title="Permalink to this heading">#</a></h2>
+<h2>Water Retention Model and Relative Permeability<a class="headerlink" href="#water-retention-model-and-relative-permeability" title="Link to this heading">#</a></h2>
 <blockquote>
 <div><p>Evaluates saturation through water retention models.</p>
 </div></blockquote>
@@ -718,7 +733,7 @@ parameters to Brooks-Corey parameters.</p>
 </pre></div>
 </div>
 <section id="van-genuchten-model">
-<h3>Van Genuchten Model<a class="headerlink" href="#van-genuchten-model" title="Permalink to this heading">#</a></h3>
+<h3>Van Genuchten Model<a class="headerlink" href="#van-genuchten-model" title="Link to this heading">#</a></h3>
 <blockquote>
 <div><p>WRMVanGenuchten : water retention model using van Genuchten’s parameterization</p>
 </div></blockquote>
@@ -758,7 +773,7 @@ parameters to Brooks-Corey parameters.</p>
 </div>
 </section>
 <section id="linear-model">
-<h3>Linear  Model<a class="headerlink" href="#linear-model" title="Permalink to this heading">#</a></h3>
+<h3>Linear  Model<a class="headerlink" href="#linear-model" title="Link to this heading">#</a></h3>
 <blockquote>
 <div><p>A linear sat-pc curve.</p>
 <blockquote>
@@ -772,9 +787,9 @@ is always less than atmospheric and within the acceptable range of the slope.</p
 </section>
 </section>
 <section id="water-retention-model-for-freeze-thaw">
-<h2>Water Retention Model for Freeze-Thaw<a class="headerlink" href="#water-retention-model-for-freeze-thaw" title="Permalink to this heading">#</a></h2>
+<h2>Water Retention Model for Freeze-Thaw<a class="headerlink" href="#water-retention-model-for-freeze-thaw" title="Link to this heading">#</a></h2>
 <section id="original-implicit-model">
-<h3>Original Implicit model<a class="headerlink" href="#original-implicit-model" title="Permalink to this heading">#</a></h3>
+<h3>Original Implicit model<a class="headerlink" href="#original-implicit-model" title="Link to this heading">#</a></h3>
 <blockquote>
 <div><p>Painter’s original, implicitly defined permafrost model.</p>
 </div></blockquote>
@@ -788,10 +803,10 @@ is always less than atmospheric and within the acceptable range of the slope.</p
 </div>
 </section>
 <section id="freezing-point-depression-model">
-<h3>Freezing point depression model<a class="headerlink" href="#freezing-point-depression-model" title="Permalink to this heading">#</a></h3>
+<h3>Freezing point depression model<a class="headerlink" href="#freezing-point-depression-model" title="Link to this heading">#</a></h3>
 </section>
 <section id="freezing-point-depression-smoothed-model">
-<h3>Freezing point depression, smoothed model<a class="headerlink" href="#freezing-point-depression-smoothed-model" title="Permalink to this heading">#</a></h3>
+<h3>Freezing point depression, smoothed model<a class="headerlink" href="#freezing-point-depression-smoothed-model" title="Link to this heading">#</a></h3>
 <blockquote>
 <div><p>Painter’s permafrost model with freezing point depression, smoothed.</p>
 </div></blockquote>
@@ -808,10 +823,10 @@ is always less than atmospheric and within the acceptable range of the slope.</p
 </div>
 </section>
 <section id="interfrost-model">
-<h3>Interfrost model<a class="headerlink" href="#interfrost-model" title="Permalink to this heading">#</a></h3>
+<h3>Interfrost model<a class="headerlink" href="#interfrost-model" title="Link to this heading">#</a></h3>
 </section>
 <section id="sutra-ice-model">
-<h3>Sutra-ICE model<a class="headerlink" href="#sutra-ice-model" title="Permalink to this heading">#</a></h3>
+<h3>Sutra-ICE model<a class="headerlink" href="#sutra-ice-model" title="Link to this heading">#</a></h3>
 <p>This model is based on the emperical freezing curve used by Sutra-Ice,
 documented in papers by Voss &amp; Walvoord.</p>
 <div class="admonition-wrm-sutra-permafrost-model-spec admonition" id="wrm-sutra-permafrost-model-spec">
@@ -825,7 +840,7 @@ documented in papers by Voss &amp; Walvoord.</p>
 </section>
 </section>
 <section id="compressible-porosity">
-<h2>Compressible porosity<a class="headerlink" href="#compressible-porosity" title="Permalink to this heading">#</a></h2>
+<h2>Compressible porosity<a class="headerlink" href="#compressible-porosity" title="Link to this heading">#</a></h2>
 <p>Compressible grains are both physically realistic (based on bulk modulus) and a
 simple way to provide a non-elliptic, diagonal term for helping solvers to
 converge.</p>
@@ -842,7 +857,7 @@ converge.</p>
 </ul>
 </div>
 <section id="standard-model">
-<h3>Standard model<a class="headerlink" href="#standard-model" title="Permalink to this heading">#</a></h3>
+<h3>Standard model<a class="headerlink" href="#standard-model" title="Link to this heading">#</a></h3>
 <blockquote>
 <div><p>A simple model for allowing porosity to vary with pressure.</p>
 </div></blockquote>
@@ -876,7 +891,7 @@ at atmospheric pressure.</p>
 </div>
 </section>
 <section id="exponential-model">
-<h3>Exponential model<a class="headerlink" href="#exponential-model" title="Permalink to this heading">#</a></h3>
+<h3>Exponential model<a class="headerlink" href="#exponential-model" title="Link to this heading">#</a></h3>
 <p>The Leinjnse model is an exponential model of porosity as a function of
 pressure, based on (insert citation!):</p>
 <p>where <span class="math notranslate nohighlight">\(\alpha\)</span> is the provided
@@ -899,13 +914,13 @@ Globalization Delegate`_</span></a> to turn Leijnse model ON in the EWC calculat
 </section>
 </section>
 <section id="viscosity-of-water">
-<h2>Viscosity of water<a class="headerlink" href="#viscosity-of-water" title="Permalink to this heading">#</a></h2>
+<h2>Viscosity of water<a class="headerlink" href="#viscosity-of-water" title="Link to this heading">#</a></h2>
 <p>Two main viscosity models are commonly used – a constant and one
 which is temperature-dependent.  The viscosity of water is strongly
 temperature dependent, so it is highly recommended to use that one if
 the problem is nonisothermal.</p>
 <section id="constant">
-<h3>Constant<a class="headerlink" href="#constant" title="Permalink to this heading">#</a></h3>
+<h3>Constant<a class="headerlink" href="#constant" title="Link to this heading">#</a></h3>
 <p>Like any quantity, a viscosity can simply be a constant value, at which
 point it is not a secondary variable but an independent variable.</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;viscosity_liquid&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
@@ -917,7 +932,7 @@ point it is not a secondary variable but an independent variable.</p>
 </div>
 </section>
 <section id="nonisothermal">
-<h3>Nonisothermal<a class="headerlink" href="#nonisothermal" title="Permalink to this heading">#</a></h3>
+<h3>Nonisothermal<a class="headerlink" href="#nonisothermal" title="Link to this heading">#</a></h3>
 <p>A non-isothermal viscosity model intended for use within a range of
 temperatures from well below freezing to ~100C.</p>
 <div class="admonition-viscosity-evaluator-spec admonition" id="viscosity-evaluator-spec">
@@ -988,8 +1003,8 @@ in K, given as an empirical series expansion fit to data.</p>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
-<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -1009,7 +1024,7 @@ in K, given as an empirical series expansion fit to data.</p>
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.2.1.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
     <br/>
   </p>
 </div>
@@ -1022,7 +1037,7 @@ in K, given as an empirical series expansion fit to data.</p>
       
         <div class="footer-item">
 <p class="theme-version">
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.3.
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
 </p></div>
       
     </div>

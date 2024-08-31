@@ -590,7 +590,9 @@ Constant Function
 
 Constant function is defined as :math:`f(x) = a`, for all :math:`x`.
 
-* `"value`" ``[double]`` The constant to be applied.
+.. admonition:: function_constant-spec
+
+  * `"value`" ``[double]`` The constant to be applied.
 
 Example:
 
@@ -1121,35 +1123,36 @@ A high-order advection operator has two terms in a weak formulation, correspondi
 volume and surface integrals. These two terms are discretixed using two operators with
 matrix of types *advection* and *flux*, respectively.
 
+.. admonition:: advection_op-spec
 
-* `"pks operator name`" [list] a PK specific name for the advection operator.
+  * `"pks operator name`" ``[list]`` a PK specific name for the advection operator.
+ 
+    * `"method`" ``[string]`` defines a discretization method. The available option is `"dg modal`".
 
-  * `"method`" [string] defines a discretization method. The available option is `"dg modal`".
+    * `"method order`" ``[int]`` defines method order. For example, the classical low-order finite
+      volume scheme is equivalent to DG of order 0.
 
-  * `"method order`" [int] defines method order. For example, the classical low-order finite
-    volume scheme is equivalent to DG of order 0.
+    * `"matrix type`" ``[string]`` defines matrix type. The supported options are `"advection`"
+      and `"flux`".
 
-  * `"matrix type`" [string] defines matrix type. The supported options are `"advection`"
-    and `"flux`".
+    * `"dg basis`" ``[string]`` defines bases for DG schemes. The available options are
+      `"regularized`" (recommended), `"normalized`", `"orthonormalized`", and `"natural`"
+      (not recommended).
 
-  * `"dg basis`" [string] defines bases for DG schemes. The available options are
-    `"regularized`" (recommended), `"normalized`", `"orthonormalized`", and `"natural`"
-    (not recommended).
+    * `"gradient operator on test function`" [bool] defines place of the gradient operator.
+      For integration by parts schemes, the gradient is transfered to a test function.
+      This option is needed for discretizing volumetric integrals.
 
-  * `"gradient operator on test function`" [bool] defines place of the gradient operator.
-    For integration by parts schemes, the gradient is transfered to a test function.
-    This option is needed for discretizing volumetric integrals.
+    * `"jump operator on test function`" [bool] defines place of the jump operator.
+      For integration by parts schemes, the jump operator is applied to a test function.
+      This option is needed for discretizing surface fluxes.
 
-  * `"jump operator on test function`" [bool] defines place of the jump operator.
-    For integration by parts schemes, the jump operator is applied to a test function.
-    This option is needed for discretizing surface fluxes.
+    * `"flux formula`" ``[string]`` defines type of the flux. The available options
+      are `"Rusanov`" (default), `"upwind`", `"downwind`", and `"NavierStokes`".
 
-  * `"flux formula`" [string] defines type of the flux. The available options
-    are `"Rusanov`" (default), `"upwind`", `"downwind`", and `"NavierStokes`".
+    * `"schema domain`" ``[list]`` defines a discretization schema for the operator domain.
 
-  * `"schema domain`" [list] defines a discretization schema for the operator domain.
-
-  * `"schema range`" [list] defines a discretization schema for the operator range.
+    * `"schema range`" ``[list]`` defines a discretization schema for the operator range.
 
 .. code-block:: xml
 

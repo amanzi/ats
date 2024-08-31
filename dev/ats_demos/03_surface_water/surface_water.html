@@ -1,13 +1,12 @@
 
-
 <!DOCTYPE html>
 
 
-<html lang="en" data-content_root="" >
+<html lang="en" data-content_root="../../" >
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Surface Water Runoff &#8212; Amanzi-ATS</title>
   
@@ -19,40 +18,40 @@
   </script>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
-<link href="../../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
-<link href="../../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
 
   
-  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
   <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/styles/custom_theme.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/custom_theme.css?v=a03f4c85" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
-<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
-  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../_static/documentation_options.js?v=3ce10a4d"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'ats_demos/03_surface_water/surface_water';</script>
     <script>
-        DOCUMENTATION_OPTIONS.theme_version = '0.15.3';
+        DOCUMENTATION_OPTIONS.theme_version = '0.15.4';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
         DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
         DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
         </script>
     <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
-    <script src="../../_static/main.js"></script>
+    <script src="../../_static/main.js?v=b10558fa"></script>
     <link rel="icon" href="../../_static/favicon.ico"/>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -113,7 +112,7 @@
   
     <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
 <div class="bd-header__inner bd-page-width">
-  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
     <span class="fa-solid fa-bars"></span>
   </button>
   
@@ -122,6 +121,8 @@
     
       <div class="navbar-item">
 
+  
+    
   
 
 <a class="navbar-brand logo" href="../../index.html">
@@ -148,17 +149,24 @@
     <div class="me-auto navbar-header-items__center">
       
         <div class="navbar-item">
-<nav class="navbar-nav">
+<nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item pst-header-nav-item current active">
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../concepts/index.html">
+    Amanzi-ATS Concepts
+  </a>
+</li>
+
+
+<li class="nav-item current active">
   <a class="nav-link nav-internal" href="../../demos.html">
     ATS Demo Problems
   </a>
 </li>
 
 
-<li class="nav-item pst-header-nav-item">
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../../input_spec/index.html">
     ATS Input Specification
   </a>
@@ -177,7 +185,7 @@
 
  <script>
  document.write(`
-   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass"></i>
     <span class="search-button__default-text">Search</span>
     <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
@@ -191,10 +199,10 @@
 
 <script>
 document.write(`
-  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
-    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
-    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
   </button>
 `);
 </script></div>
@@ -208,7 +216,7 @@ document.write(`
 
  <script>
  document.write(`
-   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass"></i>
     <span class="search-button__default-text">Search</span>
     <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
@@ -241,17 +249,24 @@ document.write(`
           
           
             <div class="navbar-item">
-<nav class="navbar-nav">
+<nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item pst-header-nav-item current active">
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../concepts/index.html">
+    Amanzi-ATS Concepts
+  </a>
+</li>
+
+
+<li class="nav-item current active">
   <a class="nav-link nav-internal" href="../../demos.html">
     ATS Demo Problems
   </a>
 </li>
 
 
-<li class="nav-item pst-header-nav-item">
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../../input_spec/index.html">
     ATS Input Specification
   </a>
@@ -271,10 +286,10 @@ document.write(`
 
 <script>
 document.write(`
-  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
-    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
-    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
   </button>
 `);
 </script></div>
@@ -292,7 +307,7 @@ document.write(`
   <div class="version-switcher__container dropdown">
     <button id="pst-version-switcher-button-2"
       type="button"
-      class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle"
+      class="version-switcher__button btn btn-sm dropdown-toggle"
       data-bs-toggle="dropdown"
       aria-haspopup="listbox"
       aria-controls="pst-version-switcher-list-2"
@@ -391,7 +406,7 @@ document.write(`
                 <article class="bd-article">
                   
   <section id="surface-water-runoff">
-<h1>Surface Water Runoff<a class="headerlink" href="#surface-water-runoff" title="Permalink to this heading">#</a></h1>
+<h1>Surface Water Runoff<a class="headerlink" href="#surface-water-runoff" title="Link to this heading">#</a></h1>
 <p>Building up from subsurface flow, ATS is at it’s heart an integrated surface and subsurface model.  ATS solves surface flow on both prescribed, 2D meshes with an elevation supplied as data, or as a 2D surface lifted off of a 3D mesh.  Here we demonstrate some of the surface flow capabilities of ATS.</p>
 <p>The base problem solved here is a simple ramp on which we rain and apply a series of boundary conditions.  Rain flows downhill (to the right in these images), and leaves via the right side boundary.  Note these also show the use of observations, which allow for visualization that is spatially sparse but is evaluated frequently in time.  The most common use of this is hydrographs (which is what we use this for here).</p>
 <p>Author: Ethan Coon</p>
@@ -466,10 +481,22 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(19, 10)
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  Test log file : LOGS/ats-tests-2024-04-22_12-03-17.testlog
+Running ATS demo problems :
+03_surface_water     | .
+
+----------------------------------------------------------------------
+Regression test summary:
+    Total run time: 1.01086 [s]
+    Total tests : 1
+    Tests run : 1
+    All tests passed.
+
+
+(19, 10)
 </pre></div>
 </div>
-<img alt="../../_images/9e0e9fbfd2d6946bae640f913eeb445e016e34dd62df441eca9056bb2cd29dfb.png" src="../../_images/9e0e9fbfd2d6946bae640f913eeb445e016e34dd62df441eca9056bb2cd29dfb.png" />
+<img alt="../../_images/866d5312b2a5bbba0826d42a564361e94d6e2f155213fb8b53cda070c10566f8.png" src="../../_images/866d5312b2a5bbba0826d42a564361e94d6e2f155213fb8b53cda070c10566f8.png" />
 </div>
 </div>
 <p>Often it is useful to set a max river stage, or head boundary condition, which lets water out once the head gets above a certain level (e.g. 15 cm here).  In this example, the mesh is so coarse and the domain is sufficiently sloped that the entire domain still drains (the most downhill cell’s elevation is more than 15cm about the boundary elevation), but this would not be the case in a higher-resolution or less-sloping run.</p>
@@ -480,10 +507,22 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(19, 10)
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  Test log file : LOGS/ats-tests-2024-04-22_12-03-18.testlog
+Running ATS demo problems :
+03_surface_water     | .
+
+----------------------------------------------------------------------
+Regression test summary:
+    Total run time: 1.01107 [s]
+    Total tests : 1
+    Tests run : 1
+    All tests passed.
+
+
+(19, 10)
 </pre></div>
 </div>
-<img alt="../../_images/1845b752315d715017d3629575e1f48e16331424dc377b2bd74aba8b1042c3bd.png" src="../../_images/1845b752315d715017d3629575e1f48e16331424dc377b2bd74aba8b1042c3bd.png" />
+<img alt="../../_images/3fa71b500f263d1d05a3ed1247b0c4cea0f5ed5f88018dd89bb9c9e8b7d4ca6d.png" src="../../_images/3fa71b500f263d1d05a3ed1247b0c4cea0f5ed5f88018dd89bb9c9e8b7d4ca6d.png" />
 </div>
 </div>
 <p>There are two other alternatives to setting the max ponded depth at the outlet.  The first is a “zero ponded depth gradient” boundary, where the water level is assumed to parallel the topography.  Note this is really only useful in synthetic cases, where you know that this will not result in water flowing <strong><em>into</em></strong> the domain.</p>
@@ -494,10 +533,22 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(19, 10)
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  Test log file : LOGS/ats-tests-2024-04-22_12-03-19.testlog
+Running ATS demo problems :
+03_surface_water     | .
+
+----------------------------------------------------------------------
+Regression test summary:
+    Total run time: 1.01058 [s]
+    Total tests : 1
+    Tests run : 1
+    All tests passed.
+
+
+(19, 10)
 </pre></div>
 </div>
-<img alt="../../_images/435b84f0fa11b681e5d2c6ed13ad0e3b760fab3df4948defe3c37acff1d09d33.png" src="../../_images/435b84f0fa11b681e5d2c6ed13ad0e3b760fab3df4948defe3c37acff1d09d33.png" />
+<img alt="../../_images/693053bed60a29b71657b7ab32f396f66aaed2a5ef4f528e12cb91d33995d3f1.png" src="../../_images/693053bed60a29b71657b7ab32f396f66aaed2a5ef4f528e12cb91d33995d3f1.png" />
 </div>
 </div>
 <p>Finally, the second is a critical depth boundary condition, which sets the flux based on ponded depth, and is standard in the literature.</p>
@@ -512,10 +563,22 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(19, 10)
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  Test log file : LOGS/ats-tests-2024-04-22_12-03-20.testlog
+Running ATS demo problems :
+03_surface_water     | .
+
+----------------------------------------------------------------------
+Regression test summary:
+    Total run time: 1.01151 [s]
+    Total tests : 1
+    Tests run : 1
+    All tests passed.
+
+
+(19, 10)
 </pre></div>
 </div>
-<img alt="../../_images/5282d3d53e6519ef423c98ed9f5ca333759902b8e6e1f144a428d1b3fb00dd17.png" src="../../_images/5282d3d53e6519ef423c98ed9f5ca333759902b8e6e1f144a428d1b3fb00dd17.png" />
+<img alt="../../_images/09dde03b987cac3ad8d550ef481fbf00bf07d9a2fbe93de28a09d7f44c62b7ea.png" src="../../_images/09dde03b987cac3ad8d550ef481fbf00bf07d9a2fbe93de28a09d7f44c62b7ea.png" />
 </div>
 </div>
 </section>
@@ -566,8 +629,8 @@ document.write(`
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
-<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -587,7 +650,7 @@ document.write(`
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.2.1.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
     <br/>
   </p>
 </div>
@@ -600,7 +663,7 @@ document.write(`
       
         <div class="footer-item">
 <p class="theme-version">
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.3.
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
 </p></div>
       
     </div>

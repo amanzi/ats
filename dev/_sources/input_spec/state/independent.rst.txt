@@ -81,7 +81,7 @@ This evaluator is used by providing the option:
    * `"filename`" ``[string]`` Path to the file.
    * `"variable name`" ``[string]`` Name of the dataset to read from the file.
    * `"domain name`" ``[string]`` **domain** Name of the domain on which the
-      field is defined.
+     field is defined.
    * `"component name`" ``[string]`` **cell** Name of the component in the
      field to populate.
    * `"mesh entity`" ``[string]`` **cell** Name of the entity on which the

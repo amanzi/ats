@@ -1,13 +1,12 @@
 
-
 <!DOCTYPE html>
 
 
-<html lang="en" data-content_root="" >
+<html lang="en" data-content_root="../../" >
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Temperate Ecohydrology &#8212; Amanzi-ATS</title>
   
@@ -19,40 +18,40 @@
   </script>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
-<link href="../../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
-<link href="../../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
 
   
-  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
   <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/styles/custom_theme.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/custom_theme.css?v=a03f4c85" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
-<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
-  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../_static/documentation_options.js?v=3ce10a4d"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'ats_demos/05_ecohydrology/ecohydrology';</script>
     <script>
-        DOCUMENTATION_OPTIONS.theme_version = '0.15.3';
+        DOCUMENTATION_OPTIONS.theme_version = '0.15.4';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
         DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
         DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
         </script>
     <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
-    <script src="../../_static/main.js"></script>
+    <script src="../../_static/main.js?v=b10558fa"></script>
     <link rel="icon" href="../../_static/favicon.ico"/>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -113,7 +112,7 @@
   
     <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
 <div class="bd-header__inner bd-page-width">
-  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
     <span class="fa-solid fa-bars"></span>
   </button>
   
@@ -122,6 +121,8 @@
     
       <div class="navbar-item">
 
+  
+    
   
 
 <a class="navbar-brand logo" href="../../index.html">
@@ -148,17 +149,24 @@
     <div class="me-auto navbar-header-items__center">
       
         <div class="navbar-item">
-<nav class="navbar-nav">
+<nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item pst-header-nav-item current active">
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../concepts/index.html">
+    Amanzi-ATS Concepts
+  </a>
+</li>
+
+
+<li class="nav-item current active">
   <a class="nav-link nav-internal" href="../../demos.html">
     ATS Demo Problems
   </a>
 </li>
 
 
-<li class="nav-item pst-header-nav-item">
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../../input_spec/index.html">
     ATS Input Specification
   </a>
@@ -177,7 +185,7 @@
 
  <script>
  document.write(`
-   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass"></i>
     <span class="search-button__default-text">Search</span>
     <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
@@ -191,10 +199,10 @@
 
 <script>
 document.write(`
-  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
-    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
-    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
   </button>
 `);
 </script></div>
@@ -208,7 +216,7 @@ document.write(`
 
  <script>
  document.write(`
-   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass"></i>
     <span class="search-button__default-text">Search</span>
     <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
@@ -241,17 +249,24 @@ document.write(`
           
           
             <div class="navbar-item">
-<nav class="navbar-nav">
+<nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item pst-header-nav-item current active">
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../concepts/index.html">
+    Amanzi-ATS Concepts
+  </a>
+</li>
+
+
+<li class="nav-item current active">
   <a class="nav-link nav-internal" href="../../demos.html">
     ATS Demo Problems
   </a>
 </li>
 
 
-<li class="nav-item pst-header-nav-item">
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../../input_spec/index.html">
     ATS Input Specification
   </a>
@@ -271,10 +286,10 @@ document.write(`
 
 <script>
 document.write(`
-  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
-    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
-    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
   </button>
 `);
 </script></div>
@@ -292,7 +307,7 @@ document.write(`
   <div class="version-switcher__container dropdown">
     <button id="pst-version-switcher-button-2"
       type="button"
-      class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle"
+      class="version-switcher__button btn btn-sm dropdown-toggle"
       data-bs-toggle="dropdown"
       aria-haspopup="listbox"
       aria-controls="pst-version-switcher-list-2"
@@ -410,7 +425,7 @@ document.write(`
                 <article class="bd-article">
                   
   <section id="temperate-ecohydrology">
-<h1>Temperate Ecohydrology<a class="headerlink" href="#temperate-ecohydrology" title="Permalink to this heading">#</a></h1>
+<h1>Temperate Ecohydrology<a class="headerlink" href="#temperate-ecohydrology" title="Link to this heading">#</a></h1>
 <p>Building on the previous demos around integrated hydrology, the first “typical” research application of ATS is in temperate ecohydrology.  Here, by temperate we really mean that frozen soil is not a consideration, and by ecohydrology we mean that one wishes to represent evapotranspiration as a significant sink.</p>
 <p>In this demo, we first describe how to bring in the needed input data.  We describe the spinup process, and desribe how, once data is downloaded, it can be put into files in the right formats to allow ATS to use that forcing data.</p>
 <p>Then we show a few different options for how to represent evapotranspiration, including:</p>
@@ -448,7 +463,7 @@ document.write(`
 </div>
 </div>
 <section id="spinup">
-<h2>Spinup<a class="headerlink" href="#spinup" title="Permalink to this heading">#</a></h2>
+<h2>Spinup<a class="headerlink" href="#spinup" title="Link to this heading">#</a></h2>
 <p>For applications of temperate ecohydrology, spinup is all about getting antecedent soil moisture conditions correct.  There can be no expectation of getting reasonable hydrographs if the antecedent soil moisture field is wrong.</p>
 <p>One way of beginning this process is to solve, to pseudo-steady state, the integrated hydrology problem with a constant source term that is given by the mean annual (or mean seasonal) precipitation minus evapotranspiration (P-ET) rate.  This can be solved for long times, using an adaptive timestep that grows as the solution approaches steady state.  This sets the mean background conditions for simulations with daily or other high-resolution inputs.</p>
 <p>The first step is to provide an initial condition for that run which is hydrostatic with the water table at the surface.  Starting from fully saturated and drawing down to the steady state is faster and more efficient than starting from dry and filling up to the steady state.  To do this, we don’t assume that this is a hillslope with fixed slope, but imagine that it is set by topography and therefore cannot be provided analytically.</p>
@@ -488,7 +503,7 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/601899a38a691f01919b190e65dee7752a07f3ce57f88f8ce14bc5bf33dfacec.png" src="../../_images/601899a38a691f01919b190e65dee7752a07f3ce57f88f8ce14bc5bf33dfacec.png" />
+<img alt="../../_images/a0a28107393750b83eedc233eb905ad8262c671dd7845adfcd6c55242fe2e7e2.png" src="../../_images/a0a28107393750b83eedc233eb905ad8262c671dd7845adfcd6c55242fe2e7e2.png" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -511,15 +526,15 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/8388f565575257f912a10366a6181bade5627911f9aa93c603157316242ba666.png" src="../../_images/8388f565575257f912a10366a6181bade5627911f9aa93c603157316242ba666.png" />
+<img alt="../../_images/b6cfca99403cf1492b624433492b5ac920b60d83d7b7bb1beba68764b155b427.png" src="../../_images/b6cfca99403cf1492b624433492b5ac920b60d83d7b7bb1beba68764b155b427.png" />
 </div>
 </div>
 </section>
 <section id="prescribed-p-et">
-<h2>Prescribed P - ET<a class="headerlink" href="#prescribed-p-et" title="Permalink to this heading">#</a></h2>
+<h2>Prescribed P - ET<a class="headerlink" href="#prescribed-p-et" title="Link to this heading">#</a></h2>
 <p>Often precipitation and evapotranspiration are known from either a preexisting land model run, remotely sensed or point data (e.g. eddy flux towers and weather stations) or other approaches.  Here we do a few examples to generate datasets for use in ATS and then drive simulations with this prescribed data.</p>
 <section id="data-processing">
-<h3>Data processing<a class="headerlink" href="#data-processing" title="Permalink to this heading">#</a></h3>
+<h3>Data processing<a class="headerlink" href="#data-processing" title="Link to this heading">#</a></h3>
 <p>Below is an example of how to generate, from raw data, the input files needed by ATS for P, E, and T for these examples.  Included in this repository is output from a CLM 4.5 run for the Asu Basin outside Manaus, Brazil.  This run provides daily data of a variety of the water balance fluxes, including precipitation, evaporation, and transpiration.  We read this file and generate the two HDF5 forcing files for use in ATS in the prescribed P-ET examples.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -573,12 +588,12 @@ document.write(`
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[(&#39;atmospheric_rainmms&#39;, &#39;&lt;f8&#39;), (&#39;surface_runoffmms&#39;, &#39;&lt;f8&#39;), (&#39;subsurface_runoffmms&#39;, &#39;&lt;f8&#39;), (&#39;infiltrationmms&#39;, &#39;&lt;f8&#39;), (&#39;interceptionmms&#39;, &#39;&lt;f8&#39;), (&#39;ground_evaporationmms&#39;, &#39;&lt;f8&#39;), (&#39;vegetation_evaporationmms&#39;, &#39;&lt;f8&#39;), (&#39;vegetation_transpirationmms&#39;, &#39;&lt;f8&#39;), (&#39;heat_flux_into_soilWm2&#39;, &#39;&lt;f8&#39;)]
 </pre></div>
 </div>
-<img alt="../../_images/ea210eadaa13f041ca9289ee686e681e78b7db818ed8ad53226d5ae1b052f827.png" src="../../_images/ea210eadaa13f041ca9289ee686e681e78b7db818ed8ad53226d5ae1b052f827.png" />
+<img alt="../../_images/79430590932b3575a98ce11ef850767509f17cfa4788268db4c69f7280b868fb.png" src="../../_images/79430590932b3575a98ce11ef850767509f17cfa4788268db4c69f7280b868fb.png" />
 </div>
 </div>
 </section>
 <section id="daily-forced-simulations">
-<h3>Daily forced simulations<a class="headerlink" href="#daily-forced-simulations" title="Permalink to this heading">#</a></h3>
+<h3>Daily forced simulations<a class="headerlink" href="#daily-forced-simulations" title="Link to this heading">#</a></h3>
 <p>Given the steady-state initial condition and the forcing data, we now run simulations forced by daily P-ET data.  Here we consider two choices – first a run where P - ET is prescribed as a single entity as a function of time, and a second run where P - E is prescribed as a function of time while T is separated out and extracted from the subsurface rather than from the surface.</p>
 <p>In the former case, the net water source is provided to the surface system (<code class="docutils literal notranslate"><span class="pre">prescribed_surface_evaporation.xml</span></code>).  This is often problematic.  Specifically, in most places, T can be order P, and pulling that much water from the surface isn’t always possible – the top grid cell dries out and cannot get water to the surface fast enough.  Therefore a limiter must be applied to the ET to ensure it does not dry out a grid cell too much.  This is especially problematic in 3D integrated hydrology simulations, where often the ET is calculated via a column model using an “average” depth to water table, which is significantly less than the depth to water table at, for instance, the top of a hillslope in a 3D run.</p>
 <p>In the latter case, P-E is provided as a source to the surface system, while T is then distributed to a subsurface sink using a root profile for Plant Functional Type (PFT)-based vegetation (<code class="docutils literal notranslate"><span class="pre">prescribed_transpiration.xml</span></code>).  This is much more effective because the PFT rooting-depth based transpiration allows T to pull from depth, and has a native limiter on it based on soil moisture (or is it mafic potential?).  Note that the E may <em>still</em> need to be limited, but typically, as E &lt; P,T, this is less frequently a problem and typically full evaporation is taken and the limiter can be quite less of an issue.</p>
@@ -615,13 +630,13 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/1aa4281b70e82efe80d917cd0e5d314e407e3dc3a1d999248aba3039d89c2a05.png" src="../../_images/1aa4281b70e82efe80d917cd0e5d314e407e3dc3a1d999248aba3039d89c2a05.png" />
+<img alt="../../_images/c47221ecfb241f6f4609e8bd9e690923e2995cbe9918effe1e613b39a3ef52c8.png" src="../../_images/c47221ecfb241f6f4609e8bd9e690923e2995cbe9918effe1e613b39a3ef52c8.png" />
 </div>
 </div>
 </section>
 </section>
 <section id="empirical-evapotranspiration">
-<h2>Empirical evapotranspiration<a class="headerlink" href="#empirical-evapotranspiration" title="Permalink to this heading">#</a></h2>
+<h2>Empirical evapotranspiration<a class="headerlink" href="#empirical-evapotranspiration" title="Link to this heading">#</a></h2>
 <p>Many empirical models of evapotranspiration have been defined.  One of the most commonly used is the Priestley-Taylor model, which is itself a variant of the Penman-Monteith equation.  Our implementation follows that of USGS’s PRMS model.</p>
 <p>Under the first example, we impose incoming shortwave radiation as the net radiation balance.  The ground surface temperature, needed to compute the ground conduction term, is given by yesterday’s air temperature.  Snow is included as a simple bucket model, with sources due to precipitation and sinks due to an empirical melting model (also based on PRMS) is given by a melting degree-day approach.  The Priestley-Taylor equations provide potential transpiration – this flux is then allocated to grid cells in the shallow subsurface based on a model from CLM version 4.5 that includes rooting distribution parameters and a limiter based on mafic potential of full turgor and that of the wilting point.</p>
 <div class="cell docutils container">
@@ -653,6 +668,20 @@ document.write(`
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  Test log file : LOGS/ats-tests-2024-04-22_12-42-47.testlog
+Running ATS demo problems :
+05_ecohydrology      | .
+
+----------------------------------------------------------------------
+Regression test summary:
+    Total run time: 101.022 [s]
+    Total tests : 1
+    Tests run : 1
+    All tests passed.
+</pre></div>
+</div>
+</div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -665,12 +694,12 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/adee93e3bebcbc6a747f43be4ea4827ed9e1fe518ba25f892524506ea9b7d4f3.png" src="../../_images/adee93e3bebcbc6a747f43be4ea4827ed9e1fe518ba25f892524506ea9b7d4f3.png" />
+<img alt="../../_images/c6650881c3356a4df3be2a98995c1f4036e52f6ed736c02a56f4f2f8ef792a0d.png" src="../../_images/c6650881c3356a4df3be2a98995c1f4036e52f6ed736c02a56f4f2f8ef792a0d.png" />
 </div>
 </div>
 </section>
 <section id="distributed-energy-equation">
-<h2>Distributed energy equation<a class="headerlink" href="#distributed-energy-equation" title="Permalink to this heading">#</a></h2>
+<h2>Distributed energy equation<a class="headerlink" href="#distributed-energy-equation" title="Link to this heading">#</a></h2>
 <p>The empirical forms above are derived from a surface energy balance where not all terms are fully specified, or specified empirically.  For instance, ground conductance of energy is parameterized.</p>
 <p>The next set of models solve an energy transport equation on the surface and subsurface domains.  Both examples here solve for diffusion of energy, advection of energy on the surface domain (where advected energy is much larger than lateral diffusion of energy), and a surface energy balance to compute ET through energy conservation.</p>
 <ul class="simple">
@@ -682,6 +711,20 @@ document.write(`
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># run the demos</span>
 <span class="n">run_demos</span><span class="o">.</span><span class="n">run_demo_local</span><span class="p">([</span><span class="s1">&#39;full_energy&#39;</span><span class="p">,</span> <span class="s1">&#39;simple_energy&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  Test log file : LOGS/ats-tests-2024-04-22_12-44-28.testlog
+Running ATS demo problems :
+05_ecohydrology      | ..
+
+----------------------------------------------------------------------
+Regression test summary:
+    Total run time: 991.127 [s]
+    Total tests : 2
+    Tests run : 2
+    All tests passed.
 </pre></div>
 </div>
 </div>
@@ -698,7 +741,7 @@ document.write(`
       dtype=object)
 </pre></div>
 </div>
-<img alt="../../_images/ce0bb208ed27ee92102983da07de4f36adcb503e9b1983b6a9878858e2749d1a.png" src="../../_images/ce0bb208ed27ee92102983da07de4f36adcb503e9b1983b6a9878858e2749d1a.png" />
+<img alt="../../_images/aae7ec9681d485de5eaaff0b4201406496a4cfd7020fe034db744d7f8a3ba220.png" src="../../_images/aae7ec9681d485de5eaaff0b4201406496a4cfd7020fe034db744d7f8a3ba220.png" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -708,81 +751,17 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
-<span class="ne">FileNotFoundError</span><span class="g g-Whitespace">                         </span>Traceback (most recent call last)
-<span class="n">Cell</span> <span class="n">In</span><span class="p">[</span><span class="mi">14</span><span class="p">],</span> <span class="n">line</span> <span class="mi">1</span>
-<span class="ne">----&gt; </span><span class="mi">1</span> <span class="n">plot</span><span class="p">(</span><span class="s1">&#39;simple_energy&#39;</span><span class="p">)</span>
-
-<span class="nn">Cell In[9], line 3,</span> in <span class="ni">plot</span><span class="nt">(testname, axs, label)</span>
-<span class="g g-Whitespace">      </span><span class="mi">1</span> <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="n">testname</span><span class="p">,</span> <span class="n">axs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span> 
-<span class="g g-Whitespace">      </span><span class="mi">2</span>     <span class="n">dirname</span> <span class="o">=</span> <span class="n">testname</span><span class="o">+</span><span class="s1">&#39;.demo&#39;</span>
-<span class="ne">----&gt; </span><span class="mi">3</span>     <span class="n">obs</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span> <span class="s1">&#39;water_balance.dat&#39;</span><span class="p">),</span> <span class="n">comment</span><span class="o">=</span><span class="s1">&#39;#&#39;</span><span class="p">)</span>
-<span class="g g-Whitespace">      </span><span class="mi">4</span>     <span class="k">if</span> <span class="n">axs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-<span class="g g-Whitespace">      </span><span class="mi">5</span>         <span class="n">fig</span><span class="p">,</span><span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
-
-<span class="nn">File ~/code/mambaforge/lib/python3.10/site-packages/pandas/io/parsers/readers.py:912,</span> in <span class="ni">read_csv</span><span class="nt">(filepath_or_buffer, sep, delimiter, header, names, index_col, usecols, dtype, engine, converters, true_values, false_values, skipinitialspace, skiprows, skipfooter, nrows, na_values, keep_default_na, na_filter, verbose, skip_blank_lines, parse_dates, infer_datetime_format, keep_date_col, date_parser, date_format, dayfirst, cache_dates, iterator, chunksize, compression, thousands, decimal, lineterminator, quotechar, quoting, doublequote, escapechar, comment, encoding, encoding_errors, dialect, on_bad_lines, delim_whitespace, low_memory, memory_map, float_precision, storage_options, dtype_backend)</span>
-<span class="g g-Whitespace">    </span><span class="mi">899</span> <span class="n">kwds_defaults</span> <span class="o">=</span> <span class="n">_refine_defaults_read</span><span class="p">(</span>
-<span class="g g-Whitespace">    </span><span class="mi">900</span>     <span class="n">dialect</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">901</span>     <span class="n">delimiter</span><span class="p">,</span>
-   <span class="p">(</span><span class="o">...</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">908</span>     <span class="n">dtype_backend</span><span class="o">=</span><span class="n">dtype_backend</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">909</span> <span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">910</span> <span class="n">kwds</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwds_defaults</span><span class="p">)</span>
-<span class="ne">--&gt; </span><span class="mi">912</span> <span class="k">return</span> <span class="n">_read</span><span class="p">(</span><span class="n">filepath_or_buffer</span><span class="p">,</span> <span class="n">kwds</span><span class="p">)</span>
-
-<span class="nn">File ~/code/mambaforge/lib/python3.10/site-packages/pandas/io/parsers/readers.py:577,</span> in <span class="ni">_read</span><span class="nt">(filepath_or_buffer, kwds)</span>
-<span class="g g-Whitespace">    </span><span class="mi">574</span> <span class="n">_validate_names</span><span class="p">(</span><span class="n">kwds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;names&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
-<span class="g g-Whitespace">    </span><span class="mi">576</span> <span class="c1"># Create the parser.</span>
-<span class="ne">--&gt; </span><span class="mi">577</span> <span class="n">parser</span> <span class="o">=</span> <span class="n">TextFileReader</span><span class="p">(</span><span class="n">filepath_or_buffer</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">579</span> <span class="k">if</span> <span class="n">chunksize</span> <span class="ow">or</span> <span class="n">iterator</span><span class="p">:</span>
-<span class="g g-Whitespace">    </span><span class="mi">580</span>     <span class="k">return</span> <span class="n">parser</span>
-
-<span class="nn">File ~/code/mambaforge/lib/python3.10/site-packages/pandas/io/parsers/readers.py:1407,</span> in <span class="ni">TextFileReader.__init__</span><span class="nt">(self, f, engine, **kwds)</span>
-<span class="g g-Whitespace">   </span><span class="mi">1404</span>     <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;has_index_names&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwds</span><span class="p">[</span><span class="s2">&quot;has_index_names&quot;</span><span class="p">]</span>
-<span class="g g-Whitespace">   </span><span class="mi">1406</span> <span class="bp">self</span><span class="o">.</span><span class="n">handles</span><span class="p">:</span> <span class="n">IOHandles</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-<span class="ne">-&gt; </span><span class="mi">1407</span> <span class="bp">self</span><span class="o">.</span><span class="n">_engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_engine</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span>
-
-<span class="nn">File ~/code/mambaforge/lib/python3.10/site-packages/pandas/io/parsers/readers.py:1661,</span> in <span class="ni">TextFileReader._make_engine</span><span class="nt">(self, f, engine)</span>
-<span class="g g-Whitespace">   </span><span class="mi">1659</span>     <span class="k">if</span> <span class="s2">&quot;b&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">:</span>
-<span class="g g-Whitespace">   </span><span class="mi">1660</span>         <span class="n">mode</span> <span class="o">+=</span> <span class="s2">&quot;b&quot;</span>
-<span class="ne">-&gt; </span><span class="mi">1661</span> <span class="bp">self</span><span class="o">.</span><span class="n">handles</span> <span class="o">=</span> <span class="n">get_handle</span><span class="p">(</span>
-<span class="g g-Whitespace">   </span><span class="mi">1662</span>     <span class="n">f</span><span class="p">,</span>
-<span class="g g-Whitespace">   </span><span class="mi">1663</span>     <span class="n">mode</span><span class="p">,</span>
-<span class="g g-Whitespace">   </span><span class="mi">1664</span>     <span class="n">encoding</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;encoding&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-<span class="g g-Whitespace">   </span><span class="mi">1665</span>     <span class="n">compression</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;compression&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-<span class="g g-Whitespace">   </span><span class="mi">1666</span>     <span class="n">memory_map</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;memory_map&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
-<span class="g g-Whitespace">   </span><span class="mi">1667</span>     <span class="n">is_text</span><span class="o">=</span><span class="n">is_text</span><span class="p">,</span>
-<span class="g g-Whitespace">   </span><span class="mi">1668</span>     <span class="n">errors</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;encoding_errors&quot;</span><span class="p">,</span> <span class="s2">&quot;strict&quot;</span><span class="p">),</span>
-<span class="g g-Whitespace">   </span><span class="mi">1669</span>     <span class="n">storage_options</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;storage_options&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-<span class="g g-Whitespace">   </span><span class="mi">1670</span> <span class="p">)</span>
-<span class="g g-Whitespace">   </span><span class="mi">1671</span> <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">handles</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-<span class="g g-Whitespace">   </span><span class="mi">1672</span> <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">handles</span><span class="o">.</span><span class="n">handle</span>
-
-<span class="nn">File ~/code/mambaforge/lib/python3.10/site-packages/pandas/io/common.py:859,</span> in <span class="ni">get_handle</span><span class="nt">(path_or_buf, mode, encoding, compression, memory_map, is_text, errors, storage_options)</span>
-<span class="g g-Whitespace">    </span><span class="mi">854</span> <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-<span class="g g-Whitespace">    </span><span class="mi">855</span>     <span class="c1"># Check whether the filename is to be opened in binary mode.</span>
-<span class="g g-Whitespace">    </span><span class="mi">856</span>     <span class="c1"># Binary mode does not support &#39;encoding&#39; and &#39;newline&#39;.</span>
-<span class="g g-Whitespace">    </span><span class="mi">857</span>     <span class="k">if</span> <span class="n">ioargs</span><span class="o">.</span><span class="n">encoding</span> <span class="ow">and</span> <span class="s2">&quot;b&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ioargs</span><span class="o">.</span><span class="n">mode</span><span class="p">:</span>
-<span class="g g-Whitespace">    </span><span class="mi">858</span>         <span class="c1"># Encoding</span>
-<span class="ne">--&gt; </span><span class="mi">859</span>         <span class="n">handle</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span>
-<span class="g g-Whitespace">    </span><span class="mi">860</span>             <span class="n">handle</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">861</span>             <span class="n">ioargs</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">862</span>             <span class="n">encoding</span><span class="o">=</span><span class="n">ioargs</span><span class="o">.</span><span class="n">encoding</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">863</span>             <span class="n">errors</span><span class="o">=</span><span class="n">errors</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">864</span>             <span class="n">newline</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">865</span>         <span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">866</span>     <span class="k">else</span><span class="p">:</span>
-<span class="g g-Whitespace">    </span><span class="mi">867</span>         <span class="c1"># Binary mode</span>
-<span class="g g-Whitespace">    </span><span class="mi">868</span>         <span class="n">handle</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span> <span class="n">ioargs</span><span class="o">.</span><span class="n">mode</span><span class="p">)</span>
-
-<span class="ne">FileNotFoundError</span>: [Errno 2] No such file or directory: &#39;simple_energy.demo/water_balance.dat&#39;
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>array([&lt;Axes: xlabel=&#39;time [d]&#39;, ylabel=&#39;runoff [m^3 / d]&#39;&gt;,
+       &lt;Axes: xlabel=&#39;time [d]&#39;, ylabel=&#39;transpiration [m / d]&#39;&gt;],
+      dtype=object)
 </pre></div>
 </div>
+<img alt="../../_images/eb022ae64ce26e8ce8bb57190d4432c434ac875da4640b6fbe32af1025f5abef.png" src="../../_images/eb022ae64ce26e8ce8bb57190d4432c434ac875da4640b6fbe32af1025f5abef.png" />
 </div>
 </div>
 </section>
 <section id="prescribed-lai-calculated-transpiration">
-<h2>Prescribed LAI, calculated transpiration<a class="headerlink" href="#prescribed-lai-calculated-transpiration" title="Permalink to this heading">#</a></h2>
+<h2>Prescribed LAI, calculated transpiration<a class="headerlink" href="#prescribed-lai-calculated-transpiration" title="Link to this heading">#</a></h2>
 <p>More realistic than prescribing transpiration is to actively calculate transpiration as a function of photosynthesis.  This can be done through vegetation models, which actively simulate a carbon cycle and predict LAI and photosynthesis, or through a biophysics model, which takes as input a prescribed LAI as a function of time (including, e.g. seasonal variations) and calculates photosynthesis, stomatal conductance, and transpiration.</p>
 <p>These approaches need no limiters – the limiter is in the stomatal conductance term, which is itself a function of soil moisture or mafic potential.</p>
 <p><strong>TO DO</strong> Provide demos for any/all of: native vegetation model, ATS+CLM, ELM+ATS, ATS+ELMKernels, and eventually ATS+EcoSys.</p>
@@ -835,8 +814,8 @@ document.write(`
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
-<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -856,7 +835,7 @@ document.write(`
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.2.1.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
     <br/>
   </p>
 </div>
@@ -869,7 +848,7 @@ document.write(`
       
         <div class="footer-item">
 <p class="theme-version">
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.3.
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
 </p></div>
       
     </div>

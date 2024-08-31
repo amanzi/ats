@@ -1,0 +1,112 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "976e37dd-106b-4694-88ab-cf2a13af7260",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import os\n",
+    "import numpy as np\n",
+    "import pandas as pd\n",
+    "import matplotlib.pyplot as plt\n",
+    "%matplotlib qt5"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "df00f2a8-69bb-4d9c-8dd6-a27753196fae",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def readOBS(obs):\n",
+    "    filename = os.path.join('comparison_wrm_kr_models', obs)\n",
+    "    df = pd.read_table(filename, comment='#', delimiter=' ')\n",
+    "    df['discharge cumulation [mol/d]'] /= 55500\n",
+    "    df['surface-subsurface exchange cumulation [mol/d]'] /= -55500 \n",
+    "    df['thaw depth [m]'] *= 100\n",
+    "    df.rename(columns={'discharge cumulation [mol/d]': 'discharge [m3/d]',\n",
+    "                       'surface-subsurface exchange cumulation [mol/d]': 'infiltration [m3/d]',\n",
+    "                       'evaporation cumulation [m3/d]': 'evaporation [m3/d]',\n",
+    "                       'thaw depth [m]': 'thaw depth [cm]'}, inplace=True)\n",
+    "    df = df[365:].reset_index(drop=True)\n",
+    "    df['time [d]'] = df['time [d]'] - 365\n",
+    "    return df\n",
+    "\n",
+    "models = ['wrm_vangenuchten-krel_vangenuchten', 'wrm_vangenuchten-krel_brookscorey',\n",
+    "          'wrm_vangenuchten-krel_sutraice', 'wrm_brookscorey-krel_brookscorey']\n",
+    "variables = ['discharge [m3/d]', 'infiltration [m3/d]', 'evaporation [m3/d]', 'thaw depth [cm]']\n",
+    "dict_combo = {}\n",
+    "for m in models:\n",
+    "    dict_combo[m] = readOBS('obs_hillslope_{}.dat'.format(m)).set_index('time [d]').to_dict('list')\n",
+    "\n",
+    "reform = {(modelKey, varKey): values for modelKey, varDict in dict_combo.items() for varKey, values in varDict.items()}\n",
+    "df_combo = pd.DataFrame(reform)\n",
+    "df_combo['time [d]'] = range(0,365)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 26,
+   "id": "cfc51e4b-7a54-4a78-9cee-218d112b8957",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "fig, ax = plt.subplots(4,1, figsize=(6,18))\n",
+    "plt.subplots_adjust(left=0.1, right=0.98, top=0.985, bottom=0.055, hspace=0.32)\n",
+    "for m in models:\n",
+    "    for i in range(4):\n",
+    "        df_combo.plot(x='time [d]', y=(m, variables[i]), ax=ax[i], label=m)\n",
+    "\n",
+    "for i in range(4):\n",
+    "    ax[i].set_xlim(100, 250);\n",
+    "    ax[i].set_ylabel(variables[i])\n",
+    "    if i > 0:\n",
+    "        ax[i].get_legend().remove();\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "1678e20c-0903-4bf8-896d-0e057d24f30e",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "0 wrm_vangenuchten-krel_vangenuchten discharge [m3/d]\n",
+      "1 wrm_vangenuchten-krel_brookscorey infiltration [m3/d]\n",
+      "2 wrm_vangenuchten-krel_sutraice evaporation [m3/d]\n",
+      "3 wrm_brookscorey-krel_brookscorey thaw depth [cm]\n"
+     ]
+    }
+   ],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python [conda env:myenv] *",
+   "language": "python",
+   "name": "conda-env-myenv-py"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.9.13"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}

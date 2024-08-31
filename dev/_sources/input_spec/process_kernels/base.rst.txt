@@ -24,30 +24,8 @@ its type and its children.  The second is the spec for the base class PK, which
 is inherited and included by each actual PK, lives in the "PKs" sublist of
 "main", and has all needed parameters.
 
-.. _pk-typed-spec:
-.. admonition:: pk-typed-spec
-
-    * `"PK type`" ``[string]`` One of the registered PK types
-
-Example:
-
-.. code-block:: xml
-
-  <ParameterList name="PK tree">
-    <ParameterList name="Top level MPC">
-      <Parameter name="PK type" type="string" value="strong MPC"/>
-      <ParameterList name="sub PK 1">
-        ...
-      </ParameterList>
-      <ParameterList name="sub PK 2">
-        ...
-      </ParameterList>
-      ...
-    </ParameterList>
-  </ParameterList>
-
-
 .. _pk-spec:
+.. _pk-typed-spec:
 .. admonition:: pk-spec
 
     * `"PK type`" ``[string]`` One of the registered PK types.  Note this must
@@ -58,10 +36,16 @@ Example:
 
 .. code-block:: xml
 
-  <ParameterList name="PKs">
-    <ParameterList name="my cool PK">
-      <Parameter name="PK type" type="string" value="my cool PK"/>
-       ...
+  <ParameterList name="PK tree">
+    <ParameterList name="my cool MPC PK">
+      <Parameter name="PK type" type="string" value="my cool MPC PK"/>
+      <ParameterList name="sub PK 1">
+        ...
+      </ParameterList>
+      <ParameterList name="sub PK 2">
+        ...
+      </ParameterList>
+      ...
     </ParameterList>
   </ParameterList>
 
@@ -144,7 +128,7 @@ conserved quantity.
 
 By default, the error norm used by solvers is given by:
 
-:math:`ENORM(u, du) = |du| / ( a_tol + r_tol * |u| )`
+:math:`ENORM(u, du) = |du| / ( a_{tol} + r_{tol} * |u| )`
 
 The defaults here are typically good, or else good defaults are set in the
 code, so usually are not supplied by the user.
