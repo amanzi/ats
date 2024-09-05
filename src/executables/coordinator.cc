@@ -252,7 +252,7 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
     }
 
     // create the time step manager, register assorted timestep control events
-    tsm_ = Teuchos::rcp(new Amanzi::Utils::TimeStepManager(coordinator_list_->sublist("time step manager")));
+    tsm_ = Teuchos::rcp(new Amanzi::Utils::TimeStepManager(coordinator_list_->sublist("timestep manager")));
     checkpoint_->RegisterWithTimeStepManager(*tsm_);
     for (const auto& obs : observations_) obs->RegisterWithTimeStepManager(*tsm_);
     for (const auto& vis : visualization_) vis->RegisterWithTimeStepManager(*tsm_);
