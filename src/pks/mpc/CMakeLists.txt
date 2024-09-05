@@ -42,7 +42,7 @@ set(ats_mpc_src_files
   mpc_delegate_water.cc
   mpc_coupled_water.cc
   mpc_permafrost.cc
-
+  mpc_urban_hydro_subcycled.cc
   mpc_coupled_transport.cc
   mpc_reactivetransport.cc
   mpc_coupled_reactivetransport.cc
@@ -69,7 +69,7 @@ set(ats_mpc_inc_files
   mpc_delegate_water.hh
   mpc_coupled_water.hh
   mpc_permafrost.hh
-
+  mpc_urban_hydro_subcycled.hh
   mpc_coupled_transport.hh
   mpc_reactivetransport.hh
   mpc_coupled_reactivetransport.hh
@@ -186,6 +186,11 @@ register_evaluator_with_factory(
   LISTNAME   ATS_MPC_REG
   )
 
+register_evaluator_with_factory(
+  HEADERFILE mpc_urban_hydro_subcycled.hh
+  LISTNAME   ATS_MPC_REG
+  )
+  
 # register_evaluator_with_factory(
 #   HEADERFILE biomass_evaluator_reg.hh
 #   LISTNAME ATS_MPC_REG

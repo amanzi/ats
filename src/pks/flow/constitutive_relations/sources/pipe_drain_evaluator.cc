@@ -205,6 +205,9 @@ void PipeDrainEvaluator::Evaluate_(const State& S,
      const Epetra_MultiVector& pressHead = *S.GetPtr<CompositeVector>(pressure_head_key_, tag_explicit)
          ->ViewComponent("cell",false);
 
+     std::cout<<pressHead<<"\n";
+     //std::cout<<srfcDepth<<"\n";
+
      int c_pipe, c_sw;
 
      for (int c=0; c!=ncells; ++c) {
