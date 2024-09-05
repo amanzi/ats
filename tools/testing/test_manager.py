@@ -572,9 +572,9 @@ class RegressionTest(object):
                     asearch.find_name(ti, "limit iterations").setValue(100)
                     asearch.find_name(ti, "diverged tolerance").setValue(1.e10)
 
-                    asearch.find_name(ti, "timestep controller type").setValue("from file")
-                    ts_hist = ti.sublist("timestep controller from file parameters")
-                    ts_hist.setParameter("file name", "string", "../data/{0}_dts.h5".format(self.name()))
+                cycle_driver = asearch.find_name(xml, "cycle driver")
+                cycle_driver_tsm = cycle_driver.sublist("timestep manager");
+                cycle_driver_tsm.setParameter("prescribed timesteps file name", "string", f"../data/{self.name()}_dts.h5")
 
                 # -- write the new xml
                 print("Writing: {0}.xml".format(self.name()), file=testlog)
