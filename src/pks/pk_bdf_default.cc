@@ -158,17 +158,33 @@ PK_BDF_Default::AdvanceStep(double t_old, double t_new, bool reinit)
       if (valid) {
         if (vo_->os_OK(Teuchos::VERB_LOW)) *vo_->os() << "successful advance" << std::endl;
         // update the timestep size
-        if (dt_solver < dt_internal && dt_solver >= dt) {
-          // We took a smaller step than we recommended, and it worked fine (not
-          // suprisingly).  Likely this was due to constraints from other PKs or
-          // vis.  Do not reduce our recommendation.
+        if (dt <= dt_internal && dt <= dt_solver && dt_solver < dt_internal) {
+          // We took a smaller step than we recommended, likely due to
+          // constraints from other PKs or events like vis (dt <= dt_internal),
+          // and it worked well enough that the newly recommended step size
+          // didn't decrease (dt <= dt_solver).  Do not reduce our
+          // recommendation.
         } else {
+          // Accept the newly recommended step size, whether larger or smaller.
           dt_internal = dt_solver;
         }
       } else {
         if (vo_->os_OK(Teuchos::VERB_LOW))
           *vo_->os() << "successful advance, but not valid" << std::endl;
-        time_stepper_->CommitSolution(dt_internal, solution_, valid);
+        // NOTE, this is a bit weird.  CommitSolution() here calls
+        // TimestepController::get_timestep(dt, -1) to tell the TC that this
+        // step was actually not a success.  That call returns a reduced dt,
+        // which is what we should use.  But the current API doesn't provide a
+        // way to return that updated dt.  In order to get that updated dt, we
+        // would have to make CommitSolution() return a dt, but then we would
+        // have to deal with this return value in the case that it WAS valid.
+        // This would actually be a nice way of standardizing the API -- remove
+        // the dt_next argument of BDF1_TI::TimeStep(), then return dt_next
+        // from CommitSolution (in both success and fail).  However, then we
+        // would have to make sure to call CommitSolution() even if another PK
+        // failed, e.g. in FailStep().  So for now, we manually reduce the step
+        // size. --ETC
+        time_stepper_->CommitSolution(dt, solution_, valid);
         dt_internal = 0.5 * dt_internal;
         // when including Valid here, make fail = true refs #110
       }

@@ -24,7 +24,9 @@ def enforceDtHistory(xml):
     for ti in asearch.findall_name(xml, "time integrator"):
         if asearch.child_by_name(ti, "timestep controller type").getValue() == "from file":
             for child in ti:
-                if child.getName().startswith("timestep controller") and child.getName() != "timestep controller from file parameters":
+                if child.getName().startswith("timestep controller") and \
+                   child.getName().endswith("parameters") and \
+                   child.getName() != "timestep controller from file parameters":
                     new_type = child.getName()[len("timestep controller "):-len(" parameters")]
                     asearch.child_by_name(ti, "timestep controller type").setValue(new_type)
                     break

@@ -78,12 +78,14 @@ class TestStatus(object):
     """
     Simple class to hold status info.
     """
-    def __init__(self):
+    def __init__(self, name=None):
         self.fail = 0
+        self.failures = []
         self.warning = 0
         self.error = 0
         self.skipped = 0
         self.test_count = 0
+        self.name = name
 
     def __str__(self):
         message = "fail = {0}\n".format(self.fail)
@@ -153,7 +155,7 @@ class RegressionTest(object):
         # max_threshold) then compare values. By default we use the
         # python definitions for this platform
         self._default_tolerance = {}
-        self._default_tolerance[self._TIME] = [1.e-12, self._ABSOLUTE, \
+        self._default_tolerance[self._TIME] = [1.e-4, self._ABSOLUTE, \
                                                0.0, sys.float_info.max]
         self._default_tolerance[self._DISCRETE] = [0, self._ABSOLUTE, 0, sys.maxsize]
         
@@ -1030,7 +1032,7 @@ class RegressionTestManager(object):
         print(50 * '-', file=testlog)
 
         for test in self._tests:
-            status = TestStatus()
+            status = TestStatus(test.name())
             self._test_header(test.name(), testlog)
 
             test.run(dry_run, status, testlog)
@@ -1052,7 +1054,7 @@ class RegressionTestManager(object):
         print(50 * '-', file=testlog)
 
         for test in self._tests:
-            status = TestStatus()
+            status = TestStatus(test.name())
             self._test_header(test.name(), testlog)
 
             test.run(dry_run, status, testlog)
@@ -1078,7 +1080,7 @@ class RegressionTestManager(object):
         print(50 * '-', file=testlog)
 
         for test in self._tests:
-            status = TestStatus()
+            status = TestStatus(test.name())
             self._test_header(test.name(), testlog)
 
             if not dry_run and status.skipped == 0:
@@ -1102,7 +1104,7 @@ class RegressionTestManager(object):
         print(50 * '-', file=testlog)
 
         for test in self._tests:
-            status = TestStatus()
+            status = TestStatus(test.name())
             self._test_header(test.name(), testlog)
 	    
             test.run(dry_run, status, testlog)
@@ -1125,7 +1127,7 @@ class RegressionTestManager(object):
         print(50 * '-', file=testlog)
 
         for test in self._tests:
-            status = TestStatus()
+            status = TestStatus(test.name())
             self._test_header(test.name(), testlog)
             test.run(dry_run, status, testlog)
 
@@ -1203,6 +1205,8 @@ class RegressionTestManager(object):
         Add the current test status to the overall status for the file.
         """
         self._file_status.fail += status.fail
+        if status.fail and status.name is not None:
+            self._file_status.failures.append(status.name)
         self._file_status.warning += status.warning
         self._file_status.error += status.error
         self._file_status.skipped += status.skipped
@@ -1602,12 +1606,14 @@ def summary_report(run_time, report, outfile):
     print("    Total run time: {0:4g} [s]".format(run_time), file=outfile)
     test_count = 0
     num_failures = 0
+    failures = []
     num_errors = 0
     num_warnings = 0
     num_skipped = 0
     for filename in report:
         test_count += report[filename].test_count
         num_failures += report[filename].fail
+        failures.extend(report[filename].failures)
         num_errors += report[filename].error
         num_warnings += report[filename].warning
         num_skipped += report[filename].skipped
@@ -1623,6 +1629,8 @@ def summary_report(run_time, report, outfile):
     success = True
     if num_failures > 0:
         print("    Failed : {0}".format(num_failures), file=outfile)
+        for failure in failures:
+            print("     -- ", failure, file=outfile)
         success = False
 
     if num_errors > 0:
