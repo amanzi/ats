@@ -11,6 +11,7 @@
   MPC for subcycling one PK relative to another.
 */
 
+#include "Event.hh"
 #include "mpc_subcycled.hh"
 #include "pk_helpers.hh"
 
@@ -113,7 +114,6 @@ MPCSubcycled::get_dt()
     ++i;
   }
 
-  for (auto& dt_local : dts_) dt_local = std::min(dt_local, dt);
   dt_ = dt;
   return dt;
 }
@@ -155,19 +155,18 @@ MPCSubcycled::AdvanceStep_i_(std::size_t i, double t_old, double t_new, bool rei
 
     S_->set_time(tag_subcycle_current, t_old);
     while (!done) {
-      dt_inner = std::min(dt_inner, t_new - t_inner);
+      if (Utils::isNearEqual(t_new, t_inner + dt_inner) || (t_inner + dt_inner) > t_new) {
+        dt_inner = t_new - t_inner;
+      }
+
       S_->Assign("dt", tag_subcycle_current, name(), dt_inner);
       S_->set_time(tag_subcycle_next, t_inner + dt_inner);
       bool fail_inner = sub_pks_[i]->AdvanceStep(t_inner, t_inner + dt_inner, false);
 
       if (vo_->os_OK(Teuchos::VERB_EXTREME))
         *vo_->os() << "  step failed? " << fail_inner << std::endl;
-      bool valid_inner = sub_pks_[i]->ValidStep();
-      if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
-        *vo_->os() << "  step valid? " << valid_inner << std::endl;
-      }
 
-      if (fail_inner || !valid_inner) {
+      if (fail_inner) {
         sub_pks_[i]->FailStep(t_old, t_new, tag_subcycle_next);
 
         dt_inner = sub_pks_[i]->get_dt();

@@ -41,9 +41,6 @@ PK_BDF_Default::Setup()
     if (bdf_plist.isSublist("continuation parameters")) {
       S_->Require<double>(Keys::cleanName(name_, true) + "_continuation_parameter", Tags::DEFAULT, name_);
     }
-
-    // require data for checkpointing timestep size
-    S_->Require<double>(Keys::cleanName(name_, true) + "_dt_internal", Tags::DEFAULT, name_);
   }
 };
 
@@ -55,21 +52,6 @@ void
 PK_BDF_Default::Initialize()
 {
   if (!strongly_coupled_) {
-    // set up the timestepping algorithm
-    // -- construct the time integrator
-    //   Note, this is done here and not in setup because solution is not ready in setup
-    Teuchos::ParameterList& bdf_plist = plist_->sublist("time integrator");
-    bdf_plist.sublist("verbose object")
-      .setParametersNotAlreadySet(plist_->sublist("verbose object"));
-    bdf_plist.sublist("verbose object").set("name", name() + "_TI");
-
-    time_stepper_ =
-      Teuchos::rcp(new BDF1_TI<TreeVector, TreeVectorSpace>(*this, bdf_plist, solution_, S_));
-
-    double dt_init = time_stepper_->initial_timestep();
-    S_->Assign(Keys::cleanName(name_, true) + "_dt_internal", Tags::DEFAULT, name_, dt_init);
-    S_->GetRecordW(Keys::cleanName(name_, true) + "_dt_internal", Tags::DEFAULT, name_).set_initialized();
-
     // -- initialize continuation parameter if needed.
     if (S_->HasRecord(Keys::cleanName(name_, true) + "_continuation_parameter", Tags::DEFAULT)) {
       S_->Assign(
@@ -81,6 +63,13 @@ PK_BDF_Default::Initialize()
     // -- initialize time derivative
     auto solution_dot = Teuchos::rcp(new TreeVector(*solution_));
     solution_dot->PutScalar(0.0);
+
+    // set up the timestepping algorithm -- note this is done now because the
+    // solution space is not known until after Setup() is complete.
+    // -- construct the time integrator
+    Teuchos::ParameterList& bdf_plist = plist_->sublist("time integrator");
+    time_stepper_ =
+      Teuchos::rcp(new BDF1_TI<TreeVector, TreeVectorSpace>(name()+"_TI", bdf_plist, *this, solution_->get_map(), S_));
 
     // -- set initial state
     time_stepper_->SetInitialState(S_->get_time(), solution_, solution_dot);
@@ -94,17 +83,14 @@ PK_BDF_Default::Initialize()
 double
 PK_BDF_Default::get_dt()
 {
-  if (!strongly_coupled_)
-    return S_->Get<double>(Keys::cleanName(name_, true) + "_dt_internal", Tags::DEFAULT);
-  else
-    return -1.;
+  if (dt_next_ < 0.) dt_next_ = time_stepper_->initial_timestep();
+  return dt_next_;
 }
 
 void
 PK_BDF_Default::set_dt(double dt)
 {
-  if (!strongly_coupled_)
-    S_->Assign(Keys::cleanName(name_, true) + "_dt_internal", Tags::DEFAULT, name_, dt);
+  if (!strongly_coupled_) dt_next_ = dt;
 }
 
 // -- Commit any secondary (dependent) variables.
@@ -114,7 +100,7 @@ PK_BDF_Default::CommitStep(double t_old, double t_new, const Tag& tag)
   if (tag == tag_next_) {
     double dt = t_new - t_old;
     if (time_stepper_ != Teuchos::null && dt > 0) {
-      time_stepper_->CommitSolution(dt, solution_, true);
+      time_stepper_->CommitSolution(dt, solution_);
     }
   }
 }
@@ -138,57 +124,19 @@ PK_BDF_Default::AdvanceStep(double t_old, double t_new, bool reinit)
   State_to_Solution(Tags::NEXT, *solution_);
 
   // take a bdf timestep
-  // Three dts:
-  // --  dt is the requested timestep size.  It must be less than or equal to...
-  // --  dt_internal is the max valid dt, and is set by physics/solvers
-  // --  dt_solver is what the solver wants to do
-  double dt_internal = S_->Get<double>(Keys::cleanName(name_, true) + "_dt_internal", Tags::DEFAULT);
-
-  // NOTE, still a bug in amanzi#685, despite fixes in amanzi#694, so this assertion still fails --ETC
-  // AMANZI_ASSERT(dt <= dt_internal + 2.e-8); // roundoff
-
-  double dt_solver = -1;
   bool fail = false;
   try {
-    fail = time_stepper_->TimeStep(dt, dt_solver, solution_);
-
-    if (!fail) {
-      // check step validity
-      bool valid = ValidStep();
-      if (valid) {
-        if (vo_->os_OK(Teuchos::VERB_LOW)) *vo_->os() << "successful advance" << std::endl;
-        // update the timestep size
-        if (dt_solver < dt_internal && dt_solver >= dt) {
-          // We took a smaller step than we recommended, and it worked fine (not
-          // suprisingly).  Likely this was due to constraints from other PKs or
-          // vis.  Do not reduce our recommendation.
-        } else {
-          dt_internal = dt_solver;
-        }
-      } else {
-        if (vo_->os_OK(Teuchos::VERB_LOW))
-          *vo_->os() << "successful advance, but not valid" << std::endl;
-        time_stepper_->CommitSolution(dt_internal, solution_, valid);
-        dt_internal = 0.5 * dt_internal;
-        // when including Valid here, make fail = true refs #110
-      }
-    } else {
-      if (vo_->os_OK(Teuchos::VERB_LOW)) *vo_->os() << "unsuccessful advance" << std::endl;
-      // take the decreased timestep size
-      dt_internal = dt_solver;
-    }
-
-    S_->Assign(Keys::cleanName(name_, true) + "_dt_internal", Tags::DEFAULT, name_, dt_internal);
-  } catch (Errors::TimeStepCrash& e) {
+    fail = time_stepper_->AdvanceStep(dt, dt_next_, solution_);
+  } catch (Errors::TimestepCrash& e) {
     // inject more information into the crash message
     std::stringstream msg_str;
-    msg_str << "TimeStepCrash in PK: \"" << name() << "\"" << std::endl
+    msg_str << "TimestepCrash in PK: \"" << name() << "\"" << std::endl
             << "  at t = " << t_old << " with dt = " << dt << std::endl
             << "  error message: " << std::endl
             << std::endl
             << e.what() << std::endl
             << std::endl;
-    Errors::TimeStepCrash msg(msg_str.str());
+    Errors::TimestepCrash msg(msg_str.str());
     Exceptions::amanzi_throw(msg);
   }
   return fail;

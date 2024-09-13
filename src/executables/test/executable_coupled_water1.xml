@@ -109,12 +109,13 @@
           </ParameterList>
         </ParameterList>
         <ParameterList name="timestep controller smarter parameters" type="ParameterList">
+          <Parameter name="initial timestep [s]" type="double" value="1" />
           <Parameter name="max iterations" type="int" value="18" />
           <Parameter name="min iterations" type="int" value="10" />
-          <Parameter name="time step reduction factor" type="double" value="0.5" />
-          <Parameter name="time step increase factor" type="double" value="1.25" />
-          <Parameter name="max time step" type="double" value="600" />
-          <Parameter name="min time step" type="double" value="1e-10" />
+          <Parameter name="timestep reduction factor" type="double" value="0.5" />
+          <Parameter name="timestep increase factor" type="double" value="1.25" />
+          <Parameter name="max timestep" type="double" value="600" />
+          <Parameter name="min timestep" type="double" value="1e-10" />
           <Parameter name="growth wait after fail" type="int" value="2" />
           <Parameter name="count before increasing increase factor" type="int" value="2" />
         </ParameterList>
@@ -127,7 +128,7 @@
       <Parameter name="primary variable key" type="string" value="pressure" />
       <Parameter name="relative permeability method" type="string" value="upwind with Darcy flux" />
       <Parameter name="permeability rescaling" type="double" value="10000000" />
-      <Parameter name="max valid change in saturation in a time step [-]" type="double" value="0.1" />
+      <Parameter name="max valid change in saturation in a timestep [-]" type="double" value="0.1" />
       <Parameter name="debug cells" type="Array(int)" value="{0}" />
       <ParameterList name="verbose object" type="ParameterList">
         <Parameter name="verbosity level" type="string" value="high" />

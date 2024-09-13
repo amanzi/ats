@@ -49,7 +49,7 @@ ViscosityWater::Viscosity(double T)
 
   if (visc < 1.e-16) {
     std::cout << "Invalid temperature, T = " << T << std::endl;
-    Exceptions::amanzi_throw(Errors::CutTimeStep());
+    Exceptions::amanzi_throw(Errors::CutTimestep());
   }
   return visc;
 };

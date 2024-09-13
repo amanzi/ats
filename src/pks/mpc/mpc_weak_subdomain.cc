@@ -218,7 +218,7 @@ MPCWeakSubdomain::AdvanceStep_InternalSubcycling_(double t_old, double t_new, bo
   for (const auto& subdomain : ds) {
     double dt_inner = -1;
     double t_inner = t_old;
-    try { // must catch non-collective throws for TimeStepCrash
+    try { // must catch non-collective throws for TimestepCrash
       if (vo_->os_OK(Teuchos::VERB_EXTREME))
         *vo_->os() << "Beginning subcyling on pk \"" << sub_pks_[i]->name() << "\"" << std::endl;
 
@@ -234,12 +234,8 @@ MPCWeakSubdomain::AdvanceStep_InternalSubcycling_(double t_old, double t_new, bo
         bool fail_inner = sub_pks_[i]->AdvanceStep(t_inner, t_inner + dt_inner, false);
         if (vo_->os_OK(Teuchos::VERB_EXTREME))
           *vo_->os() << "  step failed? " << fail_inner << std::endl;
-        bool valid_inner = sub_pks_[i]->ValidStep();
-        if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
-          *vo_->os() << "  step valid? " << valid_inner << std::endl;
-        }
 
-        if (fail_inner || !valid_inner) {
+        if (fail_inner) {
           sub_pks_[i]->FailStep(t_old, t_new, tag_subcycle_next);
 
           dt_inner = sub_pks_[i]->get_dt();
@@ -262,7 +258,7 @@ MPCWeakSubdomain::AdvanceStep_InternalSubcycling_(double t_old, double t_new, bo
         }
       }
       i++;
-    } catch (Errors::TimeStepCrash& e) {
+    } catch (Errors::TimestepCrash& e) {
       n_throw++;
       throw_msg = e.what();
       break;
@@ -274,12 +270,12 @@ MPCWeakSubdomain::AdvanceStep_InternalSubcycling_(double t_old, double t_new, bo
   comm_->SumAll(&n_throw, &n_throw_g, 1);
   if (n_throw > 0) {
     // inject more information into the crash message
-    Errors::TimeStepCrash msg;
+    Errors::TimestepCrash msg;
     msg << throw_msg << "  on rank " << comm_->MyPID() << " of " << comm_->NumProc();
     Exceptions::amanzi_throw(msg);
   } else if (n_throw_g > 0) {
-    Errors::TimeStepCrash msg;
-    msg << "TimeStepCrash on another rank: nprocs failed = " << n_throw_g;
+    Errors::TimestepCrash msg;
+    msg << "TimestepCrash on another rank: nprocs failed = " << n_throw_g;
     Exceptions::amanzi_throw(msg);
   }
   return false;
