@@ -24,6 +24,7 @@ import datetime
 import os
 import glob
 #import pprint
+import fnmatch
 import shutil
 import subprocess
 import textwrap
@@ -569,11 +570,12 @@ class RegressionTest(object):
 
                 chp.setParameter('cycles', 'Array(int)', chp_cycles)
 
-                # -- update timestep controller, nonlinear solvers
+                # -- update timestep controller, nonlinear solvers to try really hard
                 for ti in asearch.findall_name(xml, "time integrator"):
                     asearch.find_name(ti, "limit iterations").setValue(100)
                     asearch.find_name(ti, "diverged tolerance").setValue(1.e10)
 
+                # -- add filename to the timestep manager list
                 cycle_driver = asearch.find_name(xml, "cycle driver")
                 cycle_driver_tsm = cycle_driver.sublist("timestep manager");
                 cycle_driver_tsm.setParameter("prescribed timesteps file name", "string", f"../data/{self.name()}_dts.h5")
@@ -1353,9 +1355,9 @@ class RegressionTestManager(object):
 
             u_tests = []
             for test in user_tests:
-                if test in self._available_tests:
-                    u_tests.append(test.lower())
-                else:
+                matches = fnmatch.filter(self._available_tests, test)
+                u_tests.extend(matches)
+                if len(matches) == 0:
                     message = self._txtwrap.fill(
                         "WARNING : {0} : Skipping test '{1}' (not present or "
                         "misspelled).".format(self._config_filename, test))

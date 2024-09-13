@@ -261,7 +261,6 @@ Morphology_PK::AdvanceStep(double t_old, double t_new, bool reinit)
       S_next_->set_time(t_old + dt_done + dt_next);
       S_inter_->set_time(t_old + dt_done);
       fail = flow_pk_->AdvanceStep(t_old + dt_done, t_old + dt_done + dt_next, reinit);
-      fail |= !flow_pk_->ValidStep();
 
       if (fail) {
         if (vo_->getVerbLevel() >= Teuchos::VERB_HIGH) *vo_->os() << "Master step is failed\n";

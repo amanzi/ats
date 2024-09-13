@@ -554,7 +554,6 @@ Coordinator::advance()
   double t_new = S_->get_time(Amanzi::Tags::NEXT);
 
   bool fail = pk_->AdvanceStep(t_old, t_new, false);
-  if (!fail) fail |= !pk_->ValidStep();
 
   // write state post-advance, if extreme
   WriteStateStatistics(*S_, *vo_, Teuchos::VERB_EXTREME);

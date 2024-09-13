@@ -25,8 +25,7 @@ PK_Physical_Default::PK_Physical_Default(Teuchos::ParameterList& pk_tree,
                                          const Teuchos::RCP<State>& S,
                                          const Teuchos::RCP<TreeVector>& solution)
   : PK(pk_tree, glist, S, solution),
-    PK_Physical(pk_tree, glist, S, solution),
-    max_valid_change_(-1.0)
+    PK_Physical(pk_tree, glist, S, solution)
 {}
 
 void
@@ -79,33 +78,6 @@ PK_Physical_Default::FailStep(double t_old, double t_new, const Tag& tag_next)
   AMANZI_ASSERT(tag_next == tag_next_ || tag_next == Tags::NEXT);
   Tag tag_current = tag_next == tag_next_ ? tag_current_ : Tags::CURRENT;
   assign(key_, tag_next, tag_current, *S_);
-}
-
-
-// -----------------------------------------------------------------------------
-// Ensures the step size is smaller than max_valid_change
-// -----------------------------------------------------------------------------
-bool
-PK_Physical_Default::ValidStep()
-{
-  Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "Validating time step." << std::endl;
-
-  if (max_valid_change_ > 0.0) {
-    const CompositeVector& var_new = S_->Get<CompositeVector>(key_, tag_next_);
-    const CompositeVector& var_old = S_->Get<CompositeVector>(key_, tag_current_);
-    CompositeVector dvar(var_new);
-    dvar.Update(-1., var_old, 1.);
-    double change = 0.;
-    dvar.NormInf(&change);
-    if (change > max_valid_change_) {
-      if (vo_->os_OK(Teuchos::VERB_LOW))
-        *vo_->os() << "Invalid time step, max primary variable change=" << change
-                   << " > limit=" << max_valid_change_ << std::endl;
-      return false;
-    }
-  }
-  return true;
 }
 
 

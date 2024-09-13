@@ -24,11 +24,6 @@ all leaves of the PK tree will inherit from `PKPhysicalBase`.
 
     * `"initial condition`" ``[initial-conditions-spec]``  See InitialConditions_.
 
-    * `"max valid change`" ``[double]`` **-1** Sets a limiter on what is a
-      valid change in a single timestep.  Changes larger than this are declared
-      invalid and the timestep shrinks.  By default, any change is valid.
-      Units are the same as the primary variable.
-
     INCLUDES:
 
     - ``[pk-spec]`` This *is a* PK_.
@@ -60,7 +55,6 @@ class PK_Physical_Default : public PK_Physical {
   virtual ~PK_Physical_Default() = default;
 
   virtual void parseParameterList() override;
-  virtual bool ValidStep() override;
 
   // Tag the primary variable as changed in the DAG
   virtual void ChangedSolutionPK(const Tag& tag) override;
@@ -72,9 +66,6 @@ class PK_Physical_Default : public PK_Physical {
   virtual void FailStep(double t_old, double t_new, const Tag& tag) override;
 
  protected:
-  // step validity
-  double max_valid_change_;
-
   // ENORM struct
   typedef struct ENorm_t {
     double value;

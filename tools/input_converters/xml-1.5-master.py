@@ -39,9 +39,36 @@ def enforceDtHistory(xml):
         tsm_list = cycle_driver_list.sublist("timestep manager")
         tsm_list.setParameter("prescribed timesteps file name", "string", asearch.child_by_name(ti_file_pars, "file name").getValue())
 
+def timeStep(xml):
+    """Many parameters changed "time step" --> "timestep" """
+    def fix(xml, pname):
+        for p in asearch.findall_name(xml, pname):
+            p.setName(pname.replace("time step", "timestep"))
+
+    fix(xml, "time step reduction factor")
+    fix(xml, "time step increase factor")        
+    fix(xml, "max time step")        
+    fix(xml, "min time step")        
+    fix(xml, "max time step [s]")        
+    fix(xml, "min time step [s]")        
+    fix(xml, "initial time step")
+    fix(xml, "initial time step [s]")        
+    fix(xml, "max valid change in saturation in a time step [-]")
+    fix(xml, "max valid change in ice saturation in a time step [-]")
+
+    for ti in asearch.findall_name(xml, "timestep controller fixed parameters"):
+        if ti.isElement("initial timestep [s]"):
+            ti.getElement("initial timestep [s]").setName("timestep [s]")
+
+    for ti_type in ["standard", "smarter"]:
+        for ti in asearch.findall_name(xml, f"timestep controller {ti_type} parameters"):
+            if not ti.isElement("initial timestep [s]"):
+                ti.setParameter("initial timestep [s]", "double", 1.0)
+
 
 def update(xml):
     enforceDtHistory(xml)
+    timeStep(xml)
 
 
 if __name__ == "__main__":
