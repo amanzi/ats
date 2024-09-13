@@ -41,6 +41,11 @@ PK_BDF_Default::Setup()
     if (bdf_plist.isSublist("continuation parameters")) {
       S_->Require<double>(Keys::cleanName(name_, true) + "_continuation_parameter", Tags::DEFAULT, name_);
     }
+
+    // set up the timestepping algorithm
+    // -- construct the time integrator
+    time_stepper_ =
+      Teuchos::rcp(new BDF1_TI<TreeVector, TreeVectorSpace>(name()+"_TI", bdf_plist, *this, solution_->get_map(), S_));
   }
 };
 
@@ -52,18 +57,6 @@ void
 PK_BDF_Default::Initialize()
 {
   if (!strongly_coupled_) {
-    // set up the timestepping algorithm
-    // -- construct the time integrator
-    //   Note, this is done here and not in setup because solution is not ready in setup
-    Teuchos::ParameterList& bdf_plist = plist_->sublist("time integrator");
-    bdf_plist.sublist("verbose object")
-      .setParametersNotAlreadySet(plist_->sublist("verbose object"));
-    bdf_plist.sublist("verbose object").set("name", name() + "_TI");
-
-    time_stepper_ =
-      Teuchos::rcp(new BDF1_TI<TreeVector, TreeVectorSpace>(name()+"_TI", bdf_plist, *this, S_,
-              solution_));
-
     dt_next_ = time_stepper_->initial_timestep();
 
     // -- initialize continuation parameter if needed.

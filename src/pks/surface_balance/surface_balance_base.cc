@@ -138,7 +138,7 @@ SurfaceBalanceBase::CommitStep(double t_old, double t_new, const Tag& tag_next)
 void
 SurfaceBalanceBase::FunctionalResidual(double t_old,
                                        double t_new,
-                                       Teuchos::RCP<TreeVector> u_old,
+                                       Teuchos::RCP<const TreeVector> u_old,
                                        Teuchos::RCP<TreeVector> u_new,
                                        Teuchos::RCP<TreeVector> g)
 {

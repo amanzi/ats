@@ -62,7 +62,7 @@ class StrongMPC : public MPC<PK_t>, public PK_BDF_Default {
   //    By default this just calls each sub pk FunctionalResidual().
   virtual void FunctionalResidual(double t_old,
                                   double t_new,
-                                  Teuchos::RCP<TreeVector> u_old,
+                                  Teuchos::RCP<const TreeVector> u_old,
                                   Teuchos::RCP<TreeVector> u_new,
                                   Teuchos::RCP<TreeVector> g) override;
 
@@ -217,7 +217,7 @@ template <class PK_t>
 void
 StrongMPC<PK_t>::FunctionalResidual(double t_old,
                                     double t_new,
-                                    Teuchos::RCP<TreeVector> u_old,
+                                    Teuchos::RCP<const TreeVector> u_old,
                                     Teuchos::RCP<TreeVector> u_new,
                                     Teuchos::RCP<TreeVector> g)
 {
@@ -226,7 +226,7 @@ StrongMPC<PK_t>::FunctionalResidual(double t_old,
   // loop over sub-PKs
   for (std::size_t i = 0; i != sub_pks_.size(); ++i) {
     // pull out the old solution sub-vector
-    Teuchos::RCP<TreeVector> pk_u_old(Teuchos::null);
+    Teuchos::RCP<const TreeVector> pk_u_old(Teuchos::null);
     if (u_old != Teuchos::null) {
       pk_u_old = u_old->SubVector(i);
       if (pk_u_old == Teuchos::null) {
