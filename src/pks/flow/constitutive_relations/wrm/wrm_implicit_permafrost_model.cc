@@ -278,7 +278,7 @@ WRMImplicitPermafrostModel::DetermineSplineCutoff_(double pc_liq,
     try {
       si = si_frozen_unsaturated_nospline_(
         cutoff, pc_ice, true); // use the version that throws on error
-    } catch (const Errors::CutTimeStep& e) {
+    } catch (const Errors::CutTimestep& e) {
       cutoff = std::exp(std::log(cutoff) + 1.);
       continue;
     }
@@ -382,7 +382,7 @@ WRMImplicitPermafrostModel::si_frozen_unsaturated_nospline_(double pc_liq,
     std::cerr << "WRMImplicitPermafrostModel did not converge, " << max_it
               << " iterations, error = " << func(si) << ", s_i = " << si
               << ", PC_{lg,il} = " << pc_liq << "," << pc_ice << std::endl;
-    if (throw_ok) { Exceptions::amanzi_throw(Errors::CutTimeStep()); }
+    if (throw_ok) { Exceptions::amanzi_throw(Errors::CutTimestep()); }
   }
   return si;
 }

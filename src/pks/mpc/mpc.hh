@@ -91,9 +91,6 @@ class MPC : virtual public PK {
   // Calculate any diagnostics at S->time(), currently for visualization.
   virtual void CalculateDiagnostics(const Tag& tag) override;
 
-  // Is the step valid?
-  virtual bool ValidStep() override;
-
   // -- transfer operators
   virtual void State_to_Solution(const Tag& tag, TreeVector& soln) override;
 
@@ -236,28 +233,6 @@ MPC<PK_t>::CalculateDiagnostics(const Tag& tag)
     *vo_->os() << "calculating diagnostics @ " << tag << std::endl;
   for (auto& pk : sub_pks_) pk->CalculateDiagnostics(tag);
 };
-
-
-// -----------------------------------------------------------------------------
-// loop over sub-PKs, calling their ValidStep
-// -----------------------------------------------------------------------------
-template <class PK_t>
-bool
-MPC<PK_t>::ValidStep()
-{
-  Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "Validating time step." << std::endl;
-
-  for (auto& pk : sub_pks_) {
-    bool valid = pk->ValidStep();
-    if (!valid) {
-      if (vo_->os_OK(Teuchos::VERB_MEDIUM))
-        *vo_->os() << "Invalid time step, sub_pk: " << pk->name() << " is invalid." << std::endl;
-      return valid;
-    }
-  }
-  return true;
-}
 
 
 // -----------------------------------------------------------------------------
