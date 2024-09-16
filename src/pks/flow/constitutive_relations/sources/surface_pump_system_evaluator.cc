@@ -136,14 +136,17 @@ SurfPumpEvaluator::Evaluate_(const State& S,
   }
 
   // stage_on value should be greater than elevation at inlet or inlet is the reference region 
+  double avg_elev_inlet;
   if (on_off_region_.empty()){
-    double avg_elev_inlet = computeAreaWeightedAverage(mesh, pump_inlet_id_list, cv, elev);
+    avg_elev_inlet = computeAreaWeightedAverage(mesh, pump_inlet_id_list, cv, elev);
     AMANZI_ASSERT(stage_on_ > avg_elev_inlet);
   }
 
   // Calculate Stage Difference and Pump Status
   // average stage at inlet
   double avg_pe_inlet = computeAreaWeightedAverage(mesh, pump_inlet_id_list, cv, pe);
+  double avg_pd_inlet = computeAreaWeightedAverage(mesh, pump_inlet_id_list, cv, pd);
+
 
   // average stage at outlet if outlet region provided
   double avg_pe_outlet;
@@ -172,23 +175,40 @@ SurfPumpEvaluator::Evaluate_(const State& S,
     // pass
   }
 
+  // Print the value of avg_pe_inlet
+  std::cout << "stage inlet: " << avg_pe_inlet << std::endl;
+  std::cout << "pump status: " << pump_on << std::endl;
+
+
   // Calculate pumpflow rate and distribute sources and sinks 
+  double Q_max;
   double Q;
   if (pump_on) {
       double head_diff = std::max(max_elev_pumpline_, avg_pe_outlet) - avg_pe_inlet;
-      Q = (*Q_pump_)(std::vector<double>{head_diff}); // m^3/s
+      Q_max = (*Q_pump_)(std::vector<double>{head_diff}); // m^3/s
 
-      //Down regulate if water demand is greater than water available 
-      double water_avail = 0;
-      for (auto c : pump_inlet_id_list) {
-        water_avail += wc[0][c] / liq_den[0][c]; //m^3
-      }
-      double water_demand = Q * dt; //m^3
-      if (water_demand > water_avail){
-        Q = 0.99*water_avail / (dt);  // m^3/s
-      }
-   
-      // sink distribution based on available water
+      // // Downregulation factor
+      // double h0 = 2 * (stage_on_ - avg_elev_inlet);
+      // double G;
+
+      // if (avg_pd_inlet > h0) {
+      //     G = 1.0;
+      // } else if (avg_pd_inlet > 0 && avg_pd_inlet <= h0) {
+      //     G = avg_pd_inlet / h0; // Linear interpolation from 0 to 1
+      // } else {
+      //     G = 0.0;
+      // }
+      Q = Q_max; //* G;
+
+      // Print the value of avg_pe_inlet
+      std::cout << "avg_pd_inlet: " << avg_pd_inlet << std::endl;
+      std::cout << "avg_elev_inlet: " << avg_elev_inlet << std::endl;
+      // std::cout << "h0: " << h0 << std::endl;
+
+      std::cout << "Q_max: " << Q_max << std::endl;
+      std::cout << "Q: " << Q << std::endl;
+
+      // sink distribution proportional to available water
       double sum_wc_l = 0;
       for (auto c : pump_inlet_id_list) {
         sum_wc_l += wc[0][c];
@@ -220,12 +240,20 @@ SurfPumpEvaluator::Evaluate_(const State& S,
 
   // double-check mass conservation
   double mass_balance = 0.0;
-  if (!pump_outlet_region_.empty()) 
+  if (!pump_outlet_region_.empty()) {
       surf_src.Dot(cv, &mass_balance);
-      // Check if the mass balance is zero (or very close to zero, considering numerical precision)
+      // Check if the mass balance is zero 
       AMANZI_ASSERT(std::abs(mass_balance) < 1.e-10);
-
-}
+      }
+  else { // Debug code
+      for (auto c : pump_inlet_id_list) {
+        mass_balance += surf_src[0][c] * cv[0][c] /  liq_den[0][c]; // m^3/s
+      }
+      double mass_balance_g = 0;
+      mesh.getComm()->SumAll(&mass_balance, &mass_balance_g, 1);
+      AMANZI_ASSERT(std::abs(mass_balance_g + Q) < 1.e-10);
+    }
+  }
 
 } // namespace Relations
 } // namespace Flow
