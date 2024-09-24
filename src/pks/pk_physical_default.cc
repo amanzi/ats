@@ -39,8 +39,6 @@ PK_Physical_Default::parseParameterList()
 
   // primary variable max change
   max_valid_change_ = plist_->get<double>("max valid change", -1.0);
-
-  PK_Physical::parseParameterList();
 }
 
 

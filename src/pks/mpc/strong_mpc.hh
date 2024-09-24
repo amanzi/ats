@@ -143,7 +143,6 @@ StrongMPC<PK_t>::parseParameterList()
     pks_list_->sublist(pk_name).set("strongly coupled PK", true);
   }
 
-  PK_BDF_Default::parseParameterList();
   MPC<PK_t>::parseParameterList();
 }
 
