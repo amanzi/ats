@@ -941,6 +941,13 @@ Richards::UpdatePermeabilityDerivativeData_(const Tag& tag)
     }
   }
 
+  std::vector<std::string> vnames{ "dkrel", "uw_dkrel" };
+  std::vector<Teuchos::Ptr<const CompositeVector>> vecs{
+    S_->GetDerivativePtr<CompositeVector>(coef_key_, tag, key_, tag).ptr(),
+    S_->GetPtr<CompositeVector>(duw_coef_key_, tag).ptr()
+  };
+  db_->WriteVectors(vnames, vecs, true);
+
   // debugging
   if (vo_->os_OK(Teuchos::VERB_EXTREME)) { *vo_->os() << " " << update_perm << std::endl; }
   return update_perm;
@@ -1271,7 +1278,7 @@ Richards::UpdateBoundaryConditions_(const Tag& tag, bool kr)
   bc_counts.push_back(n_default);
 
   // report on counts
-  if (vo_->os_OK(Teuchos::VERB_HIGH)) {
+  if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
     std::vector<int> bc_counts_global(bc_counts.size(), 0);
     mesh_->getComm()->SumAll(&bc_counts[0], &bc_counts_global[0], bc_counts.size());
 

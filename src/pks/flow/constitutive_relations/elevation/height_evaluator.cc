@@ -67,31 +67,25 @@ HeightEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& 
 {
   Tag tag = my_keys_.front().second;
   Teuchos::RCP<const CompositeVector> pres = S.GetPtr<CompositeVector>(pres_key_, tag);
-
-  // this is rather hacky.  surface_pressure is a mixed field vector -- it has
-  // pressure on cells and ponded depth on faces.
-  // -- copy the faces over directly
-  if (result[0]->HasComponent("face") && pres->HasComponent("face"))
-    *result[0]->ViewComponent("face", false) = *pres->ViewComponent("face", false);
-
-  // -- cells need the function eval
-  const Epetra_MultiVector& res_c = *result[0]->ViewComponent("cell", false);
-  const Epetra_MultiVector& pres_c = *pres->ViewComponent("cell", false);
-  const Epetra_MultiVector& rho =
-    *S.GetPtr<CompositeVector>(dens_key_, tag)->ViewComponent("cell", false);
-
+  Teuchos::RCP<const CompositeVector> dens = S.GetPtr<CompositeVector>(dens_key_, tag);
   double p_atm = S.Get<double>("atmospheric_pressure", Tags::DEFAULT);
   const AmanziGeometry::Point& gravity = S.Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
   double gz = -gravity[2];
 
-  int ncells = res_c.MyLength();
-  if (bar_) {
-    for (int c = 0; c != ncells; ++c) {
-      res_c[0][c] = model_->Height(pres_c[0][c], rho[0][c], p_atm, gz);
-    }
-  } else {
-    for (int c = 0; c != ncells; ++c) {
-      res_c[0][c] = pres_c[0][c] < p_atm ? 0. : model_->Height(pres_c[0][c], rho[0][c], p_atm, gz);
+  for (const auto& comp : *result[0]) {
+    const Epetra_MultiVector& res_c = *result[0]->ViewComponent(comp, false);
+    const Epetra_MultiVector& pres_c = *pres->ViewComponent(comp, false);
+    const Epetra_MultiVector& dens_c = *dens->ViewComponent("cell", false);
+
+    int ncells = res_c.MyLength();
+    if (bar_) {
+      for (int c = 0; c != ncells; ++c) {
+        res_c[0][c] = model_->Height(pres_c[0][c], dens_c[0][c], p_atm, gz);
+      }
+    } else {
+      for (int c = 0; c != ncells; ++c) {
+        res_c[0][c] = pres_c[0][c] < p_atm ? 0. : model_->Height(pres_c[0][c], dens_c[0][c], p_atm, gz);
+      }
     }
   }
 }
