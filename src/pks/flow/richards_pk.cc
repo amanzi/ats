@@ -941,11 +941,13 @@ Richards::UpdatePermeabilityDerivativeData_(const Tag& tag)
     }
   }
 
-  std::vector<std::string> vnames{ "dkrel", "uw_dkrel" };
+  std::vector<std::string> vnames{ "dkrel" };
   std::vector<Teuchos::Ptr<const CompositeVector>> vecs{
-    S_->GetDerivativePtr<CompositeVector>(coef_key_, tag, key_, tag).ptr(),
-    S_->GetPtr<CompositeVector>(duw_coef_key_, tag).ptr()
-  };
+    S_->GetDerivativePtr<CompositeVector>(coef_key_, tag, key_, tag).ptr() };
+  if (!duw_coef_key_.empty()) {
+    vnames.emplace_back("uw_dkrel");
+    vecs.emplace_back(S_->GetPtr<CompositeVector>(duw_coef_key_, tag).ptr());
+  }
   db_->WriteVectors(vnames, vecs, true);
 
   // debugging

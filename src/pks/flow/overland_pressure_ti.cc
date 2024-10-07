@@ -75,12 +75,15 @@ OverlandPressureFlow::FunctionalResidual(double t_old,
     vecs.emplace_back(S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "fractional_conductance"), tag_next_).ptr());
   }
 
-  if (S_->HasRecord(Keys::getKey(domain_, "unfrozen_fraction"), tag_next_) &&
-      S_->HasRecord(Keys::getKey(domain_, "unfrozen_fraction"), tag_current_)) {
+
+  if (S_->HasRecord(Keys::getKey(domain_, "unfrozen_fraction"), tag_current_)) {
     Key uf_key = Keys::getKey(domain_, "unfrozen_fraction");
     vnames.emplace_back("uf_frac_old");
-    vnames.emplace_back("uf_frac_new");
     vecs.emplace_back(S_->GetPtr<CompositeVector>(uf_key, tag_current_).ptr());
+  }
+  if (S_->HasRecord(Keys::getKey(domain_, "unfrozen_fraction"), tag_next_)) {
+    Key uf_key = Keys::getKey(domain_, "unfrozen_fraction");
+    vnames.emplace_back("uf_frac_new");
     vecs.emplace_back(S_->GetPtr<CompositeVector>(uf_key, tag_next_).ptr());
   }
 
