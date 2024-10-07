@@ -37,9 +37,8 @@ applyDirichletBCs(const Operators::BCs& bcs, CompositeVector& u)
     for (unsigned int f = 0; f != u_f.MyLength(); ++f) {
       if (bcs.bc_model()[f] == Operators::OPERATOR_BC_DIRICHLET) { u_f[0][f] = bcs.bc_value()[f]; }
     }
-  }
 
-  if (u.HasComponent("boundary_face")) {
+  } else if (u.HasComponent("boundary_face")) {
     Epetra_MultiVector& u_bf = *u.ViewComponent("boundary_face", false);
     const Epetra_MultiVector& u_c = *u.ViewComponent("cell", false);
     const Epetra_Map& vandalay_map =
