@@ -42,9 +42,11 @@ ImplicitSubgrid::parseParameterList()
 
   snow_dens_key_ = Keys::readKey(*plist_, domain_, "snow density", "density");
   requireAtNext(snow_dens_key_, tag_next_, *S_, name_);
+  requireAtCurrent(snow_dens_key_, tag_current_, *S_, name_);
 
   snow_death_rate_key_ = Keys::readKey(*plist_, domain_, "snow death rate", "death_rate");
   requireAtNext(snow_death_rate_key_, tag_next_, *S_, name_);
+  requireAtCurrent(snow_death_rate_key_, tag_current_, *S_, name_);
 
   snow_age_key_ = Keys::readKey(*plist_, domain_, "snow age", "age");
   requireAtNext(snow_age_key_, tag_next_, *S_, name_);
@@ -53,6 +55,10 @@ ImplicitSubgrid::parseParameterList()
   density_snow_max_ = plist_->get<double>("max density of snow [kg m^-3]", 600.);
 
   SurfaceBalanceBase::parseParameterList();
+
+  // See ticket #123, break the cycle of snow source and snow density/age by
+  // lagging these in the SEB calculation.
+  S_->GetEvaluatorList(source_key_).set<std::string>("lagged tag", tag_current_.get());
 }
 
 // main methods
@@ -199,7 +205,7 @@ ImplicitSubgrid::FunctionalResidual(double t_old,
   // This line of code is commented out to ensure consistent code with master.
   // Uncommenting removes the bug described in ats#123, but does not fix it,
   // because it results in the cycle.
-  // changedEvaluatorPrimary(snow_death_rate_key_, tag_next_, *S_);
+  changedEvaluatorPrimary(snow_death_rate_key_, tag_next_, *S_);
 
   // update the residual
   SurfaceBalanceBase::FunctionalResidual(t_old, t_new, u_old, u_new, g);
@@ -258,8 +264,8 @@ ImplicitSubgrid::FunctionalResidual(double t_old,
   // This line of code is commented out to ensure consistent code with master.
   // Uncommenting removes the bug described in ats#123, but does not fix it,
   // because it results in the cycle.
-  // changedEvaluatorPrimary(snow_dens_key_, tag_next_, *S_);
-  // changedEvaluatorPrimary(snow_age_key_, tag_next_, *S_);
+  changedEvaluatorPrimary(snow_dens_key_, tag_next_, *S_);
+  changedEvaluatorPrimary(snow_age_key_, tag_next_, *S_);
 
   // debugging
   std::vector<std::string> vnames;

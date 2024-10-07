@@ -49,40 +49,36 @@ void
 IcyHeightEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& result)
 {
   Tag tag = my_keys_.front().second;
+
   Teuchos::RCP<const CompositeVector> pres = S.GetPtr<CompositeVector>(pres_key_, tag);
-
-  // this is rather hacky.  surface_pressure is a mixed field vector -- it has
-  // pressure on cells and ponded depth on faces.
-  // -- copy the faces over directly
-  if (result[0]->HasComponent("face"))
-    *result[0]->ViewComponent("face", false) = *pres->ViewComponent("face", false);
-
-  // -- cells need the function eval
-  const Epetra_MultiVector& res_c = *result[0]->ViewComponent("cell", false);
-  const Epetra_MultiVector& pres_c = *pres->ViewComponent("cell", false);
-  const Epetra_MultiVector& rho_l =
-    *S.GetPtr<CompositeVector>(dens_key_, tag)->ViewComponent("cell", false);
-  const Epetra_MultiVector& rho_i =
-    *S.GetPtr<CompositeVector>(dens_ice_key_, tag)->ViewComponent("cell", false);
-  const Epetra_MultiVector& eta =
-    *S.GetPtr<CompositeVector>(unfrozen_frac_key_, tag)->ViewComponent("cell", false);
+  Teuchos::RCP<const CompositeVector> dens = S.GetPtr<CompositeVector>(dens_key_, tag);
+  Teuchos::RCP<const CompositeVector> dens_ice = S.GetPtr<CompositeVector>(dens_ice_key_, tag);
+  Teuchos::RCP<const CompositeVector> uf = S.GetPtr<CompositeVector>(unfrozen_frac_key_, tag);
 
   double p_atm = S.Get<double>("atmospheric_pressure", Tags::DEFAULT);
   const AmanziGeometry::Point& gravity = S.Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
   double gz = -gravity[2];
 
-  int ncells = res_c.MyLength();
-  if (bar_) {
-    for (int c = 0; c != ncells; ++c) {
-      res_c[0][c] =
-        icy_model_->Height(pres_c[0][c], eta[0][c], rho_l[0][c], rho_i[0][c], p_atm, gz);
-    }
-  } else {
-    for (int c = 0; c != ncells; ++c) {
-      res_c[0][c] =
-        pres_c[0][c] < p_atm ?
+  for (const auto& comp : *result[0]) {
+    const Epetra_MultiVector& res_c = *result[0]->ViewComponent(comp, false);
+    const Epetra_MultiVector& pres_c = *pres->ViewComponent(comp, false);
+    const Epetra_MultiVector& dens_c = *dens->ViewComponent(comp, false);
+    const Epetra_MultiVector& dens_ice_c = *dens_ice->ViewComponent(comp, false);
+    const Epetra_MultiVector& uf_c = *uf->ViewComponent(comp, false);
+
+    int ncells = res_c.MyLength();
+    if (bar_) {
+      for (int c = 0; c != ncells; ++c) {
+        res_c[0][c] =
+          icy_model_->Height(pres_c[0][c], uf_c[0][c], dens_c[0][c], dens_ice_c[0][c], p_atm, gz);
+      }
+    } else {
+      for (int c = 0; c != ncells; ++c) {
+        res_c[0][c] =
+          pres_c[0][c] < p_atm ?
           0. :
-          icy_model_->Height(pres_c[0][c], eta[0][c], rho_l[0][c], rho_i[0][c], p_atm, gz);
+          icy_model_->Height(pres_c[0][c], uf_c[0][c], dens_c[0][c], dens_ice_c[0][c], p_atm, gz);
+      }
     }
   }
 }
@@ -94,20 +90,17 @@ IcyHeightEvaluator::EvaluatePartialDerivative_(const State& S,
                                                const Tag& wrt_tag,
                                                const std::vector<CompositeVector*>& result)
 {
-  // this is rather hacky.  surface_pressure is a mixed field vector -- it has
-  // pressure on cells and ponded depth on faces.
-  // -- NO FACE DERIVATIVES
+  // NOTE: derivatives are only ever used on cells, so we don't implement boundary_face derivatives
   Tag tag = my_keys_.front().second;
 
-  // -- cells need the function eval
   const Epetra_MultiVector& res_c = *result[0]->ViewComponent("cell", false);
   const Epetra_MultiVector& pres_c =
     *S.GetPtr<CompositeVector>(pres_key_, tag)->ViewComponent("cell", false);
-  const Epetra_MultiVector& rho_l =
+  const Epetra_MultiVector& dens_c =
     *S.GetPtr<CompositeVector>(dens_key_, tag)->ViewComponent("cell", false);
-  const Epetra_MultiVector& rho_i =
+  const Epetra_MultiVector& dens_ice_c =
     *S.GetPtr<CompositeVector>(dens_ice_key_, tag)->ViewComponent("cell", false);
-  const Epetra_MultiVector& eta =
+  const Epetra_MultiVector& uf_c =
     *S.GetPtr<CompositeVector>(unfrozen_frac_key_, tag)->ViewComponent("cell", false);
 
   double p_atm = S.Get<double>("atmospheric_pressure", Tags::DEFAULT);
@@ -121,25 +114,25 @@ IcyHeightEvaluator::EvaluatePartialDerivative_(const State& S,
       int ncells = res_c.MyLength();
       for (int c = 0; c != ncells; ++c) {
         res_c[0][c] = icy_model_->DHeightDPressure(
-          pres_c[0][c], eta[0][c], rho_l[0][c], rho_i[0][c], p_atm, gz);
+          pres_c[0][c], uf_c[0][c], dens_c[0][c], dens_ice_c[0][c], p_atm, gz);
       }
     } else if (wrt_key == dens_key_) {
       int ncells = res_c.MyLength();
       for (int c = 0; c != ncells; ++c) {
         res_c[0][c] =
-          icy_model_->DHeightDRho_l(pres_c[0][c], eta[0][c], rho_l[0][c], rho_i[0][c], p_atm, gz);
+          icy_model_->DHeightDRho_l(pres_c[0][c], uf_c[0][c], dens_c[0][c], dens_ice_c[0][c], p_atm, gz);
       }
     } else if (wrt_key == dens_ice_key_) {
       int ncells = res_c.MyLength();
       for (int c = 0; c != ncells; ++c) {
         res_c[0][c] =
-          icy_model_->DHeightDRho_i(pres_c[0][c], eta[0][c], rho_l[0][c], rho_i[0][c], p_atm, gz);
+          icy_model_->DHeightDRho_i(pres_c[0][c], uf_c[0][c], dens_c[0][c], dens_ice_c[0][c], p_atm, gz);
       }
     } else if (wrt_key == unfrozen_frac_key_) {
       int ncells = res_c.MyLength();
       for (int c = 0; c != ncells; ++c) {
         res_c[0][c] =
-          icy_model_->DHeightDEta(pres_c[0][c], eta[0][c], rho_l[0][c], rho_i[0][c], p_atm, gz);
+          icy_model_->DHeightDEta(pres_c[0][c], uf_c[0][c], dens_c[0][c], dens_ice_c[0][c], p_atm, gz);
       }
     } else {
       AMANZI_ASSERT(0);
@@ -151,7 +144,7 @@ IcyHeightEvaluator::EvaluatePartialDerivative_(const State& S,
         res_c[0][c] = pres_c[0][c] < p_atm ?
                         0. :
                         icy_model_->DHeightDPressure(
-                          pres_c[0][c], eta[0][c], rho_l[0][c], rho_i[0][c], p_atm, gz);
+                          pres_c[0][c], uf_c[0][c], dens_c[0][c], dens_ice_c[0][c], p_atm, gz);
       }
     } else if (wrt_key == dens_key_) {
       int ncells = res_c.MyLength();
@@ -159,7 +152,7 @@ IcyHeightEvaluator::EvaluatePartialDerivative_(const State& S,
         res_c[0][c] =
           pres_c[0][c] < p_atm ?
             0. :
-            icy_model_->DHeightDRho_l(pres_c[0][c], eta[0][c], rho_l[0][c], rho_i[0][c], p_atm, gz);
+            icy_model_->DHeightDRho_l(pres_c[0][c], uf_c[0][c], dens_c[0][c], dens_ice_c[0][c], p_atm, gz);
       }
     } else if (wrt_key == dens_ice_key_) {
       int ncells = res_c.MyLength();
@@ -167,7 +160,7 @@ IcyHeightEvaluator::EvaluatePartialDerivative_(const State& S,
         res_c[0][c] =
           pres_c[0][c] < p_atm ?
             0. :
-            icy_model_->DHeightDRho_i(pres_c[0][c], eta[0][c], rho_l[0][c], rho_i[0][c], p_atm, gz);
+            icy_model_->DHeightDRho_i(pres_c[0][c], uf_c[0][c], dens_c[0][c], dens_ice_c[0][c], p_atm, gz);
       }
     } else if (wrt_key == unfrozen_frac_key_) {
       int ncells = res_c.MyLength();
@@ -175,7 +168,7 @@ IcyHeightEvaluator::EvaluatePartialDerivative_(const State& S,
         res_c[0][c] =
           pres_c[0][c] < p_atm ?
             0. :
-            icy_model_->DHeightDEta(pres_c[0][c], eta[0][c], rho_l[0][c], rho_i[0][c], p_atm, gz);
+            icy_model_->DHeightDEta(pres_c[0][c], uf_c[0][c], dens_c[0][c], dens_ice_c[0][c], p_atm, gz);
       }
     } else {
       AMANZI_ASSERT(0);

@@ -58,6 +58,9 @@ SEBThreeComponentEvaluator::SEBThreeComponentEvaluator(Teuchos::ParameterList& p
   }
   my_keys_.clear();
 
+  // will lag some quantities to break a cycle in the dependency graph, see ATS #123
+  Tag lag_tag(plist.get<std::string>("lagged tag"));
+
   // my keys
   // -- sources
   water_source_key_ = Keys::readKey(plist, domain_, "surface water source", "water_source");
@@ -126,11 +129,11 @@ SEBThreeComponentEvaluator::SEBThreeComponentEvaluator(Teuchos::ParameterList& p
 
   // -- snow properties
   snow_depth_key_ = Keys::readKey(plist, domain_snow_, "snow depth", "depth");
-  dependencies_.insert(KeyTag{ snow_depth_key_, tag });
+  dependencies_.insert(KeyTag{ snow_depth_key_, lag_tag });
   snow_dens_key_ = Keys::readKey(plist, domain_snow_, "snow density", "density");
-  dependencies_.insert(KeyTag{ snow_dens_key_, tag });
+  dependencies_.insert(KeyTag{ snow_dens_key_, lag_tag });
   snow_death_rate_key_ = Keys::readKey(plist, domain_snow_, "snow death rate", "death_rate");
-  dependencies_.insert(KeyTag{ snow_death_rate_key_, tag });
+  dependencies_.insert(KeyTag{ snow_death_rate_key_, lag_tag });
 
   // -- skin properties
   mol_dens_key_ = Keys::readKey(plist, domain_, "molar density liquid", "molar_density_liquid");

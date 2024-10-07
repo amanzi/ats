@@ -75,7 +75,7 @@ HeightEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& 
   for (const auto& comp : *result[0]) {
     const Epetra_MultiVector& res_c = *result[0]->ViewComponent(comp, false);
     const Epetra_MultiVector& pres_c = *pres->ViewComponent(comp, false);
-    const Epetra_MultiVector& dens_c = *dens->ViewComponent("cell", false);
+    const Epetra_MultiVector& dens_c = *dens->ViewComponent(comp, false);
 
     int ncells = res_c.MyLength();
     if (bar_) {
@@ -97,9 +97,9 @@ HeightEvaluator::EvaluatePartialDerivative_(const State& S,
                                             const Tag& wrt_tag,
                                             const std::vector<CompositeVector*>& result)
 {
+  // NOTE: derivatives are only ever used on cells, so we don't implement boundary_face derivatives
   Tag tag = my_keys_.front().second;
 
-  // -- cells need the function eval
   const Epetra_MultiVector& res_c = *result[0]->ViewComponent("cell", false);
   const Epetra_MultiVector& pres_c =
     *S.GetPtr<CompositeVector>(pres_key_, tag)->ViewComponent("cell", false);
