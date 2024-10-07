@@ -17,26 +17,51 @@ namespace Amanzi {
 namespace Flow {
 namespace Relations {
 
+// Helper function to compute area-weighted average
+inline double computeAreaWeightedAverage(const AmanziMesh::Mesh& mesh,
+                                  const Amanzi::AmanziMesh::MeshCache<Amanzi::MemSpace_kind::HOST>::cEntity_ID_View& entity_list,
+                                  const Epetra_MultiVector& cv,
+                                  const Epetra_MultiVector& var) {
+    double terms_local[2] = { 0, 0 };
+    for (auto c : entity_list) {
+        terms_local[0] += cv[0][c] * var[0][c];
+        terms_local[1] += cv[0][c];
+    }
+    double terms_global[2] = { 0, 0 };
+    mesh.getComm()->SumAll(terms_local, terms_global, 2);
+    return terms_global[0] / terms_global[1]; // Area-weighted average
+}
+
 
 SurfGateEvaluator::SurfGateEvaluator(Teuchos::ParameterList& plist) : EvaluatorSecondaryMonotypeCV(plist)
 {
   domain_ = Keys::getDomain(my_keys_.front().first);
   auto tag = my_keys_.front().second;
 
+  // dependencies
   cv_key_ = Keys::readKey(plist, domain_, "cell volume", "cell_volume");
   dependencies_.insert(KeyTag{ cv_key_, tag });
+
   pd_key_ = Keys::readKey(plist, domain_, "ponded depth", "ponded_depth");
   dependencies_.insert(KeyTag{ pd_key_, tag });
+
   wc_key_ = Keys::readKey(plist, domain_, "water content", "water_content");
   dependencies_.insert(KeyTag{ wc_key_, tag });
+
+  pe_key_ = Keys::readKey(plist, domain_, "potential", "pres_elev");
+  dependencies_.insert(KeyTag{ pe_key_, tag });
+
+  elev_key_ = Keys::readKey(plist, domain_, "elevation", "elevation");
+  dependencies_.insert(KeyTag{ elev_key_, tag });
+
   liq_den_key_ = Keys::readKey(plist, domain_, "molar density liquid", "molar_density_liquid");
+  dependencies_.insert(KeyTag{ liq_den_key_, tag });
+
   gate_intake_region_ = plist.get<std::string>("gate intake region");
   storage_region_ = plist.get<std::string>("storage area region");
-  // FunctionFactory fac;
-  // Q_gate_ = Teuchos::rcp(fac.Create(plist.sublist("function")));
-  // gate_func_key_ =
-  //   Keys::readKey(*plist_, domain_, "gate function", "gate_function");
-
+  is_ponded_depth_function_ = plist.get<bool>("is ponded depth function", false);
+  stage_close_ = plist.get<double>("gate close stage", 1e6);
+ 
   Teuchos::ParameterList& gate_func = plist.sublist("function");
   FunctionFactory fac;
   Q_gate_ = Teuchos::rcp(fac.Create(gate_func));
@@ -56,7 +81,8 @@ SurfGateEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>
   const auto& pd = *S.Get<CompositeVector>(pd_key_, tag).ViewComponent("cell", false);
   const auto& liq_den = *S.Get<CompositeVector>(liq_den_key_, tag).ViewComponent("cell", false);
   const auto& wc = *S.Get<CompositeVector>(wc_key_, tag).ViewComponent("cell", false);
-  
+  const auto& pe = *S.Get<CompositeVector>(pe_key_, tag).ViewComponent("cell", false);
+  const auto& elev = *S.Get<CompositeVector>(elev_key_, tag).ViewComponent("cell", false);
 
   auto& surf_src= *result[0]->ViewComponent("cell"); // not being reference
 
@@ -70,28 +96,34 @@ SurfGateEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>
     storage_region_, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
   // Calculate the flow rate from gate (from reach into detention pond) 
-  double avg_pd_terms_l[2] = { 0, 0 }; 
-  for (auto c : gate_intake_id_list) {
-    avg_pd_terms_l[0] += cv[0][c] * pd[0][c];
-    avg_pd_terms_l[1] += cv[0][c];
+  double Q;
+  if (is_ponded_depth_function_){
+    double avg_pd_inlet = computeAreaWeightedAverage(mesh, gate_intake_id_list, cv, pd);
+    // test that for zero ponded depth, the function returns zero flow
+    double Q0 = (*Q_gate_)(std::vector<double>{0});
+    AMANZI_ASSERT(Q0 == 0);
+    Q = (*Q_gate_)(std::vector<double>{avg_pd_inlet}); // m^3/s
+  } else {
+    double avg_pe_inlet = computeAreaWeightedAverage(mesh, gate_intake_id_list, cv, pe);
+    double avg_elev_inlet = computeAreaWeightedAverage(mesh, gate_intake_id_list, cv, elev);
+    // test that for zero ponded depth, the function returns zero flow
+    double Q0 = (*Q_gate_)(std::vector<double>{avg_elev_inlet});
+    AMANZI_ASSERT(Q0 == 0);
+    Q = (*Q_gate_)(std::vector<double>{avg_pe_inlet}); 
   }
-  double avg_pd_terms_g[2] = { 0, 0 };
-  mesh.getComm()->SumAll(avg_pd_terms_l, avg_pd_terms_g, 2); // move 2 to first place if compiler complains
-  double avg_pd = avg_pd_terms_g[0] / avg_pd_terms_g[1];
-  double Q = (*Q_gate_)(std::vector<double>{avg_pd}); // m^3/s
   
+ 
   // Sink to the reach cells
-  double water_avail = 0;
+  double sum_wc_l = 0;
   for (auto c : gate_intake_id_list) {
-    water_avail += wc[0][c]; //mols
+    sum_wc_l += wc[0][c];
   }
-
-  double water_demand = Q * dt * liq_den[0][0] ; //mols
+  double sum_wc_g = 0;
+  mesh.getComm()->SumAll(&sum_wc_l, &sum_wc_g, 1);
 
   for (auto c : gate_intake_id_list) {
-    if (avg_pd_terms_g[0] != 0) {
-      surf_src[0][c] = - Q * liq_den[0][c] * pd[0][c] / avg_pd_terms_g[0]; // mol/(m^2 * s)
-      // surf_src[0][c] = - Q * liq_den[0][c] / avg_pd_terms_g[1]; 
+    if (sum_wc_g > 0) {
+      surf_src[0][c] = - Q * liq_den[0][c] * wc[0][c]/(sum_wc_g * cv[0][c]); // mol/(m^2 * s)
     }
   }
 

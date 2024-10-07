@@ -20,7 +20,7 @@ namespace Flow {
 namespace Relations {
 
 // Helper function to compute area-weighted average
-double computeAreaWeightedAverage(const AmanziMesh::Mesh& mesh,
+inline double computeAreaWeightedAverage(const AmanziMesh::Mesh& mesh,
                                   const Amanzi::AmanziMesh::MeshCache<Amanzi::MemSpace_kind::HOST>::cEntity_ID_View& entity_list,
                                   const Epetra_MultiVector& cv,
                                   const Epetra_MultiVector& var) {
@@ -219,7 +219,7 @@ SurfPumpEvaluator::Evaluate_(const State& S,
       // Pump flowrate as sink to inlet cells
       for (auto c : pump_inlet_id_list) {
         if (sum_wc_g != 0) {
-          surf_src[0][c] = - Q * liq_den[0][c] * wc[0][c]/(sum_wc_g*cv[0][c]); // mol/(m^2 * s)
+          surf_src[0][c] = - Q * liq_den[0][c] * wc[0][c]/(sum_wc_g * cv[0][c]); // mol/(m^2 * s)
         }
       }
 

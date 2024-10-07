@@ -64,11 +64,16 @@ class SurfGateEvaluator : public EvaluatorSecondaryMonotypeCV {
   Key domain_;
   Key cv_key_;
   Key pd_key_;
-  Key  liq_den_key_;
+  Key pe_key_;
+  Key elev_key_;
+  Key liq_den_key_;
   Key wc_key_;
-  // Key  gate_func_key_;
+
   std::string storage_region_;
   std::string gate_intake_region_;
+  double stage_close_;
+  bool is_ponded_depth_function_; 
+
   Teuchos::RCP<Function> Q_gate_;
 
  private:
