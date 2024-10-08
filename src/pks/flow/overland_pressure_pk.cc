@@ -571,6 +571,8 @@ OverlandPressureFlow::UpdatePermeabilityDerivativeData_(const Tag& tag)
     }
   }
 
+  db_->WriteVector("dk_cond", S_->GetDerivativePtr<CompositeVector>(cond_key_, tag, pd_key_, tag).ptr(), true);
+
   if (update_perm && vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << " TRUE." << std::endl;
   return update_perm;
 }

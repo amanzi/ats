@@ -65,7 +65,7 @@ Richards::FunctionalResidual(double t_old,
   // if (vapor_diffusion_) AddVaporDiffusionResidual_(tag_next_, res.ptr());
 
   // more debugging -- write diffusion/flux variables to screen
-  vnames = { "sl_old", "sl_new" };
+  vnames = {"sl_old", "sl_new" };
   vecs = { S_->GetPtr<CompositeVector>(sat_key_, tag_current_).ptr(),
            S_->GetPtr<CompositeVector>(sat_key_, tag_next_).ptr() };
 
@@ -78,9 +78,6 @@ Richards::FunctionalResidual(double t_old,
       S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "saturation_ice"), tag_next_).ptr());
   }
 
-  vnames.emplace_back("poro");
-  vecs.emplace_back(
-    S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "porosity"), tag_next_).ptr());
   // vnames.emplace_back("perm_K");
   // vecs.emplace_back(
   //   S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "permeability"), tag_next_).ptr());
@@ -98,9 +95,10 @@ Richards::FunctionalResidual(double t_old,
   // accumulation term
   AddAccumulation_(res.ptr());
 
-  // more debugging -- write diffusion/flux variables to screen
-  vnames = { "WC_old", "WC_new" };
-  vecs = { S_->GetPtr<CompositeVector>(conserved_key_, tag_current_).ptr(),
+  // more debugging -- write accumulation variables to screen
+  vnames = { "poro", "WC_old", "WC_new" };
+  vecs = { S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "porosity"), tag_next_).ptr(),
+           S_->GetPtr<CompositeVector>(conserved_key_, tag_current_).ptr(),
            S_->GetPtr<CompositeVector>(conserved_key_, tag_next_).ptr() };
   db_->WriteVectors(vnames, vecs);
   db_->WriteVector("res (acc)", res.ptr(), true);
