@@ -52,6 +52,7 @@ include_directories(${ATS_BINARY_DIR})
 include_evaluators_directories(LISTNAME REGISTER_AMANZI_STATE_EVALUATORS_INCLUDES)
 include_evaluators_directories(LISTNAME ATS_RELATIONS_REG_INCLUDES)
 include_evaluators_directories(LISTNAME ATS_TRANSPORT_REG_INCLUDES)
+include_evaluators_directories(LISTNAME ATS_TRANSPORT_RELATIONS_REG_INCLUDES)
 include_evaluators_directories(LISTNAME ATS_ENERGY_PKS_REG_INCLUDES)
 include_evaluators_directories(LISTNAME ATS_ENERGY_RELATIONS_REG_INCLUDES)
 include_evaluators_directories(LISTNAME ATS_FLOW_PKS_REG_INCLUDES)
@@ -118,6 +119,7 @@ set(ats_link_libs
   ats_surface_balance
   ats_mpc
   ats_mpc_relations
+  ats_transport_relations
   )
 
 

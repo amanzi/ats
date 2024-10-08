@@ -68,7 +68,7 @@ QCRelationOverlandEvaluator::Evaluate_(const State& S, const std::vector<Composi
 
       if (mesh.getFaceCells(f).size() == 1) {
         // external faces which contributes sinks/sources
-        total_external_flux += std::abs(water_from_field[0][f]) * (-dir);
+        total_external_flux += water_from_field[0][f] * (-dir);
       }
     }
     
@@ -77,7 +77,7 @@ QCRelationOverlandEvaluator::Evaluate_(const State& S, const std::vector<Composi
 
     // transport source (mass) as a function of discharge (e.g. overland)
     double source_transport = (*QC_curve_)(std::vector<double>{ total_flux_meter });
-    surf_src[0][c] = source_transport * total_flux_meter;
+    surf_src[0][c] = source_transport * total_flux_meter * molar_den[0][c] / cv[0][c];
   }
 }
 
