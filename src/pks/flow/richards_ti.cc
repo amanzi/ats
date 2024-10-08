@@ -74,9 +74,6 @@ Richards::FunctionalResidual(double t_old,
     vecs.emplace_back(
       S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "saturation_ice"), tag_next_).ptr());
   }
-  vnames.emplace_back("poro");
-  vecs.emplace_back(
-    S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "porosity"), tag_next_).ptr());
   vnames.emplace_back("perm_K");
   vecs.emplace_back(
     S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "permeability"), tag_next_).ptr());
@@ -93,6 +90,14 @@ Richards::FunctionalResidual(double t_old,
 
   // accumulation term
   AddAccumulation_(res.ptr());
+  db_->WriteVector("res (acc)", res.ptr(), true);
+
+  // more debugging -- write accumulation variables to screen
+  vnames = { "poro", "WC_old", "WC_new" };
+  vecs = { S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "porosity"), tag_next_).ptr(),
+           S_->GetPtr<CompositeVector>(conserved_key_, tag_current_).ptr(),
+           S_->GetPtr<CompositeVector>(conserved_key_, tag_next_).ptr() };
+  db_->WriteVectors(vnames, vecs);
   db_->WriteVector("res (acc)", res.ptr(), true);
 
   // source term
