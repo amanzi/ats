@@ -20,7 +20,8 @@ Mass sources into stream/river from a field discharge
    KEYS:
    - `"cell volume`" **DOMAIN-cell_volume**
    - `"molar density liquid`" **DOMAIN-molar_density_liquid** 
-   - `"field source`" **DOMAIN-field_source** source 
+   - `"field source`" **DOMAIN-field_source** source
+   - `"extensive`" ``[bool]`` checks if source is extensive. Default value is *false*.
 
 Example
 
@@ -29,6 +30,7 @@ Example
   <ParameterList name="RIVER_DOMAIN-field_sources">
     <Parameter name="evaluator type" type="string" value="q-c field" />
     <Parameter name="field source key" type="string" value="RIVER_DOMAIN-water_source_field" />
+    <Parameter name="extensive" type="bool" value="false" />
     <ParameterList name="function" type="ParameterList">
       <ParameterList name="function-tabular" type="ParameterList">
         <Parameter name="x values" type="Array(double)" value="{0, 0.1, 1, 10}" />
@@ -79,6 +81,7 @@ class QCRelationFieldEvaluator : public EvaluatorSecondaryMonotypeCV {
   Key cv_key_;
   Key molar_density_key_;
   Key field_src_key_;
+  bool extensive_;
   Teuchos::RCP<Function> QC_curve_;
 
  private:
@@ -88,3 +91,4 @@ class QCRelationFieldEvaluator : public EvaluatorSecondaryMonotypeCV {
 } // namespace Relations
 } // namespace Flow
 } // namespace Amanzi
+

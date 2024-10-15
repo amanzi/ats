@@ -8,6 +8,7 @@ install*
 *.pyc
 *.o
 *.d
+.vscode/
 tools/meshing_ats/*/*/*/*.log
 tools/meshing_ats/*/*/*/*.exo
 tools/meshing_ats/*/*/*/*.ncdump
