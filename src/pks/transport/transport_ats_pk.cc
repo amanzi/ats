@@ -76,8 +76,6 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
 void
 Transport_ATS::parseParameterList()
 {
-  PK_PhysicalExplicit<Epetra_Vector>::parseParameterList();
-
   if (plist_->isParameter("component molar masses")) {
     mol_masses_ = plist_->get<Teuchos::Array<double>>("component molar masses").toVector();
   } else {

@@ -22,7 +22,6 @@ namespace Amanzi {
 void
 PK_PhysicalBDF_Default::parseParameterList()
 {
-  PK_BDF_Default::parseParameterList();
   PK_Physical_Default::parseParameterList();
 
   conserved_key_ = Keys::readKey(*plist_, domain_, "conserved quantity");
