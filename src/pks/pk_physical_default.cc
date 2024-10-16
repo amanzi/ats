@@ -35,9 +35,6 @@ PK_Physical_Default::parseParameterList()
   key_ = Keys::readKey(*plist_, domain_, "primary variable");
   requireAtNext(key_, tag_next_, *S_, name_);
   requireAtCurrent(key_, tag_current_, *S_, name_);
-
-  // primary variable max change
-  max_valid_change_ = plist_->get<double>("max valid change", -1.0);
 }
 
 
