@@ -20,6 +20,10 @@ Note: this assumes that the runoff reciever is constant in time!
 .. _impervious-interception-evaluator-spec:
 .. admonition:: impervious-interception-evaluator-spec
 
+   * `"maximum specific diversion rate [m s^-1]`" ``[double]`` **inf**
+     Maximum rate of water removal through storm drains, etc, in units of m^3
+     water per second per m^2 of _impervious_ area (specific area).
+
    KEYS:
    - `"impervious fraction`" **DOMAIN-impervious_fraction** The fraction of
      surface area that is impervious, this also defines the fraction of precip
@@ -77,6 +81,7 @@ class ImperviousInterceptionEvaluator : public EvaluatorSecondaryMonotypeCV {
   Key imp_rec_id_key_;
   Key src_key_;
   Key cv_key_;
+  double Qs_max_;
 
   Teuchos::RCP<Epetra_Import> importer_;
 
