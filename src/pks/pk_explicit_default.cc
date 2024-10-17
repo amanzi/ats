@@ -28,7 +28,7 @@ void
 PK_Explicit_Default::Setup()
 {
   // initial timestep
-  dt_ = plist_->get<double>("initial time step", 1.);
+  dt_ = plist_->get<double>("initial timestep", 1.);
 };
 
 
@@ -40,7 +40,7 @@ PK_Explicit_Default::Initialize()
 {
   // set up the timestepping algorithm
   if (!plist_->get<bool>("strongly coupled PK", false)) {
-    // -- instantiate time stepper
+    // -- instantiate timestepper
     Teuchos::ParameterList& ti_plist = plist_->sublist("time integrator");
     ti_plist.set("initial time", S_->get_time());
     time_stepper_ = Teuchos::rcp(new Explicit_TI::RK<TreeVector>(*this, ti_plist, *solution_));

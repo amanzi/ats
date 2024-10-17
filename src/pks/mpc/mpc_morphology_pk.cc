@@ -226,7 +226,7 @@ Morphology_PK::AdvanceStep(double t_old, double t_new, bool reinit)
 
   if (dt_step < dt_MPC_) {
     std::stringstream messagestream;
-    messagestream << "Actual step is less than prescribed MPC time step.";
+    messagestream << "Actual step is less than prescribed MPC timestep.";
     Errors::Message message(messagestream.str());
     Exceptions::amanzi_throw(message);
   }
@@ -288,7 +288,7 @@ Morphology_PK::AdvanceStep(double t_old, double t_new, bool reinit)
       sed_transport_pk_->CommitStep(t_old + dt_done, t_old + dt_done + dt_next, S_next_);
       dt_done += dt_next;
 
-      // we're done with this time step, copy the state
+      // we're done with this timestep, copy the state
       *S_inter_ = *S_next_;
     }
     ncycles++;

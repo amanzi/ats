@@ -58,7 +58,7 @@ Solves Preferential Flow equation:
      source term be differentiated with respect to the primary
      variable?
    * `"explicit source term`" ``[bool]`` **false** Apply the source
-     term from the previous time step.
+     term from the previous timestep.
 
    END
 
@@ -120,12 +120,12 @@ Solves Preferential Flow equation:
      change of variables, extrapolating not in pressure but in water content,
      then takes the smaller of the two extrapolants.
 
-   * `"max valid change in saturation in a time step [-]`" ``[double]`` **-1**
+   * `"max valid change in saturation in a timestep [-]`" ``[double]`` **-1**
      Rejects timesteps whose max saturation change is greater than this value.
      This can be useful to ensure temporally resolved solutions.  Usually a
      good value is 0.1 or 0.2.
 
-   * `"max valid change in ice saturation in a time step [-]`" ``[double]``
+   * `"max valid change in ice saturation in a timestep [-]`" ``[double]``
      **-1** Rejects timesteps whose max ice saturation change is greater than
      this value.  This can be useful to ensure temporally resolved solutions.
      Usually a good value is 0.1 or 0.2.

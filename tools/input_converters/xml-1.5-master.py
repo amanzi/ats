@@ -46,15 +46,24 @@ def timeStep(xml):
             p.setName(pname.replace("time step", "timestep"))
 
     fix(xml, "time step reduction factor")
+    fix(xml, "time step control method")
     fix(xml, "time step increase factor")        
+    fix(xml, "time step cut factor")        
+    fix(xml, "time step cut threshold")        
+    fix(xml, "time step increase threshold")        
     fix(xml, "max time step")        
     fix(xml, "min time step")        
     fix(xml, "max time step [s]")        
     fix(xml, "min time step [s]")        
+    fix(xml, "max time step (s)")        
+    fix(xml, "min time step (s)")        
     fix(xml, "initial time step")
     fix(xml, "initial time step [s]")        
+    fix(xml, "initial time step (s)")        
     fix(xml, "max valid change in saturation in a time step [-]")
     fix(xml, "max valid change in ice saturation in a time step [-]")
+    fix(xml, "subcycling target time step [s]")
+    fix(xml, "time step")
 
     for ti in asearch.findall_name(xml, "timestep controller fixed parameters"):
         if ti.isElement("initial timestep [s]"):

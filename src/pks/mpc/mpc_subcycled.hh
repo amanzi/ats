@@ -12,7 +12,7 @@
 
   * `"subcycle`" ``[Array(bool)]`` Array of the same length as sub_pks.
   * `"minimum subcycled relative dt`" ``[double]`` **1.e-5** Sets the minimum
-    time step size of the subcycled PKs, as a multiple of the minimum of the
+    timestep size of the subcycled PKs, as a multiple of the minimum of the
     non-subcycled PKs' timestep sizes.
 
   INCLUDES:

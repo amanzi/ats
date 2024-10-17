@@ -68,7 +68,7 @@ class Coordinator {
   Teuchos::RCP<Amanzi::State> S_;
   Teuchos::RCP<Amanzi::TreeVector> soln_;
 
-  // time step manager
+  // timestep manager
   Teuchos::RCP<Amanzi::Utils::TimeStepManager> tsm_;
 
   // misc setup information

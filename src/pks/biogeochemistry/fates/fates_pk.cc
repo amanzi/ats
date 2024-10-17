@@ -39,9 +39,9 @@ FATES_PK::FATES_PK(Teuchos::ParameterList& pk_tree,
   Teuchos::ParameterList& FElist = S->FEList();
 
   //timestep size
-  dt_ = plist_->get<double>("max time step", 1.e99);
-  dt_photosynthesis_ = plist_->get<double>("photosynthesis time step", 1800);
-  dt_site_dym_ = plist_->get<double>("veg dynamics time step", 86400);
+  dt_ = plist_->get<double>("max timestep", 1.e99);
+  dt_photosynthesis_ = plist_->get<double>("photosynthesis timestep", 1800);
+  dt_site_dym_ = plist_->get<double>("veg dynamics timestep", 86400);
   surface_only_ = plist_->get<bool>("surface only", false);
 }
 
@@ -51,7 +51,7 @@ FATES_PK::Setup(const Teuchos::Ptr<State>& S)
 {
   PK_Physical_Default::Setup(S);
 
-  dt_ = plist_->get<double>("initial time step", 1.);
+  dt_ = plist_->get<double>("initial timestep", 1.);
 
   // my mesh is the subsurface mesh, but we need the surface mesh, index by column, as well
   mesh_surf_ = S->GetMesh("surface");

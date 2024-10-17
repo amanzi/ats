@@ -36,7 +36,7 @@ that build_columns in the subsurface Mesh_ spec has been supplied.
 .. _bgc-simple-spec:
 .. admonition:: bgc-simple-spec
 
-  * `"initial time step`" ``[double]`` **1.0** Initial time step size `[s]`
+  * `"initial timestep`" ``[double]`` **1.0** Initial timestep size `[s]`
 
   * `"number of carbon pools`" ``[int]`` **7** Unclear whether this can actually change?
 

@@ -18,7 +18,7 @@ PKs.
 .. _pk-bdf-default-spec:
 .. admonition:: pk-bdf-default-spec
 
-    * `"initial time step [s]`" ``[double]`` **1.** Initial time step size [s]
+    * `"initial timestep [s]`" ``[double]`` **1.** Initial timestep size [s]
 
     * `"assemble preconditioner`" ``[bool]`` **true** A flag, typically not set
       by user but by an MPC.
@@ -71,7 +71,7 @@ class PK_BDF_Default : public PK_BDF {
   // -- Initialize
   virtual void Initialize() override;
 
-  // -- Choose a time step compatible with physics.
+  // -- Choose a timestep compatible with physics.
   virtual double get_dt() override;
 
   virtual void set_dt(double dt) override;

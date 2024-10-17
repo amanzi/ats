@@ -347,7 +347,7 @@ ThermalRichardsModel::EvaluateEnergyAndWaterContent_(double T,
     result[0] =
       poro * (u_l * rho_l * s_l + u_g * rho_g * s_g) + (1.0 - poro) * (rho_rock_ * u_rock);
   } catch (const Exceptions::Amanzi_exception& e) {
-    if (e.what() == std::string("Cut time step")) { ierr = 1; }
+    if (e.what() == std::string("Cut timestep")) { ierr = 1; }
   }
 
   return ierr;

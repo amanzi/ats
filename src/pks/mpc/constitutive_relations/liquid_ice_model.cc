@@ -235,7 +235,7 @@ LiquidIceModel::EvaluateSaturations(double T, double p, double& s_gas, double& s
     s_ice = sats[2];
 
   } catch (const Exceptions::Amanzi_exception& e) {
-    if (e.what() == std::string("Cut time step")) { ierr = 1; }
+    if (e.what() == std::string("Cut timestep")) { ierr = 1; }
   }
 
   return ierr;
@@ -298,7 +298,7 @@ LiquidIceModel::EvaluateEnergyAndWaterContent_(double T, double p, AmanziGeometr
     result[0] =
       poro * (u_l * rho_l * s_l + u_i * rho_i * s_i) + (1.0 - poro_) * (rho_rock_ * u_rock);
   } catch (const Exceptions::Amanzi_exception& e) {
-    if (e.what() == std::string("Cut time step")) { ierr = 1; }
+    if (e.what() == std::string("Cut timestep")) { ierr = 1; }
   }
 
   return ierr;

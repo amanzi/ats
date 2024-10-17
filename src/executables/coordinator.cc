@@ -251,7 +251,7 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
       }
     }
 
-    // create the time step manager, register assorted timestep control events
+    // create the timestep manager, register assorted timestep control events
     tsm_ = Teuchos::rcp(new Amanzi::Utils::TimeStepManager(coordinator_list_->sublist("timestep manager")));
     checkpoint_->RegisterWithTimeStepManager(*tsm_);
     for (const auto& obs : observations_) obs->RegisterWithTimeStepManager(*tsm_);
@@ -502,8 +502,8 @@ Coordinator::initializeFromPlist_()
   }
   t1_ = units.ConvertTime(t1_, t1_units, "s", success);
 
-  max_dt_ = coordinator_list_->get<double>("max time step size [s]", 1.0e99);
-  min_dt_ = coordinator_list_->get<double>("min time step size [s]", 1.0e-12);
+  max_dt_ = coordinator_list_->get<double>("max timestep size [s]", 1.0e99);
+  min_dt_ = coordinator_list_->get<double>("min timestep size [s]", 1.0e-12);
   cycle0_ = coordinator_list_->get<int>("start cycle", -1);
   cycle1_ = coordinator_list_->get<int>("end cycle", -1);
   duration_ = coordinator_list_->get<double>("wallclock duration [hrs]", -1.0);

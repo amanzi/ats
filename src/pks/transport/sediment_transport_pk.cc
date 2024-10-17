@@ -476,7 +476,7 @@ SedimentTransport_PK::Initialize(const Teuchos::Ptr<State>& S)
     }
   }
 
-  dt_debug_ = tp_list_->get<double>("maximum time step", TRANSPORT_LARGE_TIME_STEP);
+  dt_debug_ = tp_list_->get<double>("maximum timestep", TRANSPORT_LARGE_TIME_STEP);
 
 
   if (vo_->getVerbLevel() >= Teuchos::VERB_MEDIUM) {
@@ -594,12 +594,12 @@ SedimentTransport_PK::InitializeAll_()
 
   internal_tests = tp_list_->get<std::string>("enable internal tests", "no") == "yes";
   // tests_tolerance = tp_list_->get<double>("internal tests tolerance", TRANSPORT_CONCENTRATION_OVERSHOOT);
-  // dt_debug_ = tp_list_->get<double>("maximum time step", TRANSPORT_LARGE_TIME_STEP);
+  // dt_debug_ = tp_list_->get<double>("maximum timestep", TRANSPORT_LARGE_TIME_STEP);
 }
 
 
 /* *******************************************************************
-* Estimation of the time step based on T.Barth (Lecture Notes
+* Estimation of the timestep based on T.Barth (Lecture Notes
 * presented at VKI Lecture Series 1994-05, Theorem 4.2.2.
 * Routine must be called every time we update a flow field.
 *
@@ -631,7 +631,7 @@ SedimentTransport_PK::StableTimeStep_()
 
   Sinks2TotalOutFlux(tcc_prev, total_outflux, 0, num_aqueous_ - 1);
 
-  // loop over cells and calculate minimal time step
+  // loop over cells and calculate minimal timestep
   double vol, outflux, dt_cell;
   vol = 0;
   dt_ = dt_cell = TRANSPORT_LARGE_TIME_STEP;
@@ -652,7 +652,7 @@ SedimentTransport_PK::StableTimeStep_()
 
   if (spatial_disc_order == 2) dt_ /= 2;
 
-  // communicate global time step
+  // communicate global timestep
   double dt_tmp = dt_;
 #ifdef HAVE_MPI
   const Epetra_Comm& comm = ws_prev_->Comm();
@@ -685,7 +685,7 @@ SedimentTransport_PK::StableTimeStep_()
 
 
 /* *******************************************************************
-* Estimate returns last time step unless it is zero.
+* Estimate returns last timestep unless it is zero.
 ******************************************************************* */
 double
 SedimentTransport_PK::get_dt()
@@ -737,7 +737,7 @@ SedimentTransport_PK::AdvanceStep(double t_old, double t_new, bool reinit)
   tcc = S_->GetPtrW<CompositeVector>(tcc_key_, tag_current_, passwd_);
   Epetra_MultiVector& tcc_prev = *tcc->ViewComponent("cell");
 
-  // calculate stable time step
+  // calculate stable timestep
   double dt_shift = 0.0, dt_global = dt_MPC;
   double time = t_old;
   if (time >= 0.0) {
@@ -849,7 +849,7 @@ SedimentTransport_PK::AdvanceStep(double t_old, double t_new, bool reinit)
   }
 
 
-  dt_ = dt_stable; // restore the original time step (just in case)
+  dt_ = dt_stable; // restore the original timestep (just in case)
 
   Epetra_MultiVector& tcc_next = *tcc_tmp->ViewComponent("cell", false);
 
