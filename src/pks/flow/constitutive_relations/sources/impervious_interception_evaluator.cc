@@ -34,6 +34,8 @@ ImperviousInterceptionEvaluator::ImperviousInterceptionEvaluator(Teuchos::Parame
 
   cv_key_ = Keys::readKey(plist, domain, "cell volume", "cell_volume");
   dependencies_.insert(KeyTag{ cv_key_, tag });
+
+  Qs_max_ = plist.get<double>("maximum specific diversion rate [m s^-1]", -1);
 }
 
 
@@ -73,8 +75,9 @@ ImperviousInterceptionEvaluator::Evaluate_(const State& S, const std::vector<Com
       diverted_water[0][c] = 0.;
       modified_src[0][c] = cv[0][c] * src[0][c];
     } else {
-      diverted_water[0][c] = cv[0][c] * imp_frac[0][c] * src[0][c];
-      modified_src[0][c] = cv[0][c] * (1 - imp_frac[0][c]) * src[0][c];
+      double rate = Qs_max_ > 0 ? std::min(Qs_max_, src[0][c]) : src[0][c];
+      diverted_water[0][c] = cv[0][c] * imp_frac[0][c] * rate;
+      modified_src[0][c] = cv[0][c] * src[0][c] - diverted_water[0][c];
     }
   }
 
