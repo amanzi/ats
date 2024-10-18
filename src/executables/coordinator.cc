@@ -251,17 +251,17 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
       }
     }
 
-    // create the time step manager, register assorted timestep control events
-    tsm_ = Teuchos::rcp(new Amanzi::TimeStepManager());
-    checkpoint_->RegisterWithTimeStepManager(tsm_.ptr());
-    for (const auto& obs : observations_) obs->RegisterWithTimeStepManager(tsm_.ptr());
-    for (const auto& vis : visualization_) vis->RegisterWithTimeStepManager(tsm_.ptr());
+    // create the timestep manager, register assorted timestep control events
+    tsm_ = Teuchos::rcp(new Amanzi::Utils::TimeStepManager(coordinator_list_->sublist("timestep manager")));
+    checkpoint_->RegisterWithTimeStepManager(*tsm_);
+    for (const auto& obs : observations_) obs->RegisterWithTimeStepManager(*tsm_);
+    for (const auto& vis : visualization_) vis->RegisterWithTimeStepManager(*tsm_);
     tsm_->RegisterTimeEvent(t1_);
 
     if (coordinator_list_->isSublist("required times")) {
       Teuchos::ParameterList& sublist = coordinator_list_->sublist("required times");
-      Amanzi::IOEvent pause_times(sublist);
-      pause_times.RegisterWithTimeStepManager(tsm_.ptr());
+      Amanzi::Utils::IOEvent pause_times(sublist);
+      pause_times.RegisterWithTimeStepManager(*tsm_);
     }
   }
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
@@ -502,8 +502,8 @@ Coordinator::initializeFromPlist_()
   }
   t1_ = units.ConvertTime(t1_, t1_units, "s", success);
 
-  max_dt_ = coordinator_list_->get<double>("max time step size [s]", 1.0e99);
-  min_dt_ = coordinator_list_->get<double>("min time step size [s]", 1.0e-12);
+  max_dt_ = coordinator_list_->get<double>("max timestep size [s]", 1.0e99);
+  min_dt_ = coordinator_list_->get<double>("min timestep size [s]", 1.0e-12);
   cycle0_ = coordinator_list_->get<int>("start cycle", -1);
   cycle1_ = coordinator_list_->get<int>("end cycle", -1);
   duration_ = coordinator_list_->get<double>("wallclock duration [hrs]", -1.0);
@@ -554,7 +554,6 @@ Coordinator::advance()
   double t_new = S_->get_time(Amanzi::Tags::NEXT);
 
   bool fail = pk_->AdvanceStep(t_old, t_new, false);
-  if (!fail) fail |= !pk_->ValidStep();
 
   // write state post-advance, if extreme
   WriteStateStatistics(*S_, *vo_, Teuchos::VERB_EXTREME);

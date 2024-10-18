@@ -75,11 +75,11 @@
       <Parameter name="Nonlinear solver tolerance" type="double" value="0.01"/>
       <Parameter name="NKA max vectors" type="int" value="5"/>
       <Parameter name="NKA drop tolerance" type="double" value="0.01"/>
-      <Parameter name="Minimum allowed time step" type="double" value="1.e-12"/>
+      <Parameter name="Minimum allowed timestep" type="double" value="1.e-12"/>
     </ParameterList>
 
     <Parameter name="Constant temperature" type="double" value="293.15"/>
-    <Parameter name="Initial time step" type="double" value="0.1"/>
+    <Parameter name="Initial timestep" type="double" value="0.1"/>
     <Parameter name="CFL" type="double" value="0.5"/>
     <Parameter name="spatial discretization order" type="int" value="1"/>
     <Parameter name="temporal discretization order" type="int" value="1"/>

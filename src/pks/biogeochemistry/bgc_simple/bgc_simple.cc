@@ -52,7 +52,7 @@ BGCSimple::BGCSimple(Teuchos::ParameterList& pk_tree,
     Keys::readKey(*plist_, domain_surf_, "total leaf area index", "total_leaf_area_index");
 
   // initial timestep
-  dt_ = plist_->get<double>("initial time step", 1.);
+  dt_ = plist_->get<double>("initial timestep", 1.);
 
   // Create the additional, non-managed data structures
   num_pools_ = plist_->get<int>("number of carbon pools", 7);

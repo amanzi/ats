@@ -52,7 +52,7 @@ Solves Richards equation:
    * `"source key`" ``[string]`` **DOMAIN-water_source** Typically not
      set, as the default is good. ``[mol s^-1]``
    * `"explicit source term`" ``[bool]`` **false** Apply the source
-     term from the previous time step.
+     term from the previous timestep.
 
    END
 
@@ -114,12 +114,12 @@ Solves Richards equation:
      change of variables, extrapolating not in pressure but in water content,
      then takes the smaller of the two extrapolants.
 
-   * `"max valid change in saturation in a time step [-]`" ``[double]`` **-1**
+   * `"max valid change in saturation in a timestep [-]`" ``[double]`` **-1**
      Rejects timesteps whose max saturation change is greater than this value.
      This can be useful to ensure temporally resolved solutions.  Usually a
      good value is 0.1 or 0.2.
 
-   * `"max valid change in ice saturation in a time step [-]`" ``[double]``
+   * `"max valid change in ice saturation in a timestep [-]`" ``[double]``
      **-1** Rejects timesteps whose max ice saturation change is greater than
      this value.  This can be useful to ensure temporally resolved solutions.
      Usually a good value is 0.1 or 0.2.
@@ -264,7 +264,7 @@ class Richards : public PK_PhysicalBDF_Default {
   virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
 
   // -- Is the previous step valid
-  virtual bool ValidStep() override;
+  virtual bool IsValid(const Teuchos::RCP<const TreeVector>& u) override;
 
   // -- Update diagnostics for vis.
   virtual void CalculateDiagnostics(const Tag& tag) override;
@@ -273,7 +273,7 @@ class Richards : public PK_PhysicalBDF_Default {
   // computes the non-linear functional g = g(t,u,udot)
   virtual void FunctionalResidual(double t_old,
                                   double t_new,
-                                  Teuchos::RCP<TreeVector> u_old,
+                                  Teuchos::RCP<const TreeVector> u_old,
                                   Teuchos::RCP<TreeVector> u_new,
                                   Teuchos::RCP<TreeVector> g) override;
 

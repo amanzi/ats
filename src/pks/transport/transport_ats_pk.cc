@@ -114,7 +114,7 @@ Transport_ATS::parseParameterList()
 
   // global transport parameters
   cfl_ = plist_->get<double>("cfl", 1.0);
-  dt_max_ = plist_->get<double>("maximum time step", TRANSPORT_LARGE_TIME_STEP);
+  dt_max_ = plist_->get<double>("maximum timestep", TRANSPORT_LARGE_TIME_STEP);
 
   spatial_disc_order_ = plist_->get<int>("spatial discretization order", 1);
   if (spatial_disc_order_ < 1 || spatial_disc_order_ > 2) {
@@ -687,7 +687,7 @@ Transport_ATS::InitializeFields_()
 
 
 /* *******************************************************************
-* Estimation of the time step based on T.Barth (Lecture Notes
+* Estimation of the timestep based on T.Barth (Lecture Notes
 * presented at VKI Lecture Series 1994-05, Theorem 4.2.2.
 * Routine must be called every time we update a flow field.
 *
@@ -724,7 +724,7 @@ Transport_ATS::ComputeStableTimeStep_()
 
   ComputeSinks2TotalOutFlux_(tcc_prev, total_outflux, 0, num_aqueous_ - 1);
 
-  // loop over cells and calculate minimal time step
+  // loop over cells and calculate minimal timestep
   double vol = 0.;
   double ws_min_dt = 0.;
   double outflux_min_dt = 0.;
@@ -753,7 +753,7 @@ Transport_ATS::ComputeStableTimeStep_()
 
   if (spatial_disc_order_ == 2) dt_ /= 2;
 
-  // communicate global time step
+  // communicate global timestep
   double dt_tmp = dt_;
   const Epetra_Comm& comm = ws_prev_->Comm();
   comm.MinAll(&dt_tmp, &dt_, 1);
@@ -792,11 +792,11 @@ Transport_ATS::ComputeStableTimeStep_()
     comm.Broadcast(tmp_package, 6, min_pid);
 
     Teuchos::OSTab tab = vo_->getOSTab();
-    *vo_->os() << "Stable time step " << dt_ << " is computed at (" << tmp_package[2] << ", "
+    *vo_->os() << "Stable timestep " << dt_ << " is computed at (" << tmp_package[2] << ", "
                << tmp_package[3];
     if (std::abs(3 - tmp_package[5]) < 1e-10) *vo_->os() << ", " << tmp_package[4];
     *vo_->os() << ")" << std::endl;
-    *vo_->os() << "Stable time step " << dt_ << " is limited by saturation/ponded_depth "
+    *vo_->os() << "Stable timestep " << dt_ << " is limited by saturation/ponded_depth "
                << tmp_package[0] << " and "
                << "output flux " << tmp_package[1] << std::endl;
   }
@@ -805,7 +805,7 @@ Transport_ATS::ComputeStableTimeStep_()
 
 
 /* *******************************************************************
-* Estimate returns last time step unless it is zero.
+* Estimate returns last timestep unless it is zero.
 ******************************************************************* */
 double
 Transport_ATS::get_dt()
@@ -874,7 +874,7 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   Epetra_MultiVector& tcc_prev = *tcc->ViewComponent("cell");
   db_->WriteVector("tcc_old", tcc.ptr());
 
-  // calculate stable time step
+  // calculate stable timestep
   double dt_shift = 0.0, dt_global = dt_MPC;
   double time = t_old;
   if (time >= 0.0) {
@@ -954,7 +954,7 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
     ncycles++;
   }
 
-  dt_ = dt_stable; // restore the original time step (just in case)
+  dt_ = dt_stable; // restore the original timestep (just in case)
 
   Epetra_MultiVector& tcc_next = *tcc_tmp->ViewComponent("cell", false);
   Advance_Dispersion_Diffusion_(t_old, t_new);
@@ -1701,7 +1701,7 @@ Transport_ATS::PopulateBoundaryData_(std::vector<int>& bc_model,
     bc_value[i] = 0.0;
   }
 
-  // This is not efficient. We should do this only once, not every time step.
+  // This is not efficient. We should do this only once, not every timestep.
   for (int f = 0; f < nfaces_all; f++) {
     auto cells = mesh_->getFaceCells(f);
     if (cells.size() == 1) bc_model[f] = Operators::OPERATOR_BC_NEUMANN;

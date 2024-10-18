@@ -112,7 +112,7 @@ The advection-diffusion equation for component *i* in the surface may be written
       divergence-free condition. The default value is 1e-6.
 
    * `"runtime diagnostics: solute names`" [Array(string)] defines solutes that will be
-      tracked closely each time step if verbosity `"high`". Default value is the first
+      tracked closely each timestep if verbosity `"high`". Default value is the first
       solute in the global list of `"aqueous names`" and the first gas in the global list
       of `"gaseous names`".
 
@@ -344,7 +344,7 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
  private:
 
   // transport physics members
-  // -- calculation of a stable time step needs saturations and darcy flux
+  // -- calculation of a stable timestep needs saturations and darcy flux
   double ComputeStableTimeStep_();
 
   // -- WHAT DOES THIS DO?

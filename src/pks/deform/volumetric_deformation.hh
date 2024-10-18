@@ -76,7 +76,7 @@ values from the old time.
 .. _volumetric-deformation-pk-spec:
 .. admonition:: volumetric-deformation-pk-spec
 
-    * `"max time step [s]`" ``[double]`` **inf** Sets a maximum time step size.
+    * `"max timestep [s]`" ``[double]`` **inf** Sets a maximum timestep size.
 
     * `"deformation mode`" ``[string]`` **prescribed** See above for
       descriptions.  One of: `"prescribed`", `"structural`", or `"saturation`".

@@ -168,7 +168,7 @@ SurfaceIceModel::EvaluateEnergyAndWaterContent_(double T, double p, AmanziGeomet
     result[0] = E;
 
   } catch (const Exceptions::Amanzi_exception& e) {
-    if (e.what() == std::string("Cut time step")) { ierr = 1; }
+    if (e.what() == std::string("Cut timestep")) { ierr = 1; }
   }
 
   return ierr;

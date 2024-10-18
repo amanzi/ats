@@ -82,7 +82,7 @@ class SedimentTransport_PK : public PK_PhysicalExplicit<Epetra_Vector> {
   Key get_domain_name() { return domain_name_; }
 
   // main transport members
-  // -- calculation of a stable time step needs saturations and darcy flux
+  // -- calculation of a stable timestep needs saturations and darcy flux
   double StableTimeStep_();
   void
   Sinks2TotalOutFlux(Epetra_MultiVector& tcc, std::vector<double>& total_outflux, int n0, int n1);

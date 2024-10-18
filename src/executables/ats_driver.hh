@@ -73,7 +73,7 @@ simulation, including starting and ending times and restart options.
 Note: Either `"end cycle`" or `"end time`" are required, and if
 both are present, the simulation will stop with whichever arrives
 first.  An `"end cycle`" is commonly used to ensure that, in the case
-of a time step crash, we do not continue on forever spewing output.
+of a timestep crash, we do not continue on forever spewing output.
 
 Example:
 

@@ -90,7 +90,7 @@ SurfaceBalanceCLM::SurfaceBalanceCLM(Teuchos::ParameterList& pk_tree,
   pft_index_key_ = Keys::readKey(*plist_, domain_ss_, "PFT index", "pft_index");
 
   // CLM timestep
-  dt_ = plist_->get<double>("time step size [s]");
+  dt_ = plist_->get<double>("timestep size [s]");
 }
 
 // main methods

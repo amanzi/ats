@@ -92,13 +92,13 @@ class PFT {
   double Jmax25;             //umol electron/m2 leaf/s
   double GDDleafon;          //growing degree days for leaf on
   double GDD;                //growing degree days
-  double mResp;              //maintanence respiration, kg C/grid cell /time step
-  double gResp;              //maintanence respiration, kg C/grid cell /time step
+  double mResp;              //maintanence respiration, kg C/grid cell /timestep
+  double gResp;              //maintanence respiration, kg C/grid cell /timestep
   double GDDbase;            //growing degree days base temperature
   double annNPP;
-  double GPP;          //gross primary proeduction; kg C/grid cell /time step
-  double NPP;          //net primary proeduction; kg C/grid cell/time step
-  double ET;           //Transpiration; kg water/time step/grid cell
+  double GPP;          //gross primary proeduction; kg C/grid cell /timestep
+  double NPP;          //net primary proeduction; kg C/grid cell/timestep
+  double ET;           //Transpiration; kg water/timestep/grid cell
   int leafstatus;      //1=off; 2==on
   bool evergreen;      //1=yes; 0=no
   double LUE;          //light use efficiency

@@ -38,7 +38,7 @@ VolumetricDeformation::parseParameterList()
 {
   PK_Physical_Default::parseParameterList();
 
-  dt_max_ = plist_->get<double>("max time step [s]", std::numeric_limits<double>::max());
+  dt_max_ = plist_->get<double>("max timestep [s]", std::numeric_limits<double>::max());
 
   // The deformation mode describes how to calculate new cell volume from a
   // provided function and the old cell volume.

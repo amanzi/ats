@@ -24,6 +24,9 @@ PK_PhysicalBDF_Default::parseParameterList()
 {
   PK_Physical_Default::parseParameterList();
 
+  // primary variable max change
+  max_valid_change_ = plist_->get<double>("max valid change", -1.0);
+
   conserved_key_ = Keys::readKey(*plist_, domain_, "conserved quantity");
   atol_ = plist_->get<double>("absolute error tolerance", 1.0);
   rtol_ = plist_->get<double>("relative error tolerance", 1.0);
@@ -189,6 +192,33 @@ PK_PhysicalBDF_Default::ErrorNorm(Teuchos::RCP<const TreeVector> u,
   AMANZI_ASSERT(!ierr);
   return enorm_val;
 };
+
+
+// -----------------------------------------------------------------------------
+// Ensures the step size is smaller than max_valid_change
+// -----------------------------------------------------------------------------
+bool
+PK_PhysicalBDF_Default::IsValid(const Teuchos::RCP<const TreeVector>& up)
+{
+  Teuchos::OSTab tab = vo_->getOSTab();
+  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "Validating timestep." << std::endl;
+
+  if (max_valid_change_ > 0.0) {
+    const CompositeVector& var_new = S_->Get<CompositeVector>(key_, tag_next_);
+    const CompositeVector& var_old = S_->Get<CompositeVector>(key_, tag_current_);
+    CompositeVector dvar(var_new);
+    dvar.Update(-1., var_old, 1.);
+    double change = 0.;
+    dvar.NormInf(&change);
+    if (change > max_valid_change_) {
+      if (vo_->os_OK(Teuchos::VERB_LOW))
+        *vo_->os() << "Invalid timestep, max primary variable change=" << change
+                   << " > limit=" << max_valid_change_ << std::endl;
+      return false;
+    }
+  }
+  return true;
+}
 
 
 void

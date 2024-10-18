@@ -62,7 +62,7 @@ class StrongMPC : public MPC<PK_t>, public PK_BDF_Default {
   //    By default this just calls each sub pk FunctionalResidual().
   virtual void FunctionalResidual(double t_old,
                                   double t_new,
-                                  Teuchos::RCP<TreeVector> u_old,
+                                  Teuchos::RCP<const TreeVector> u_old,
                                   Teuchos::RCP<TreeVector> u_new,
                                   Teuchos::RCP<TreeVector> g) override;
 
@@ -88,6 +88,9 @@ class StrongMPC : public MPC<PK_t>, public PK_BDF_Default {
 
   // -- Admissibility of the solution.
   virtual bool IsAdmissible(Teuchos::RCP<const TreeVector> u) override;
+
+  // Is the step valid?
+  virtual bool IsValid(const Teuchos::RCP<const TreeVector>& u) override;
 
   // -- Modify the predictor.
   virtual bool
@@ -214,7 +217,7 @@ template <class PK_t>
 void
 StrongMPC<PK_t>::FunctionalResidual(double t_old,
                                     double t_new,
-                                    Teuchos::RCP<TreeVector> u_old,
+                                    Teuchos::RCP<const TreeVector> u_old,
                                     Teuchos::RCP<TreeVector> u_new,
                                     Teuchos::RCP<TreeVector> g)
 {
@@ -223,7 +226,7 @@ StrongMPC<PK_t>::FunctionalResidual(double t_old,
   // loop over sub-PKs
   for (std::size_t i = 0; i != sub_pks_.size(); ++i) {
     // pull out the old solution sub-vector
-    Teuchos::RCP<TreeVector> pk_u_old(Teuchos::null);
+    Teuchos::RCP<const TreeVector> pk_u_old(Teuchos::null);
     if (u_old != Teuchos::null) {
       pk_u_old = u_old->SubVector(i);
       if (pk_u_old == Teuchos::null) {
@@ -374,8 +377,6 @@ template <class PK_t>
 bool
 StrongMPC<PK_t>::IsAdmissible(Teuchos::RCP<const TreeVector> u)
 {
-  // First ensure each PK thinks we are admissible -- this will ensure
-  // the residual can at least be evaluated.
   for (std::size_t i = 0; i != sub_pks_.size(); ++i) {
     // pull out the u sub-vector
     Teuchos::RCP<const TreeVector> pk_u = u->SubVector(i);
@@ -387,13 +388,34 @@ StrongMPC<PK_t>::IsAdmissible(Teuchos::RCP<const TreeVector> u)
     if (!sub_pks_[i]->IsAdmissible(pk_u)) {
       if (vo_->os_OK(Teuchos::VERB_HIGH))
         *vo_->os() << "PK " << sub_pks_[i]->name() << " is not admissible." << std::endl;
-
       return false;
     }
   }
+  return true;
+};
 
-  // If that worked, check backtracking admissility.
-  //  return PKBDFBase::IsAdmissible(u);
+
+// -----------------------------------------------------------------------------
+// Check validity of each sub-pk
+// -----------------------------------------------------------------------------
+template <class PK_t>
+bool
+StrongMPC<PK_t>::IsValid(const Teuchos::RCP<const TreeVector>& u)
+{
+  for (std::size_t i = 0; i != sub_pks_.size(); ++i) {
+    // pull out the u sub-vector
+    Teuchos::RCP<const TreeVector> pk_u = u->SubVector(i);
+    if (pk_u == Teuchos::null) {
+      Errors::Message message("MPC: vector structure does not match PK structure");
+      Exceptions::amanzi_throw(message);
+    }
+
+    if (!sub_pks_[i]->IsValid(pk_u)) {
+      if (vo_->os_OK(Teuchos::VERB_HIGH))
+        *vo_->os() << "PK " << sub_pks_[i]->name() << " is not admissible." << std::endl;
+      return false;
+    }
+  }
   return true;
 };
 

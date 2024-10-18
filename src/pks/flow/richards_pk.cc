@@ -448,9 +448,9 @@ Richards::SetupRichardsFlow_()
     plist_->get<double>("limit correction to pressure change when crossing atmospheric [Pa]", -1.);
 
   // -- valid step controls
-  sat_change_limit_ = plist_->get<double>("max valid change in saturation in a time step [-]", -1.);
+  sat_change_limit_ = plist_->get<double>("max valid change in saturation in a timestep [-]", -1.);
   sat_ice_change_limit_ =
-    plist_->get<double>("max valid change in ice saturation in a time step [-]", -1.);
+    plist_->get<double>("max valid change in ice saturation in a timestep [-]", -1.);
 }
 
 // -------------------------------------------------------------
@@ -733,10 +733,10 @@ Richards::CommitStep(double t_old, double t_new, const Tag& tag_next)
 // Check for controls on saturation
 // -----------------------------------------------------------------------------
 bool
-Richards::ValidStep()
+Richards::IsValid(const Teuchos::RCP<const TreeVector>& u)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "Validating time step." << std::endl;
+  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "Validating timestep." << std::endl;
 
   if (sat_change_limit_ > 0.0) {
     const Epetra_MultiVector& sl_new =
@@ -749,7 +749,7 @@ Richards::ValidStep()
 
     if (change.value > sat_change_limit_) {
       if (vo_->os_OK(Teuchos::VERB_LOW))
-        *vo_->os() << "Invalid time step, max sl change=" << change.value
+        *vo_->os() << "Invalid timestep, max sl change=" << change.value
                    << " > limit=" << sat_change_limit_ << " at cell GID " << change.gid
                    << std::endl;
       return false;
@@ -767,13 +767,13 @@ Richards::ValidStep()
 
     if (change.value > sat_ice_change_limit_) {
       if (vo_->os_OK(Teuchos::VERB_LOW))
-        *vo_->os() << "Invalid time step, max si change=" << change.value
+        *vo_->os() << "Invalid timestep, max si change=" << change.value
                    << " > limit=" << sat_ice_change_limit_ << " at cell GID " << change.gid
                    << std::endl;
       return false;
     }
   }
-  return PK_PhysicalBDF_Default::ValidStep();
+  return PK_PhysicalBDF_Default::IsValid(u);
 }
 
 
