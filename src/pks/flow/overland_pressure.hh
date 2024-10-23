@@ -49,6 +49,12 @@ Solves the diffusion wave equation for overland flow with pressure as a primary 
     * `"diffusion`" ``[pde-diffusion-spec]`` The (forward) diffusion operator,
       see PDE_Diffusion_.
 
+    * `"diagnostic: divergence of fluxes`" ``[bool]`` **false** If true, saves
+      the divergence of fluxes as a separate field for diagnostics,
+      visualization, or coupling with other codes (e.g. column-based codes such
+      as ELM, where the vertical integral of this, minus infiltration, becomes
+      baseflow).
+
     * `"diffusion preconditioner`" ``[pde-diffusion-spec]`` **optional** The
       inverse of the diffusion operator.  See PDE_Diffusion_.  Typically this
       is only needed to set Jacobian options, as all others probably should
@@ -301,6 +307,9 @@ class OverlandPressureFlow : public PK_PhysicalBDF_Default {
 
   bool precon_used_;
   bool precon_scaled_;
+  bool diag_div_q_;
+  Key diag_div_q_key_;
+
 
   // boundary condition data
   Teuchos::RCP<Functions::BoundaryFunction> bc_zero_gradient_;

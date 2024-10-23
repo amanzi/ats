@@ -109,6 +109,10 @@ ELM_ATSDriver::ELM_ATSDriver(const Teuchos::RCP<Teuchos::ParameterList>& plist,
   evap_key_ = Keys::readKey(*plist_, domain_surf_, "evaporation", "evaporation");
   trans_key_ = Keys::readKey(*plist_, domain_subsurf_, "transpiration", "transpiration");
 
+  // baseflow and runoff, respectively
+  div_q_key_ = Keys::readKey(*plist_, domain_subsurf_, "divergence of water flux", "divergence_water_flux");
+  div_q_surf_key_ = Keys::readKey(*plist_, domain_surf_, "divergence of water flux", "divergence_water_flux");
+
   // keys for fields used to convert ELM units to ATS units
   surf_mol_dens_key_ = Keys::readKey(*plist_, domain_surf_, "surface molar density", "molar_density_liquid");
   surf_mass_dens_key_ = Keys::readKey(*plist_, domain_surf_, "surface mass density", "mass_density_liquid");
@@ -221,6 +225,11 @@ ELM_ATSDriver::setup()
     .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
   requireAtNext(pres_key_, Amanzi::Tags::NEXT, *S_, "flow")
     .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
+
+  requireAtNext(div_q_key_, Amanzi::Tags::NEXT, *S_)
+    .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
+  requireAtNext(div_q_surf_key_, Amanzi::Tags::NEXT, *S_)
+    .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
   Coordinator::setup();
 }
@@ -651,7 +660,29 @@ ELM_ATSDriver::get_water_fluxes(double * const surf_subsurf_flx,
       transpiration[j * ncolumns_ + i] = trans[0][cells[j]] * factor;
     }
   }
-  // unclear how to implement net_subsurface_fluxes and net_runon... --ETC
+
+  // net subsurface fluxes, or "baseflow" is given by the integral up the column of the
+  // divergence of ATS's subsurface water flux, minus infiltration
+  if (net_subsurface_fluxes != nullptr) {
+    const auto& divq = S_->Get<CompositeVector>(div_q_key_, Amanzi::Tags::NEXT).ViewComponent("cell", false);
+    for (int i = 0; i != ncolumns_; ++i) {
+      const double mm_per_mol = 1000.0 / surfdens[0][i];
+      const auto& cells = mesh_subsurf_->columns.getCells(i);
+      net_subsurface_fluxes[i] = -infilt[0][i];
+      for (int j = 0; j != ncells_per_col_; ++j) {
+        net_subsurface_fluxes[i] += divq[cells[j]];
+      }
+      net_subsurface_fluxes[i] *= mm_per_mol;
+    }
+  }
+
+  if (net_runon != nullptr) {
+    const auto& divq = S_->Get<CompositeVector>(div_q_surf_key_, Amanzi::Tags::NEXT).ViewComponent("cell", false);
+    for (int i = 0; i != ncolumns_; ++i) {
+      const double mm_per_mol = 1000.0 / surfdens[0][i];
+      net_runon[i] = divq[0][i] * mm_per_mol;
+    }
+  }
 }
 
 

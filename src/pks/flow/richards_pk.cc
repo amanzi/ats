@@ -130,6 +130,11 @@ Richards::parseParameterList()
     ss_primary_key_ = Keys::readKey(*plist_, domain_surf, "pressure", "pressure");
   }
 
+  // diagnostics
+  diag_div_q_ = plist_->get<bool>("diagnostic: divergence of fluxes", false);
+  if (diag_div_q_)
+    diag_div_q_key_ = Keys::readKey(*plist_, domain_, "divergence of water flux", "divergence_water_flux");
+
   // parse inherited lists
   PK_PhysicalBDF_Default::parseParameterList();
 }
@@ -432,6 +437,13 @@ Richards::SetupRichardsFlow_()
     .SetMesh(mesh_)
     ->SetGhosted()
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 3);
+
+  // -- diagnostic for divergence of fluxes
+  if (diag_div_q_) {
+    requireAtNext(diag_div_q_key_, tag_next_, *S_, name_)
+      .SetMesh(mesh_)
+      ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+  }
 
   // Globalization and other timestep control flags
   // -- predictors

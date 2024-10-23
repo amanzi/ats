@@ -63,6 +63,8 @@ OverlandPressureFlow::FunctionalResidual(double t_old,
 
   // diffusion term, treated implicitly
   ApplyDiffusion_(tag_next_, res.ptr());
+  if (diag_div_q_)
+    S_->GetW<CompositeVector>(diag_div_q_key_, tag_next_, name_) = *res;
 
   // more debugging -- write diffusion/flux variables to screen
   vnames = { "z", "h_old", "h_new", "h+z" };

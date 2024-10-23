@@ -117,6 +117,11 @@ OverlandPressureFlow::parseParameterList()
   patm_hard_limit_ = plist_->get<bool>("allow no negative ponded depths", false);
   min_vel_ponded_depth_ = plist_->get<double>("min ponded depth for velocity calculation", 1e-2);
   min_tidal_bc_ponded_depth_ = plist_->get<double>("min ponded depth for tidal bc", 0.02);
+
+  // diagnostics
+  diag_div_q_ = plist_->get<bool>("diagnostic: divergence of fluxes", false);
+  if (diag_div_q_)
+    diag_div_q_key_ = Keys::readKey(*plist_, domain_, "divergence of water flux", "divergence_water_flux");
 }
 
 
@@ -344,6 +349,13 @@ OverlandPressureFlow::SetupOverlandFlow_()
     .SetMesh(mesh_)
     ->SetGhosted()
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 3);
+
+  // -- diagnostic for divergence of fluxes
+  if (diag_div_q_) {
+    requireAtNext(diag_div_q_key_, tag_next_, *S_, name_)
+      .SetMesh(mesh_)
+      ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+  }
 };
 
 

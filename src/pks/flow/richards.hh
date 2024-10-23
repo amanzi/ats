@@ -61,6 +61,12 @@ Solves Richards equation:
    * `"diffusion`" ``[pde-diffusion-spec]`` The (forward) diffusion
      operator, see PDE_Diffusion_.
 
+   * `"diagnostic: divergence of fluxes`" ``[bool]`` **false** If true, saves
+     the divergence of fluxes as a separate field for diagnostics,
+     visualization, or coupling with other codes (e.g. column-based codes such
+     as ELM, where the vertical integral of this, minus infiltration, becomes
+     baseflow).
+
    * `"diffusion preconditioner`" ``[pde-diffusion-spec]``
      **optional** The inverse of the diffusion operator.  See
      PDE_Diffusion_.  Typically this is only needed to set Jacobian
@@ -451,8 +457,10 @@ class Richards : public PK_PhysicalBDF_Default {
   Key deform_key_;
   Key depth_key_;
 
-  // debugging control
+  // debugging and diagnostic control
   bool fixed_kr_;
+  bool diag_div_q_;
+  Key diag_div_q_key_;
 
   // -- access methods
   virtual Teuchos::RCP<Operators::Operator>

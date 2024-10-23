@@ -59,6 +59,9 @@ Richards::FunctionalResidual(double t_old,
 
   // diffusion term, treated implicitly
   ApplyDiffusion_(tag_next_, res.ptr());
+  if (diag_div_q_)
+    S_->GetW<CompositeVector>(diag_div_q_key_, tag_next_, name_) = *res;
+
   // if (vapor_diffusion_) AddVaporDiffusionResidual_(tag_next_, res.ptr());
 
   // more debugging -- write diffusion/flux variables to screen
