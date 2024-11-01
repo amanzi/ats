@@ -30,6 +30,7 @@ include_directories(${DBG_SOURCE_DIR})
 include_directories(${TRANSPORT_SOURCE_DIR})
 get_property(CHEM_INCLUDES_DIR GLOBAL PROPERTY CHEM_INCLUDES_DIR)
 include_directories(${CHEM_INCLUDES_DIR})
+include_directories(${SHALLOW_WATER_SOURCE_DIR})
 
 include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations)
 include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/eos)
@@ -98,6 +99,7 @@ set(amanzi_link_libs
   mesh_logical
   chemistry_pk
   #mpc_tree
+  shallow_water
   transport
   )
 
