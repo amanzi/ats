@@ -54,7 +54,7 @@ same region-based partitioning.
 
     * `"maximum xylem capillary pressure [Pa]`" ``[double]`` **NaN**
       Maximum capillary pressure at the plant collar before the plant starts to close stomata.
-      
+
     * `"leaf on time [doy]`" ``[double]``  **NaN** Day of year, relative to time 0, when leaves
        begin transpiring.  Note that -1 implies evergreen. [doy]
     * `"leaf off time [doy]`" ``[double]``  **NaN** Day of year, relative to time 0, when leaves

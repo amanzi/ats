@@ -4,7 +4,7 @@
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Authors: Bo Gao (gaob@ornl.gov) 
+  Authors: Bo Gao (gaob@ornl.gov)
            Ethan Coon (coonet@ornl.gov)
 */
 
@@ -80,7 +80,7 @@ WaterTableColumnIntegrator<Parser, Integrator>::Evaluate_(
     h_end = mesh->getCellCentroid(col_cell[0])[2]; // default at top centroid
     h_half0 = mesh->getCellVolume(col_cell[col_cell.size() - 1]) * integrator.coefficient(col) / 2;
     h_half1 = mesh->getCellVolume(col_cell[0]) * integrator.coefficient(col) / 2 * (-1);
-    for (int i = col_cell.size() - 1; i >= 0; --i) { // loop from bottom up looking for the 1st unsaturated cell 
+    for (int i = col_cell.size() - 1; i >= 0; --i) { // loop from bottom up looking for the 1st unsaturated cell
       bool completed = integrator.scan(col, col_cell[i], val);
       if (completed) {
         h_end = mesh->getCellCentroid(col_cell[i])[2]; // the first unsaturated cell centroid from bottom up
@@ -88,15 +88,15 @@ WaterTableColumnIntegrator<Parser, Integrator>::Evaluate_(
       }
     }
 
-    // Use val[2] to track centroid, and val[1], val[0] to track cell pressure 
-    // or volume determined by using interpolation or not. 
+    // Use val[2] to track centroid, and val[1], val[0] to track cell pressure
+    // or volume determined by using interpolation or not.
     if (std::isnan(val[2])) { // completed at first loop cell
       res[0][col] = h_top - h_end + h_half0;
-    } else if (val[2] == h_end) { // fail to find satisfied cell util end of loop 
+    } else if (val[2] == h_end) { // fail to find satisfied cell util end of loop
       res[0][col] = h_top - val[2] + h_half1;
     } else {
       if (plist_.template get<bool>("interpolate depth from pressure")) {
-        res[0][col] = (val[2] - h_end) * (101325. - val[0]) / (val[1] - val[0]) 
+        res[0][col] = (val[2] - h_end) * (101325. - val[0]) / (val[1] - val[0])
                     + (h_top - val[2]);
       } else {
         res[0][col] = h_top - h_bot - integrator.coefficient(col) * val[0];

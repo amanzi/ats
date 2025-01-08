@@ -6,7 +6,7 @@
 
   Authors: Neil Carlson (version 1)
            Konstantin Lipnikov (version 2) (lipnikov@lanl.gov)
-           Ethan Coon (ATS version) (ecoon@lanl.gov)
+           Ethan Coon (ATS version) (coonet@ornl.gov)
 */
 
 #include "richards.hh"

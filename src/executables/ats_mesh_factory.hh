@@ -4,7 +4,7 @@
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
+  Authors: Ethan Coon (coonet@ornl.gov)
 */
 
 //! A list of mesh objects and their domain names.
@@ -244,7 +244,7 @@ Specified by `"mesh type`" of `"extracted`".
      of this mesh is the same as the parent mesh.  If true, the communicator of
      this mesh is the subset of the parent mesh comm that has entries on the
      surface.
-     
+
 
 Aliased Mesh
 ============

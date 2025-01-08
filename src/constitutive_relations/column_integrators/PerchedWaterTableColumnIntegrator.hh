@@ -4,7 +4,7 @@
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Authors: Bo Gao (gaob@ornl.gov) 
+  Authors: Bo Gao (gaob@ornl.gov)
            Ethan Coon (coonet@ornl.gov)
 */
 
@@ -33,7 +33,7 @@ class PerchedWaterTableColumnIntegrator : public EvaluatorColumnIntegrator<Parse
  protected:
   // Required methods from EvaluatorColumnIntegrator to overide
   virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
-  
+
   using EvaluatorColumnIntegrator<Parser, Integrator>::plist_;
   using EvaluatorColumnIntegrator<Parser, Integrator>::dependencies_;
 
@@ -88,15 +88,15 @@ PerchedWaterTableColumnIntegrator<Parser, Integrator>::Evaluate_(
       }
     }
 
-    // Use val[2] to track centroid, and val[1], val[0] to track cell pressure 
-    // or volume determined by using interpolation or not. 
+    // Use val[2] to track centroid, and val[1], val[0] to track cell pressure
+    // or volume determined by using interpolation or not.
     if (std::isnan(val[2])) { // completed at first loop cell
       res[0][col] = h_top - h_end + h_half0;
-    } else if (val[2] == h_end) { // fail to find satisfied cell util end of loop 
+    } else if (val[2] == h_end) { // fail to find satisfied cell util end of loop
       res[0][col] = h_top - val[2] + h_half1;
     } else {
       if (plist_.template get<bool>("interpolate depth from pressure")) {
-        res[0][col] = (val[2] - h_end) * (101325. - val[0]) / (val[1] - val[0]) 
+        res[0][col] = (val[2] - h_end) * (101325. - val[0]) / (val[1] - val[0])
                     + (h_top - val[2]);
       } else {
         res[0][col] = integrator.coefficient(col) * val[0];

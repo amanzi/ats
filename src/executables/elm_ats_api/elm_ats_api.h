@@ -1,4 +1,5 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
@@ -6,11 +7,13 @@
   Authors: Joe Beisman
            Fenming Yuan
            Ethan Coon
+*/
 
+//! Wrapper for driving ATS from ELM.
+/*
 This file defines a C interface to the ATS library
 for use with LSMs.
 */
-//! Wrapper for driving ATS from ELM.
 
 #ifndef ELM_ATS_API_HH_
 #define ELM_ATS_API_HH_
@@ -19,7 +22,7 @@ for use with LSMs.
 extern "C" {
 
 // opaque pointer
-// external caller only sees *ELM_ATSDriver_ptr - similar to void*, but better type safety 
+// external caller only sees *ELM_ATSDriver_ptr - similar to void*, but better type safety
 // ATS resolves ELM_ATSDriver_ptr as real ELM_ATSDriver during linking
 class ELM_ATSDriver;
 typedef ELM_ATSDriver *ELM_ATSDriver_ptr;

@@ -6,6 +6,7 @@
 
   Authors: Phong V.V. Le (lepv@ornl.gov)
 */
+
 #include <algorithm>
 #include "Key.hh"
 #include "Factory.hh"
@@ -41,7 +42,7 @@ QCRelationFieldEvaluator::QCRelationFieldEvaluator(Teuchos::ParameterList& plist
 
 // Required methods from SecondaryVariableFieldEvaluator
 void
-QCRelationFieldEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& result) 
+QCRelationFieldEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& result)
 {
 
   Tag tag = my_keys_.front().second;
@@ -54,11 +55,11 @@ QCRelationFieldEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
   auto& surf_src = *result[0]->ViewComponent("cell"); // not being reference
   const AmanziMesh::Mesh& mesh = *result[0]->Mesh();
   double field_flow, source_mass;
-  
+
   // Loop through each cell
   AmanziMesh::Entity_ID ncells = cv.MyLength();
   for (AmanziMesh::Entity_ID c = 0; c != ncells; ++c) {
-    
+
     if (extensive_) {
       // convert extensive quantity in mol/m2/s to m3/s
       field_flow = water_from_field[0][c] / molar_den[0][c];
@@ -78,4 +79,4 @@ QCRelationFieldEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
 
 } // namespace Relations
 } // namespace Flow
-} // namespace Amanzi 
+} // namespace Amanzi

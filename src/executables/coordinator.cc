@@ -177,7 +177,7 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
         Teuchos::RCP<Amanzi::MeshInfo> mesh_info =
           Teuchos::rcp(new Amanzi::MeshInfo(mesh_info_list, *S_));
         mesh_info->WriteMeshCentroids(mesh->first, *(mesh->second.first));
-      }      
+      }
     }
 
 

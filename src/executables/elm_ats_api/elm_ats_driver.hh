@@ -1,12 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Joe Beisman
 */
-//! Simulation control from ELM.
 
+//! Simulation control from ELM.
 /*!
 
 The expected order of evaluation is:
@@ -165,7 +166,3 @@ ELM_ATSDriver*
 createELM_ATSDriver(MPI_Fint *f_comm, const char *infile, int npfts=17);
 
 } // namespace ATS
-
-
-
-

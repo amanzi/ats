@@ -4,7 +4,7 @@
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Authors: Ethan Coon (ecoon@lanl.gov) (ATS version)
+  Authors: Ethan Coon (coonet@ornl.gov) (ATS version)
 */
 
 /*

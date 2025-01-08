@@ -1239,7 +1239,7 @@ Transport_ATS::AdvanceDonorUpwind_(double dt_cycle)
       if (dissolution_) {
         if (((*ws_prev_)[0][c] > water_tolerance_) &&
             (solid_qty[i][c] > 0)) { // Dissolve solid residual into liquid
-          double add_mass = 
+          double add_mass =
             std::min(solid_qty[i][c], tcc_max_[i] * vol_phi_ws_den - conserve_qty[i][c]);
           solid_qty[i][c] -= add_mass;
           conserve_qty[i][c] += add_mass;
@@ -1364,7 +1364,7 @@ Transport_ATS::AdvanceDonorUpwind_(double dt_cycle)
         // there is both water and stuff present at the new time
         // this is stuff at the new time + stuff leaving through the domain coupling, divided by water of both
         tcc_next[i][c] = conserve_qty[i][c] / water_total;
-        
+
         // limit tcc_next to tcc_max_, precipitating the remainder as solid residue
         if (tcc_next[i][c] > tcc_max_[i]) {
           solid_qty[i][c] += (tcc_next[i][c] - tcc_max_[i]) * water_total;

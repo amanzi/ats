@@ -61,7 +61,7 @@ QCRelationOverlandEvaluator::Evaluate_(const State& S, const std::vector<Composi
     double total_external_flux = 0;
     const auto& [faces, dirs] = mesh.getCellFacesAndDirections(c);
     int nfaces = faces.size();
-    
+
     for (int i = 0; i < nfaces; i++) {
       int f = faces[i];     // get each face of the cell
       double dir = dirs[i]; // 1: water goes out of the cell; -1: water goes into the cell
@@ -71,7 +71,7 @@ QCRelationOverlandEvaluator::Evaluate_(const State& S, const std::vector<Composi
         total_external_flux += water_from_field[0][f] * (-dir);
       }
     }
-    
+
     // convert from mol/s to m3/s. We do NOT multiply with cv here
     double total_flux_meter = total_external_flux / molar_den[0][c];
 

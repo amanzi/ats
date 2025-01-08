@@ -4,7 +4,7 @@
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
+  Authors: Ethan Coon (coonet@ornl.gov)
            Bo Gao (gaob@ornl.gov)
 */
 
@@ -57,8 +57,8 @@ IntegratorWaterTableDepth::scan(AmanziMesh::Entity_ID col,
       p[0] = (*pres_)[0][c]; // last saturated cell pressure
     } else {
       p[0] += (*cv_)[0][c]; // cumulative saturated cell volume
-    } 
-    return false;  
+    }
+    return false;
   }
   if (is_interp_) {
     p[1] = (*pres_)[0][c]; // first unsaturated cell pressure

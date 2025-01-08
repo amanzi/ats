@@ -19,7 +19,7 @@ Mass sources into stream/river from a field discharge
 
    KEYS:
    - `"cell volume`" **DOMAIN-cell_volume**
-   - `"molar density liquid`" **DOMAIN-molar_density_liquid** 
+   - `"molar density liquid`" **DOMAIN-molar_density_liquid**
    - `"field source`" **DOMAIN-field_source** source
    - `"extensive`" ``[bool]`` checks if source is extensive. Default value is *false*.
 
@@ -34,12 +34,12 @@ Example
     <ParameterList name="function" type="ParameterList">
       <ParameterList name="function-tabular" type="ParameterList">
         <Parameter name="x values" type="Array(double)" value="{0, 0.1, 1, 10}" />
-        <Parameter name="y values" type="Array(double)" value="{0, 0.08, 0.1, 0.2}" /> 
+        <Parameter name="y values" type="Array(double)" value="{0, 0.08, 0.1, 0.2}" />
         <Parameter name="forms" type="Array(string)" value="{linear, linear, linear}" />
       </ParameterList>
     </ParameterList>
   </ParameterList>
-  
+
 */
 
 #pragma once
@@ -68,7 +68,7 @@ class QCRelationFieldEvaluator : public EvaluatorSecondaryMonotypeCV {
   {
     return false;
   }
-  
+
  protected:
   virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
@@ -91,4 +91,3 @@ class QCRelationFieldEvaluator : public EvaluatorSecondaryMonotypeCV {
 } // namespace Relations
 } // namespace Flow
 } // namespace Amanzi
-

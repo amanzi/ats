@@ -5,7 +5,7 @@
   provided in the top-level COPYRIGHT file.
 
   Authors: ...
-           Ethan Coon (ATS version) (ecoon@lanl.gov)
+           Ethan Coon (ATS version) (coonet@ornl.gov)
 */
 
 #ifndef AMANZI_TEST_PK_BC_FACTORY_HH_

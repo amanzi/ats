@@ -1,4 +1,5 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
@@ -7,8 +8,8 @@
            Fenming Yuan
            Ethan Coon
 */
-//! Wrapper for driving ATS from ELM.
 
+//! Wrapper for driving ATS from ELM.
 #include "elm_ats_driver.hh"
 #include "elm_ats_api.h"
 

@@ -4,7 +4,7 @@
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
+  Authors: Ethan Coon (coonet@ornl.gov)
 */
 
 /*!
@@ -17,9 +17,9 @@ Computes the depth to the perched water table.
 .. admonition:: perched_water_table_depth-spec
 
     * `"interpolate depth from pressure`" ``[bool]`` **false** Default to calculate
-      perched water table depth by locating the bottom face of the last continuously 
-      unsaturated cell from top downward. If true, use the height and pressure at the 
-      centroids of the last continuously unsaturated cell and its adjacent saturated 
+      perched water table depth by locating the bottom face of the last continuously
+      unsaturated cell from top downward. If true, use the height and pressure at the
+      centroids of the last continuously unsaturated cell and its adjacent saturated
       cell to determine the perched water table depth through interpolation.
 
     KEYS:

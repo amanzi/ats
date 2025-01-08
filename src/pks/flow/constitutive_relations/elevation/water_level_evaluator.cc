@@ -4,12 +4,12 @@
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
+  Authors: Ethan Coon (coonet@ornl.gov)
            Bo Gao (gaob@ornl.gov)
 */
 
 /*
-  Evaluator for determining water level, a combined variable of 
+  Evaluator for determining water level, a combined variable of
   water table and ponded depth.
 
 */
