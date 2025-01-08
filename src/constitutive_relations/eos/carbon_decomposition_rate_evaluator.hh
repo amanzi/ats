@@ -53,7 +53,8 @@ class CarbonDecomposeRateEvaluator : public EvaluatorSecondaryMonotypeCV {
   Key sat_key_;
   Key por_key_;
   Key depth_key_;
-  Key cv_key_;
+  Key domain_;
+  Key domain_surf_;
 
   double q10_;
 
