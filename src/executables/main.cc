@@ -188,7 +188,8 @@ main(int argc, char* argv[])
 
     // -- parse input file
     Teuchos::RCP<Teuchos::ParameterList> plist;
-    if (Amanzi::Keys::ends_with(input_filename, ".yaml") || Amanzi::Keys::ends_with(input_filename, ".YAML")) {
+    if (Amanzi::Keys::ends_with(input_filename, ".yaml") ||
+        Amanzi::Keys::ends_with(input_filename, ".YAML")) {
       plist = Teuchos::YAMLParameterList::parseYamlFile(input_filename);
     } else {
       plist = Teuchos::getParametersFromXmlFile(input_filename);

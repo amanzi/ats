@@ -134,9 +134,7 @@ BCFactory::CreateDynamicFunction(const std::string& list_name) const
           ProcessSpecWithFunction_(plist_.sublist(list_name), "switch function", bcs);
         } catch (Errors::Message& msg) {
           Errors::Message m;
-          m << "in sublist "
-            << "switch function"
-            << ": " << msg.what();
+          m << "in sublist " << "switch function" << ": " << msg.what();
           Exceptions::amanzi_throw(m);
         }
       } else { // ERROR -- parameter is not a sublist

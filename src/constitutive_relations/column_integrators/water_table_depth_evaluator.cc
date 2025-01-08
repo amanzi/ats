@@ -36,7 +36,8 @@ ParserWaterTableDepth::ParserWaterTableDepth(Teuchos::ParameterList& plist, cons
 
 IntegratorWaterTableDepth::IntegratorWaterTableDepth(Teuchos::ParameterList& plist,
                                                      std::vector<const Epetra_MultiVector*>& deps,
-                                                     const AmanziMesh::Mesh* mesh) : mesh_(mesh)
+                                                     const AmanziMesh::Mesh* mesh)
+  : mesh_(mesh)
 {
   AMANZI_ASSERT(deps.size() == 4);
   sat_ = deps[0];

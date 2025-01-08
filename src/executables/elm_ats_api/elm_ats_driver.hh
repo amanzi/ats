@@ -46,9 +46,7 @@ namespace ATS {
 using namespace Amanzi;
 
 class ELM_ATSDriver : public Coordinator {
-
-public:
-
+ public:
   ELM_ATSDriver(const Teuchos::RCP<Teuchos::ParameterList>& plist,
                 const Teuchos::RCP<Teuchos::Time>& wallclock_timer,
                 const Teuchos::RCP<const Teuchos::Comm<int>>& teuchos_comm,
@@ -61,53 +59,51 @@ public:
 
   void get_mesh_info(int& ncols_local,
                      int& ncols_global,
-                     double * const lat,
-                     double * const lon,
-                     double * const elev,
-                     double * const surf_area,
-                     int * const pft,
+                     double* const lat,
+                     double* const lon,
+                     double* const elev,
+                     double* const surf_area,
+                     int* const pft,
                      int& nlevgrnd,
-                     double * const depth);
+                     double* const depth);
 
   void setup();
 
-  void initialize(double t,
-                  double const * const p_atm,
-                  double const * const pressure);
+  void initialize(double t, double const* const p_atm, double const* const pressure);
 
-  void set_soil_hydrologic_parameters(double const * const base_porosity,
-          double const * const hydraulic_conductivity,
-          double const * const clapp_horn_b,
-          double const * const clapp_horn_smpsat,
-          double const * const clapp_horn_sr);
-  void set_veg_parameters(double const * const mafic_potential_full_turgor,
-          double const * const mafic_potential_wilt_point);
-  void set_soil_hydrologic_properties(double const * const effective_porosity);
-  void set_veg_properties(double const * const rooting_fraction);
-  void set_potential_sources(double const * const elm_surface_input,
-                             double const * const elm_evaporation,
-                             double const * const elm_transpiration);
+  void set_soil_hydrologic_parameters(double const* const base_porosity,
+                                      double const* const hydraulic_conductivity,
+                                      double const* const clapp_horn_b,
+                                      double const* const clapp_horn_smpsat,
+                                      double const* const clapp_horn_sr);
+  void set_veg_parameters(double const* const mafic_potential_full_turgor,
+                          double const* const mafic_potential_wilt_point);
+  void set_soil_hydrologic_properties(double const* const effective_porosity);
+  void set_veg_properties(double const* const rooting_fraction);
+  void set_potential_sources(double const* const elm_surface_input,
+                             double const* const elm_evaporation,
+                             double const* const elm_transpiration);
 
-  void get_waterstate(double * const surface_ponded_depth,
-                      double * const water_table_depth,
-                      double * const soil_pressure,
-                      double * const soil_psi,
-                      double * const sat_liq,
-                      double * const sat_ice);
+  void get_waterstate(double* const surface_ponded_depth,
+                      double* const water_table_depth,
+                      double* const soil_pressure,
+                      double* const soil_psi,
+                      double* const sat_liq,
+                      double* const sat_ice);
 
-  void get_water_fluxes(double * const soil_infiltration,
-                        double * const evaporation,
-                        double * const transpiration,
-                        double * const net_subsurface_fluxes,
-                        double * const net_runon);
+  void get_water_fluxes(double* const soil_infiltration,
+                        double* const evaporation,
+                        double* const transpiration,
+                        double* const net_subsurface_fluxes,
+                        double* const net_runon);
 
  private:
-  void init_pressure_from_wc_(double const * const elm_water_content);
+  void init_pressure_from_wc_(double const* const elm_water_content);
 
-  void copyToSurf_(double const * const in, const Key& key, Key owner="");
-  void copyToSub_(double const * const in, const Key& key, Key owner="");
-  void copyFromSurf_(double * const out, const Key& key) const;
-  void copyFromSub_(double * const out, const Key& key) const;
+  void copyToSurf_(double const* const in, const Key& key, Key owner = "");
+  void copyToSub_(double const* const in, const Key& key, Key owner = "");
+  void copyFromSurf_(double* const out, const Key& key) const;
+  void copyFromSub_(double* const out, const Key& key) const;
   void initZero_(const Key& key);
 
 
@@ -155,7 +151,6 @@ public:
   Key subsurf_mass_dens_key_;
   Key surf_cv_key_;
   Key cv_key_;
-
 };
 
 
@@ -163,6 +158,6 @@ public:
 // Nonmember constructor/factory reads file, converts comm to the right type.
 //
 ELM_ATSDriver*
-createELM_ATSDriver(MPI_Fint *f_comm, const char *infile, int npfts=17);
+createELM_ATSDriver(MPI_Fint* f_comm, const char* infile, int npfts = 17);
 
 } // namespace ATS

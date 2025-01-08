@@ -318,41 +318,40 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   virtual void Initialize() override;
 
   virtual double get_dt() override;
-  virtual void set_dt(double dt) override{};
+  virtual void set_dt(double dt) override {};
   virtual void set_tags(const Tag& current, const Tag& next) override;
 
   virtual bool AdvanceStep(double t_old, double t_new, bool reinit = false) override;
   virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
-  virtual void CalculateDiagnostics(const Tag& tag) override{};
+  virtual void CalculateDiagnostics(const Tag& tag) override {};
 
   virtual void ChangedSolutionPK(const Tag& tag) override;
 
   // Time integration members
   virtual void FunctionalTimeDerivative(const double t,
-          const Epetra_Vector& component,
-          Epetra_Vector& f_component) override;
+                                        const Epetra_Vector& component,
+                                        Epetra_Vector& f_component) override;
 
   // -- helper functions
   // These are in the public API because reactive transport calls them when
   // chemistry fails.  Probably should go away or become nonmember functions.
-  void PrintSoluteExtrema(const Epetra_MultiVector& tcc_next,
-                          double dT_MPC);
-  int get_num_aqueous_component() const {
-    return num_aqueous_;
-  }
+  void PrintSoluteExtrema(const Epetra_MultiVector& tcc_next, double dT_MPC);
+  int get_num_aqueous_component() const { return num_aqueous_; }
 
  private:
-
   // transport physics members
   // -- calculation of a stable timestep needs saturations and darcy flux
   double ComputeStableTimeStep_();
 
   // -- WHAT DOES THIS DO?
   void ComputeSinks2TotalOutFlux_(Epetra_MultiVector& tcc,
-          std::vector<double>& total_outflux, int n0, int n1);
+                                  std::vector<double>& total_outflux,
+                                  int n0,
+                                  int n1);
 
   void CheckInfluxBC_(const Epetra_MultiVector& flux) const;
-  bool PopulateBoundaryData_(std::vector<int>& bc_model, std::vector<double>& bc_value, int component);
+  bool
+  PopulateBoundaryData_(std::vector<int>& bc_model, std::vector<double>& bc_value, int component);
 
   // -- sources and sinks for components from n0 to n1 including
   void ComputeAddSourceTerms_(double tp, double dtp, Epetra_MultiVector& tcc, int n0, int n1);
@@ -445,7 +444,7 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   // srcs should go away, and instead use vectors from State and evaluators --ETC
   std::vector<Teuchos::RCP<TransportDomainFunction>> srcs_; // Source or sink for components
   std::vector<Teuchos::RCP<TransportDomainFunction>> bcs_;  // influx BC for components
-  Teuchos::RCP<Epetra_Vector> Kxy_; // absolute permeability in plane xy
+  Teuchos::RCP<Epetra_Vector> Kxy_;                         // absolute permeability in plane xy
 
   // mechanical dispersion and molecual diffusion
   Teuchos::RCP<MDMPartition> mdm_;
@@ -477,8 +476,8 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   std::vector<std::string> runtime_regions_;
 
   std::vector<std::string> component_names_; // details of components
-  Teuchos::Array<double> tcc_max_; // max concentrations of components allowed
-  std::vector<double> mol_masses_; // molar masses of components
+  Teuchos::Array<double> tcc_max_;           // max concentrations of components allowed
+  std::vector<double> mol_masses_;           // molar masses of components
   int num_aqueous_, num_gaseous_, num_components_, num_advect_;
   double water_tolerance_, max_tcc_;
   bool dissolution_;
@@ -498,17 +497,18 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
 };
 
 // helper functions
-void CheckGEDProperty(const Epetra_MultiVector& tracer,
-                      double t_physics);
+void
+CheckGEDProperty(const Epetra_MultiVector& tracer, double t_physics);
 
-void CheckTracerBounds(const Epetra_MultiVector& tcc,
-                       const Epetra_MultiVector& tcc_prev,
-                       const AmanziMesh::Mesh& mesh,
-                       double t_physics,
-                       int component,
-                       double lower_bound,
-                       double upper_bound,
-                       double tol = 0.0);
+void
+CheckTracerBounds(const Epetra_MultiVector& tcc,
+                  const Epetra_MultiVector& tcc_prev,
+                  const AmanziMesh::Mesh& mesh,
+                  double t_physics,
+                  int component,
+                  double lower_bound,
+                  double upper_bound,
+                  double tol = 0.0);
 
 } // namespace Transport
 } // namespace Amanzi

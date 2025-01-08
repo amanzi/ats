@@ -19,14 +19,16 @@ namespace Flow {
 namespace Relations {
 
 
-QCRelationFieldEvaluator::QCRelationFieldEvaluator(Teuchos::ParameterList& plist) : EvaluatorSecondaryMonotypeCV(plist)
+QCRelationFieldEvaluator::QCRelationFieldEvaluator(Teuchos::ParameterList& plist)
+  : EvaluatorSecondaryMonotypeCV(plist)
 {
   domain_ = Keys::getDomain(my_keys_.front().first);
   auto tag = my_keys_.front().second;
 
   cv_key_ = Keys::readKey(plist, domain_, "cell volume", "cell_volume");
   dependencies_.insert(KeyTag{ cv_key_, tag });
-  molar_density_key_ = Keys::readKey(plist, domain_, "molar density liquid", "molar_density_liquid");
+  molar_density_key_ =
+    Keys::readKey(plist, domain_, "molar density liquid", "molar_density_liquid");
   dependencies_.insert(KeyTag{ molar_density_key_, tag });
   field_src_key_ = Keys::readKey(plist, domain_, "field source", "water_source_field");
   dependencies_.insert(KeyTag{ field_src_key_, tag });
@@ -44,7 +46,6 @@ QCRelationFieldEvaluator::QCRelationFieldEvaluator(Teuchos::ParameterList& plist
 void
 QCRelationFieldEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& result)
 {
-
   Tag tag = my_keys_.front().second;
 
   const auto& cv = *S.Get<CompositeVector>(cv_key_, tag).ViewComponent("cell", false);
@@ -59,7 +60,6 @@ QCRelationFieldEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
   // Loop through each cell
   AmanziMesh::Entity_ID ncells = cv.MyLength();
   for (AmanziMesh::Entity_ID c = 0; c != ncells; ++c) {
-
     if (extensive_) {
       // convert extensive quantity in mol/m2/s to m3/s
       field_flow = water_from_field[0][c] / molar_den[0][c];
@@ -69,7 +69,7 @@ QCRelationFieldEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
     }
 
     // transport source (concentration g/m3) as a function of discharge from a field (e.g. tile, groundwater)
-    source_mass = (*QC_curve_)(std::vector<double>{field_flow});
+    source_mass = (*QC_curve_)(std::vector<double>{ field_flow });
 
     // return solute mass rate by multiplying with discharge (molC/s)
     // Here we assume the molar mass is 1. TODO: add molar mass to the function.

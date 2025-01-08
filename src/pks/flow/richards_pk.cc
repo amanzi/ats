@@ -65,7 +65,6 @@ Richards::Richards(Teuchos::ParameterList& pk_tree,
 {}
 
 
-
 void
 Richards::parseParameterList()
 {
@@ -379,10 +378,12 @@ Richards::SetupRichardsFlow_()
     requireAtNext(source_key_, tag_next_, *S_)
       .SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-    if (!explicit_source_ && S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
+    if (!explicit_source_ &&
+        S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
       is_source_term_differentiable_ = true;
       // require derivative of source
-      S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(source_key_, tag_next_, key_, tag_next_);
+      S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
+        source_key_, tag_next_, key_, tag_next_);
     }
   }
 
@@ -943,7 +944,8 @@ Richards::UpdatePermeabilityDerivativeData_(const Tag& tag)
 
   std::vector<std::string> vnames{ "dkrel" };
   std::vector<Teuchos::Ptr<const CompositeVector>> vecs{
-    S_->GetDerivativePtr<CompositeVector>(coef_key_, tag, key_, tag).ptr() };
+    S_->GetDerivativePtr<CompositeVector>(coef_key_, tag, key_, tag).ptr()
+  };
   if (!duw_coef_key_.empty()) {
     vnames.emplace_back("uw_dkrel");
     vecs.emplace_back(S_->GetPtr<CompositeVector>(duw_coef_key_, tag).ptr());

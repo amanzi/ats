@@ -93,7 +93,8 @@ class RadiationBalanceEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
-  virtual void EnsureCompatibility_Structure_(State& S) override {
+  virtual void EnsureCompatibility_Structure_(State& S) override
+  {
     EnsureCompatibility_StructureSame_(S);
   }
 

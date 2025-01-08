@@ -1352,10 +1352,10 @@ SedimentTransport_PK::AdvanceDonorUpwind_(double dt_cycle)
 ****************************************************************** */
 void
 SedimentTransport_PK::ComputeAddSourceTerms_(double tp,
-                                            double dtp,
-                                            Epetra_MultiVector& tcc,
-                                            int n0,
-                                            int n1)
+                                             double dtp,
+                                             Epetra_MultiVector& tcc,
+                                             int n0,
+                                             int n1)
 {
   int num_vectors = tcc.NumVectors();
   int nsrcs = srcs_.size();
@@ -1478,8 +1478,8 @@ SedimentTransport_PK::Sinks2TotalOutFlux(Epetra_MultiVector& tcc,
 ******************************************************************* */
 bool
 SedimentTransport_PK::PopulateBoundaryData_(std::vector<int>& bc_model,
-                                           std::vector<double>& bc_value,
-                                           int component)
+                                            std::vector<double>& bc_value,
+                                            int component)
 {
   bool flag = false;
 

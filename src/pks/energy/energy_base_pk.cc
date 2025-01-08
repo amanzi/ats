@@ -55,7 +55,6 @@ EnergyBase::EnergyBase(Teuchos::ParameterList& FElist,
 {}
 
 
-
 // call to allow a PK to modify its own list or lists of its children.
 void
 EnergyBase::parseParameterList()
@@ -94,7 +93,8 @@ EnergyBase::parseParameterList()
   is_source_term_ = plist_->get<bool>("source term", false);
   if (is_source_term_ && source_key_.empty()) {
     source_key_ = Keys::readKey(*plist_, domain_, "source", "total_energy_source");
-    is_source_term_finite_differentiable_ = plist_->get<bool>("source term finite difference", false);
+    is_source_term_finite_differentiable_ =
+      plist_->get<bool>("source term finite difference", false);
   }
 
   // get keys
@@ -166,8 +166,8 @@ EnergyBase::SetupEnergy_()
       .SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
-    if (!is_source_term_finite_differentiable_
-        && S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
+    if (!is_source_term_finite_differentiable_ &&
+        S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
       is_source_term_differentiable_ = true;
       // require derivative of source
       S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(

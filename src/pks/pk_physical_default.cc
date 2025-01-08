@@ -24,8 +24,7 @@ PK_Physical_Default::PK_Physical_Default(Teuchos::ParameterList& pk_tree,
                                          const Teuchos::RCP<Teuchos::ParameterList>& glist,
                                          const Teuchos::RCP<State>& S,
                                          const Teuchos::RCP<TreeVector>& solution)
-  : PK(pk_tree, glist, S, solution),
-    PK_Physical(pk_tree, glist, S, solution)
+  : PK(pk_tree, glist, S, solution), PK_Physical(pk_tree, glist, S, solution)
 {}
 
 void

@@ -41,7 +41,8 @@ SurfaceBalanceBase::parseParameterList()
   if (is_source_term_ && source_key_.empty()) {
     source_key_ = Keys::readKey(*plist_, domain_, "source", "source_sink");
 
-    is_source_term_finite_differentiable_ = plist_->get<bool>("source term finite difference", false);
+    is_source_term_finite_differentiable_ =
+      plist_->get<bool>("source term finite difference", false);
     if (is_source_term_finite_differentiable_) {
       eps_ = plist_->get<double>("source term finite difference epsilon", 1.e-8);
     }
@@ -81,8 +82,8 @@ SurfaceBalanceBase::Setup()
         .SetMesh(mesh_)
         ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
-      if (!is_source_term_finite_differentiable_
-          && S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
+      if (!is_source_term_finite_differentiable_ &&
+          S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
         is_source_term_differentiable_ = true;
         S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
           source_key_, tag_next_, key_, tag_next_);

@@ -214,11 +214,12 @@ MPCSubsurface::Setup()
     // -- derivatives of water content with respect to temperature
     if (S_->GetEvaluator(wc_key_, tag_next_).IsDifferentiableWRT(*S_, temp_key_, tag_next_)) {
       if (dWC_dT_block_ == Teuchos::null) {
-        dWC_dT_ = Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, mesh_));
+        dWC_dT_ =
+          Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, mesh_));
         dWC_dT_block_ = dWC_dT_->global_operator();
       } else {
-        dWC_dT_ =
-          Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, dWC_dT_block_));
+        dWC_dT_ = Teuchos::rcp(
+          new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, dWC_dT_block_));
       }
     }
 
@@ -373,11 +374,12 @@ MPCSubsurface::Setup()
     // -- derivatives of energy with respect to pressure
     if (S_->GetEvaluator(wc_key_, tag_next_).IsDifferentiableWRT(*S_, temp_key_, tag_next_)) {
       if (dE_dp_block_ == Teuchos::null) {
-        dE_dp_ = Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, mesh_));
+        dE_dp_ =
+          Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, mesh_));
         dE_dp_block_ = dE_dp_->global_operator();
       } else {
-        dE_dp_ =
-          Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, dE_dp_block_));
+        dE_dp_ = Teuchos::rcp(
+          new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, dE_dp_block_));
       }
     }
 

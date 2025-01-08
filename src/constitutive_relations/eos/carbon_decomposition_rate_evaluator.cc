@@ -37,7 +37,7 @@ CarbonDecomposeRateEvaluator::CarbonDecomposeRateEvaluator(Teuchos::ParameterLis
   depth_key_ = Keys::readKey(plist, domain, "depth", "depth");
   dependencies_.insert(KeyTag{ depth_key_, tag });
 
-  cv_key_ =  Keys::readKey(plist, domain, "cell volume","cell_volume");
+  cv_key_ = Keys::readKey(plist, domain, "cell volume", "cell_volume");
   dependencies_.insert(KeyTag{ cv_key_, tag });
 
   q10_ = plist_.get<double>("Q10 [-]", 2.0);

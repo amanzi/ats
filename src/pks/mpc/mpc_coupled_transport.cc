@@ -126,7 +126,6 @@ MPCCoupledTransport::get_num_aqueous_component()
 
 void
 MPCCoupledTransport::SetupCouplingConditions_()
-{
-}
+{}
 
 } // namespace Amanzi

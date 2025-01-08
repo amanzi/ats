@@ -119,13 +119,15 @@ Transport_ATS::parseParameterList()
   spatial_disc_order_ = plist_->get<int>("spatial discretization order", 1);
   if (spatial_disc_order_ < 1 || spatial_disc_order_ > 2) {
     Errors::Message msg;
-    msg << "Transport_ATS: \"spatial discretization order\" must be 1 or 2, not " << spatial_disc_order_;
+    msg << "Transport_ATS: \"spatial discretization order\" must be 1 or 2, not "
+        << spatial_disc_order_;
     Exceptions::amanzi_throw(msg);
   }
   temporal_disc_order_ = plist_->get<int>("temporal discretization order", 1);
   if (temporal_disc_order_ < 1 || temporal_disc_order_ > 2) {
     Errors::Message msg;
-    msg << "Transport_ATS: \"temporal discretization order\" must be 1 or 2, not " << temporal_disc_order_;
+    msg << "Transport_ATS: \"temporal discretization order\" must be 1 or 2, not "
+        << temporal_disc_order_;
     Exceptions::amanzi_throw(msg);
   }
 
@@ -271,8 +273,8 @@ Transport_ATS::SetupTransport_()
           std::string src_type = src_list->get<std::string>("spatial distribution method", "none");
 
           if (src_type == "domain coupling") {
-            Teuchos::RCP<TransportDomainFunction> src =
-              factory.Create(*src_list, "fields", AmanziMesh::Entity_kind::CELL, Kxy_, tag_current_);
+            Teuchos::RCP<TransportDomainFunction> src = factory.Create(
+              *src_list, "fields", AmanziMesh::Entity_kind::CELL, Kxy_, tag_current_);
 
             // domain couplings functions is special -- always work on all components
             for (int i = 0; i < num_components_; i++) {
@@ -328,7 +330,8 @@ Transport_ATS::SetupTransport_()
           } else { // all others work on a subset of components
             Teuchos::RCP<TransportDomainFunction> src = factory.Create(
               *src_list, "source function", AmanziMesh::Entity_kind::CELL, Kxy_, tag_current_);
-            src->set_tcc_names(src_list->get<Teuchos::Array<std::string>>("component names").toVector());
+            src->set_tcc_names(
+              src_list->get<Teuchos::Array<std::string>>("component names").toVector());
             for (const auto& n : src->tcc_names()) {
               src->tcc_index().push_back(FindComponentNumber_(n));
             }
@@ -339,12 +342,10 @@ Transport_ATS::SetupTransport_()
 
           if (convert_to_field_[name]) {
             name = Keys::cleanName(name);
-            if (Keys::getDomain(name)!=domain_){
-              name = Keys::getKey(domain_, name);
-            }
+            if (Keys::getDomain(name) != domain_) { name = Keys::getKey(domain_, name); }
             requireAtNext(name, Tags::NEXT, *S_, name)
-            .SetMesh(mesh_)
-            ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_components_);
+              .SetMesh(mesh_)
+              ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_components_);
           }
         }
       }
@@ -387,14 +388,18 @@ Transport_ATS::SetupTransport_()
     mdm_ = CreateMDMPartition(mesh_, mat_prop_list, flag_dispersion_);
 
     int nblocks = 0;
-    for (Teuchos::ParameterList::ConstIterator i = mat_prop_list->begin(); i != mat_prop_list->end(); i++) {
+    for (Teuchos::ParameterList::ConstIterator i = mat_prop_list->begin();
+         i != mat_prop_list->end();
+         i++) {
       if (mat_prop_list->isSublist(mat_prop_list->name(i))) nblocks++;
     }
 
     mat_properties_.resize(nblocks);
 
     int iblock = 0;
-    for (Teuchos::ParameterList::ConstIterator i = mat_prop_list->begin(); i != mat_prop_list->end(); i++) {
+    for (Teuchos::ParameterList::ConstIterator i = mat_prop_list->begin();
+         i != mat_prop_list->end();
+         i++) {
       if (mat_prop_list->isSublist(mat_prop_list->name(i))) {
         mat_properties_[iblock] = Teuchos::rcp(new MaterialProperties());
 
@@ -623,7 +628,8 @@ Transport_ATS::Initialize()
   // boundary conditions initialization
   double time = t_physics_;
 
-  const Epetra_MultiVector& flux = *S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ViewComponent("face", true);
+  const Epetra_MultiVector& flux =
+    *S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ViewComponent("face", true);
   CheckInfluxBC_(flux);
 
   // Move to Setup() with other sources? --ETC
@@ -645,11 +651,13 @@ Transport_ATS::Initialize()
           S_->GetEvaluator(geochem_src_factor_key_, Tags::NEXT).Update(*S_, name_);
         }
 
-        auto src_factor =
-          S_->Get<CompositeVector>(geochem_src_factor_key_, Tags::NEXT).ViewComponent("cell", false);
+        auto src_factor = S_->Get<CompositeVector>(geochem_src_factor_key_, Tags::NEXT)
+                            .ViewComponent("cell", false);
         src->set_conversion(-1000., src_factor, false);
 
-        for (const auto& n : src->tcc_names()) { src->tcc_index().push_back(FindComponentNumber_(n)); }
+        for (const auto& n : src->tcc_names()) {
+          src->tcc_index().push_back(FindComponentNumber_(n));
+        }
 
         srcs_.push_back(src);
       }
@@ -707,7 +715,8 @@ Transport_ATS::ComputeStableTimeStep_()
   Epetra_MultiVector& tcc_prev = *tcc->ViewComponent("cell");
 
   // flux at flow tag
-  const Epetra_MultiVector& flux = *S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ViewComponent("face", true);
+  const Epetra_MultiVector& flux =
+    *S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ViewComponent("face", true);
 
   int ncells_all =
     mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::ALL);
@@ -733,15 +742,16 @@ Transport_ATS::ComputeStableTimeStep_()
   int cmin_dt = 0;
 
   S_->GetEvaluator(porosity_key_, Tags::NEXT).Update(*S_, name_);
-  const Epetra_MultiVector& phi = *S_->Get<CompositeVector>(porosity_key_, Tags::NEXT).ViewComponent("cell", false);
+  const Epetra_MultiVector& phi =
+    *S_->Get<CompositeVector>(porosity_key_, Tags::NEXT).ViewComponent("cell", false);
 
   for (int c = 0; c < tcc_prev.MyLength(); c++) {
     double outflux = total_outflux[c];
 
     if ((outflux > 0) && ((*ws_prev_)[0][c] > 0) && ((*ws_)[0][c] > 0) && (phi[0][c] > 0)) {
       vol = mesh_->getCellVolume(c);
-      dt_cell = vol * (*mol_dens_)[0][c] * phi[0][c] *
-                std::min((*ws_prev_)[0][c], (*ws_)[0][c]) / outflux;
+      dt_cell =
+        vol * (*mol_dens_)[0][c] * phi[0][c] * std::min((*ws_prev_)[0][c], (*ws_)[0][c]) / outflux;
     }
     if (dt_cell < dt_) {
       dt_ = dt_cell;
@@ -797,8 +807,7 @@ Transport_ATS::ComputeStableTimeStep_()
     if (std::abs(3 - tmp_package[5]) < 1e-10) *vo_->os() << ", " << tmp_package[4];
     *vo_->os() << ")" << std::endl;
     *vo_->os() << "Stable timestep " << dt_ << " is limited by saturation/ponded_depth "
-               << tmp_package[0] << " and "
-               << "output flux " << tmp_package[1] << std::endl;
+               << tmp_package[0] << " and " << "output flux " << tmp_package[1] << std::endl;
   }
   return dt_;
 }
@@ -894,7 +903,8 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   Tag water_tag_next = Tags::NEXT;
 
   S_->GetEvaluator(porosity_key_, Tags::NEXT).Update(*S_, name_);
-  const Epetra_MultiVector& phi = *S_->Get<CompositeVector>(porosity_key_, Tags::NEXT).ViewComponent("cell", false);
+  const Epetra_MultiVector& phi =
+    *S_->Get<CompositeVector>(porosity_key_, Tags::NEXT).ViewComponent("cell", false);
 
   db_->WriteVector("sat_old",
                    S_->GetPtr<CompositeVector>(saturation_key_, water_tag_current).ptr());
@@ -1025,18 +1035,20 @@ Transport_ATS ::Advance_Dispersion_Diffusion_(double t_old, double t_new)
     zero.PutScalar(0.0);
 
     S_->GetEvaluator(porosity_key_, Tags::NEXT).Update(*S_, name_);
-    const Epetra_MultiVector& phi = *S_->Get<CompositeVector>(porosity_key_, Tags::NEXT).ViewComponent("cell", false);
+    const Epetra_MultiVector& phi =
+      *S_->Get<CompositeVector>(porosity_key_, Tags::NEXT).ViewComponent("cell", false);
 
     // populate the dispersion operator (if any)
     if (flag_dispersion_) {
-      const Epetra_MultiVector& flux = *S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ViewComponent("face", true);
+      const Epetra_MultiVector& flux =
+        *S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ViewComponent("face", true);
       CalculateDispersionTensor_(flux, phi, *ws_, *mol_dens_);
     }
 
-    int phase;  // transport phase -- 0: liquid, 1: gas
+    int phase; // transport phase -- 0: liquid, 1: gas
     int num_itrs(0);
     bool flag_op1(true);
-    double md_change, md_old(0.0), md_new;  // molecular diffusion
+    double md_change, md_old(0.0), md_new; // molecular diffusion
     double residual(0.0);
 
     // Disperse and diffuse aqueous components
@@ -1207,11 +1219,12 @@ Transport_ATS::AdvanceDonorUpwind_(double dt_cycle)
 
   // scattering total concentration from master to others
   tcc->ScatterMasterToGhosted("cell");
-  Epetra_MultiVector& tcc_prev = *tcc->ViewComponent("cell", true);       // tag current
-  Epetra_MultiVector& tcc_next = *tcc_tmp->ViewComponent("cell", true);   // tag next
+  Epetra_MultiVector& tcc_prev = *tcc->ViewComponent("cell", true);     // tag current
+  Epetra_MultiVector& tcc_next = *tcc_tmp->ViewComponent("cell", true); // tag next
 
   S_->GetEvaluator(porosity_key_, Tags::NEXT).Update(*S_, name_);
-  const Epetra_MultiVector& phi = *S_->Get<CompositeVector>(porosity_key_, Tags::NEXT).ViewComponent("cell", false);
+  const Epetra_MultiVector& phi =
+    *S_->Get<CompositeVector>(porosity_key_, Tags::NEXT).ViewComponent("cell", false);
 
   double mass_current = 0.;
   double tmp1, mass;
@@ -1221,12 +1234,13 @@ Transport_ATS::AdvanceDonorUpwind_(double dt_cycle)
   // The conserve_qty has `num_components_+2` vectors
   Epetra_MultiVector& conserve_qty =
     *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_).ViewComponent("cell", false);
-  conserve_qty.PutScalar(0.);     // set all values in conserve_qty to 0 -- why?
+  conserve_qty.PutScalar(0.); // set all values in conserve_qty to 0 -- why?
 
   // populating solid quantity (unit: molC)
   // solid_qty has `num_components_` vectors only (solute mass)
   Epetra_MultiVector& solid_qty =
-    *S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, name_).ViewComponent("cell", false);
+    *S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, name_)
+       .ViewComponent("cell", false);
 
   for (int c = 0; c < conserve_qty.MyLength(); c++) {
     double vol_phi_ws_den =
@@ -1234,7 +1248,7 @@ Transport_ATS::AdvanceDonorUpwind_(double dt_cycle)
     (conserve_qty)[num_components_ + 1][c] = vol_phi_ws_den;
 
     for (int i = 0; i < num_advect_; i++) {
-      (conserve_qty)[i][c] = tcc_prev[i][c] * vol_phi_ws_den;       // get and store current solute mass
+      (conserve_qty)[i][c] = tcc_prev[i][c] * vol_phi_ws_den; // get and store current solute mass
 
       if (dissolution_) {
         if (((*ws_prev_)[0][c] > water_tolerance_) &&
@@ -1252,11 +1266,12 @@ Transport_ATS::AdvanceDonorUpwind_(double dt_cycle)
 
   db_->WriteCellVector("cons (start)", conserve_qty);
   tmp1 = mass_current;
-  mesh_->getComm()->SumAll(&tmp1, &mass_current, 1);    // sum all mass_current from all processors
+  mesh_->getComm()->SumAll(&tmp1, &mass_current, 1); // sum all mass_current from all processors
   int nfaces_all =
     mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::ALL);
 
-  const Epetra_MultiVector& flux = *S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ViewComponent("face", true);
+  const Epetra_MultiVector& flux =
+    *S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ViewComponent("face", true);
 
   // advance all components at once
   for (int f = 0; f < nfaces_all; f++) {
@@ -1277,13 +1292,14 @@ Transport_ATS::AdvanceDonorUpwind_(double dt_cycle)
       conserve_qty[num_components_ + 1][c1] -= dt_ * u;
       conserve_qty[num_components_ + 1][c2] += dt_ * u;
 
-    } else if (c1 >= 0 && c1 < conserve_qty.MyLength() && (c2 >= conserve_qty.MyLength() || c2 < 0)) {
+    } else if (c1 >= 0 && c1 < conserve_qty.MyLength() &&
+               (c2 >= conserve_qty.MyLength() || c2 < 0)) {
       // downind cell c2 is boundary or belong to another domain owned by other processors
       // Update solute flux for c1
       for (int i = 0; i < num_advect_; i++) {
         double tcc_flux = dt_ * u * tcc_prev[i][c1];
         conserve_qty[i][c1] -= tcc_flux;
-        if (c2 < 0) mass_solutes_bc_[i] -= tcc_flux;  // if c2 is boundary, update BC
+        if (c2 < 0) mass_solutes_bc_[i] -= tcc_flux; // if c2 is boundary, update BC
       }
       // Update or subtract (tag next) water fluxes for c1
       conserve_qty[num_components_ + 1][c1] -= dt_ * u;
@@ -1352,12 +1368,14 @@ Transport_ATS::AdvanceDonorUpwind_(double dt_cycle)
 
   // recover concentration from new conservative state
   for (int c = 0; c < conserve_qty.MyLength(); c++) {
-    double water_new =
-      mesh_->getCellVolume(c) * phi[0][c] * (*ws_)[0][c] * (*mol_dens_)[0][c];  // next water in cell c
-    double water_sink = conserve_qty[num_components_][c];  // current water in cell c (seem always 0 because conserve_qty.PutScalar(0.))
-    double water_total = water_new + water_sink;           // unit: mol H20
+    double water_new = mesh_->getCellVolume(c) * phi[0][c] * (*ws_)[0][c] *
+                       (*mol_dens_)[0][c]; // next water in cell c
+    double water_sink =
+      conserve_qty[num_components_]
+                  [c]; // current water in cell c (seem always 0 because conserve_qty.PutScalar(0.))
+    double water_total = water_new + water_sink; // unit: mol H20
     AMANZI_ASSERT(water_total >= water_new);
-    conserve_qty[num_components_][c] = water_total;        // update current water in cell c
+    conserve_qty[num_components_][c] = water_total; // update current water in cell c
 
     for (int i = 0; i < num_advect_; i++) {
       if (water_new > water_tolerance_ && conserve_qty[i][c] > 0) {
@@ -1431,15 +1449,18 @@ Transport_ATS::AdvanceSecondOrderUpwindRK1_(double dt_cycle)
 
   // populating solid quantity
   Epetra_MultiVector& solid_qty =
-    *S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, name_).ViewComponent("cell", false);
+    *S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, name_)
+       .ViewComponent("cell", false);
 
   // using vectors
   S_->GetEvaluator(porosity_key_, Tags::NEXT).Update(*S_, name_);
-  const Epetra_MultiVector& phi = *S_->Get<CompositeVector>(porosity_key_, Tags::NEXT).ViewComponent("cell", false);
+  const Epetra_MultiVector& phi =
+    *S_->Get<CompositeVector>(porosity_key_, Tags::NEXT).ViewComponent("cell", false);
 
   // prepopulate with initial water for better debugging
   for (int c = 0; c < conserve_qty.MyLength(); c++) {
-    conserve_qty[num_components_ + 1][c] = mesh_->getCellVolume(c) * phi[0][c] * (*ws_prev_)[0][c] * (*mol_dens_prev_)[0][c];
+    conserve_qty[num_components_ + 1][c] =
+      mesh_->getCellVolume(c) * phi[0][c] * (*ws_prev_)[0][c] * (*mol_dens_prev_)[0][c];
   }
 
   for (int i = 0; i < num_advect_; i++) {
@@ -1453,8 +1474,7 @@ Transport_ATS::AdvanceSecondOrderUpwindRK1_(double dt_cycle)
   // calculate the new conc
   for (int c = 0; c < conserve_qty.MyLength(); c++) {
     double water_old = conserve_qty[num_components_ + 1][c];
-    double water_new =
-      mesh_->getCellVolume(c) * phi[0][c] * (*ws_)[0][c] * (*mol_dens_)[0][c];
+    double water_new = mesh_->getCellVolume(c) * phi[0][c] * (*ws_)[0][c] * (*mol_dens_)[0][c];
     double water_sink = conserve_qty[num_components_][c];
     double water_total = water_sink + water_new;
     conserve_qty[num_components_][c] = water_total;
@@ -1507,7 +1527,8 @@ Transport_ATS::AdvanceSecondOrderUpwindRK2_(double dt_cycle)
 
   // populating solid quantity
   Epetra_MultiVector& solid_qty =
-    *S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, name_).ViewComponent("cell", false);
+    *S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, name_)
+       .ViewComponent("cell", false);
 
   // distribute old vector of concentrations
   tcc->ScatterMasterToGhosted("cell");
@@ -1516,13 +1537,14 @@ Transport_ATS::AdvanceSecondOrderUpwindRK2_(double dt_cycle)
   Epetra_Vector ws_ratio(Copy, *ws_prev_, 0);
 
   S_->GetEvaluator(porosity_key_, Tags::NEXT).Update(*S_, name_);
-  const Epetra_MultiVector& phi = *S_->Get<CompositeVector>(porosity_key_, Tags::NEXT).ViewComponent("cell", false);
+  const Epetra_MultiVector& phi =
+    *S_->Get<CompositeVector>(porosity_key_, Tags::NEXT).ViewComponent("cell", false);
 
   for (int c = 0; c < solid_qty.MyLength(); c++) {
     if ((*ws_)[0][c] > 1e-10) {
       if ((*ws_prev_)[0][c] > 1e-10) {
-        ws_ratio[c] = ((*ws_prev_)[0][c] * (*mol_dens_prev_)[0][c]) /
-                      ((*ws_)[0][c] * (*mol_dens_)[0][c]);
+        ws_ratio[c] =
+          ((*ws_prev_)[0][c] * (*mol_dens_prev_)[0][c]) / ((*ws_)[0][c] * (*mol_dens_)[0][c]);
       } else {
         ws_ratio[c] = 1;
       }
@@ -1581,10 +1603,10 @@ Transport_ATS::AdvanceSecondOrderUpwindRK2_(double dt_cycle)
 ****************************************************************** */
 void
 Transport_ATS::ComputeAddSourceTerms_(double tp,
-                                     double dtp,
-                                     Epetra_MultiVector& cons_qty,
-                                     int n0,
-                                     int n1)
+                                      double dtp,
+                                      Epetra_MultiVector& cons_qty,
+                                      int n0,
+                                      int n1)
 {
   int num_vectors = cons_qty.NumVectors();
   int nsrcs = srcs_.size();
@@ -1605,16 +1627,12 @@ Transport_ATS::ComputeAddSourceTerms_(double tp,
       }
 
       if (convert_to_field_[srcs_[m]->getName()]) {
-          std::string name = srcs_[m]->getName();
-          name = Keys::cleanName(name);
-          if (Keys::getDomain(name)!=domain_){
-            name = Keys::getKey(domain_, name);
-          }
-          copyToCompositeVector(*srcs_[m],
-          S_->GetW<CompositeVector>(name, Tags::NEXT, name)
-          );
-          changedEvaluatorPrimary(name, Tags::NEXT, *S_);
-       }
+        std::string name = srcs_[m]->getName();
+        name = Keys::cleanName(name);
+        if (Keys::getDomain(name) != domain_) { name = Keys::getKey(domain_, name); }
+        copyToCompositeVector(*srcs_[m], S_->GetW<CompositeVector>(name, Tags::NEXT, name));
+        changedEvaluatorPrimary(name, Tags::NEXT, *S_);
+      }
 
       for (int k = 0; k < tcc_index.size(); ++k) {
         int i = tcc_index[k];
@@ -1639,9 +1657,9 @@ Transport_ATS::ComputeAddSourceTerms_(double tp,
 ****************************************************************** */
 void
 Transport_ATS::ComputeSinks2TotalOutFlux_(Epetra_MultiVector& tcc_c,
-                                  std::vector<double>& total_outflux,
-                                  int n0,
-                                  int n1)
+                                          std::vector<double>& total_outflux,
+                                          int n0,
+                                          int n1)
 {
   int ncells_all =
     mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::ALL);
@@ -1649,16 +1667,17 @@ Transport_ATS::ComputeSinks2TotalOutFlux_(Epetra_MultiVector& tcc_c,
   std::vector<double> sink_add(ncells_all, 0.0);
   //Assumption that there is only one sink per component per cell
   double t0 = S_->get_time(tag_current_);
-  int num_vectors = tcc_c.NumVectors();                 // number of components (e.g. tracers)
-  int nsrcs = srcs_.size();                             // number of sources / sinks
+  int num_vectors = tcc_c.NumVectors(); // number of components (e.g. tracers)
+  int nsrcs = srcs_.size();             // number of sources / sinks
 
   for (int m = 0; m < nsrcs; m++) {
-    srcs_[m]->Compute(t0, t0);                          // compute source term at time t0
-    std::vector<int> index = srcs_[m]->tcc_index();     // get the index of the component in the global list
+    srcs_[m]->Compute(t0, t0); // compute source term at time t0
+    std::vector<int> index =
+      srcs_[m]->tcc_index(); // get the index of the component in the global list
 
     for (auto it = srcs_[m]->begin(); it != srcs_[m]->end(); ++it) {
-      int c = it->first;                                // cell id
-      std::vector<double>& values = it->second;         // magnitude of source terms
+      int c = it->first;                        // cell id
+      std::vector<double>& values = it->second; // magnitude of source terms
       double val = 0;
       for (int k = 0; k < index.size(); ++k) {
         int i = index[k];
@@ -1670,7 +1689,8 @@ Transport_ATS::ComputeSinks2TotalOutFlux_(Epetra_MultiVector& tcc_c,
         if ((values[k] < 0) && (tcc_c[imap][c] > 1e-16)) {
           if (srcs_[m]->getType() == DomainFunction_kind::COUPLING) {
             const Epetra_MultiVector& flux_interface_ =
-              *S_->Get<CompositeVector>("surface-surface_subsurface_flux", Tags::NEXT).ViewComponent("cell", false);
+              *S_->Get<CompositeVector>("surface-surface_subsurface_flux", Tags::NEXT)
+                 .ViewComponent("cell", false);
             val = std::max(val, std::abs(flux_interface_[0][c]));
           }
         }
@@ -1689,8 +1709,8 @@ Transport_ATS::ComputeSinks2TotalOutFlux_(Epetra_MultiVector& tcc_c,
 ******************************************************************* */
 bool
 Transport_ATS::PopulateBoundaryData_(std::vector<int>& bc_model,
-                                    std::vector<double>& bc_value,
-                                    int component)
+                                     std::vector<double>& bc_value,
+                                     int component)
 {
   int nfaces_all =
     mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::ALL);
@@ -1743,7 +1763,8 @@ Transport_ATS::IdentifyUpwindCells_()
   downwind_cell_->PutValue(-1);
 
   S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ScatterMasterToGhosted("face");
-  const Epetra_MultiVector& flux = *S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ViewComponent("face", true);
+  const Epetra_MultiVector& flux =
+    *S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ViewComponent("face", true);
 
   // identify upwind and downwind cell of each face
   for (int c = 0; c < ncells_all; c++) {

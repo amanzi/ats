@@ -49,8 +49,8 @@ struct ParserPerchedWaterTableDepth {
 class IntegratorPerchedWaterTableDepth {
  public:
   IntegratorPerchedWaterTableDepth(Teuchos::ParameterList& plist,
-                            std::vector<const Epetra_MultiVector*>& deps,
-                            const AmanziMesh::Mesh* mesh);
+                                   std::vector<const Epetra_MultiVector*>& deps,
+                                   const AmanziMesh::Mesh* mesh);
   int scan(AmanziMesh::Entity_ID col, AmanziMesh::Entity_ID c, AmanziGeometry::Point& p);
   double coefficient(AmanziMesh::Entity_ID col);
 

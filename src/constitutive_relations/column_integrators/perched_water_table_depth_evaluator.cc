@@ -14,7 +14,8 @@
 namespace Amanzi {
 namespace Relations {
 
-ParserPerchedWaterTableDepth::ParserPerchedWaterTableDepth(Teuchos::ParameterList& plist, const KeyTag& key_tag)
+ParserPerchedWaterTableDepth::ParserPerchedWaterTableDepth(Teuchos::ParameterList& plist,
+                                                           const KeyTag& key_tag)
 {
   Key domain = Keys::getDomain(key_tag.first);
   Tag tag = key_tag.second;
@@ -34,9 +35,11 @@ ParserPerchedWaterTableDepth::ParserPerchedWaterTableDepth(Teuchos::ParameterLis
 }
 
 
-IntegratorPerchedWaterTableDepth::IntegratorPerchedWaterTableDepth(Teuchos::ParameterList& plist,
-                                                     std::vector<const Epetra_MultiVector*>& deps,
-                                                     const AmanziMesh::Mesh* mesh) : mesh_(mesh)
+IntegratorPerchedWaterTableDepth::IntegratorPerchedWaterTableDepth(
+  Teuchos::ParameterList& plist,
+  std::vector<const Epetra_MultiVector*>& deps,
+  const AmanziMesh::Mesh* mesh)
+  : mesh_(mesh)
 {
   AMANZI_ASSERT(deps.size() == 4);
   sat_ = deps[0];

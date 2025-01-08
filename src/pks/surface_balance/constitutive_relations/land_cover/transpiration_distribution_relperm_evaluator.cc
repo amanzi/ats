@@ -54,7 +54,8 @@ SoilPlantFluxFunctor::SoilPlantFluxFunctor(AmanziMesh::Entity_ID sc_,
 // increases, soil->plant flux should increase, so total_trans should increase,
 // so this function is hopefully monotonically decreasing with plant_pc
 double
-SoilPlantFluxFunctor::operator()(double plant_pc) const {
+SoilPlantFluxFunctor::operator()(double plant_pc) const
+{
   double total_trans = computeSoilPlantFluxes(plant_pc);
   return pet[0][sc] - total_trans;
 }
@@ -218,11 +219,20 @@ TranspirationDistributionRelPermEvaluator::Evaluate_(const State& S,
       for (int sc : lc_ids) {
         if (potential_trans[0][sc] > 0. || krp_ > 0.) {
           SoilPlantFluxFunctor func(sc,
-                  subsurf_mesh.columns.getCells(sc),
-                  region_lc.second,
-                  soil_pc, soil_kr, f_root, potential_trans,
-                  rho, nliq, visc, cv, sa,
-                  K_ * perm_scale, krp_ / perm_scale, g);
+                                    subsurf_mesh.columns.getCells(sc),
+                                    region_lc.second,
+                                    soil_pc,
+                                    soil_kr,
+                                    f_root,
+                                    potential_trans,
+                                    rho,
+                                    nliq,
+                                    visc,
+                                    cv,
+                                    sa,
+                                    K_ * perm_scale,
+                                    krp_ / perm_scale,
+                                    g);
 
           // compute the flux at max pc
           double pc_plant_max = region_lc.second.maximum_xylem_capillary_pressure;
@@ -267,7 +277,8 @@ TranspirationDistributionRelPermEvaluator::Evaluate_(const State& S,
 
             // compute the plant capillary pressure using a root-finder
             int itrs = nits_;
-            plant_pc_v[0][sc] = Amanzi::Utils::findRootBrent(func, ab.first, ab.second, tol_, &itrs);
+            plant_pc_v[0][sc] =
+              Amanzi::Utils::findRootBrent(func, ab.first, ab.second, tol_, &itrs);
             AMANZI_ASSERT(itrs > 0 && itrs <= nits_);
 
             // compute the distributed transpiration fluxes for each grid cell
@@ -304,8 +315,7 @@ TranspirationDistributionRelPermEvaluator::EnsureCompatibility_ToDeps_(State& S)
   // new state!
   if (land_cover_.size() == 0) {
     land_cover_ =
-      getLandCover(S.ICList().sublist("land cover types"),
-                   { "maximum_xylem_capillary_pressure" });
+      getLandCover(S.ICList().sublist("land cover types"), { "maximum_xylem_capillary_pressure" });
   }
 
   // Create an unowned factory to check my dependencies.

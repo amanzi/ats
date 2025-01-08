@@ -182,8 +182,8 @@ EnergyBase::AddSourcesToPrecon_(double h)
   } else if (is_source_term_differentiable_) {
     // evaluate the derivative through the dag
     S_->GetEvaluator(source_key_, tag_next_).UpdateDerivative(*S_, name_, key_, tag_next_);
-    dsource_dT = S_->GetDerivativePtrW<CompositeVector>(
-      source_key_, tag_next_, key_, tag_next_, source_key_);
+    dsource_dT =
+      S_->GetDerivativePtrW<CompositeVector>(source_key_, tag_next_, key_, tag_next_, source_key_);
   }
 
   if (dsource_dT != Teuchos::null) {

@@ -346,8 +346,7 @@ MPCPermafrost::Initialize()
   S_->GetRecordW(mass_exchange_key_, tag_next_, name_).set_initialized();
   changedEvaluatorPrimary(mass_exchange_key_, tag_next_, *S_);
 
-  S_->GetPtrW<CompositeVector>(energy_exchange_key_, tag_next_, name_)
-    ->PutScalar(0.0);
+  S_->GetPtrW<CompositeVector>(energy_exchange_key_, tag_next_, name_)->PutScalar(0.0);
   S_->GetRecordW(energy_exchange_key_, tag_next_, name_).set_initialized();
   changedEvaluatorPrimary(energy_exchange_key_, tag_next_, *S_);
 
@@ -424,8 +423,7 @@ MPCPermafrost::FunctionalResidual(double t_old,
   // The residual of the surface flow equation provides the water flux from
   // subsurface to surface.
   Epetra_MultiVector& source =
-    *S_->GetW<CompositeVector>(mass_exchange_key_, tag_next_, name_)
-       .ViewComponent("cell", false);
+    *S_->GetW<CompositeVector>(mass_exchange_key_, tag_next_, name_).ViewComponent("cell", false);
   source = *g->SubVector(2)->Data()->ViewComponent("cell", false);
   changedEvaluatorPrimary(mass_exchange_key_, tag_next_, *S_);
 
@@ -444,8 +442,7 @@ MPCPermafrost::FunctionalResidual(double t_old,
   // The residual of the surface energy equation provides the diffusive energy
   // flux from subsurface to surface.
   Epetra_MultiVector& esource =
-    *S_->GetW<CompositeVector>(energy_exchange_key_, tag_next_, name_)
-       .ViewComponent("cell", false);
+    *S_->GetW<CompositeVector>(energy_exchange_key_, tag_next_, name_).ViewComponent("cell", false);
   esource = *g->SubVector(3)->Data()->ViewComponent("cell", false);
   changedEvaluatorPrimary(energy_exchange_key_, tag_next_, *S_);
 

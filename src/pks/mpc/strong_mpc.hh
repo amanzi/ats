@@ -134,7 +134,6 @@ StrongMPC<PK_t>::StrongMPC(Teuchos::ParameterList& pk_tree,
 }
 
 
-
 template <class PK_t>
 void
 StrongMPC<PK_t>::parseParameterList()

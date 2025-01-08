@@ -53,7 +53,9 @@ OverlandPressureFlow::FunctionalResidual(double t_old,
   // debugging -- write primary variables to screen
   db_->WriteCellInfo(true);
   std::vector<std::string> vnames{ "p_old", "p_new" };
-  std::vector<Teuchos::Ptr<const CompositeVector>> vecs{ S_->GetPtr<CompositeVector>(key_, tag_current_).ptr(), u.ptr() };
+  std::vector<Teuchos::Ptr<const CompositeVector>> vecs{
+    S_->GetPtr<CompositeVector>(key_, tag_current_).ptr(), u.ptr()
+  };
   db_->WriteVectors(vnames, vecs, true);
 
   // update boundary conditions
@@ -67,15 +69,18 @@ OverlandPressureFlow::FunctionalResidual(double t_old,
   // more debugging -- write diffusion/flux variables to screen
   vnames = { "z", "h_old", "h_new", "h+z" };
   vecs = { S_->GetPtr<CompositeVector>(elev_key_, tag_next_).ptr(),
-    S_->GetPtr<CompositeVector>(pd_key_, tag_current_).ptr(),
-    S_->GetPtr<CompositeVector>(pd_key_, tag_next_).ptr(),
-    S_->GetPtr<CompositeVector>(potential_key_, tag_next_).ptr() };
+           S_->GetPtr<CompositeVector>(pd_key_, tag_current_).ptr(),
+           S_->GetPtr<CompositeVector>(pd_key_, tag_next_).ptr(),
+           S_->GetPtr<CompositeVector>(potential_key_, tag_next_).ptr() };
 
   if (plist_->isSublist("overland conductivity subgrid evaluator")) {
     vnames.emplace_back("pd - dd");
     vnames.emplace_back("frac_cond");
-    vecs.emplace_back(S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "mobile_depth"), tag_next_).ptr());
-    vecs.emplace_back(S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "fractional_conductance"), tag_next_).ptr());
+    vecs.emplace_back(
+      S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "mobile_depth"), tag_next_).ptr());
+    vecs.emplace_back(
+      S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "fractional_conductance"), tag_next_)
+        .ptr());
   }
 
 

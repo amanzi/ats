@@ -30,8 +30,7 @@ namespace Transport {
 * Calculates extrema of specified solutes and print them.
 ******************************************************************* */
 void
-Transport_ATS::PrintSoluteExtrema(const Epetra_MultiVector& tcc_next,
-        double dT_MPC)
+Transport_ATS::PrintSoluteExtrema(const Epetra_MultiVector& tcc_next, double dT_MPC)
 {
   int num_components_ = tcc_next.NumVectors();
   double tccmin_vec[num_components_];
@@ -40,8 +39,10 @@ Transport_ATS::PrintSoluteExtrema(const Epetra_MultiVector& tcc_next,
   tcc_next.MinValue(tccmin_vec);
   tcc_next.MaxValue(tccmax_vec);
 
-  const Epetra_MultiVector& flux = *S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ViewComponent("face", true);
-  const Epetra_MultiVector& phi = *S_->Get<CompositeVector>(porosity_key_, Tags::NEXT).ViewComponent("cell", false);
+  const Epetra_MultiVector& flux =
+    *S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ViewComponent("face", true);
+  const Epetra_MultiVector& phi =
+    *S_->Get<CompositeVector>(porosity_key_, Tags::NEXT).ViewComponent("cell", false);
 
   for (int n = 0; n < runtime_solutes_.size(); n++) {
     int i = FindComponentNumber_(runtime_solutes_[n]);
@@ -82,8 +83,8 @@ Transport_ATS::PrintSoluteExtrema(const Epetra_MultiVector& tcc_next,
     ws_->MinValue(&ws_min);
     ws_->MaxValue(&ws_max);
 
-    *vo_->os() << runtime_solutes_[n] << ": min=" << tccmin << " max=" << tccmax << " ws: "
-               << "min=" << ws_min << " max=" << ws_max << "\n";
+    *vo_->os() << runtime_solutes_[n] << ": min=" << tccmin << " max=" << tccmax
+               << " ws: " << "min=" << ws_min << " max=" << ws_max << "\n";
     if (flag) *vo_->os() << ", flux=" << solute_flux << " mol/s";
 
     double mass_solute(0.0);
@@ -178,8 +179,7 @@ CheckGEDProperty(const Epetra_MultiVector& tracer, double t_physics)
         std::cout << "    min/max values = " << tr_min[i] << " " << tr_max[i] << std::endl;
 
         Errors::Message msg;
-        msg << "Concentration violates GED property."
-            << "\n";
+        msg << "Concentration violates GED property." << "\n";
         Exceptions::amanzi_throw(msg);
       }
     }
@@ -215,8 +215,7 @@ CheckTracerBounds(const Epetra_MultiVector& tcc,
       std::cout << "      value (new) = " << value << std::endl;
 
       Errors::Message msg;
-      msg << "TCC violates bounds."
-          << "\n";
+      msg << "TCC violates bounds." << "\n";
       Exceptions::amanzi_throw(msg);
     }
   }

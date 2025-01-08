@@ -47,8 +47,7 @@ MPCWeakSubdomain::parseParameterList()
   MPC<PK>::parseParameterList();
 
   if (internal_subcycling_) {
-    internal_subcycling_target_dt_ =
-      plist_->template get<double>("subcycling target timestep [s]");
+    internal_subcycling_target_dt_ = plist_->template get<double>("subcycling target timestep [s]");
   }
 };
 

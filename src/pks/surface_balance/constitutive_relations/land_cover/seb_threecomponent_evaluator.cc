@@ -317,10 +317,9 @@ SEBThreeComponentEvaluator::Evaluate_(const State& S, const std::vector<Composit
         new_snow[0][c] += area_fracs[0][c] * met.Ps;
 
         if (vo_.os_OK(Teuchos::VERB_EXTREME))
-          *vo_.os() << "CELL " << c << " BARE"
-                    << ": Ms = " << flux.M_surf << ", Es = " << flux.E_surf * 1.e-6
-                    << ", Mss = " << ss_water_source_l << ", Ess = " << ss_energy_source_l
-                    << ", Sn = " << flux.M_snow << std::endl;
+          *vo_.os() << "CELL " << c << " BARE" << ": Ms = " << flux.M_surf
+                    << ", Es = " << flux.E_surf * 1.e-6 << ", Mss = " << ss_water_source_l
+                    << ", Ess = " << ss_energy_source_l << ", Sn = " << flux.M_snow << std::endl;
 
         // diagnostics
         if (diagnostics_) {
@@ -385,10 +384,9 @@ SEBThreeComponentEvaluator::Evaluate_(const State& S, const std::vector<Composit
         new_snow[0][c] += area_fracs[1][c] * met.Ps;
 
         if (vo_.os_OK(Teuchos::VERB_EXTREME))
-          *vo_.os() << "CELL " << c << " WATER"
-                    << ": Ms = " << flux.M_surf << ", Es = " << flux.E_surf * 1.e-6
-                    << ", Mss = " << ss_water_source_l << ", Ess = " << ss_energy_source_l
-                    << ", Sn = " << flux.M_snow << std::endl;
+          *vo_.os() << "CELL " << c << " WATER" << ": Ms = " << flux.M_surf
+                    << ", Es = " << flux.E_surf * 1.e-6 << ", Mss = " << ss_water_source_l
+                    << ", Ess = " << ss_energy_source_l << ", Sn = " << flux.M_snow << std::endl;
 
         // diagnostics
         if (diagnostics_) {
@@ -451,10 +449,9 @@ SEBThreeComponentEvaluator::Evaluate_(const State& S, const std::vector<Composit
         new_snow[0][c] += (met.Ps + std::max(mb.Me, 0.)) * area_fracs[2][c];
 
         if (vo_.os_OK(Teuchos::VERB_EXTREME))
-          *vo_.os() << "CELL " << c << " SNOW"
-                    << ": Ms = " << flux.M_surf << ", Es = " << flux.E_surf * 1.e-6
-                    << ", Mss = " << 0. << ", Ess = " << 0. << ", Sn = " << flux.M_snow
-                    << std::endl;
+          *vo_.os() << "CELL " << c << " SNOW" << ": Ms = " << flux.M_surf
+                    << ", Es = " << flux.E_surf * 1.e-6 << ", Mss = " << 0. << ", Ess = " << 0.
+                    << ", Sn = " << flux.M_snow << std::endl;
 
         // diagnostics
         if (diagnostics_) {
@@ -556,10 +553,10 @@ SEBThreeComponentEvaluator::Evaluate_(const State& S, const std::vector<Composit
     db_->WriteDivider();
 
     if (vo_.os_OK(Teuchos::VERB_EXTREME))
-      *vo_.os() << "CELL 0 Total = "
-                << ": Ms = " << water_source[0][0] << ", Es = " << energy_source[0][0]
-                << ", Mss = " << ss_water_source[0][99] << ", Ess = " << ss_energy_source[0][99]
-                << ", Sn = " << snow_source[0][0] << std::endl;
+      *vo_.os() << "CELL 0 Total = " << ": Ms = " << water_source[0][0]
+                << ", Es = " << energy_source[0][0] << ", Mss = " << ss_water_source[0][99]
+                << ", Ess = " << ss_energy_source[0][99] << ", Sn = " << snow_source[0][0]
+                << std::endl;
 
     vnames.clear();
     vecs.clear();

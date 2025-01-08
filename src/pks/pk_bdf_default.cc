@@ -39,7 +39,8 @@ PK_BDF_Default::Setup()
     // check if continuation method and require continuation parameter
     // -- ETC Note this needs fixed if more than one continuation method used
     if (bdf_plist.isSublist("continuation parameters")) {
-      S_->Require<double>(Keys::cleanName(name_, true) + "_continuation_parameter", Tags::DEFAULT, name_);
+      S_->Require<double>(
+        Keys::cleanName(name_, true) + "_continuation_parameter", Tags::DEFAULT, name_);
     }
   }
 };
@@ -68,8 +69,8 @@ PK_BDF_Default::Initialize()
     // solution space is not known until after Setup() is complete.
     // -- construct the time integrator
     Teuchos::ParameterList& bdf_plist = plist_->sublist("time integrator");
-    time_stepper_ =
-      Teuchos::rcp(new BDF1_TI<TreeVector, TreeVectorSpace>(name()+"_TI", bdf_plist, *this, solution_->get_map(), S_));
+    time_stepper_ = Teuchos::rcp(new BDF1_TI<TreeVector, TreeVectorSpace>(
+      name() + "_TI", bdf_plist, *this, solution_->get_map(), S_));
 
     // -- set initial state
     time_stepper_->SetInitialState(S_->get_time(), solution_, solution_dot);
@@ -99,9 +100,7 @@ PK_BDF_Default::CommitStep(double t_old, double t_new, const Tag& tag)
 {
   if (tag == tag_next_) {
     double dt = t_new - t_old;
-    if (time_stepper_ != Teuchos::null && dt > 0) {
-      time_stepper_->CommitSolution(dt, solution_);
-    }
+    if (time_stepper_ != Teuchos::null && dt > 0) { time_stepper_->CommitSolution(dt, solution_); }
   }
 }
 
@@ -147,7 +146,8 @@ PK_BDF_Default::AdvanceStep(double t_old, double t_new, bool reinit)
 void
 PK_BDF_Default::UpdateContinuationParameter(double lambda)
 {
-  S_->Assign(Keys::cleanName(name_, true) + "_continuation_parameter", Tags::DEFAULT, name_, lambda);
+  S_->Assign(
+    Keys::cleanName(name_, true) + "_continuation_parameter", Tags::DEFAULT, name_, lambda);
   ChangedSolution();
 }
 

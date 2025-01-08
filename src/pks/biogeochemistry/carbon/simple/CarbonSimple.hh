@@ -39,7 +39,7 @@ class CarbonSimple : public PK_Physical_Explicit_Default {
   // virtual void initialize(const State& S);
 
   // -- Commit any secondary (dependent) variables.
-  virtual void CommitStep(double t_old, double t_new, const Tag& tag) override{};
+  virtual void CommitStep(double t_old, double t_new, const Tag& tag) override {};
 
   // -- Calculate any diagnostics prior to doing vis
   virtual void CalculateDiagnostics(const Tag& tag) override;

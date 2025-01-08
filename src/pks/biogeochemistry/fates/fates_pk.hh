@@ -106,7 +106,7 @@ class FATES_PK : public PK_Physical_Default {
 
 
   // -- Update diagnostics for vis.
-  virtual void CalculateDiagnostics(const Teuchos::RCP<State>& S){};
+  virtual void CalculateDiagnostics(const Teuchos::RCP<State>& S) {};
 
   virtual bool AdvanceStep(double t_old, double t_new, bool reinit);
 

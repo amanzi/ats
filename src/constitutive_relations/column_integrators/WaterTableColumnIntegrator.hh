@@ -72,18 +72,21 @@ WaterTableColumnIntegrator<Parser, Integrator>::Evaluate_(
     // requested or the column is complete
     AmanziGeometry::Point val(0., 0., NAN);
     auto col_cell = mesh->columns.getCells(col);
-    double h_top = mesh->getCellCentroid(col_cell[0])[2]
-        + mesh->getCellVolume(col_cell[0]) * integrator.coefficient(col) / 2;
-    double h_bot = mesh->getCellCentroid(col_cell[col_cell.size() - 1])[2]
-        - mesh->getCellVolume(col_cell[col_cell.size() - 1]) * integrator.coefficient(col) / 2;
+    double h_top = mesh->getCellCentroid(col_cell[0])[2] +
+                   mesh->getCellVolume(col_cell[0]) * integrator.coefficient(col) / 2;
+    double h_bot =
+      mesh->getCellCentroid(col_cell[col_cell.size() - 1])[2] -
+      mesh->getCellVolume(col_cell[col_cell.size() - 1]) * integrator.coefficient(col) / 2;
     double h_end, h_half0, h_half1;
     h_end = mesh->getCellCentroid(col_cell[0])[2]; // default at top centroid
     h_half0 = mesh->getCellVolume(col_cell[col_cell.size() - 1]) * integrator.coefficient(col) / 2;
     h_half1 = mesh->getCellVolume(col_cell[0]) * integrator.coefficient(col) / 2 * (-1);
-    for (int i = col_cell.size() - 1; i >= 0; --i) { // loop from bottom up looking for the 1st unsaturated cell
+    for (int i = col_cell.size() - 1; i >= 0;
+         --i) { // loop from bottom up looking for the 1st unsaturated cell
       bool completed = integrator.scan(col, col_cell[i], val);
       if (completed) {
-        h_end = mesh->getCellCentroid(col_cell[i])[2]; // the first unsaturated cell centroid from bottom up
+        h_end = mesh->getCellCentroid(
+          col_cell[i])[2]; // the first unsaturated cell centroid from bottom up
         break;
       }
     }
@@ -96,8 +99,7 @@ WaterTableColumnIntegrator<Parser, Integrator>::Evaluate_(
       res[0][col] = h_top - val[2] + h_half1;
     } else {
       if (plist_.template get<bool>("interpolate depth from pressure")) {
-        res[0][col] = (val[2] - h_end) * (101325. - val[0]) / (val[1] - val[0])
-                    + (h_top - val[2]);
+        res[0][col] = (val[2] - h_end) * (101325. - val[0]) / (val[1] - val[0]) + (h_top - val[2]);
       } else {
         res[0][col] = h_top - h_bot - integrator.coefficient(col) * val[0];
       }

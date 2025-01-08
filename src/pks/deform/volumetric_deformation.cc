@@ -510,9 +510,8 @@ VolumetricDeformation::AdvanceStep(double t_old, double t_new, bool reinit)
         // min vol is rock vol + ice + a bit
         if (std::abs(cv[0][c] - target_cell_vols[c]) / cv[0][c] > 1e-4) {
 #if DEBUG
-          std::cout << "Cell " << c << ": "
-                    << "V, V_target, V_min " << cv[0][c] << " " << target_cell_vols[c] << " "
-                    << min_cell_vols[c] << std::endl;
+          std::cout << "Cell " << c << ": " << "V, V_target, V_min " << cv[0][c] << " "
+                    << target_cell_vols[c] << " " << min_cell_vols[c] << std::endl;
 #endif
           auto centroid = mesh_->getCellCentroid(c);
           min_height = std::min(min_height, centroid[dim - 1]);
