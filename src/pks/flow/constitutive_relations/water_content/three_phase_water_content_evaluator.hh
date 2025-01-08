@@ -15,8 +15,8 @@
 
 Specified with evaluator type: `"three phase water content`"
 
-.. _field-evaluator-type-three-phase-water-content-spec:
-.. admonition:: field-evaluator-type-three-phase-water-content-spec
+.. _field_evaluator_type_three_phase_water_content-spec:
+.. admonition:: field_evaluator_type_three_phase_water_content-spec
 
    DEPENDENCIES:
 

@@ -12,8 +12,8 @@
 
 A constant-valued WRM.
 
-.. _WRM-constant-spec
-.. admonition:: WRM-constant-spec
+.. _WRM_constant-spec
+.. admonition:: WRM_constant-spec
 
     * `"region`" ``[string]`` Region to which this applies
     * `"constant value [-]`" ``[double]`` **1.0** Constant relative permeability value.

@@ -39,7 +39,7 @@ Solves Richards equation:
      - `"full tensor`". (Note symmetry is required.)  Either {xx, yy,
        xy} or {xx,yy,zz,xy,xz,yz}.
 
-   * `"water retention evaluator`" ``[wrm-evaluator-spec]`` The water
+   * `"water retention evaluator`" ``[wrm_evaluator-spec]`` The water
      retention curve.  This needs to go away, and should get moved to
      State.
 
@@ -58,10 +58,10 @@ Solves Richards equation:
 
    Math and solver algorithm options:
 
-   * `"diffusion`" ``[pde-diffusion-spec]`` The (forward) diffusion
+   * `"diffusion`" ``[pde_diffusion-spec]`` The (forward) diffusion
      operator, see PDE_Diffusion_.
 
-   * `"diffusion preconditioner`" ``[pde-diffusion-spec]``
+   * `"diffusion preconditioner`" ``[pde_diffusion-spec]``
      **optional** The inverse of the diffusion operator.  See
      PDE_Diffusion_.  Typically this is only needed to set Jacobian
      options, as all others probably should match those in
@@ -134,7 +134,7 @@ Solves Richards equation:
 
    Discretization / operators / solver controls:
 
-   * `"accumulation preconditioner`" ``[pde-accumulation-spec]`` **optional**
+   * `"accumulation preconditioner`" ``[pde_accumulation-spec]`` **optional**
      The inverse of the accumulation operator.  See PDE_Accumulation_.
      Typically not provided by users, as defaults are correct.
 
@@ -175,7 +175,7 @@ Solves Richards equation:
   Debugging including these..
 
    INCLUDES:
-   - ``[pk-physical-bdf-default-spec]`` A `PK: Physical and BDF`_ spec.
+   - ``[pk_physical_bdf_default-spec]`` A `PK: Physical and BDF`_ spec.
 
    EVALUATORS:
    - `"conserved quantity`"

@@ -17,8 +17,8 @@ sinks.
 .. math::
     \frac{\partial \Phi }{\partial t} = \sum_i Q_i
 
-.. _balance-pk-spec:
-.. admonition:: balance-pk-spec
+.. _balance_pk-spec:
+.. admonition:: balance_pk-spec
 
     * `"primary variable key`" ``[string]`` The primary variable associated with
       this PK.  Note there is no default -- this must be provided by the user.
@@ -41,7 +41,7 @@ sinks.
 
     INCLUDES:
 
-    - ``[pk-physical-bdf-default-spec]``
+    - ``[pk_physical_bdf_default-spec]``
 
 */
 

@@ -24,8 +24,8 @@ the larger, compressible value when used with the energy in the water.
 
 Note that this ignores energy in the gas phase.
 
-.. _field-evaluator-type-richards-energy-spec:
-.. admonition:: field-evaluator-type-richards-energy-spec
+.. _field_evaluator_type_richards_energy-spec:
+.. admonition:: field_evaluator_type_richards_energy-spec
 
    DEPENDENCIES:
 

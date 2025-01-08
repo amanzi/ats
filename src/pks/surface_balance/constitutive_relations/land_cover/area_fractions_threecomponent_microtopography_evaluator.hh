@@ -16,8 +16,8 @@ top of that surface.
 
 `"evaluator type`" = `"area fractions, three components with microtopography`"
 
-.. _area-fractions-threecomponent-microtopography-evaluator-spec:
-.. admonition:: area-fractions-threecomponent-microtopography-evaluator-spec
+.. _area_fractions_threecomponent_microtopography_evaluator-spec:
+.. admonition:: area_fractions_threecomponent_microtopography_evaluator-spec
 
    * `"snow transitional height [m]`" ``[double]`` **0.02**
      Minimum thickness for specifying the snow gradient.

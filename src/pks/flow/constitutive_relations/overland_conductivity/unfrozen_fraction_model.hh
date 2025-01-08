@@ -13,8 +13,8 @@
 */
 /*!
 
-.. _unfrozen-fraction-model-spec:
-.. admonition:: unfrozen-fraction-model-spec
+.. _unfrozen_fraction_model-spec:
+.. admonition:: unfrozen_fraction_model-spec
 
    * `"transition width [K]`" ``[double]`` **0.2** Degrees over which to
      transition from no ice to all ice.

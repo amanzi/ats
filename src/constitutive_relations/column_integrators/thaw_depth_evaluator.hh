@@ -13,8 +13,8 @@ Computes the depth to a saturated water table.
 
 `"evaluator type`" = `"thaw depth`"
 
-.. _thaw-depth-spec:
-.. admonition:: thaw-depth-spec
+.. _thaw_depth-spec:
+.. admonition:: thaw_depth-spec
 
     KEYS:
 

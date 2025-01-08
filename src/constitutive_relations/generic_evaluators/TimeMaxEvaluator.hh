@@ -11,8 +11,8 @@
 
 Computes a maximum (or minimum) of a field, over time in a pointwise way.
 
-.. _time-max-evaluator-spec:
-.. admonition:: time-max-evaluator-spec
+.. _time_max_evaluator-spec:
+.. admonition:: time_max_evaluator-spec
 
    * `"operator`" ``[string]`` **max** One of max or min.
 

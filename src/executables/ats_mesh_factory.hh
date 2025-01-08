@@ -72,8 +72,8 @@ of number of cells in each direction.
 
 Specified by `"mesh type`" of `"generate mesh`".
 
-.. _mesh-generate-mesh-spec:
-.. admonition:: mesh-generate-mesh-spec
+.. _mesh_generate_mesh-spec:
+.. admonition:: mesh_generate_mesh-spec
 
    * `"domain low coordinate`" ``[Array(double)]`` Location of low corner of domain
    * `"domain high coordinate`" ``[Array(double)]`` Location of high corner of domain
@@ -110,8 +110,8 @@ suffix is .exo, the code will partition automatically the serial file.
 
 Specified by `"mesh type`" of `"read mesh file`".
 
-.. _mesh-read-mesh-file-spec:
-.. admonition:: mesh-read-mesh-file-spec
+.. _mesh_read_mesh_file-spec:
+.. admonition:: mesh_read_mesh_file-spec
 
    * `"file`" ``[string]`` filename of a pre-generated mesh file
 
@@ -148,8 +148,8 @@ Specified by `"mesh type`" of `"logical`".
 .. todo::
    WIP: add spec!
 
-.. _mesh-logical-spec:
-.. admonition:: mesh-logical-spec
+.. _mesh_logical-spec:
+.. admonition:: mesh_logical-spec
 
    Not yet completed...
 
@@ -167,8 +167,8 @@ computation.
 
 Specified by `"mesh type`" of `"surface`".
 
-.. _mesh-surface-spec:
-.. admonition:: mesh-surface-spec
+.. _mesh_surface-spec:
+.. admonition:: mesh_surface-spec
 
    * `"parent domain`" ``[string]`` **domain** Parent mesh's name.
 
@@ -222,8 +222,8 @@ passing info between an parent mesh and an extracted mesh.
 
 Specified by `"mesh type`" of `"extracted`".
 
-.. _mesh-extracted-spec:
-.. admonition:: mesh-extracted-spec
+.. _mesh_extracted-spec:
+.. admonition:: mesh_extracted-spec
 
    * `"parent domain`" ``[string]`` **domain** Parent mesh's name.
 
@@ -257,8 +257,8 @@ be an "aliased" domain whose target is the "surface" mesh.
 
 Specified by `"mesh type`" of `"aliased`".
 
-.. _mesh-aliased-spec:
-.. admonition:: mesh-aliased-spec
+.. _mesh_aliased-spec:
+.. admonition:: mesh_aliased-spec
 
    * `"target`" ``[string]`` Mesh that this alias points to.
 
@@ -278,8 +278,8 @@ local ID of an entity (in the case of `"domain set indexed`") or a region name
 
 Indexed domain set meshes are specified by `"mesh type`" of `"domain set indexed`".
 
-.. _mesh-domain-set-indexed-spec:
-.. admonition:: mesh-domain-set-indexed-spec
+.. _mesh_domain_set_indexed-spec:
+.. admonition:: mesh_domain_set_indexed-spec
 
    * `"regions`" ``[Array(string)]`` Regions from which indices are created.
    * `"entity kind`" ``[string]`` One of `"cell`", `"face`", etc.  Entity of the
@@ -317,8 +317,8 @@ Example:
 
 Region-based domain set meshes are specified by `"mesh type`" of `"domain set regions`".
 
-.. _mesh-domain-set-regions-spec:
-.. admonition:: mesh-domain-set-regions-spec
+.. _mesh_domain_set_regions-spec:
+.. admonition:: mesh_domain_set_regions-spec
 
    * `"regions`" ``[Array(string)]`` Regions from which indices are created.
    * `"entity kind`" ``[string]`` One of `"cell`", `"face`", etc.  Entity of the
@@ -367,8 +367,8 @@ Column Meshes
 
 Specified by `"mesh type`" of `"column`".
 
-.. _mesh-column-spec:
-.. admonition:: mesh-column-spec
+.. _mesh_column-spec:
+.. admonition:: mesh_column-spec
 
    * `"parent domain`" ``[string]`` The name of the 3D mesh from which columns are generated.
      Note that the `"build columns from set`" parameter must be set in that mesh.
@@ -407,8 +407,8 @@ Column Surface Meshes
 
 Specified by `"mesh type`" of `"column surface`".
 
-.. _mesh-column-surface-spec:
-.. admonition:: mesh-column-surface-spec
+.. _mesh_column_surface-spec:
+.. admonition:: mesh_column_surface-spec
 
    * `"parent domain`" ``[string]`` The name of the 3D mesh from which columns are generated.
      Note that the `"build columns from set`" parameter must be set in that mesh.

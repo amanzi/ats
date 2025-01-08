@@ -16,8 +16,8 @@ pages 90-93, Equations 1-57 to 1-60
 
 Requires the following dependencies:
 
-.. _pet-priestley-taylor-evaluator-spec:
-.. admonition:: pet-priestley-taylor-evaluator-spec:
+.. _pet_priestley_taylor_evaluator-spec:
+.. admonition:: pet_priestley_taylor_evaluator-spec:
 
    * `"include limiter`" ``[bool]`` **false** If true, multiply potential ET by
      a limiter to get an actual ET.

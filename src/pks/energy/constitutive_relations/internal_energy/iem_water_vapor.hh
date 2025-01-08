@@ -10,8 +10,8 @@
 //! Internal energy model for air and water vapor.
 /*!
 
-.. _iem-water-vapor-model-spec:
-.. admonition:: iem-water-vapor-model-spec
+.. _iem_water_vapor_model-spec:
+.. admonition:: iem_water_vapor_model-spec
 
     * `"latent heat [J mol^-1]`" ``[double]`` Latent heat of vaporization
     * `"heat capacity [J mol^-1 K^-1]`" ``[double]`` C_v

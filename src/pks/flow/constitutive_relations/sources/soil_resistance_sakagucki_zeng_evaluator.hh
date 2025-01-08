@@ -14,8 +14,8 @@ referred to Sakagucki and Zeng (2009).
 
 `"evaluator type`" = `"soil resistance, Sakagucki-Zeng`"
 
-.. _soil-resistance-sakagucki-zeng-evaluator-spec
-.. admonition:: soil-resistance-sakagucki-zeng-evaluator-spec
+.. _soil_resistance_sakagucki_zeng_evaluator-spec
+.. admonition:: soil_resistance_sakagucki_zeng_evaluator-spec
 
   * `"model parameters`" ``[string]`` **WRM parameters** ``[WRM-typedinline-spec-list]``
   Soil resistance based on Sakagucki-Zeng method uses soil properties defined in

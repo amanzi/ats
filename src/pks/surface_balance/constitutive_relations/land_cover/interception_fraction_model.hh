@@ -17,8 +17,8 @@ Based on CLM 4.5 and Lawrence et al 2007:
 
 The interception fraction is everything here after the precip.
 
-.. _interception-fraction-model-spec:
-.. admonition:: interception-fraction-model-spec
+.. _interception_fraction_model-spec:
+.. admonition:: interception_fraction_model-spec
 
    * `"leaf area interception fraction [-]`" ``[double]`` **0.25** The alpha
       term, this describes the fraction of leaf area that intercepts water.

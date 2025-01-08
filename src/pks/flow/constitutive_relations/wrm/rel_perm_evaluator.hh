@@ -22,8 +22,8 @@ Some additional parameters are available.
 
 `"evaluator type`" = `"relative permeability, van Genuchten`"
 
-.. _rel-perm-evaluator-spec:
-.. admonition:: rel-perm-evaluator-spec
+.. _rel_perm_evaluator-spec:
+.. admonition:: rel_perm_evaluator-spec
 
    * `"use density on viscosity in rel perm`" ``[bool]`` **true**
 

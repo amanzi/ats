@@ -12,8 +12,8 @@
 
 Distributed, subsurface sources due to tile drains.
 
-.. _distributed-tiles-spec:
-.. admonition:: distributed-tiles-spec
+.. _distributed_tiles-spec:
+.. admonition:: distributed_tiles-spec
 
    * `"number of ditches`" ``[int]`` Number of ditches, corresponding to the number of unique IDs.
    * `"tile permeability [m^2]`" ``[double]`` Permeability of the tile/pipe connecting soil to ditch.

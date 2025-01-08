@@ -16,8 +16,8 @@ Simple model of two-phase thermal conductivity, based upon:
 
 `"thermal conductivity type`" = `"two-phase wet/dry`"
 
-.. _thermal-conductivity-twophase-wetdry-spec:
-.. admonition:: thermal-conductivity-twophase-wetdry-spec
+.. _thermal_conductivity_twophase_wetdry-spec:
+.. admonition:: thermal_conductivity_twophase_wetdry-spec
 
    * `"region`" ``[string]`` Region name on which to apply these parameters.
    * `"thermal conductivity, wet [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of saturated soil

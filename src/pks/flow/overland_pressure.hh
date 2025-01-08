@@ -16,8 +16,8 @@ Solves the diffusion wave equation for overland flow with pressure as a primary 
   \frac{\partial \Theta}{\partial t} - \nabla n_l k \nabla h(p) = Q_w
 
 
-.. _overland-pressure-spec:
-.. admonition:: overland-pressure-spec
+.. _overland_pressure-spec:
+.. admonition:: overland_pressure-spec
 
     Keys name variables:
 
@@ -46,10 +46,10 @@ Solves the diffusion wave equation for overland flow with pressure as a primary 
 
     Math and solver algorithm options:
 
-    * `"diffusion`" ``[pde-diffusion-spec]`` The (forward) diffusion operator,
+    * `"diffusion`" ``[pde_diffusion-spec]`` The (forward) diffusion operator,
       see PDE_Diffusion_.
 
-    * `"diffusion preconditioner`" ``[pde-diffusion-spec]`` **optional** The
+    * `"diffusion preconditioner`" ``[pde_diffusion-spec]`` **optional** The
       inverse of the diffusion operator.  See PDE_Diffusion_.  Typically this
       is only needed to set Jacobian options, as all others probably should
       match those in `"diffusion`", and default to those values.
@@ -76,7 +76,7 @@ Solves the diffusion wave equation for overland flow with pressure as a primary 
 
     INCLUDES:
 
-    - ``[pk-physical-bdf-default-spec]`` A `PK: Physical and BDF`_ spec.
+    - ``[pk_physical_bdf_default-spec]`` A `PK: Physical and BDF`_ spec.
 
     Everything below this point is usually not provided by the user, but are
     documented here for completeness.
@@ -95,7 +95,7 @@ Solves the diffusion wave equation for overland flow with pressure as a primary 
     * `"coupled to subsurface via flux`" ``[bool]`` **false** Set by MPC.
     * `"coupled to subsurface via head`" ``[bool]`` **false** Set by MPC.
 
-    * `"accumulation preconditioner`" ``[pde-accumulation-spec]`` **optional**
+    * `"accumulation preconditioner`" ``[pde_accumulation-spec]`` **optional**
       The inverse of the accumulation operator.  See PDE_Accumulation_.
       Typically not provided by users, as defaults are correct.
 

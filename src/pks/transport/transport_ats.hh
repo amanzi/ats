@@ -48,36 +48,36 @@ The advection-diffusion equation for component *i* in the surface may be written
    * `"number of gaseous components`" ``[int]`` **0** The total number of
      gaseous components.
 
-   * `"boundary conditions`" ``[transport-bc-spec]`` Boundary conditions for
+   * `"boundary conditions`" ``[transport_bc-spec]`` Boundary conditions for
      transport are dependent on the boundary conditions for flow. See
      `Flow-specific Boundary Conditions`_ and `Transport-specific Boundary Conditions`_
 
    * `"component molar masses`" ``[Array(double)]`` No default. Molar mass of
      each component.
 
-   * `"molecular diffusion`" ``[molecular-diffusion-spec]`` defines names of
+   * `"molecular diffusion`" ``[molecular_diffusion-spec]`` defines names of
      solutes in aqueous and gaseous phases and related diffusivity values.
 
-   * "material properties" ``[material-properties-spec-list]`` Defines material
+   * "material properties" ``[material_properties-spec-list]`` Defines material
      properties see below).
 
    Source terms:
 
-   * `"source terms`" ``[transport-source-spec-list]`` Provides solute source.
+   * `"source terms`" ``[transport_source-spec-list]`` Provides solute source.
 
    Physical model and assumptions:
 
-   * `"physical models and assumptions`" [material-properties-spec] Defines material properties.
+   * `"physical models and assumptions`" [material_properties-spec] Defines material properties.
 
    * `"effective transport porosity`" ``[bool]`` **false** If *true*, effective transport porosity
      will be used by dispersive-diffusive fluxes instead of total porosity.
 
    Math and solver algorithm options:
 
-   * `"diffusion`" ``[pde-diffusion-spec]`` Diffusion drives the distribution.
+   * `"diffusion`" ``[pde_diffusion-spec]`` Diffusion drives the distribution.
      Typically we use finite volume here.  See PDE_Diffusion_
 
-   * `"diffusion preconditioner`" ``[pde-diffusion-spec]`` Inverse of the
+   * `"diffusion preconditioner`" ``[pde_diffusion-spec]`` Inverse of the
      above.  Likely only Jacobian term options are needed here, as the others
      default to the same as the `"diffusion`" list.  See PDE_Diffusion_.
 
@@ -151,8 +151,8 @@ The advection-diffusion equation for component *i* in the surface may be written
         molar density of water [mol H2O m^-3]
 
 
-.. _molecular-diffusion-spec:
-.. admonition:: molecular-diffusion-spec
+.. _molecular_diffusion-spec:
+.. admonition:: molecular_diffusion-spec
 
    * `"aqueous names`" ``[Array(string)]`` List of aqueous component names to
      be diffused.
@@ -167,8 +167,8 @@ The advection-diffusion equation for component *i* in the surface may be written
    </ParameterList>
 
 
-.. _material-properties-spec:
-.. admonition:: material-properties-spec
+.. _material_properties-spec:
+.. admonition:: material_properties-spec
 
    * `"region`" ``[Array(string)]`` Defines geometric regions for material SOIL.
 
@@ -230,8 +230,8 @@ The advection-diffusion equation for component *i* in the surface may be written
      diffusivity of gas solutes, [-].
 
 
-.. _transport-source-spec:
-.. admonition:: transport-source-spec
+.. _transport_source-spec:
+.. admonition:: transport_source-spec
 
    * `"component mass source`" ``[list]``  Defines solute source injection rate.
 

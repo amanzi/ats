@@ -15,8 +15,8 @@
 
 Specified with evaluator type: `"richards water content`"
 
-.. _field-evaluator-type-richards-water-content-spec:
-.. admonition:: field-evaluator-type-richards-water-content-spec
+.. _field_evaluator_type_richards_water_content-spec:
+.. admonition:: field_evaluator_type_richards_water_content-spec
 
    DEPENDENCIES:
 

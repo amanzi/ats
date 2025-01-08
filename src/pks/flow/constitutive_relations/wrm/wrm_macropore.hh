@@ -16,8 +16,8 @@ An exponential model basd on the equations of... (document me!)
   ...
 
 
-.. _WRM-macropore-spec
-.. admonition:: WRM-macropore-spec
+.. _WRM_macropore-spec
+.. admonition:: WRM_macropore-spec
 
    * `"region`" ``[string]`` Region to which this applies
    * `"macropore exponent a [-]`" ``[double]`` The exponent alpha above.

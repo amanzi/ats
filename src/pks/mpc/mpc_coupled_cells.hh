@@ -37,8 +37,8 @@ mesh.  In the temperature/pressure system, these extra blocks correspond to
 .. math::
     \frac{\partial \Theta}{\partial T} \; , \; \frac{\partial E}{\partial p}
 
-.. _mpc-coupled-cells-spec:
-.. admonition:: mpc-coupled-cells-spec
+.. _mpc_coupled_cells-spec:
+.. admonition:: mpc_coupled_cells-spec
 
     * `"domain name`" ``[string]`` Domain of simulation
     * `"conserved quantity A`" ``[string]`` Key of the first sub-PK's conserved quantity.
@@ -50,7 +50,7 @@ mesh.  In the temperature/pressure system, these extra blocks correspond to
 
     INCLUDES:
 
-    - ``[strong-mpc-spec]`` *Is a* StrongMPC_.
+    - ``[strong_mpc-spec]`` *Is a* StrongMPC_.
 
 */
 

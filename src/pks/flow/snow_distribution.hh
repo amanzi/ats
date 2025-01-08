@@ -21,16 +21,16 @@ data interval.  The details of this are a bit tricky mathematically, and it may
 take some fiddling with parameters to do this correctly if your data is not
 daily (which all defaults are set for).
 
-.. _snow-distribution-spec:
-.. admonition:: snow-distribution-spec
+.. _snow_distribution-spec:
+.. admonition:: snow_distribution-spec
 
     * `"distribution time`" ``[double]`` **86400.** Interval of snow precip input dataset. `[s]`
     * `"precipitation function`" ``[function-spec]`` Snow precipitation function, see Functions_.
 
-    * `"diffusion`" ``[pde-diffusion-spec]`` Diffusion drives the distribution.
+    * `"diffusion`" ``[pde_diffusion-spec]`` Diffusion drives the distribution.
       Typically we use finite volume here.  See PDE_Diffusion_
 
-    * `"diffusion preconditioner`" ``[pde-diffusion-spec]`` Inverse of the
+    * `"diffusion preconditioner`" ``[pde_diffusion-spec]`` Inverse of the
       above.  Likely only Jacobian term options are needed here, as the others
       default to the same as the `"diffusion`" list.  See PDE_Diffusion_.
 
@@ -38,7 +38,7 @@ daily (which all defaults are set for).
 
     Not typically provided by the user, defaults are good:
 
-    * `"accumulation preconditioner`" ``[pde-accumulation-spec]`` See PDE_Accumulation_.
+    * `"accumulation preconditioner`" ``[pde_accumulation-spec]`` See PDE_Accumulation_.
 
 
 .. todo::

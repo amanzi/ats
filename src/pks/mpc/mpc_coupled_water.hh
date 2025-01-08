@@ -17,8 +17,8 @@ are co-located with the surface cell pressure, and therefore are equivalent.
 In this approach (described in detail in a paper that is in review), the
 surface equations are directly assembled into the subsurface discrete operator.
 
-.. _mpc-coupled-water-spec:
-.. admonition:: mpc-coupled-water-spec
+.. _mpc_coupled_water-spec:
+.. admonition:: mpc_coupled_water-spec
 
    * `"PKs order`" ``[Array(string)]`` The use supplies the names of the
      coupled PKs.  The order must be {subsurface_flow_pk, surface_flow_pk}
@@ -28,12 +28,12 @@ surface equations are directly assembled into the subsurface discrete operator.
 
    * `"surface domain name`" ``[string]`` **surface**
 
-   * `"water delegate`" ``[mpc-delegate-water-spec]`` A `Coupled Water
+   * `"water delegate`" ``[mpc_delegate_water-spec]`` A `Coupled Water
      Globalization Delegate`_ spec.
 
    INCLUDES:
 
-   - ``[strong-mpc-spec]`` *Is a* StrongMPC_
+   - ``[strong_mpc-spec]`` *Is a* StrongMPC_
 
 */
 

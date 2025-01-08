@@ -18,8 +18,8 @@ Quadratic internal energy model -- function of Cv and temperature
 
 `"IEM type`" = `"quadratic`"
 
-.. _IEM-model-quadratic-spec:
-.. admonition:: IEM-model-quadratic-spec
+.. _IEM_model_quadratic-spec:
+.. admonition:: IEM_model_quadratic-spec
 
     * `"reference temperature [K]`" ``[double]`` **273.15** The phase transition point, T_ref above.
 

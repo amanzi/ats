@@ -14,10 +14,10 @@ porous media.
 
 `"evaluator type`" = `"three-phase thermal conductivity`"
 
-.. _thermal-conductivity-threephase-evaluator-spec:
-.. admonition:: thermal-conductivity-threephase-evaluator-spec
+.. _thermal_conductivity_threephase_evaluator-spec:
+.. admonition:: thermal_conductivity_threephase_evaluator-spec
 
-   * `"thermal conductivity parameters`" ``[thermal-conductivity-threephase-typedinline-spec-list]``
+   * `"thermal conductivity parameters`" ``[thermal_conductivity_threephase-typedinline-spec-list]``
 
    KEYS:
 

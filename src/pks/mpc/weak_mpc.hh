@@ -13,8 +13,8 @@
 Noniterative sequential coupling simply calls each PK's AdvanceStep() method in
 order.
 
-.. _weak-mpc-spec:
-.. admonition:: weak-mpc-spec
+.. _weak_mpc-spec:
+.. admonition:: weak_mpc-spec
 
     INCLUDES:
 

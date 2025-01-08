@@ -14,8 +14,8 @@ This is simply a surface energy equation that places a few more requirements
 on the base class.  It could probably go away if we refactor to remove
 hard-coded evaluators.
 
-.. _energy-surface-ice-pk-spec:
-.. admonition:: energy-surface-ice-pk-spec
+.. _energy_surface_ice_pk-spec:
+.. admonition:: energy_surface_ice_pk-spec
 
     These are typically not set by the user:
 
@@ -31,7 +31,7 @@ hard-coded evaluators.
 
     INCLUDES:
 
-    - ``[energy-pk-spec]``  See `Energy Base PK`_
+    - ``[energy_pk-spec]``  See `Energy Base PK`_
 
 */
 

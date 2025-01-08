@@ -14,15 +14,15 @@
 are defined on a single mesh, and represent a single process model.  Typically
 all leaves of the PK tree will inherit from `PKPhysicalBase`.
 
-.. _pk-physical-default-spec:
-.. admonition:: pk-physical-default-spec
+.. _pk_physical_default-spec:
+.. admonition:: pk_physical_default-spec
 
     * `"domain name`" ``[string]`` Name from the Mesh_ list on which this PK is defined.
 
     * `"primary variable key`" ``[string]`` The primary variable
       e.g. `"pressure`", or `"temperature`".  Most PKs supply sane defaults.
 
-    * `"initial condition`" ``[initial-conditions-spec]``  See InitialConditions_.
+    * `"initial condition`" ``[initial_conditions-spec]``  See InitialConditions_.
 
     INCLUDES:
 

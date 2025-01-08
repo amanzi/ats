@@ -18,10 +18,10 @@ Computes (specific) internal energy of as a function of temperature.
 
 `"evaluator type`" = `"iem`"
 
-.. _iem-evaluator-spec:
-.. admonition:: iem-evaluator-spec
+.. _iem_evaluator-spec:
+.. admonition:: iem_evaluator-spec
 
-   * `"IEM parameters`" ``[IEM-model-typedinline-spec-list]``
+   * `"IEM parameters`" ``[IEM_model-typedinline-spec-list]``
 
    KEYS:
 

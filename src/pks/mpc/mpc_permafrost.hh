@@ -13,8 +13,8 @@
 This MPC handles the coupling of surface energy and flow to subsurface energy
 and flow for integrated hydrology with freeze/thaw processes.
 
-.. _mpc-permafrost-spec:
-.. admonition:: mpc-permafrost-spec
+.. _mpc_permafrost-spec:
+.. admonition:: mpc_permafrost-spec
 
    * `"PKs order`" ``[Array(string)]`` The user supplies the names of the
      coupled PKs.  The order must be {subsurface_flow_pk, subsurface_energy_pk,
@@ -28,12 +28,12 @@ and flow for integrated hydrology with freeze/thaw processes.
 
    * `"energy exchange flux key`" ``[string]`` **SURFACE_DOMAIN-surface_subsurface_energy_flux**
 
-   * `"water delegate`" ``[mpc-delegate-water-spec]`` A `Coupled Water
+   * `"water delegate`" ``[mpc_delegate_water-spec]`` A `Coupled Water
      Globalization Delegate`_ spec.
 
    INCLUDES:
 
-   - ``[mpc-subsurface-spec]`` *Is a* `Subsurface MPC`_
+   - ``[mpc_subsurface-spec]`` *Is a* `Subsurface MPC`_
 
  */
 

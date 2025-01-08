@@ -29,10 +29,10 @@ all snow).  This evaluator partitions the drainage and sums it with throughfall
 to compute the total source, in each phase, to the layer below the canopy (snow
 and/or ground surface).
 
-.. _interception-fraction-evaluator-spec:
-.. admonition:: interception-fraction-evaluator-spec
+.. _interception_fraction_evaluator-spec:
+.. admonition:: interception_fraction_evaluator-spec
 
-   * `"interception fraction parameters`" ``[interception-fraction-model-spec]``
+   * `"interception fraction parameters`" ``[interception_fraction_model-spec]``
 
    MY KEYS:
    - `"interception`" **DOMAIN-interception**

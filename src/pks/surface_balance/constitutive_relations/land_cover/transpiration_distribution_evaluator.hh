@@ -57,8 +57,8 @@ this assumes that the 0 time of the simulation (not the "start time", but time
 this is the case if simulation time zero is mid-summer.  These parameters come
 from the LandCover type.
 
-.. _transpiration-distribution-evaluator-spec:
-.. admonition:: transpiration-distribution-evaluator-spec
+.. _transpiration_distribution_evaluator-spec:
+.. admonition:: transpiration_distribution_evaluator-spec
    * `"year duration`" ``[double]`` **1**
    * `"year duration units`" ``[string]`` **noleap**
 

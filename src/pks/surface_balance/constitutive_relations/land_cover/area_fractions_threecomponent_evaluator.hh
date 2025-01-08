@@ -17,8 +17,8 @@ Ordering of the area fractions calculated are: [bare ground, water, snow].
 
 `"evaluator type`" = `"area fractions, three components`"
 
-.. _area-fractions-threecomponent-evaluator-spec:
-.. admonition:: area-fractions-threecomponent-evaluator-spec:
+.. _area_fractions_threecomponent_evaluator-spec:
+.. admonition:: area_fractions_threecomponent_evaluator-spec:
 
    * `"minimum fractional area [-]`" ``[double]`` **1.e-5**
       Mimimum area fraction allowed, less than this is rebalanced as zero.

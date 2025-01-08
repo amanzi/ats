@@ -18,8 +18,8 @@ Linear internal energy model -- function of Cv and temperature
 
 `"IEM type`" = `"linear`"
 
-.. _IEM-model-linear-spec:
-.. admonition:: IEM-model-linear-spec
+.. _IEM_model_linear-spec:
+.. admonition:: IEM_model_linear-spec
 
     * `"reference temperature [K]`" ``[double]`` **273.15** The phase transition point, T_ref above
 

@@ -20,8 +20,8 @@ derivative smooth near 0.  This is pretty much never used anymore.
 
 `"evaluator type`" = `"effective height`"
 
-.. _effective-height-evaluator-spec:
-.. admonition:: effective-height-evaluator-spec
+.. _effective_height_evaluator-spec:
+.. admonition:: effective_height_evaluator-spec
 
    * `"smoothing width [m]`" ``[double]`` **0.01** the width over which smoothing
      is applied.

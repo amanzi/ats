@@ -17,8 +17,8 @@ of four consitutive components.
 
 See Atchley et al GMD 2015 Supplementary Material for equations.
 
-.. _thermal-conductivity-volume-averaged-spec:
-.. admonition:: thermal-conductivity-volume-averaged-spec
+.. _thermal_conductivity_volume_averaged-spec:
+.. admonition:: thermal_conductivity_volume_averaged-spec
 
     * `"region`" ``[string]`` Region name on which to apply these parameters.
     * `"thermal conductivity of soil [W m^-1 K^-1]`" ``[double]`` Thermal

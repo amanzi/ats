@@ -40,8 +40,8 @@ Note that this can be used with either a 3D subsurface solve, by setting the
 2nd sub-PK to be a DomainSetMPC.
 
 
-.. _mpc-permafrost-split-flux-spec
-.. admonition:: mpc-permafrost-split-flux-spec
+.. _mpc_permafrost_split_flux-spec
+.. admonition:: mpc_permafrost_split_flux-spec
 
    * `"domain name`" ``[string]`` The subsurface domain, e.g. "domain" (for a
      3D subsurface ) or "column:*" (for the intermediate scale model.
@@ -56,7 +56,7 @@ Note that this can be used with either a 3D subsurface solve, by setting the
 
    INCLUDES:
    - ``[mpc-spec]`` *Is an* MPC_.
-   - ``[mpc-subcycled-spec]`` *Is a* MPCSubcycled_
+   - ``[mpc_subcycled-spec]`` *Is a* MPCSubcycled_
 
 */
 

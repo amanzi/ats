@@ -10,8 +10,8 @@
 //! A model for providing the functional form of the exchange flux.
 /*!
 
-.. _micropore-macropore-flux-model-spec
-.. admonition:: micropore-macropore-flux-model-spec
+.. _micropore_macropore_flux_model-spec
+.. admonition:: micropore_macropore_flux_model-spec
 
    * `"gamma [-]`" ``[double]`` The exchange coefficient.
    * `"delta [m]`" ``[double]`` Typical length scale between pores.

@@ -10,8 +10,8 @@
 //! Capillary pressure for gas on a liquid.
 /*!
 
-.. _pc-liquid-evaluator-spec:
-.. admonition:: pc-liquid-evaluator-spec
+.. _pc_liquid_evaluator-spec:
+.. admonition:: pc_liquid_evaluator-spec
 
    KEYS:
 

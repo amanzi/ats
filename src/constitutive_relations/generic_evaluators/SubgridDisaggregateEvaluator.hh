@@ -13,8 +13,8 @@
 Note that this evaluator fills exactly one subdomain in a domain set -- there
 will be N evaluators each filling one subdomain.
 
-.. _subgrid-disaggregate-evaluator-spec:
-.. admonition:: subgrid-disaggregate-evaluator-spec
+.. _subgrid_disaggregate_evaluator-spec:
+.. admonition:: subgrid_disaggregate_evaluator-spec
 
    * `"source domain name`" ``[string]`` Domain name of the source mesh.
 

@@ -16,8 +16,8 @@ commonly used in practice is the van Genuchten model, but others are available d
 
 `"evaluator type`" = `"wrm`"
 
-.. _wrm-evaluator-spec:
-.. admonition:: wrm-evaluator-spec
+.. _wrm_evaluator-spec:
+.. admonition:: wrm_evaluator-spec
 
    * `"model parameters`" ``[string]``
      List (by region) of WRM specs. This will copy `"WRM parameters`" given in `"model parameters`"

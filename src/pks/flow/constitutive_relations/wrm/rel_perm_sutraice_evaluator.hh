@@ -20,8 +20,8 @@ flow PKs.
 
 Some additional parameters are available.
 
-.. _rel-perm-evaluator-spec
-.. admonition:: rel-perm-evaluator-spec
+.. _rel_perm_evaluator-spec
+.. admonition:: rel_perm_evaluator-spec
 
    * `"use density on viscosity in rel perm`" ``[bool]`` **true**
 

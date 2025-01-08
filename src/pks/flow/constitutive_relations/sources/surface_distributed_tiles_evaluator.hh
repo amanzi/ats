@@ -10,8 +10,8 @@
 //! Evaluates water/solute source which represent effect of distributed subsurface tiles on overland flow
 /*!
 
-.. _surface-distributed-tiles-spec:
-.. admonition:: surface-distributed-tiles-spec
+.. _surface_distributed_tiles-spec:
+.. admonition:: surface_distributed_tiles-spec
 
    * `"number of ditches`" ``[int]`` Number of ditches, corresponding to the number of unique IDs.
 

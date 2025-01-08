@@ -20,8 +20,8 @@ See Atchley et al GMD 2015 Supplementary Material for equations.
 
 `"thermal conductivity type`" = `"three-phase wet/dry`"
 
-.. _thermal-conductivity-threephase-wetdry-spec:
-.. admonition:: thermal-conductivity-threephase-wetdry-spec
+.. _thermal_conductivity_threephase_wetdry-spec:
+.. admonition:: thermal_conductivity_threephase_wetdry-spec
 
    * `"region`" ``[string]`` Region name on which to apply these parameters.
    * `"thermal conductivity, saturated (unfrozen) [W m^-1 K^-1]`" ``[double]``

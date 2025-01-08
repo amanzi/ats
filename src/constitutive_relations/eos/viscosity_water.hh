@@ -16,8 +16,8 @@ Used by setting
 
 `"viscosity relation type`" = `"liquid water`"
 
-.. _viscosity-water-spec:
-.. admonition:: viscosity-water-spec
+.. _viscosity_water-spec:
+.. admonition:: viscosity_water-spec
 
    NONE
 

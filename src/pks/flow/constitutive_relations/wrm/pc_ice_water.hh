@@ -9,8 +9,8 @@
 
 //! Capillary pressure of ice on water.
 /*!
-.. _pc-ice-water-spec
-.. admonition:: pc-ice-water-spec
+.. _pc_ice_water-spec
+.. admonition:: pc_ice_water-spec
 
     * `"reference temperature [K]`" ``[double]`` **273.15** The phase transition point, T_ref above
     * `"interfacial tension ice-water [mN m^-1]`" ``[double]`` **33.1**

@@ -60,8 +60,8 @@ from plant to soil, is allowed.  If it is set to 1, hydraulic redistribution is
 the maximal flow rate, e.g. no regulation by the plant is assumed.
 
 
-.. _transpiration-distribution-relperm-evaluator-spec:
-.. admonition:: transpiration-distribution-relperm-evaluator-spec
+.. _transpiration_distribution_relperm_evaluator-spec:
+.. admonition:: transpiration_distribution_relperm_evaluator-spec
 
    * `"plant permeability per m [m]`" ``[double]`` **1.e-12**
      :math:`K` above, the total plant permeability.

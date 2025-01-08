@@ -24,8 +24,8 @@ The defaults here are typically good, or else good defaults are set in the
 code, so usually are not supplied by the user.
 
 
-.. _pk-physical-bdf-default-spec:
-.. admonition:: pk-physical-bdf-default-spec
+.. _pk_physical_bdf_default-spec:
+.. admonition:: pk_physical_bdf_default-spec
 
     * `"conserved quantity key`" ``[string]`` Name of the conserved quantity.
       Usually a sane default is set by the PK.
@@ -51,8 +51,8 @@ code, so usually are not supplied by the user.
 
     INCLUDES:
 
-    - ``[pk-bdf-default-spec]`` *Is a* `PK: BDF`_
-    - ``[pk-physical-default-spec]`` *Is a* `PK: Physical`_
+    - ``[pk_bdf_default-spec]`` *Is a* `PK: BDF`_
+    - ``[pk_physical_default-spec]`` *Is a* `PK: Physical`_
 
 
 */

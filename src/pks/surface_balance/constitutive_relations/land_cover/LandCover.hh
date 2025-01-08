@@ -35,8 +35,8 @@ this approach is that there is no fear of inconsistent parameters across
 models.  The downside of this approach is that these parameters must have the
 same region-based partitioning.
 
-.. _land-cover-spec:
-.. admonition:: land-cover-spec
+.. _land_cover-spec:
+.. admonition:: land_cover-spec
 
     * `"rooting depth max [m]`" ``[double]`` **NaN** Below this the rooting fraction is
       set to 0. [m]

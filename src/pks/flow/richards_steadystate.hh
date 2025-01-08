@@ -12,8 +12,8 @@
 
 This is the same as Richards equation, but turns off the accumulation term.
 
-.. _richards-steadystate-spec:
-.. admonition:: richards-steadystate-spec
+.. _richards_steadystate-spec:
+.. admonition:: richards_steadystate-spec
 
     INCLUDES:
 

@@ -15,8 +15,8 @@ series of implicit time integrators must derive.  It specifies both the
 `BDFFnBase` interface and implements some basic functionality for `BDF`
 PKs.
 
-.. _pk-bdf-default-spec:
-.. admonition:: pk-bdf-default-spec
+.. _pk_bdf_default-spec:
+.. admonition:: pk_bdf_default-spec
 
     * `"initial timestep [s]`" ``[double]`` **1.** Initial timestep size [s]
 

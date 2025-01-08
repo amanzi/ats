@@ -19,8 +19,8 @@ Components are indexed by: 0 = land/ice/water, 1 = snow.
 
 Requires the use of LandCover types, for ground albedo and emissivity.
 
-.. _albedo-evaluator-spec:
-.. admonition:: albedo-evaluator-spec
+.. _albedo_evaluator-spec:
+.. admonition:: albedo_evaluator-spec
 
    * `"albedo ice [-]`" ``[double]`` **0.44**
    * `"albedo water [-]`" ``[double]`` **0.1168**

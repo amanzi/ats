@@ -18,14 +18,14 @@ should get rethought a bit.
 There is also some wierd hackiness here about area fractions -- see ATS Issue
 #8
 
-.. _subgrid-balance-pk-spec:
-.. admonition:: subgrid-balance-pk-spec
+.. _subgrid_balance_pk-spec:
+.. admonition:: subgrid_balance_pk-spec
 
     * `"absolute error tolerance`" ``[double]`` **0.01** ``[m]``
 
     INCLUDES:
 
-    - ``[balance-pk-spec]`` This *is a* `Balance Equation`_
+    - ``[balance_pk-spec]`` This *is a* `Balance Equation`_
 
     Not typically set by user, defaults work:
 

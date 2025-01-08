@@ -14,8 +14,8 @@ referred to Sellers et al. (1992).
 
 `"evaluator type`" = `"soil resistance, Sellers`"
 
-.. _soil-resistance-sellers-evaluator-spec
-.. admonition:: soil-resistance-sellers-evaluator-spec
+.. _soil_resistance_sellers_evaluator-spec
+.. admonition:: soil_resistance_sellers_evaluator-spec
 
    KEYS:
 

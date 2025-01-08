@@ -28,8 +28,8 @@ Verhoef & Egea, Ag. & Forest Meteorology, 2014
 https://doi.org/10.1016/j.agrformet.2014.02.009
 
 
-.. _plant-wilting-factor-evaluator-spec:
-.. admonition:: plant-wilting-factor-evaluator-spec
+.. _plant_wilting_factor_evaluator-spec:
+.. admonition:: plant_wilting_factor_evaluator-spec
 
    KEYS:
 

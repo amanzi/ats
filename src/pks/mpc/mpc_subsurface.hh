@@ -111,8 +111,8 @@ and energy space, then invert (locally) for pressure and temperature
 corrections that meet that extrapolation.  Both of these globalization
 algorithms are supported by the `EWC Globalization Delegate`_ object.
 
-.. _mpc-subsurface-spec:
-.. admonition:: mpc-subsurface-spec
+.. _mpc_subsurface-spec:
+.. admonition:: mpc_subsurface-spec
 
     * `"domain name`" ``[string]`` Domain of simulation
 
@@ -124,11 +124,11 @@ algorithms are supported by the `EWC Globalization Delegate`_ object.
     * `"supress Jacobian terms: d div q / dT`" ``[bool]`` **false** If using picard or ewc, do not include this block in the preconditioner.
     * `"supress Jacobian terms: d div K grad T / dp`" ``[bool]`` **false** If using picard or ewc, do not include this block in the preconditioner.
 
-    * `"ewc delegate`" ``[mpc-delegate-ewc-spec]`` A `EWC Globalization Delegate`_ spec.
+    * `"ewc delegate`" ``[mpc_delegate_ewc-spec]`` A `EWC Globalization Delegate`_ spec.
 
     INCLUDES:
 
-    - ``[strong-mpc-spec]`` *Is a* StrongMPC_.
+    - ``[strong_mpc-spec]`` *Is a* StrongMPC_.
 
  */
 

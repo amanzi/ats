@@ -24,10 +24,10 @@ converge.
 
 `"evaluator type`" = `"compressible porosity`"
 
-.. _compressible-porosity-evaluator-spec:
-.. admonition:: compressible-porosity-evaluator-spec
+.. _compressible_porosity_evaluator-spec:
+.. admonition:: compressible_porosity_evaluator-spec
 
-   * `"compressible porosity model parameters`" ``[compressible-porosity-standard-model-spec-list]``
+   * `"compressible porosity model parameters`" ``[compressible_porosity_standard_model-spec-list]``
 
    KEYS:
 

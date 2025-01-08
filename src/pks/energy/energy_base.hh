@@ -17,8 +17,8 @@ Solves an advection-diffusion equation for energy:
 
 .. todo:: Document the energy error norm!
 
-.. _energy-pk-spec:
-.. admonition:: energy-pk-spec
+.. _energy_pk-spec:
+.. admonition:: energy_pk-spec
 
     * `"domain`" ``[string]`` **"domain"**  Defaults to the subsurface mesh.
 
@@ -59,9 +59,9 @@ Solves an advection-diffusion equation for energy:
 
     END
 
-    * `"diffusion`" ``[pde-diffusion-spec]`` See PDE_Diffusion_, the diffusion operator.
+    * `"diffusion`" ``[pde_diffusion-spec]`` See PDE_Diffusion_, the diffusion operator.
 
-    * `"diffusion preconditioner`" ``[pde-diffusion-spec]`` See
+    * `"diffusion preconditioner`" ``[pde_diffusion-spec]`` See
       PDE_Diffusion_, the inverse operator.  Typically only adds Jacobian
       terms, as all the rest default to those values from `"diffusion`".
 
@@ -100,7 +100,7 @@ Solves an advection-diffusion equation for energy:
     * `"advection`" ``[list]`` **optional** The PDE_Advection_ spec.  Only one
       current implementation, so defaults are typically fine.
 
-    * `"accumulation preconditioner`" ``[pde-accumulation-spec]`` **optional**
+    * `"accumulation preconditioner`" ``[pde_accumulation-spec]`` **optional**
       The inverse of the accumulation operator.  See PDE_Accumulation_.
       Typically not provided by users, as defaults are correct.
 

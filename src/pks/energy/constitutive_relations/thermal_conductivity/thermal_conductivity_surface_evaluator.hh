@@ -18,18 +18,18 @@ Thermal conductivity of surface water that can be either frozen or liquid phase.
 
 `"evaluator type`" = `"surface thermal conductivity`"
 
-.. _thermal-conductivity-surface-evaluator-spec:
-.. admonition:: thermal-conductivity-surface-evaluator-spec
+.. _thermal_conductivity_surface_evaluator-spec:
+.. admonition:: thermal_conductivity_surface_evaluator-spec
 
-   * `"thermal conductivity parameters`" ``[thermal-conductivity-surface-spec]``
+   * `"thermal conductivity parameters`" ``[thermal_conductivity_surface-spec]``
 
    KEYS:
 
    - `"unfrozen fraction`"
    - `"ponded depth`"
 
-.. _thermal-conductivity-surface-spec:
-.. admonition:: thermal-conductivity-surface-spec
+.. _thermal_conductivity_surface-spec:
+.. admonition:: thermal_conductivity_surface-spec
 
    * `"thermal conductivity of water [W m^-1 K^-1]`" ``[double]`` **0.58**
    * `"thermal conductivity of ice [W m^-1 K^-1]`" ``[double]`` **2.18**

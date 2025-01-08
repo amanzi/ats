@@ -16,12 +16,12 @@ error checking on the input file to make sure freeze-thaw processes are done
 correctly.  In the future this service should be done by a preprocessor
 generating the input file, and this class would go away.
 
-.. _icy-overland-spec:
-.. admonition:: icy-overland-spec
+.. _icy_overland-spec:
+.. admonition:: icy_overland-spec
 
     INCLUDES:
 
-    - ``[overland-pressure-spec]`` See `Overland Flow PK`_.
+    - ``[overland_pressure-spec]`` See `Overland Flow PK`_.
 
 */
 

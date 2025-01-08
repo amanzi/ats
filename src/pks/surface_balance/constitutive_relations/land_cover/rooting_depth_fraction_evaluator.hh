@@ -25,8 +25,8 @@ Note that the two parameters, :math:`\alpha` and :math:`\beta` are provided in
 the Land Cover class as `"rooting profile alpha`" and `"rooting profile beta`"
 respectively.
 
-.. _rooting-depth-fraction-evaluator-spec:
-.. admonition:: rooting-depth-fraction-evaluator-spec
+.. _rooting_depth_fraction_evaluator-spec:
+.. admonition:: rooting_depth_fraction_evaluator-spec
 
    * `"surface domain name`" ``[string]`` **SURFACE_DOMAIN** Sane default provided for most domain names.
 

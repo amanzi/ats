@@ -30,8 +30,8 @@ saturation. The reciprocal of Brooks-Corey lambda is Clapp-Hornberger b. Use too
 paramters. The conversion method is referred to Lenhard et al. (1989) or Ma et al. (1999)
 method 2.
 
-.. _rel-perm-evaluator-spec
-.. admonition:: rel-perm-evaluator-spec
+.. _rel_perm_evaluator-spec
+.. admonition:: rel_perm_evaluator-spec
 
    * `"use density on viscosity in rel perm`" ``[bool]`` **true**
 

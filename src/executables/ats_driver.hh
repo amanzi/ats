@@ -62,7 +62,7 @@ simulation, including starting and ending times and restart options.
       specifies a path to the checkpoint file to continue a stopped simulation.
     * `"wallclock duration [hrs]`" ``[double]`` **optional** After this time, the
       simulation will checkpoint and end.
-    * `"required times`" ``[io-event-spec]`` **optional** An IOEvent_ spec that
+    * `"required times`" ``[io_event-spec]`` **optional** An IOEvent_ spec that
       sets a collection of times/cycles at which the simulation is guaranteed to
       hit exactly.  This is useful for situations such as where data is provided at
       a regular interval, and interpolation error related to that data is to be

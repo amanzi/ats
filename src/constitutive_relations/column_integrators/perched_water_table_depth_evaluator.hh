@@ -13,8 +13,8 @@ Computes the depth to the perched water table.
 
 `"evaluator type`" = `"perched water table depth`"
 
-.. _perched-water-table-depth-spec:
-.. admonition:: perched-water-table-depth-spec
+.. _perched_water_table_depth-spec:
+.. admonition:: perched_water_table_depth-spec
 
     * `"interpolate depth from pressure`" ``[bool]`` **false** Default to calculate
       perched water table depth by locating the bottom face of the last continuously 

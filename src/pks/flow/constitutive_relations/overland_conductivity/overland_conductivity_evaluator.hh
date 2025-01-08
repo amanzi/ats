@@ -24,8 +24,8 @@ some extra factors (timestep size) to ensure the correct flow law in that case.
 
 `"evaluator type`" = `"overland conductivity`"
 
-.. _overland-conductivity-evaluator-spec:
-.. admonition:: overland-conductivity-evaluator-spec
+.. _overland_conductivity_evaluator-spec:
+.. admonition:: overland_conductivity_evaluator-spec
 
    * `"include density`" ``[bool]`` **true** Include the density prefactor,
      converting the flux from volumetric flux to water flux.

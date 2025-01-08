@@ -17,8 +17,8 @@ The energy associated with ponded water, in [KJ], given by:
 
 Specified with evaluator type: `"surface ice energy`"
 
-.. _field-evaluator-type-surface-ice-energy-spec:
-.. admonition:: field-evaluator-type-surface-ice-energy-spec
+.. _field_evaluator_type_surface_ice_energy-spec:
+.. admonition:: field_evaluator_type_surface_ice_energy-spec
 
    DEPENDENCIES:
 

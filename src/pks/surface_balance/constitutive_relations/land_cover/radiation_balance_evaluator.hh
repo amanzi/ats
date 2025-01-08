@@ -52,8 +52,8 @@ coefficients.
 
 `"evaluator type`" = `"radiation balance, surface and canopy`"
 
-.. _radiation-balance-evaluator-spec:
-.. admonition:: radiation-balance-evaluator-spec
+.. _radiation_balance_evaluator-spec:
+.. admonition:: radiation_balance_evaluator-spec
 
    KEYS:
    - `"surface albedos`" **SURFACE_DOMAIN-albedos**

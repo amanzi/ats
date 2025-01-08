@@ -28,8 +28,8 @@ Computes water table by looping through cells in the column until saturation of 
 
 `"evaluator type`" = `"ponded depth`"
 
-.. _height-evaluator-spec:
-.. admonition:: height-evaluator-spec
+.. _height_evaluator-spec:
+.. admonition:: height_evaluator-spec
 
    KEYS:
 

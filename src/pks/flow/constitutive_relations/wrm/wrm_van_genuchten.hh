@@ -12,8 +12,8 @@
 
 van Genuchten's water retention curve.
 
-.. _WRM-van-Genuchten-spec:
-.. admonition:: WRM-van-Genuchten-spec
+.. _WRM_van_Genuchten-spec:
+.. admonition:: WRM_van_Genuchten-spec
 
     * `"region`" ``[string]`` Region to which this applies
     * `"van Genuchten alpha [Pa^-1]`" ``[double]`` van Genuchten's alpha

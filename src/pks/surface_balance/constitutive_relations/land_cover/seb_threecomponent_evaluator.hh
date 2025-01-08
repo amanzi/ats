@@ -24,8 +24,8 @@ gravity- and wind-driven redistributions, respectively.
 
 `"evaluator type`" = `"surface energy balance, two components`"
 
-.. _seb-threecomponent-evaluator-spec:
-.. admonition:: seb-threecomponent-evaluator-spec
+.. _seb_threecomponent_evaluator-spec:
+.. admonition:: seb_threecomponent_evaluator-spec
 
    * `"wind speed reference height [m]`" ``[double]`` **2.0** Reference height at which
      wind speed is measured.

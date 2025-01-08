@@ -49,8 +49,8 @@ solve all of these balances to convergence simultaneously.
 
 `"evaluator type`" = `"canopy radiation balance from above`"
 
-.. _canopy-radiation-evaluator-spec:
-.. admonition:: canopy-radiation-evaluator-spec
+.. _canopy_radiation_evaluator-spec:
+.. admonition:: canopy_radiation_evaluator-spec
 
    KEYS:
    - `"incoming shortwave radiation`" **SURFACE_DOMAIN-incoming_shortwave_radiation**

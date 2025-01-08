@@ -18,8 +18,8 @@ Components are: 0 = land, 1 = ice/water, 2 = snow.
 
 Requires the use of LandCover types, for ground albedo and emissivity.
 
-.. _albedo-evaluator-subgrid-spec:
-.. admonition:: albedo-evaluator-subgrid-spec
+.. _albedo_evaluator_subgrid-spec:
+.. admonition:: albedo_evaluator_subgrid-spec
 
    * `"albedo ice [-]`" ``[double]`` **0.44**
    * `"albedo water [-]`" ``[double]`` **0.1168**

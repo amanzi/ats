@@ -12,8 +12,8 @@
 Stores the value of a field at the initial time.  Note this must be
 checkpointed because it can never be reconstructed.
 
-.. _initial-time-evaluator-spec:
-.. admonition:: initial-time-evaluator-spec
+.. _initial_time_evaluator-spec:
+.. admonition:: initial_time_evaluator-spec
 
    * `"initial time`" ``[double]`` **0** Time value to save, in units as below.
    * `"initial time units`" ``[string]`` **s** Units of initial time above.

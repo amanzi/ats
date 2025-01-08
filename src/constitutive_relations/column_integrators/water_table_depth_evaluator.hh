@@ -13,8 +13,8 @@ Computes the depth to the water table.
 
 `"evaluator type`" = `"water table depth`"
 
-.. _water-table-depth-spec:
-.. admonition:: water-table-depth-spec
+.. _water_table_depth-spec:
+.. admonition:: water_table_depth-spec
 
     * `"interpolate depth from pressure`" ``[bool]`` **false** Default to calculate
       water table depth by locating the top face of the last continuously saturated 

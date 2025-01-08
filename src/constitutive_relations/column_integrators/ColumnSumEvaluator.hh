@@ -16,8 +16,8 @@ divide by surface cell area) and density (useful for the most common use case
 of summing fluxes onto the surface and converting to m/s instead of mol/m^2/s).
 
 
-.. _column-sum-evaluator-spec:
-.. admonition:: column-sum-evaluator-spec
+.. _column_sum_evaluator-spec:
+.. admonition:: column_sum_evaluator-spec
 
    * `"include volume factor`" ``[bool]`` **true** In summing, multiply the
      summand subsurface cell volume, then divide the sum by the surface cell

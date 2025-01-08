@@ -19,10 +19,10 @@ porous media.
 
 `"evaluator type`" = `"two-phase thermal conductivity`"
 
-.. _thermal-conductivity-twophase-evaluator-spec:
-.. admonition:: thermal-conductivity-twophase-evaluator-spec
+.. _thermal_conductivity_twophase_evaluator-spec:
+.. admonition:: thermal_conductivity_twophase_evaluator-spec
 
-   * `"thermal conductivity parameters`" ``[thermal-conductivity-twophase-typedinline-spec-list]``
+   * `"thermal conductivity parameters`" ``[thermal_conductivity_twophase-typedinline-spec-list]``
 
    KEYS:
 

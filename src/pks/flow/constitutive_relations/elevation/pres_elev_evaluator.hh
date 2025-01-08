@@ -15,8 +15,8 @@
 
 `"evaluator type`" =
 
-.. _pres-elev-evaluator-spec:
-.. admonition:: pres-elev-evaluator-spec
+.. _pres_elev_evaluator-spec:
+.. admonition:: pres_elev_evaluator-spec
 
    KEYS:
 

@@ -22,8 +22,8 @@ uncompressed rock grain density (not bulk density).  This means that porosity
 is the base, uncompressible value when used with the energy in the grain, but
 the larger, compressible value when used with the energy in the water.
 
-.. _field-evaluator-type-liquid-gas-energy-spec:
-.. admonition:: field-evaluator-type-liquid-gas-energy-spec
+.. _field_evaluator_type_liquid_gas_energy-spec:
+.. admonition:: field_evaluator_type_liquid_gas_energy-spec
 
    DEPENDENCIES:
 

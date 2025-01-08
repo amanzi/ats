@@ -33,14 +33,14 @@ Note this works on both the surface (vegetation) and subsurface (decomposition)
 meshes.  **It is required** that the subsurface mesh is a "columnar" mesh, and
 that build_columns in the subsurface Mesh_ spec has been supplied.
 
-.. _bgc-simple-spec:
-.. admonition:: bgc-simple-spec
+.. _bgc_simple-spec:
+.. admonition:: bgc_simple-spec
 
   * `"initial timestep`" ``[double]`` **1.0** Initial timestep size `[s]`
 
   * `"number of carbon pools`" ``[int]`` **7** Unclear whether this can actually change?
 
-  * `"soil carbon parameters`" ``[soil-carbon-spec-list]`` List of soil carbon parameters by soil mesh partition region name.
+  * `"soil carbon parameters`" ``[soil_carbon-spec-list]`` List of soil carbon parameters by soil mesh partition region name.
 
   * `"pft parameters`" ``[pft-spec-list]`` List of PFT parameters by PFT name.
 
@@ -50,7 +50,7 @@ that build_columns in the subsurface Mesh_ spec has been supplied.
 
   * `"cryoturbation mixing coefficient [cm^2/yr]`" ``[double]`` **5.0** Controls diffusion of carbon into the subsurface via cryoturbation.
 
-  * `"leaf biomass initial condition`" ``[initial-conditions-spec]`` Sets the leaf biomass IC.
+  * `"leaf biomass initial condition`" ``[initial_conditions-spec]`` Sets the leaf biomass IC.
 
   * `"domain name`" ``[string]`` **domain**
 

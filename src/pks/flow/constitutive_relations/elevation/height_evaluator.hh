@@ -23,8 +23,8 @@ where :math:`H` is the Heaviside function.
 
 `"evaluator type`" = `"ponded depth`"
 
-.. _height-evaluator-spec:
-.. admonition:: height-evaluator-spec
+.. _height_evaluator-spec:
+.. admonition:: height_evaluator-spec
 
    KEYS:
 

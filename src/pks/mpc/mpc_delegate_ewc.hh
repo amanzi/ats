@@ -30,10 +30,10 @@ modifying the correction supplied by a nonlinear iterate, and in modifying a
 predictor, the extrapolated projection (from previous timesteps) that
 provides the initial guess to the nonlinear solve.
 
-.. _mpc-delegate-ewc-spec:
-.. admonition:: mpc-delegate-ewc-spec
+.. _mpc_delegate_ewc-spec:
+.. admonition:: mpc_delegate_ewc-spec
 
-    * `"verbose object`" ``[verbose-object-spec]`` See `Verbose Object`_.
+    * `"verbose object`" ``[verbose_object-spec]`` See `Verbose Object`_.
 
     * `"PK name`" ``[string]`` Name of the owning PK -- simply for logging and
       debugging.

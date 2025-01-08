@@ -73,8 +73,8 @@ node coordinate changes.  Three options are available:
 NOTE: all deformation options are treated EXPLICITLY, and depend only upon
 values from the old time.
 
-.. _volumetric-deformation-pk-spec:
-.. admonition:: volumetric-deformation-pk-spec
+.. _volumetric_deformation_pk-spec:
+.. admonition:: volumetric_deformation_pk-spec
 
     * `"max timestep [s]`" ``[double]`` **inf** Sets a maximum timestep size.
 
@@ -102,7 +102,7 @@ values from the old time.
 
     INCLUDES:
 
-    - ``[pk-physical-default-spec]``
+    - ``[pk_physical_default-spec]``
 
 */
 

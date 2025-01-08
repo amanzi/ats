@@ -28,8 +28,8 @@ atmospheric pressure to > atmospheric pressure.
 
 These methods work to alter the predictor around this nonlinearity.
 
-.. _mpc-delegate-water-spec:
-.. admonition:: mpc-delegate-water-spec
+.. _mpc_delegate_water-spec:
+.. admonition:: mpc_delegate_water-spec
 
     * `"modify predictor with heuristic`" ``[bool]`` **false** This simply
       limits the prediction to backtrack to just above atmospheric on both the

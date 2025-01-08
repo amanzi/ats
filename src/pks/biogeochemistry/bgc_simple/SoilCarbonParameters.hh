@@ -12,8 +12,8 @@
 
 Parameters for the Century model for biogeochemistry.
 
-.. _soil-carbon-spec:
-.. admonition:: soil-carbon-spec
+.. _soil_carbon-spec:
+.. admonition:: soil_carbon-spec
 
     * `"percent sand`" ``[double]`` Soil makeup.  Ranges from [0,100]
 

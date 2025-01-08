@@ -16,8 +16,8 @@
 
 Specified with evaluator type: `"liquid+gas water content`"
 
-.. _field-evaluator-type-liquid-gas-water-content-spec:
-.. admonition:: field-evaluator-type-liquid-gas-water-content-spec
+.. _field_evaluator_type_liquid_gas_water_content-spec:
+.. admonition:: field_evaluator_type_liquid_gas_water_content-spec
 
    DEPENDENCIES:
 

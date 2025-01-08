@@ -19,8 +19,8 @@ See Atchley et al GMD 2015 Supplementary Material for equations.
 
 `"thermal conductivity type`" = `"three-phase Peters-Lidard`"
 
-.. _thermal-conductivity-threephase-peterslidard-spec:
-.. admonition:: thermal-conductivity-threephase-peterslidard-spec
+.. _thermal_conductivity_threephase_peterslidard-spec:
+.. admonition:: thermal_conductivity_threephase_peterslidard-spec
 
     * `"region`" ``[string]`` Region name on which to apply these parameters.
     * `"thermal conductivity of soil [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of soil grains (not bulk soil)

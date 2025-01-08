@@ -14,12 +14,12 @@ This is simply a subsurface energy equation that places a few more requirements
 on the base class.  It could probably go away if we refactor to remove
 hard-coded evaluators.
 
-.. _energy-three-phase-pk-spec:
-.. admonition:: energy-three-phase-pk-spec
+.. _energy_three_phase_pk-spec:
+.. admonition:: energy_three_phase_pk-spec
 
     INCLUDES:
 
-    - ``[energy-two-phase-pk-spec]`` See  `Two-Phase subsurface Energy PK`_
+    - ``[energy_two_phase_pk-spec]`` See  `Two-Phase subsurface Energy PK`_
 
 */
 
