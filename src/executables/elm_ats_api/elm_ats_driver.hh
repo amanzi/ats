@@ -57,7 +57,7 @@ public:
   ~ELM_ATSDriver();
 
   void finalize();
-  void advance(double dt, bool checkpoint, bool vis);
+  void advance(double dt, bool do_vis, bool do_chkp);
   void advance_test();
 
   void get_mesh_info(int& ncols_local,

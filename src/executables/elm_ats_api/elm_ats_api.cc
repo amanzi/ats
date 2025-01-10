@@ -33,10 +33,10 @@ void ats_delete(ELM_ATSDriver_ptr ats)
 // call driver advance()
 void ats_advance(ELM_ATSDriver_ptr ats,
                    double const * const dt,
-                   bool const * const checkpoint,
-                   bool const * const visualize)
+                   bool const * const do_vis,
+                   bool const * const do_chkp)
 {
-  reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->advance(*dt, *checkpoint, *visualize);
+  reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->advance(*dt, *do_vis, *do_chkp);
 }
 
 // call driver advance_test()

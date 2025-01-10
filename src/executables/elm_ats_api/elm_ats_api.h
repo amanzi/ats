@@ -40,8 +40,8 @@ void ats_delete(ELM_ATSDriver_ptr ats);
 // call driver advance(dt)
 void ats_advance(ELM_ATSDriver_ptr ats,
                    double const * const dt,
-                   bool const * const checkpoint,
-                   bool const * const visualize);
+                   bool const * const do_vis,
+                   bool const * const do_chkp);
 
 // call driver advance_test()
 void ats_advance_test(ELM_ATSDriver_ptr ats);

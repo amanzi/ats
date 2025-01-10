@@ -329,7 +329,7 @@ void ELM_ATSDriver::initialize(double t,
 }
 
 
-void ELM_ATSDriver::advance(double dt, bool do_chkp, bool do_vis)
+void ELM_ATSDriver::advance(double dt, bool do_vis, bool do_chkp)
 {
   double dt_subcycle = dt;
   double t_end = S_->get_time() + dt_subcycle;
