@@ -20,12 +20,15 @@ namespace SurfaceBalance {
 double
 readPositiveLandCoverParameter(Teuchos::ParameterList& plist, const std::string& name)
 {
-  double res = plist.get<double>(name, NAN);
-  if (res < 0) {
-    Errors::Message msg;
-    msg << "Invalid land cover parameter \"" << name << "\" in land cover type \"" << plist.name()
-        << "\" -- expecting postive value.";
-    Exceptions::amanzi_throw(msg);
+  double res = NAN;
+  if (plist.isParameter(name)) {
+    res = plist.get<double>(name);
+    if (res < 0) {
+      Errors::Message msg;
+      msg << "Invalid land cover parameter \"" << name << "\" in land cover type \"" << plist.name()
+          << "\" -- expecting postive value.";
+      Exceptions::amanzi_throw(msg);
+    }
   }
   return res;
 }
@@ -33,12 +36,15 @@ readPositiveLandCoverParameter(Teuchos::ParameterList& plist, const std::string&
 double
 readNegativeLandCoverParameter(Teuchos::ParameterList& plist, const std::string& name)
 {
-  double res = plist.get<double>(name, NAN);
-  if (res > 0) {
-    Errors::Message msg;
-    msg << "Invalid land cover parameter \"" << name << "\" in land cover type \"" << plist.name()
-        << "\" -- expecting negative value.";
-    Exceptions::amanzi_throw(msg);
+  double res = NAN;
+  if (plist.isParameter(name)) {
+    res = plist.get<double>(name);
+    if (res > 0) {
+      Errors::Message msg;
+      msg << "Invalid land cover parameter \"" << name << "\" in land cover type \"" << plist.name()
+          << "\" -- expecting negative value.";
+      Exceptions::amanzi_throw(msg);
+    }
   }
   return res;
 }
@@ -46,12 +52,15 @@ readNegativeLandCoverParameter(Teuchos::ParameterList& plist, const std::string&
 double
 readZeroOneLandCoverParameter(Teuchos::ParameterList& plist, const std::string& name)
 {
-  double res = readPositiveLandCoverParameter(plist, name);
-  if (res > 1) {
-    Errors::Message msg;
-    msg << "Invalid land cover parameter \"" << name << "\" in land cover type \"" << plist.name()
-        << "\" -- expecting value in range [0,1].";
-    Exceptions::amanzi_throw(msg);
+  double res = NAN;
+  if (plist.isParameter(name)) {
+    res = readPositiveLandCoverParameter(plist, name);
+    if (res > 1) {
+      Errors::Message msg;
+      msg << "Invalid land cover parameter \"" << name << "\" in land cover type \"" << plist.name()
+          << "\" -- expecting value in range [0,1].";
+      Exceptions::amanzi_throw(msg);
+    }
   }
   return res;
 }

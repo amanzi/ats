@@ -27,7 +27,11 @@
 namespace ATS {
 
 ELM_ATSDriver*
-createELM_ATSDriver(MPI_Fint *f_comm, const char *infile, int npfts) {
+createELM_ATSDriver(MPI_Fint* f_comm, const char* infile, int npfts)
+{
+  // call Kokkos init
+  Kokkos::initialize();
+
   // -- create communicator & get process rank
   //auto comm = getDefaultComm();
   auto c_comm = MPI_Comm_f2c(*f_comm);
@@ -67,7 +71,7 @@ ELM_ATSDriver::ELM_ATSDriver(const Teuchos::RCP<Teuchos::ParameterList>& plist,
 {
   // -- set default verbosity level to no output
   // -- TODO make the verbosity level an input argument
-  VerboseObject::global_default_level = Teuchos::VERB_NONE;
+  VerboseObject::global_default_level = Teuchos::VERB_HIGH;
 
   // domain names
   domain_subsurf_ = Keys::readDomain(*plist_, "domain", "domain");
@@ -142,6 +146,12 @@ ELM_ATSDriver::ELM_ATSDriver(const Teuchos::RCP<Teuchos::ParameterList>& plist,
 }
 
 
+ELM_ATSDriver::~ELM_ATSDriver()
+{
+  Kokkos::finalize();
+}
+
+
 void
 ELM_ATSDriver::setup()
 {
@@ -162,7 +172,9 @@ ELM_ATSDriver::setup()
   // dynamic subsurface properties
   requireAtNext(root_frac_key_, Amanzi::Tags::NEXT, *S_, root_frac_key_)
     .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  requireAtNext(poro_key_, Amanzi::Tags::NEXT, *S_) // use base_porosity from elm and ATS model for compressibility
+
+  // use base_porosity from elm and ATS model for compressibility
+  requireAtNext(poro_key_, Amanzi::Tags::NEXT, *S_)
     .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
   // Clapp and Hornberger water retention params (ELM -> ATS)
@@ -222,6 +234,7 @@ ELM_ATSDriver::setup()
   requireAtNext(pres_key_, Amanzi::Tags::NEXT, *S_, "flow")
     .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
+  // now can call setup
   Coordinator::setup();
 }
 
@@ -553,6 +566,7 @@ ELM_ATSDriver::get_waterstate(double * const ponded_depth,
   for (int i=0; i!=ncolumns_; ++i) {
     const auto faces = mesh_subsurf_->columns.getFaces(i);
     const auto cells = mesh_subsurf_->columns.getCells(i);
+
     for (int j=0; j!=ncells_per_col_; ++j) {
       const double dz = mesh_subsurf_->getFaceCentroid(faces[j])[2] - mesh_subsurf_->getFaceCentroid(faces[j + 1])[2];
       sat_liq[j * ncolumns_ + i] = satl[0][cells[j]] * por[0][cells[j]] * dens[0][cells[j]] * dz;

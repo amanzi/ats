@@ -44,6 +44,7 @@ MPCCoupledWater::parseParameterList()
   // keys
   exfilt_key_ =
     Keys::readKey(*plist_, domain_surf_, "exfiltration flux", "surface_subsurface_flux");
+  requireAtNext(exfilt_key_, tag_next_, *S_, exfilt_key_);
 
   StrongMPC<PK_PhysicalBDF_Default>::parseParameterList();
 }
@@ -67,7 +68,6 @@ MPCCoupledWater::Setup()
   S_->Require<CompositeVector, CompositeVectorSpace>(exfilt_key_, tag_next_, exfilt_key_)
     .SetMesh(surf_mesh_)
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  requireEvaluatorPrimary(exfilt_key_, tag_next_, *S_);
 
   // Create the preconditioner.
   // -- collect the preconditioners

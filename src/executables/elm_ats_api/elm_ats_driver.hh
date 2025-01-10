@@ -54,6 +54,8 @@ public:
                 const Amanzi::Comm_ptr_type& comm,
                 int npfts = 17);
 
+  ~ELM_ATSDriver();
+
   void finalize();
   void advance(double dt, bool checkpoint, bool vis);
   void advance_test();

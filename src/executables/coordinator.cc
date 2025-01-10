@@ -148,6 +148,8 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
     // create the pk
     Amanzi::PKFactory pk_factory;
     pk_ = pk_factory.CreatePK(pk_name, pk_tree_list, plist_, S_, soln_);
+    pk_->set_tags(Amanzi::Tags::CURRENT, Amanzi::Tags::NEXT);
+    pk_->parseParameterList();
 
     // create the checkpointing
     Teuchos::ParameterList& chkp_plist = plist_->sublist("checkpoint");
@@ -287,8 +289,6 @@ Coordinator::setup()
   // order matters here -- PK::Setup() set the leaves, then observations can
   // use those if provided, and State::Setup finally deals with all secondaries
   // and allocates memory
-  pk_->set_tags(Amanzi::Tags::CURRENT, Amanzi::Tags::NEXT);
-  pk_->parseParameterList();
   pk_->Setup();
   for (auto& obs : observations_) obs->Setup(S_.ptr());
   S_->Setup();
