@@ -81,29 +81,29 @@ public:
           double const * const clapp_horn_b,
           double const * const clapp_horn_smpsat,
           double const * const clapp_horn_sr);
-  void set_veg_parameters(double const * const mafic_potential_full_turgor,
-          double const * const mafic_potential_wilt_point);
+
   void set_soil_hydrologic_properties(double const * const effective_porosity);
   void set_veg_properties(double const * const rooting_fraction);
   void set_potential_sources(double const * const elm_surface_input,
                              double const * const elm_evaporation,
                              double const * const elm_transpiration);
 
-  void get_waterstate(double * const surface_ponded_depth,
-                      double * const water_table_depth,
-                      double * const soil_pressure,
-                      double * const soil_psi,
-                      double * const sat_liq,
-                      double * const sat_ice);
+  void get_waterstate(double * const ponded_depth,
+                      double * const wt_depth,
+                      double * const sat_liq);
 
   void get_water_fluxes(double * const soil_infiltration,
                         double * const evaporation,
                         double * const transpiration,
+                        double * const root_flux,
                         double * const net_subsurface_fluxes,
                         double * const net_runon);
 
  private:
   void init_pressure_from_wc_(double const * const elm_water_content);
+  void init_pressure_from_wt_(double depth_to_wt);
+  std::vector<double> calcDZ_();
+  std::vector<double> calcCellDepths_();
 
   void copyToSurf_(double const * const in, const Key& key, Key owner="");
   void copyToSub_(double const * const in, const Key& key, Key owner="");
@@ -146,7 +146,7 @@ public:
   Key sat_key_;
   //Key sat_gas_key_;
   //Key sat_ice_key_;
-  Key infilt_key_;
+  Key ss_flux_key_;
   Key trans_key_;
   Key evap_key_;
   Key total_trans_key_;

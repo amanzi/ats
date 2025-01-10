@@ -1,6 +1,5 @@
 
 #include <iostream>
-#include <filesystem>
 
 #include <Epetra_Comm.h>
 #include <Epetra_MpiComm.h>
@@ -75,53 +74,35 @@ int main(int argc, char *argv[])
   if (input_filename.empty() && !opt_input_filename.empty()) input_filename = opt_input_filename;
 
   // dummy data
-  // 1 col, 100 cells
   double time = 0.;
-  int n = 1;
-  int m = 100;
+  int ncols = 5;
+  int ncells = 15;
   int ncols_local, ncols_global, ncells_per_col;
-  std::vector<double> soil_infil(n, 0.0);
-  std::vector<double> soil_evap(n, 0.0);
-  std::vector<double> air_pres(n);
-  std::vector<double> surf_pres(n);
-  std::vector<double> elev(n);
-  std::vector<double> surf_area_m2(n);
-  std::vector<double> lat(n);
-  std::vector<double> lon(n);
-
-  std::vector<double> dz(m);
-  std::vector<double> depth(m);
-  std::vector<double> root_tran(m);
-  std::vector<double> soil_pres(m);
-  std::vector<double> soil_pot(m);
-  std::vector<double> satl(m);
-  std::vector<double> sati(m);
-  std::vector<int> pft_i(m);
+  std::vector<double> soil_infil(ncols, 10.0);
+  std::vector<double> soil_evap(ncols, 3.0);
+  std::vector<double> root_tran(ncols, 6.0);
+  std::vector<double> soil_pres(ncols*ncells);
+  std::vector<double> satl(ncols*ncells);
 
   // dummy fortran comm
   MPI_Fint comm = 0;
 
   // test driver directly
-  auto driver = std::unique_ptr<ATS::ELM_ATSDriver>(ATS::createELM_ATSDriver(&comm, input_filename.data()));
-  driver->setup();
-  //driver->get_mesh_info(ncols_local, ncols_global, lat.data(), lon.data(), elev.data(), surf_area_m2.data(), pft_i.data(), ncells_per_col, depth.data());
-  driver->initialize();
-  //driver->set_potential_sources(soil_infil.data(), soil_evap.data(), root_tran.data());
-  driver->advance_test();
-  //driver->get_waterstate(surf_pres.data(), soil_pres.data(), soil_pot.data(), satl.data(), sati.data());
-  driver->finalize();
+ auto driver = std::unique_ptr<ATS::ELM_ATSDriver>(ATS::createELM_ATSDriver(&comm, input_filename.data()));
+ driver->setup();
+ driver->initialize(time, soil_pres.data(), satl.data());
+ driver->advance_test();
+ driver->finalize();
+ std::cout << "DONE WITH DRIVER TEST" << std::endl;
 
   // test api
-  //auto driver_api = ats_create_c(&comm, input_filename.data());
-  //ats_setup_c(driver_api);
-  //ats_get_mesh_info_c(driver_api, &ncols_local, &ncols_global, lat.data(), lon.data(),
-  //                    elev.data(), surf_area_m2.data(), pft_i.data(), &ncells_per_col, depth.data());
-  //ats_initialize_c(driver_api, &time, air_pres.data(), soil_pres.data());
-  //ats_set_potential_sources_c(driver_api, soil_infil.data(), soil_evap.data(), root_tran.data());
-  //ats_advance_test_c(driver_api);
-  //ats_get_waterstate_c(driver_api, surf_pres.data(), soil_pres.data(), soil_pot.data(), satl.data(), sati.data());
-  //ats_delete_c(driver_api);
-  std::cout << "DONE WITH ELM-ATS C++ TEST" << std::endl;
+
+  auto driver_api = ats_create(&comm, input_filename.data());
+  ats_setup(driver_api);
+  ats_initialize(driver_api, &time, soil_pres.data(), satl.data());
+  ats_advance_test(driver_api);
+  ats_delete(driver_api);
+  std::cout << "DONE WITH API TEST" << std::endl;
 
   return 0;
 }

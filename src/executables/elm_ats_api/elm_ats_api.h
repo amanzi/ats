@@ -67,9 +67,9 @@ void ats_setup(ELM_ATSDriver_ptr ats);
 
 // call driver initialize()
 void ats_initialize(ELM_ATSDriver_ptr ats,
-                      double const * const t,
-                      double const * const patm,
-                      double const * const soilp);
+                      double const * const start_time,
+                      double const * const soil_water_content,
+                      double const * const soil_pressure);
 
 // set material parameters, which are constant in time
 void ats_set_soil_hydrologic_parameters(ELM_ATSDriver_ptr ats,
@@ -78,11 +78,6 @@ void ats_set_soil_hydrologic_parameters(ELM_ATSDriver_ptr ats,
         double const * const clapp_horn_b,
         double const * const clapp_horn_smpsat,
         double const * const clapp_horn_sr);
-
-// set veg parameters, which are constant in time
-void ats_set_veg_parameters(ELM_ATSDriver_ptr ats,
-        double const * const mafic_potential_full_turgor,
-        double const * const mafic_potential_wilt_point);
 
 //
 // Called prior to timestep advance
@@ -96,12 +91,10 @@ void ats_set_veg_properties(ELM_ATSDriver_ptr ats,
         double const * const rooting_fraction);
 
 // call driver set_sources()
-// soil_infiltration & soil_evaporation are 1D arrays of length ncols
-// root_transpiration is a 1D array array of length (ncells)
 void ats_set_sources(ELM_ATSDriver_ptr ats,
-        double const * const surface_infiltration,
-        double const * const surface_evaporation,
-        double const * const subsurface_transpiration);
+        double const * const surface_source,
+        double const * const potential_evaporation,
+        double const * const potential_transpiration);
 
 
 //
@@ -111,17 +104,15 @@ void ats_set_sources(ELM_ATSDriver_ptr ats,
 // surface_pressure is a 1D array of length ncols
 // soil_pressure & saturation are 1D arrays array of length (ncells)
 void ats_get_waterstate(ELM_ATSDriver_ptr ats,
-                          double * const surface_ponded_depth,
+                          double * const ponded_depth,
                           double * const water_table_depth,
-                          double * const soil_pressure,
-                          double * const soil_psi,
-                          double * const sat_liq,
-                          double * const sat_ice);
+                          double * const mass_water_content);
 
 void ats_get_water_fluxes(ELM_ATSDriver_ptr ats,
-                            double * const soil_infiltration,
+                            double * const infiltration,
                             double * const evaporation,
                             double * const transpiration,
+                            double * const root_flux,
                             double * net_subsurface_fluxes,
                             double * net_runon);
 

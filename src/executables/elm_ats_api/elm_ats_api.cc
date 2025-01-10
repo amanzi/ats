@@ -69,11 +69,11 @@ void ats_setup(ELM_ATSDriver_ptr ats)
 
 // call driver initialize()
 void ats_initialize(ELM_ATSDriver_ptr ats,
-                      double const * const t,
-                      double const * const patm,
-                      double const * const soilp)
+                      double const * const start_time,
+                      double const * const soil_water_content,
+                      double const * const soil_pressure)
 {
-  reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->initialize(*t, patm, soilp);
+  reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->initialize(*start_time, soil_water_content, soil_pressure);
 }
 
 
@@ -87,15 +87,6 @@ void ats_set_soil_hydrologic_parameters(ELM_ATSDriver_ptr ats,
   reinterpret_cast<ATS::ELM_ATSDriver*>(ats)
     ->set_soil_hydrologic_parameters(base_porosity, hydraulic_conductivity,
             clapp_horn_b, clapp_horn_smpsat, clapp_horn_sr);
-}
-
-
-void ats_set_veg_parameters(ELM_ATSDriver_ptr ats,
-        double const * const mafic_potential_full_turgor,
-        double const * const mafic_potential_wilt_point)
-{
-  reinterpret_cast<ATS::ELM_ATSDriver*>(ats)
-    ->set_veg_parameters(mafic_potential_full_turgor, mafic_potential_wilt_point);
 }
 
 
@@ -118,38 +109,36 @@ void ats_set_veg_properties(ELM_ATSDriver_ptr ats,
 
 // call driver set_sources()
 void ats_set_sources(ELM_ATSDriver_ptr ats,
-        double const * const surface_infiltration,
-        double const * const surface_evaporation,
-        double const * const subsurface_transpiration)
+        double const * const surface_source,
+        double const * const potential_evaporation,
+        double const * const potential_transpiration)
 {
   reinterpret_cast<ATS::ELM_ATSDriver*>(ats)
-    ->set_potential_sources(surface_infiltration, surface_evaporation, subsurface_transpiration);
+    ->set_potential_sources(surface_source, potential_evaporation, potential_transpiration);
 }
 
 
 void ats_get_waterstate(ELM_ATSDriver_ptr ats,
-                          double * const surface_ponded_depth,
+                          double * const ponded_depth,
                           double * const water_table_depth,
-                          double * const soil_pressure,
-                          double * const soil_psi,
-                          double * const sat_liq,
-                          double * const sat_ice)
+                          double * const mass_water_content)
 {
   reinterpret_cast<ATS::ELM_ATSDriver*>(ats)
-    ->get_waterstate(surface_ponded_depth, water_table_depth, soil_pressure, soil_psi, sat_liq, sat_ice);
+    ->get_waterstate(ponded_depth, water_table_depth, mass_water_content);
 }
 
 
 void ats_get_water_fluxes(ELM_ATSDriver_ptr ats,
-                            double * const soil_infiltration,
+                            double * const infiltration,
                             double * const evaporation,
                             double * const transpiration,
+                            double * const root_flux,
                             double * net_subsurface_fluxes,
                             double * net_runon)
 {
   reinterpret_cast<ATS::ELM_ATSDriver*>(ats)
-    ->get_water_fluxes(soil_infiltration, evaporation, transpiration,
-                       net_subsurface_fluxes, net_runon);
+    ->get_water_fluxes(infiltration, evaporation, transpiration,
+                       root_flux, net_subsurface_fluxes, net_runon);
 }
 
 #ifdef __cplusplus
