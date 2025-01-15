@@ -311,7 +311,7 @@ class RegressionTest(object):
             fid.write(self._version)
 
         if "metsi/ats" in self._executable:
-            command.append("-v " + test_directory + ":/home/amanzi_usr/work:delegated")
+            command.append("-v " + test_directory + ":/home/amanzi_usr/work:cached")
             command.append("-w " + "/home/amanzi_usr/work")
             command.append(self._executable)
             command.append("/bin/sh -c 'cd " + self.dirname() + ";")
@@ -1467,13 +1467,13 @@ def check_for_docker_image(docker_image):
     pwd = os.path.abspath(os.getcwd())
     command=[]
     command.append("docker run --rm")
-    command.append("-v"+pwd+":/home/amanzi_usr/work:delegated")
+    command.append("-v "+pwd+":/home/amanzi_usr/work:cached")
     command.append(docker_image)
-    command.append("ats --print_version")
+    command.append("ats --version")
     print(" ".join(command))
 
     output=subprocess.run(" ".join(command), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-    if ("ATS Version" not in output.stdout):
+    if ("ATS version" not in output.stdout):
         raise RuntimeError("ERROR: ATS did not run correctly in Docker. \n")
     else:
         print(output.stdout)
