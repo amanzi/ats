@@ -123,6 +123,10 @@ set(ats_link_libs
   )
 
 
+set(ELM_LIBRARIES $ENV{ELM_DIR}/install/lib/libelm_kokkos.dylib)
+set(ELM_INCLUDES_DIR $ENV{ELM_DIR}/install/include)
+include_directories(${ELM_INCLUDES_DIR})
+
 # note, we can be inclusive here, because if they aren't enabled,
 # these won't be defined and will result in empty strings.
 set(tpl_link_libs
@@ -137,6 +141,7 @@ set(tpl_link_libs
   ${HYPRE_LIBRARIES}
   ${HDF5_LIBRARIES}
   ${CLM_LIBRARIES}
+  ${ELM_LIBRARIES}
   )
 
 add_amanzi_library(ats_executable
