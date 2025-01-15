@@ -54,7 +54,12 @@ EvaporationDownregulationEvaluator::Evaluate_(const State& S,
   Epetra_MultiVector& surf_evap = *result[0]->ViewComponent("cell", false);
 
   for (int sc = 0; sc != surf_evap.MyLength(); ++sc) {
-    surf_evap[0][sc] = pot_evap[0][sc] / (1. + rsoil[0][sc]);
+    if (pot_evap[0][sc] > 0) {
+      surf_evap[0][sc] = pot_evap[0][sc] / (1. + rsoil[0][sc]);
+    } else {
+      // allow condensation through untouched
+      surf_evap[0][sc] = pot_evap[0][sc];
+    }
   }
 }
 
@@ -75,7 +80,11 @@ EvaporationDownregulationEvaluator::EvaluatePartialDerivative_(
     Epetra_MultiVector& surf_evap = *result[0]->ViewComponent("cell", false);
 
     for (int sc = 0; sc != surf_evap.MyLength(); ++sc) {
-      surf_evap[0][sc] = 1. / (1. + rsoil[0][sc]);
+      if (pot_evap[0][sc] > 0) {
+        surf_evap[0][sc] = 1. / (1. + rsoil[0][sc]);
+      } else {
+        surf_evap[0][sc] = 1.;
+      }
     }
   } else if (wrt_key == rsoil_key_) {
     const Epetra_MultiVector& rsoil =
@@ -85,7 +94,11 @@ EvaporationDownregulationEvaluator::EvaluatePartialDerivative_(
     Epetra_MultiVector& surf_evap = *result[0]->ViewComponent("cell", false);
 
     for (int sc = 0; sc != surf_evap.MyLength(); ++sc) {
-      surf_evap[0][sc] = -pot_evap[0][sc] * std::pow(1. + rsoil[0][sc], -2);
+      if (pot_evap[0][sc] > 0) {
+        surf_evap[0][sc] = -pot_evap[0][sc] * std::pow(1. + rsoil[0][sc], -2);
+      } else {
+        surf_evap[0][sc] = 0.;
+      }
     }
   } else {
     AMANZI_ASSERT(0);

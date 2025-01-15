@@ -98,9 +98,9 @@ ELM_ATSDriver::ELM_ATSDriver(const Teuchos::RCP<Teuchos::ParameterList>& plist,
 
   // potential sources
   root_frac_key_ = Keys::readKey(*plist_, domain_subsurf_, "rooting depth fraction", "rooting_depth_fraction");
-  pot_infilt_key_ = Keys::readKey(*plist_, domain_surf_, "potential infiltration mps", "potential_infiltration_mps"); // inputs onto surface (rain, snowmelt)
-  pot_evap_key_ = Keys::readKey(*plist_, domain_surf_, "potential evaporation mps", "potential_evaporation_mps");
-  pot_trans_key_ = Keys::readKey(*plist_, domain_surf_, "potential transpiration mps", "potential_transpiration_mps");
+  pot_infilt_key_ = Keys::readKey(*plist_, domain_surf_, "potential infiltration", "potential_infiltration"); // inputs onto surface (rain, snowmelt)
+  pot_evap_key_ = Keys::readKey(*plist_, domain_surf_, "potential evaporation", "potential_evaporation");
+  pot_trans_key_ = Keys::readKey(*plist_, domain_surf_, "potential transpiration", "potential_transpiration");
 
   // water state
   pd_key_ = Keys::readKey(*plist_, domain_surf_, "ponded depth", "ponded_depth");
@@ -351,13 +351,6 @@ void ELM_ATSDriver::advance(double dt, bool do_vis, bool do_chkp)
 
       // make observations, vis, and checkpoints
       for (const auto& obs : observations_) obs->MakeObservations(S_.ptr());
-
-      // vis/checkpoint if EITHER ATS or ELM request it
-      //if (do_vis && !visualize()) visualize(true);
-      //if (do_chkp && !checkpoint()) checkpoint(true);
-
-      visualize(do_vis);
-      checkpoint(do_chkp);
     }
 
     dt_subcycle = Coordinator::get_dt(fail);
@@ -378,7 +371,11 @@ void ELM_ATSDriver::advance(double dt, bool do_vis, bool do_chkp)
     Errors::Message msg("ELM_ATSDriver: advance(dt) failed.");
     Exceptions::amanzi_throw(msg);
   }
-} // advance()
+
+  // only vis and checkpoint potentially at outer step
+  visualize(do_vis);
+  checkpoint(do_chkp);
+}
 
 
 // simulates external timeloop with dt coming from calling model
