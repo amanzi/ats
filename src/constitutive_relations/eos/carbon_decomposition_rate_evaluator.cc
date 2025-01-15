@@ -54,7 +54,6 @@ CarbonDecomposeRateEvaluator::Evaluate_(const State& S, const std::vector<Compos
 {
   Tag tag = my_keys_.front().second;
   Epetra_MultiVector& res_c = *result[0]->ViewComponent("cell", false);
-  Epetra_MultiVector& dz_c = *result[0]->ViewComponent("cell", false);
 
   const auto& temp_c = *S.Get<CompositeVector>(temp_key_, tag).ViewComponent("cell", false);
   const auto& pres_c = *S.Get<CompositeVector>(pres_key_, tag).ViewComponent("cell", false);
@@ -66,19 +65,16 @@ CarbonDecomposeRateEvaluator::Evaluate_(const State& S, const std::vector<Compos
 
   for (int col = 0; col != mesh.columns.num_columns_owned; ++col) {
     const auto& col_cells = mesh.columns.getCells(col);
-    for (int i = 0; i != col_cells.size(); ++i) {
-      dz_c[0][col_cells[i]] = mesh.getCellVolume(col_cells[i]) / mesh_surf.getCellVolume(col);
-    }
-  }
-
-  for (int c = 0; c != res_c.MyLength(); ++c) {
-    if (temp_c[0][c] >= 273.15) {
-      double f_temp = Func_Temp(temp_c[0][c], q10_);
-      double f_depth = Func_Depth(depth_c[0][c]);
-      double f_pres_temp = Func_TempPres(temp_c[0][c], pres_c[0][c]);
-      res_c[0][c] = (f_temp * f_depth * f_pres_temp * dz_c[0][c]) * (1 - por_c[0][c]);
-    } else {
-      res_c[0][c] = 0.;
+    for (int c = 0; c != col_cells.size(); ++c) {
+      if (temp_c[0][col_cells[c]] >= 273.15) {
+        double dz = mesh.getCellVolume(col_cells[c]) / mesh_surf.getCellVolume(col);
+        double f_temp = Func_Temp(temp_c[0][col_cells[c]], q10_);
+        double f_depth = Func_Depth(depth_c[0][col_cells[c]]);
+        double f_pres_temp = Func_TempPres(temp_c[0][col_cells[c]], pres_c[0][col_cells[c]]);
+        res_c[0][col_cells[c]] = (f_temp * f_depth * f_pres_temp * dz) * (1 - por_c[0][col_cells[c]]);
+      } else {
+        res_c[0][col_cells[c]] = 0.;
+      }
     }
   }
 }
