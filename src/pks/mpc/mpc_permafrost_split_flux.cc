@@ -18,6 +18,10 @@ MPCPermafrostSplitFlux::MPCPermafrostSplitFlux(Teuchos::ParameterList& FElist,
                                                const Teuchos::RCP<State>& S,
                                                const Teuchos::RCP<TreeVector>& solution)
   : PK(FElist, plist, S, solution), MPCSubcycled(FElist, plist, S, solution)
+{}
+
+void
+MPCPermafrostSplitFlux::parseParameterList()
 {
   // collect domain names
   domain_set_ = Keys::readDomain(*plist_);          // e.g. surface or surface_column:*
@@ -47,6 +51,33 @@ MPCPermafrostSplitFlux::MPCPermafrostSplitFlux(Teuchos::ParameterList& FElist,
     Errors::Message msg("WeakMPCSemiCoupled: \"coupling type\" must be one of \"pressure\", "
                         "\"flux\", or \"hybrid\".");
     Exceptions::amanzi_throw(msg);
+  }
+
+  if (coupling_ != "pressure") {
+    cv_key_ = Keys::readKey(*plist_, domain_star_, "cell volume", "cell_volume");
+
+    p_lateral_flow_source_ =
+      Keys::readKey(*plist_, domain_, "water lateral flow source", "water_lateral_flow_source");
+    p_lateral_flow_source_suffix_ = Keys::getVarName(p_lateral_flow_source_);
+
+    T_lateral_flow_source_ =
+      Keys::readKey(*plist_, domain_, "energy lateral flow source", "energy_lateral_flow_source");
+    T_lateral_flow_source_suffix_ = Keys::getVarName(T_lateral_flow_source_);
+
+    if (is_domain_set_) {
+      auto domain_set = S_->GetDomainSet(domain_set_);
+      for (const auto& domain : *domain_set) {
+        auto p_key = Keys::getKey(domain, p_lateral_flow_source_suffix_);
+        Tag ds_tag_next = get_ds_tag_next_(domain);
+        requireAtNext(p_key, ds_tag_next, *S_, name_);
+
+        auto T_key = Keys::getKey(domain, T_lateral_flow_source_suffix_);
+        requireAtNext(T_key, ds_tag_next, *S_, name_);
+      }
+    } else {
+      requireAtNext(p_lateral_flow_source_, tags_[1].second, *S_, name_);
+      requireAtNext(T_lateral_flow_source_, tags_[1].second, *S_, name_);
+    }
   }
 
   // collect keys and names
@@ -85,17 +116,7 @@ MPCPermafrostSplitFlux::MPCPermafrostSplitFlux(Teuchos::ParameterList& FElist,
                                            "temperature primary variable star",
                                            Keys::getVarName(T_primary_variable_));
 
-  // -- flux variables for coupling
-  if (coupling_ != "pressure") {
-    p_lateral_flow_source_ =
-      Keys::readKey(*plist_, domain_, "water lateral flow source", "water_lateral_flow_source");
-    p_lateral_flow_source_suffix_ = Keys::getVarName(p_lateral_flow_source_);
-    T_lateral_flow_source_ =
-      Keys::readKey(*plist_, domain_, "energy lateral flow source", "energy_lateral_flow_source");
-    T_lateral_flow_source_suffix_ = Keys::getVarName(T_lateral_flow_source_);
-
-    cv_key_ = Keys::readKey(*plist_, domain_star_, "cell volume", "cell_volume");
-  }
+  MPCSubcycled::parseParameterList();
 };
 
 

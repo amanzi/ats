@@ -53,6 +53,8 @@ class MPCPermafrost : public MPCSubsurface {
                 const Teuchos::RCP<State>& S,
                 const Teuchos::RCP<TreeVector>& soln);
 
+  // call to allow a PK to modify its own list or lists of its children.
+  virtual void parseParameterList() override;
 
   virtual void set_tags(const Tag& tag_current, const Tag& tag_next) override;
 
@@ -66,7 +68,7 @@ class MPCPermafrost : public MPCSubsurface {
   //    By default this just calls each sub pk FunctionalResidual().
   virtual void FunctionalResidual(double t_old,
                                   double t_new,
-                                  Teuchos::RCP<TreeVector> u_old,
+                                  Teuchos::RCP<const TreeVector> u_old,
                                   Teuchos::RCP<TreeVector> u_new,
                                   Teuchos::RCP<TreeVector> g) override;
 

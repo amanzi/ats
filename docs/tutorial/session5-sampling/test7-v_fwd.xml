@@ -129,7 +129,7 @@
           <Parameter name="primary variable" type="string" value="precipitation_snow" />
           <Parameter name="conserved quantity key" type="string" value="precipitation_snow" />
           <Parameter name="domain name" type="string" value="surface" />
-          <Parameter name="initial time step" type="double" value="86400.0" />
+          <Parameter name="initial timestep" type="double" value="86400.0" />
           <Parameter name="upwind conductivity method" type="string" value="upwind by potential difference" />
           <ParameterList name="precipitation function" type="ParameterList">
             <ParameterList name="function-tabular" type="ParameterList">
@@ -164,10 +164,10 @@
             <ParameterList name="timestep controller smarter parameters" type="ParameterList">
               <Parameter name="max iterations" type="int" value="18" />
               <Parameter name="min iterations" type="int" value="10" />
-              <Parameter name="time step reduction factor" type="double" value="0.25" />
-              <Parameter name="time step increase factor" type="double" value="1.5" />
-              <Parameter name="max time step" type="double" value="100000000.0" />
-              <Parameter name="min time step" type="double" value="1e-10" />
+              <Parameter name="timestep reduction factor" type="double" value="0.25" />
+              <Parameter name="timestep increase factor" type="double" value="1.5" />
+              <Parameter name="max timestep" type="double" value="100000000.0" />
+              <Parameter name="min timestep" type="double" value="1e-10" />
               <Parameter name="growth wait after fail" type="int" value="2" />
               <Parameter name="count before increasing increase factor" type="int" value="2" />
             </ParameterList>
@@ -250,10 +250,10 @@
             <ParameterList name="timestep controller smarter parameters" type="ParameterList">
               <Parameter name="max iterations" type="int" value="18" />
               <Parameter name="min iterations" type="int" value="10" />
-              <Parameter name="time step reduction factor" type="double" value="0.5" />
-              <Parameter name="time step increase factor" type="double" value="1.5" />
-              <Parameter name="max time step" type="double" value="100000000.0" />
-              <Parameter name="min time step" type="double" value="1e-10" />
+              <Parameter name="timestep reduction factor" type="double" value="0.5" />
+              <Parameter name="timestep increase factor" type="double" value="1.5" />
+              <Parameter name="max timestep" type="double" value="100000000.0" />
+              <Parameter name="min timestep" type="double" value="1e-10" />
               <Parameter name="growth wait after fail" type="int" value="2" />
               <Parameter name="count before increasing increase factor" type="int" value="2" />
             </ParameterList>
@@ -270,8 +270,8 @@
               <Parameter name="primary variable" type="string" value="snow_depth" />
               <Parameter name="conserved quantity key" type="string" value="snow_depth" />
               <Parameter name="domain name" type="string" value="surface" />
-              <Parameter name="initial time step" type="double" value="86400.0" />
-              <Parameter name="max time step" type="double" value="86400.0" />
+              <Parameter name="initial timestep" type="double" value="86400.0" />
+              <Parameter name="max timestep" type="double" value="86400.0" />
               <Parameter name="snow-ground transitional depth" type="double" value="0.05" />
               <Parameter name="wind speed reference height [m]" type="double" value="2.0" />
               <ParameterList name="VerboseObject" type="ParameterList">
@@ -360,9 +360,9 @@
                   <Parameter name="source term" type="bool" value="true" />
                   <Parameter name="clobber surface rel perm" type="bool" value="true" />
                   <Parameter name="limit correction to pressure change [Pa]" type="double" value="400000.0" />
-                  <Parameter name="max valid change in saturation in a time step [-]" type="double" value="0.1" />
-                  <Parameter name="max valid change in ice saturation in a time step [-]" type="double" value="0.1" />
-                  <Parameter name="initial time step" type="double" value="86400.0" />
+                  <Parameter name="max valid change in saturation in a timestep [-]" type="double" value="0.1" />
+                  <Parameter name="max valid change in ice saturation in a timestep [-]" type="double" value="0.1" />
+                  <Parameter name="initial timestep" type="double" value="86400.0" />
                   <Parameter name="relative permeability method" type="string" value="upwind with Darcy flux" />
                   <Parameter name="permeability rescaling" type="double" value="10000000.0" />
                   <Parameter name="debug cells" type="Array(int)" value="{3423}" />
@@ -440,7 +440,7 @@
                   <Parameter name="primary variable" type="string" value="surface-pressure" />
                   <Parameter name="domain name" type="string" value="surface" />
                   <Parameter name="source term" type="bool" value="true" />
-                  <Parameter name="initial time step" type="double" value="86400.0" />
+                  <Parameter name="initial timestep" type="double" value="86400.0" />
                   <ParameterList name="VerboseObject" type="ParameterList">
                     <Parameter name="Verbosity Level" type="string" value="high" />
                   </ParameterList>
@@ -486,7 +486,7 @@
                   <Parameter name="source term" type="bool" value="false" />
                   <Parameter name="supress advective terms in preconditioner" type="bool" value="true" />
                   <Parameter name="limit correction to temperature change [K]" type="double" value="1.0" />
-                  <Parameter name="initial time step" type="double" value="86400.0" />
+                  <Parameter name="initial timestep" type="double" value="86400.0" />
                   <Parameter name="debug cells" type="Array(int)" value="{3423}" />
                   <ParameterList name="VerboseObject" type="ParameterList">
                     <Parameter name="Verbosity Level" type="string" value="high" />
@@ -573,7 +573,7 @@
                   <Parameter name="flux key" type="string" value="surface-mass_flux" />
                   <Parameter name="supress advective terms in preconditioner" type="bool" value="false" />
                   <Parameter name="upwind conductivity method" type="string" value="arithmetic mean" />
-                  <Parameter name="initial time step" type="double" value="86400.0" />
+                  <Parameter name="initial timestep" type="double" value="86400.0" />
                   <ParameterList name="VerboseObject" type="ParameterList">
                     <Parameter name="Verbosity Level" type="string" value="high" />
                   </ParameterList>

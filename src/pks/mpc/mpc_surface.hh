@@ -40,7 +40,7 @@ class MPCSurface : public StrongMPC<PK_PhysicalBDF_Default> {
              const Teuchos::RCP<State>& S,
              const Teuchos::RCP<TreeVector>& soln);
 
-  // -- Initialize owned (dependent) variables.
+  void parseParameterList() override;
   virtual void Setup() override;
   virtual void Initialize() override;
   //virtual void set_tags(const Tag& tag_current, const Tag& tag_next);

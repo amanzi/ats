@@ -77,6 +77,7 @@ struct CoupledWaterProblem {
     Amanzi::PKFactory pk_factory;
     auto pk_as_pk = pk_factory.CreatePK("coupled water", pk_tree_list, plist, S, soln);
     pk = Teuchos::rcp_dynamic_cast<MPCCoupledWater>(pk_as_pk);
+    pk->parseParameterList();
     AMANZI_ASSERT(pk.get());
 
     // setup stage

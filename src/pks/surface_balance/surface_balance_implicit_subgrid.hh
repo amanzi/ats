@@ -61,6 +61,9 @@ class ImplicitSubgrid : public SurfaceBalanceBase {
                   const Teuchos::RCP<State>& S,
                   const Teuchos::RCP<TreeVector>& solution);
 
+  // call to allow a PK to modify its own list or lists of its children.
+  virtual void parseParameterList() override;
+
   // main methods
   // -- Setup data.
   virtual void Setup() override;
@@ -80,7 +83,7 @@ class ImplicitSubgrid : public SurfaceBalanceBase {
   // computes the non-linear functional g = g(t,u,udot)
   virtual void FunctionalResidual(double t_old,
                                   double t_new,
-                                  Teuchos::RCP<TreeVector> u_old,
+                                  Teuchos::RCP<const TreeVector> u_old,
                                   Teuchos::RCP<TreeVector> u_new,
                                   Teuchos::RCP<TreeVector> g) override;
 

@@ -5,9 +5,10 @@
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
+           Bo Gao (gaob@ornl.gov)
 */
 
-//! Calculates the water table depth where the water table is defined as the top cell with 0 gas saturation.
+//! Calculates the water table depth by locating the end of continuously saturated cells from bottom upwards.
 #include "water_table_depth_evaluator.hh"
 
 namespace Amanzi {
@@ -22,6 +23,9 @@ ParserWaterTableDepth::ParserWaterTableDepth(Teuchos::ParameterList& plist, cons
   Key sat_key = Keys::readKey(plist, domain_ss, "saturation of gas", "saturation_gas");
   dependencies.insert(KeyTag{ sat_key, tag });
 
+  Key pres_key = Keys::readKey(plist, domain_ss, "pressure", "pressure");
+  dependencies.insert(KeyTag{ pres_key, tag });
+
   Key cv_key = Keys::readKey(plist, domain_ss, "subsurface cell volume", "cell_volume");
   dependencies.insert(KeyTag{ cv_key, tag });
 
@@ -32,12 +36,14 @@ ParserWaterTableDepth::ParserWaterTableDepth(Teuchos::ParameterList& plist, cons
 
 IntegratorWaterTableDepth::IntegratorWaterTableDepth(Teuchos::ParameterList& plist,
                                                      std::vector<const Epetra_MultiVector*>& deps,
-                                                     const AmanziMesh::Mesh* mesh)
+                                                     const AmanziMesh::Mesh* mesh) : mesh_(mesh)
 {
-  AMANZI_ASSERT(deps.size() == 3);
+  AMANZI_ASSERT(deps.size() == 4);
   sat_ = deps[0];
-  cv_ = deps[1];
-  surf_cv_ = deps[2];
+  pres_ = deps[1];
+  cv_ = deps[2];
+  surf_cv_ = deps[3];
+  is_interp_ = plist.get<bool>("interpolate depth from pressure", false);
 }
 
 int
@@ -45,9 +51,17 @@ IntegratorWaterTableDepth::scan(AmanziMesh::Entity_ID col,
                                 AmanziMesh::Entity_ID c,
                                 AmanziGeometry::Point& p)
 {
-  if ((*sat_)[0][c] > 0.0) {
-    p[0] += (*cv_)[0][c];
-    return false;
+  if ((*sat_)[0][c] == 0.0) {
+    p[2] = mesh_->getCellCentroid(c)[2]; // last saturated cell centroid
+    if (is_interp_) {
+      p[0] = (*pres_)[0][c]; // last saturated cell pressure
+    } else {
+      p[0] += (*cv_)[0][c]; // cumulative saturated cell volume
+    } 
+    return false;  
+  }
+  if (is_interp_) {
+    p[1] = (*pres_)[0][c]; // first unsaturated cell pressure
   }
   return true;
 }

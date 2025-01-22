@@ -19,7 +19,14 @@ MPCCoupledWaterSplitFlux::MPCCoupledWaterSplitFlux(
   const Teuchos::RCP<State>& S,
   const Teuchos::RCP<TreeVector>& solution)
   : PK(FElist, plist, S, solution), MPCSubcycled(FElist, plist, S, solution)
+{}
+
+
+void
+MPCCoupledWaterSplitFlux::parseParameterList()
 {
+  MPCSubcycled::parseParameterList();
+
   // collect domain names
   domain_set_ = Keys::readDomain(*plist_);          // e.g. surface or surface_column:*
   domain_star_ = Keys::readDomain(*plist_, "star"); // e.g. surface_star
@@ -68,6 +75,8 @@ MPCCoupledWaterSplitFlux::MPCCoupledWaterSplitFlux(
     p_lateral_flow_source_ =
       Keys::readKey(*plist_, domain_, "water lateral flow source", "water_lateral_flow_source");
     p_lateral_flow_source_suffix_ = Keys::getVarName(p_lateral_flow_source_);
+    S_->GetEvaluatorList(p_lateral_flow_source_).set("evaluator type", "primary variable");
+
     cv_key_ = Keys::readKey(*plist_, domain_star_, "cell volume", "cell_volume");
   }
 };

@@ -162,7 +162,7 @@ ATSDriver::cycle_driver()
       } // while not finished
 
 #if !DEBUG_MODE
-    } catch (Errors::TimeStepCrash& e) {
+    } catch (Errors::TimestepCrash& e) {
       // write one more vis for help debugging
       S_->advance_cycle(Amanzi::Tags::NEXT);
       visualize(true); // force vis

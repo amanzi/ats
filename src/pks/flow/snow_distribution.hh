@@ -85,7 +85,7 @@ class SnowDistribution : public PK_PhysicalBDF_Default {
   // computes the non-linear functional g = g(t,u,udot)
   void FunctionalResidual(double t_old,
                           double t_new,
-                          Teuchos::RCP<TreeVector> u_old,
+                          Teuchos::RCP<const TreeVector> u_old,
                           Teuchos::RCP<TreeVector> u_new,
                           Teuchos::RCP<TreeVector> g) override;
 
@@ -101,7 +101,7 @@ class SnowDistribution : public PK_PhysicalBDF_Default {
   bool
   ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::RCP<TreeVector> u) override;
 
-  // Choose a time step compatible with physics.
+  // Choose a timestep compatible with physics.
   double get_dt() override { return dt_factor_; }
 
   // Advance PK from time t_old to time t_new. True value of the last

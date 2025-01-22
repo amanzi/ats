@@ -29,17 +29,19 @@ class MPCWeakSubdomain : public MPC<PK> {
                    const Teuchos::RCP<TreeVector>& solution);
 
   // PK methods
-  // -- dt is the minimum of the sub pks
-  virtual double get_dt() override;
-  virtual void set_dt(double dt) override;
-  virtual void set_tags(const Tag& current, const Tag& next) override;
+  void parseParameterList() override;
 
-  virtual void Setup() override;
-  virtual void Initialize() override;
+  // -- dt is the minimum of the sub pks
+  double get_dt() override;
+  void set_dt(double dt) override;
+  void set_tags(const Tag& current, const Tag& next) override;
+
+  void Setup() override;
+  void Initialize() override;
 
   // -- advance each sub pk dt.
-  virtual bool AdvanceStep(double t_old, double t_new, bool reinit) override;
-  virtual void CommitStep(double t_old, double t_new, const Tag& tag_next) override;
+  bool AdvanceStep(double t_old, double t_new, bool reinit) override;
+  void CommitStep(double t_old, double t_new, const Tag& tag_next) override;
 
  protected:
   void init_();

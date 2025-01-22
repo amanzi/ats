@@ -30,6 +30,11 @@ code, so usually are not supplied by the user.
     * `"conserved quantity key`" ``[string]`` Name of the conserved quantity.
       Usually a sane default is set by the PK.
 
+    * `"max valid change`" ``[double]`` **-1** Sets a limiter on what is a
+      valid change in a single timestep.  Changes larger than this are declared
+      invalid and the timestep shrinks.  By default, any change is valid.
+      Units are the same as the primary variable.
+
     * `"absolute error tolerance`" ``[double]`` **1.0** Absolute tolerance,
       :math:`a_tol` in the equation above.  Unit are the same as the conserved
       quantity.  Note that this default is often overridden by PKs with more
@@ -72,8 +77,11 @@ class PK_PhysicalBDF_Default : public PK_BDF_Default, public PK_Physical_Default
                          const Teuchos::RCP<TreeVector>& solution)
     : PK(pk_tree, glist, S, solution),
       PK_BDF_Default(pk_tree, glist, S, solution),
-      PK_Physical_Default(pk_tree, glist, S, solution)
+      PK_Physical_Default(pk_tree, glist, S, solution),
+      max_valid_change_(-1.0)
   {}
+
+  virtual void parseParameterList() override;
 
   virtual void Setup() override;
 
@@ -94,10 +102,7 @@ class PK_PhysicalBDF_Default : public PK_BDF_Default, public PK_Physical_Default
   virtual double
   ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const TreeVector> du) override;
 
-  virtual bool ValidStep() override
-  {
-    return PK_Physical_Default::ValidStep() && PK_BDF_Default::ValidStep();
-  }
+  bool IsValid(const Teuchos::RCP<const TreeVector>& up) override;
 
   // -- Commit any secondary (dependent) variables.
   virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
@@ -123,6 +128,9 @@ class PK_PhysicalBDF_Default : public PK_BDF_Default, public PK_Physical_Default
 
   // BCs
   Teuchos::RCP<Operators::BCs> bc_;
+
+  // step validity
+  double max_valid_change_;
 
   // error criteria
   Key conserved_key_;

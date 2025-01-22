@@ -49,17 +49,23 @@
 namespace Amanzi {
 
 void
+MPCCoupledCells::parseParameterList()
+{
+  StrongMPC<PK_PhysicalBDF_Default>::parseParameterList();
+
+  Key domain = plist_->get<std::string>("domain name");
+  mesh_ = S_->GetMesh(domain);
+
+  A_key_ = Keys::readKey(*plist_, domain, "conserved quantity A");
+  B_key_ = Keys::readKey(*plist_, domain, "conserved quantity B");
+  y1_key_ = Keys::readKey(*plist_, domain, "primary variable A");
+  y2_key_ = Keys::readKey(*plist_, domain, "primary variable B");
+}
+
+void
 MPCCoupledCells::Setup()
 {
   StrongMPC<PK_PhysicalBDF_Default>::Setup();
-
-  A_key_ = plist_->get<std::string>("conserved quantity A");
-  B_key_ = plist_->get<std::string>("conserved quantity B");
-  y1_key_ = plist_->get<std::string>("primary variable A");
-  y2_key_ = plist_->get<std::string>("primary variable B");
-
-  Key mesh_key = plist_->get<std::string>("domain name");
-  mesh_ = S_->GetMesh(mesh_key);
 
   // set up debugger
   db_ = sub_pks_[0]->debugger();
@@ -87,10 +93,9 @@ MPCCoupledCells::Setup()
   S_->RequireEvaluator(A_key_, tag_next_);
   S_->RequireEvaluator(y2_key_, tag_next_);
 
-  // BROKEN CONCEPT: See Amanzi ticket #654
-  // if (S_->GetEvaluator(A_key_, tag_next_).IsDifferentiableWRT(*S_, y2_key_, tag_next_))
-  S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
-    A_key_, tag_next_, y2_key_, tag_next_);
+  if (S_->GetEvaluator(A_key_, tag_next_).IsDifferentiableWRT(*S_, y2_key_, tag_next_))
+    S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
+      A_key_, tag_next_, y2_key_, tag_next_);
 
   if (!plist_->get<bool>("no dA/dy2 block", false)) {
     Teuchos::ParameterList& acc_pc_plist = plist_->sublist("dA_dy2 accumulation preconditioner");
@@ -108,10 +113,9 @@ MPCCoupledCells::Setup()
   S_->RequireEvaluator(B_key_, tag_next_);
   S_->RequireEvaluator(y1_key_, tag_next_);
 
-  // BROKEN CONCEPT: See Amanzi ticket #654
-  // if (S_->GetEvaluator(B_key_, tag_next_).IsDifferentiableWRT(*S_, y1_key_, tag_next_))
-  S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
-    B_key_, tag_next_, y1_key_, tag_next_);
+  if (S_->GetEvaluator(B_key_, tag_next_).IsDifferentiableWRT(*S_, y1_key_, tag_next_))
+    S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
+      B_key_, tag_next_, y1_key_, tag_next_);
 
   if (!plist_->get<bool>("no dB/dy1 block", false)) {
     Teuchos::ParameterList& acc_pc_plist = plist_->sublist("dB_dy1 accumulation preconditioner");

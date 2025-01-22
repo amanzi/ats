@@ -24,13 +24,19 @@ PK_Physical_Default::PK_Physical_Default(Teuchos::ParameterList& pk_tree,
                                          const Teuchos::RCP<Teuchos::ParameterList>& glist,
                                          const Teuchos::RCP<State>& S,
                                          const Teuchos::RCP<TreeVector>& solution)
-  : PK(pk_tree, glist, S, solution), PK_Physical(pk_tree, glist, S, solution)
-{
-  key_ = Keys::readKey(*plist_, domain_, "primary variable");
+  : PK(pk_tree, glist, S, solution),
+    PK_Physical(pk_tree, glist, S, solution)
+{}
 
-  // primary variable max change
-  max_valid_change_ = plist_->get<double>("max valid change", -1.0);
+void
+PK_Physical_Default::parseParameterList()
+{
+  // require primary variable evaluators
+  key_ = Keys::readKey(*plist_, domain_, "primary variable");
+  requireAtNext(key_, tag_next_, *S_, name_);
+  requireAtCurrent(key_, tag_current_, *S_, name_);
 }
+
 
 // -----------------------------------------------------------------------------
 // Construction of data.
@@ -39,9 +45,6 @@ PK_Physical_Default::PK_Physical_Default(Teuchos::ParameterList& pk_tree,
 void
 PK_Physical_Default::Setup()
 {
-  // get the mesh
-  mesh_ = S_->GetMesh(domain_);
-
   // set up the debugger
   Teuchos::RCP<Teuchos::ParameterList> vo_plist = plist_;
   if (plist_->isSublist(name_ + " verbose object")) {
@@ -50,10 +53,6 @@ PK_Physical_Default::Setup()
   }
 
   db_ = Teuchos::rcp(new Debugger(mesh_, name_, *vo_plist));
-
-  // require primary variable evaluators
-  requireAtNext(key_, tag_next_, *S_, name_);
-  requireAtCurrent(key_, tag_current_, *S_, name_);
 };
 
 
@@ -76,33 +75,6 @@ PK_Physical_Default::FailStep(double t_old, double t_new, const Tag& tag_next)
   AMANZI_ASSERT(tag_next == tag_next_ || tag_next == Tags::NEXT);
   Tag tag_current = tag_next == tag_next_ ? tag_current_ : Tags::CURRENT;
   assign(key_, tag_next, tag_current, *S_);
-}
-
-
-// -----------------------------------------------------------------------------
-// Ensures the step size is smaller than max_valid_change
-// -----------------------------------------------------------------------------
-bool
-PK_Physical_Default::ValidStep()
-{
-  Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "Validating time step." << std::endl;
-
-  if (max_valid_change_ > 0.0) {
-    const CompositeVector& var_new = S_->Get<CompositeVector>(key_, tag_next_);
-    const CompositeVector& var_old = S_->Get<CompositeVector>(key_, tag_current_);
-    CompositeVector dvar(var_new);
-    dvar.Update(-1., var_old, 1.);
-    double change = 0.;
-    dvar.NormInf(&change);
-    if (change > max_valid_change_) {
-      if (vo_->os_OK(Teuchos::VERB_LOW))
-        *vo_->os() << "Invalid time step, max primary variable change=" << change
-                   << " > limit=" << max_valid_change_ << std::endl;
-      return false;
-    }
-  }
-  return true;
 }
 
 

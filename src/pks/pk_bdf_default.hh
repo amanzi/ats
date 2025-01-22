@@ -18,7 +18,7 @@ PKs.
 .. _pk-bdf-default-spec:
 .. admonition:: pk-bdf-default-spec
 
-    * `"initial time step [s]`" ``[double]`` **1.** Initial time step size [s]
+    * `"initial timestep [s]`" ``[double]`` **1.** Initial timestep size [s]
 
     * `"assemble preconditioner`" ``[bool]`` **true** A flag, typically not set
       by user but by an MPC.
@@ -56,7 +56,9 @@ class PK_BDF_Default : public PK_BDF {
                  const Teuchos::RCP<Teuchos::ParameterList>& glist,
                  const Teuchos::RCP<State>& S,
                  const Teuchos::RCP<TreeVector>& solution)
-    : PK(pk_tree, glist, S, solution), PK_BDF(pk_tree, glist, S, solution)
+    : PK(pk_tree, glist, S, solution),
+      PK_BDF(pk_tree, glist, S, solution),
+      dt_next_(-1.0)
   {}
 
   // Virtual destructor
@@ -69,7 +71,7 @@ class PK_BDF_Default : public PK_BDF {
   // -- Initialize
   virtual void Initialize() override;
 
-  // -- Choose a time step compatible with physics.
+  // -- Choose a timestep compatible with physics.
   virtual double get_dt() override;
 
   virtual void set_dt(double dt) override;
@@ -112,6 +114,7 @@ class PK_BDF_Default : public PK_BDF {
  protected:                      // data
   bool assemble_preconditioner_; // preconditioner assembly control
   bool strongly_coupled_;        // if we are coupled, no need to make a TI
+  double dt_next_;
 
   // timestep control
   Teuchos::RCP<BDF1_TI<TreeVector, TreeVectorSpace>> time_stepper_;

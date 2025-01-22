@@ -74,13 +74,11 @@ Solves an advection-diffusion equation for energy:
     * `"source key`" ``[string]`` **DOMAIN-total_energy_source** Typically
       not set, as the default is good. ``[MJ s^-1]``
 
-    * `"source term is differentiable`" ``[bool]`` **true** Can the source term
-      be differentiated with respect to the primary variable?
-
-    * `"source term finite difference`" ``[bool]`` **false** If the source term
-      is not diffferentiable, we can do a finite difference approximation of
-      this derivative anyway.  This is useful for difficult-to-differentiate
-      terms like a surface energy balance, which includes many terms.
+    * `"source term finite difference`" ``[bool]`` **false** Option to do a
+      finite difference approximation of the source term's derivative with
+      respect to the primary variable.  This is useful for
+      difficult-to-differentiate terms like a surface energy balance, which
+      includes many terms.
 
     END
 
@@ -182,6 +180,9 @@ class EnergyBase : public PK_PhysicalBDF_Default {
   // Virtual destructor
   virtual ~EnergyBase() {}
 
+  // call to allow a PK to modify its own list or lists of its children.
+  virtual void parseParameterList() override;
+
   // EnergyBase is a PK
   // -- Setup data
   virtual void Setup() override;
@@ -202,7 +203,7 @@ class EnergyBase : public PK_PhysicalBDF_Default {
   // computes the non-linear functional f = f(t,u,udot)
   virtual void FunctionalResidual(double t_old,
                                   double t_new,
-                                  Teuchos::RCP<TreeVector> u_old,
+                                  Teuchos::RCP<const TreeVector> u_old,
                                   Teuchos::RCP<TreeVector> u_new,
                                   Teuchos::RCP<TreeVector> f) override;
 

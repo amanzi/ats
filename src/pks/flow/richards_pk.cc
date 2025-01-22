@@ -59,21 +59,35 @@ Richards::Richards(Teuchos::ParameterList& pk_tree,
     jacobian_lag_(0),
     iter_(0),
     iter_counter_time_(0.),
-    fixed_kr_(false)
+    fixed_kr_(false),
+    is_source_term_(false),
+    is_source_term_differentiable_(false)
+{}
+
+
+
+void
+Richards::parseParameterList()
 {
+  // set some defaults for inherited PKs
+  if (!plist_->isParameter("conserved quantity key suffix"))
+    plist_->set<std::string>("conserved quantity key suffix", "water_content");
+
   // set a default absolute tolerance
   if (!plist_->isParameter("absolute error tolerance"))
     plist_->set("absolute error tolerance", .5 * .1 * 55000.); // phi * s * nl
 
   // get field names
-  conserved_key_ = Keys::readKey(*plist_, domain_, "conserved", "water_content");
   mass_dens_key_ = Keys::readKey(*plist_, domain_, "mass density", "mass_density_liquid");
   molar_dens_key_ = Keys::readKey(*plist_, domain_, "molar density", "molar_density_liquid");
   perm_key_ = Keys::readKey(*plist_, domain_, "permeability", "permeability");
   coef_key_ = Keys::readKey(*plist_, domain_, "conductivity", "relative_permeability");
   uw_coef_key_ =
     Keys::readKey(*plist_, domain_, "upwinded conductivity", "upwind_relative_permeability");
+
   flux_key_ = Keys::readKey(*plist_, domain_, "darcy flux", "water_flux");
+  requireAtNext(flux_key_, tag_next_, *S_, name_);
+
   flux_dir_key_ = Keys::readKey(*plist_, domain_, "darcy flux direction", "water_flux_direction");
   velocity_key_ = Keys::readKey(*plist_, domain_, "darcy velocity", "darcy_velocity");
   sat_key_ = Keys::readKey(*plist_, domain_, "saturation", "saturation_liquid");
@@ -91,7 +105,35 @@ Richards::Richards(Teuchos::ParameterList& pk_tree,
   // scaling for permeability for better "nondimensionalization"
   perm_scale_ = plist_->get<double>("permeability rescaling", 1.e7);
   S_->ICList().sublist("permeability_rescaling").set<double>("value", perm_scale_);
+  S_->GetEvaluatorList(coef_key_).set<double>("permeability rescaling", perm_scale_);
+
+  // source terms
+  is_source_term_ = plist_->get<bool>("source term", false);
+  if (is_source_term_) {
+    if (source_key_.empty()) {
+      source_key_ = Keys::readKey(*plist_, domain_, "source", "water_source");
+    }
+    explicit_source_ = plist_->get<bool>("explicit source term", false);
+  }
+
+  // coupling to surface
+  coupled_to_surface_via_flux_ = plist_->get<bool>("coupled to surface via flux", false);
+  if (coupled_to_surface_via_flux_) {
+    Key domain_surf = Keys::readDomainHint(*plist_, domain_, "subsurface", "surface");
+    ss_flux_key_ =
+      Keys::readKey(*plist_, domain_surf, "surface-subsurface flux", "surface_subsurface_flux");
+  }
+
+  coupled_to_surface_via_head_ = plist_->get<bool>("coupled to surface via head", false);
+  if (coupled_to_surface_via_head_) {
+    Key domain_surf = Keys::readDomainHint(*plist_, domain_, "subsurface", "surface");
+    ss_primary_key_ = Keys::readKey(*plist_, domain_surf, "pressure", "pressure");
+  }
+
+  // parse inherited lists
+  PK_PhysicalBDF_Default::parseParameterList();
 }
+
 
 // -------------------------------------------------------------
 // Setup data
@@ -333,42 +375,29 @@ Richards::SetupRichardsFlow_()
   // }
 
   // -- source terms
-  is_source_term_ = plist_->get<bool>("source term", false);
   if (is_source_term_) {
-    if (source_key_.empty())
-      source_key_ = Keys::readKey(*plist_, domain_, "source", "water_source");
-    source_term_is_differentiable_ = plist_->get<bool>("source term is differentiable", true);
-    explicit_source_ = plist_->get<bool>("explicit source term", false);
-
     requireAtNext(source_key_, tag_next_, *S_)
       .SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-    if (source_term_is_differentiable_) {
+    if (!explicit_source_ && S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
+      is_source_term_differentiable_ = true;
       // require derivative of source
-      S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
-        source_key_, tag_next_, key_, tag_next_);
+      S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(source_key_, tag_next_, key_, tag_next_);
     }
   }
 
   // coupling to the surface
   // -- coupling done by a Neumann condition
-  coupled_to_surface_via_flux_ = plist_->get<bool>("coupled to surface via flux", false);
   if (coupled_to_surface_via_flux_) {
-    Key domain_surf = Keys::readDomainHint(*plist_, domain_, "subsurface", "surface");
-    ss_flux_key_ =
-      Keys::readKey(*plist_, domain_surf, "surface-subsurface flux", "surface_subsurface_flux");
     S_->Require<CompositeVector, CompositeVectorSpace>(ss_flux_key_, tag_next_)
-      .SetMesh(S_->GetMesh(domain_surf))
+      .SetMesh(S_->GetMesh(Keys::getDomain(ss_flux_key_)))
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   }
 
   // -- coupling done by a Dirichlet condition
-  coupled_to_surface_via_head_ = plist_->get<bool>("coupled to surface via head", false);
   if (coupled_to_surface_via_head_) {
-    Key domain_surf = Keys::readDomainHint(*plist_, domain_, "subsurface", "surface");
-    ss_primary_key_ = Keys::readKey(*plist_, domain_surf, "pressure", "pressure");
     S_->Require<CompositeVector, CompositeVectorSpace>(ss_primary_key_, tag_next_)
-      .SetMesh(S_->GetMesh(domain_surf))
+      .SetMesh(S_->GetMesh(Keys::getDomain(ss_primary_key_)))
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   }
 
@@ -419,9 +448,9 @@ Richards::SetupRichardsFlow_()
     plist_->get<double>("limit correction to pressure change when crossing atmospheric [Pa]", -1.);
 
   // -- valid step controls
-  sat_change_limit_ = plist_->get<double>("max valid change in saturation in a time step [-]", -1.);
+  sat_change_limit_ = plist_->get<double>("max valid change in saturation in a timestep [-]", -1.);
   sat_ice_change_limit_ =
-    plist_->get<double>("max valid change in ice saturation in a time step [-]", -1.);
+    plist_->get<double>("max valid change in ice saturation in a timestep [-]", -1.);
 }
 
 // -------------------------------------------------------------
@@ -704,10 +733,10 @@ Richards::CommitStep(double t_old, double t_new, const Tag& tag_next)
 // Check for controls on saturation
 // -----------------------------------------------------------------------------
 bool
-Richards::ValidStep()
+Richards::IsValid(const Teuchos::RCP<const TreeVector>& u)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "Validating time step." << std::endl;
+  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "Validating timestep." << std::endl;
 
   if (sat_change_limit_ > 0.0) {
     const Epetra_MultiVector& sl_new =
@@ -720,7 +749,7 @@ Richards::ValidStep()
 
     if (change.value > sat_change_limit_) {
       if (vo_->os_OK(Teuchos::VERB_LOW))
-        *vo_->os() << "Invalid time step, max sl change=" << change.value
+        *vo_->os() << "Invalid timestep, max sl change=" << change.value
                    << " > limit=" << sat_change_limit_ << " at cell GID " << change.gid
                    << std::endl;
       return false;
@@ -738,13 +767,13 @@ Richards::ValidStep()
 
     if (change.value > sat_ice_change_limit_) {
       if (vo_->os_OK(Teuchos::VERB_LOW))
-        *vo_->os() << "Invalid time step, max si change=" << change.value
+        *vo_->os() << "Invalid timestep, max si change=" << change.value
                    << " > limit=" << sat_ice_change_limit_ << " at cell GID " << change.gid
                    << std::endl;
       return false;
     }
   }
-  return PK_PhysicalBDF_Default::ValidStep();
+  return PK_PhysicalBDF_Default::IsValid(u);
 }
 
 
@@ -911,6 +940,15 @@ Richards::UpdatePermeabilityDerivativeData_(const Tag& tag)
       upwinding_deriv_->Update(drel_perm, duw_rel_perm, *S_);
     }
   }
+
+  std::vector<std::string> vnames{ "dkrel" };
+  std::vector<Teuchos::Ptr<const CompositeVector>> vecs{
+    S_->GetDerivativePtr<CompositeVector>(coef_key_, tag, key_, tag).ptr() };
+  if (!duw_coef_key_.empty()) {
+    vnames.emplace_back("uw_dkrel");
+    vecs.emplace_back(S_->GetPtr<CompositeVector>(duw_coef_key_, tag).ptr());
+  }
+  db_->WriteVectors(vnames, vecs, true);
 
   // debugging
   if (vo_->os_OK(Teuchos::VERB_EXTREME)) { *vo_->os() << " " << update_perm << std::endl; }
@@ -1242,7 +1280,7 @@ Richards::UpdateBoundaryConditions_(const Tag& tag, bool kr)
   bc_counts.push_back(n_default);
 
   // report on counts
-  if (vo_->os_OK(Teuchos::VERB_HIGH)) {
+  if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
     std::vector<int> bc_counts_global(bc_counts.size(), 0);
     mesh_->getComm()->SumAll(&bc_counts[0], &bc_counts_global[0], bc_counts.size());
 

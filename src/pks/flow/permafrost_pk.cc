@@ -74,9 +74,7 @@ Permafrost::SetupPhysicalEvaluators_()
 
   //    and at the current time, where it is a copy evaluator
   requireAtCurrent(sat_key_, tag_current_, *S_, name_, true);
-  // S_->RequireEvaluator(sat_key_, tag_current_);
   requireAtCurrent(sat_ice_key_, tag_current_, *S_, name_, true);
-  // S_->RequireEvaluator(sat_ice_key_, tag_current_);
 
   // -- the rel perm evaluator, also with the same underlying WRM.
   S_->GetEvaluatorList(coef_key_).set<double>("permeability rescaling", perm_scale_);

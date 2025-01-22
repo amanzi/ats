@@ -13,7 +13,9 @@
 
 #include "Teuchos_Time.hpp"
 #include "Teuchos_RCP.hpp"
+#include "Teuchos_Comm.hpp"
 #include "Teuchos_ParameterList.hpp"
+#include "Teuchos_TimeMonitor.hpp"
 #include "Epetra_MpiComm.h"
 #include "AmanziComm.hh"
 #include "AmanziTypes.hh"
@@ -21,7 +23,9 @@
 #include "VerboseObject.hh"
 
 namespace Amanzi {
+namespace Utils {
 class TimeStepManager;
+} // namespace Utils
 class Visualization;
 class Checkpoint;
 class State;
@@ -64,8 +68,8 @@ class Coordinator {
   Teuchos::RCP<Amanzi::State> S_;
   Teuchos::RCP<Amanzi::TreeVector> soln_;
 
-  // time step manager
-  Teuchos::RCP<Amanzi::TimeStepManager> tsm_;
+  // timestep manager
+  Teuchos::RCP<Amanzi::Utils::TimeStepManager> tsm_;
 
   // misc setup information
   Teuchos::RCP<Teuchos::ParameterList> plist_;

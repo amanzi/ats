@@ -161,32 +161,32 @@ void
 EnergyBase::AddSourcesToPrecon_(double h)
 {
   // external sources of energy (temperature dependent source)
-  if (is_source_term_ && is_source_term_differentiable_ &&
-      S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
-    Teuchos::RCP<CompositeVector> dsource_dT;
+  Teuchos::RCP<CompositeVector> dsource_dT(Teuchos::null);
 
-    if (is_source_term_finite_differentiable_) {
-      // evaluate the derivative through finite differences
-      double eps = 1.e-8;
-      S_->GetW<CompositeVector>(key_, tag_next_, name_).Shift(eps);
-      ChangedSolution();
-      S_->GetEvaluator(source_key_, tag_next_).Update(*S_, name_);
-      auto dsource_dT_nc =
-        Teuchos::rcp(new CompositeVector(S_->Get<CompositeVector>(source_key_, tag_next_)));
+  if (is_source_term_finite_differentiable_) {
+    // evaluate the derivative through finite differences
+    double eps = 1.e-8;
+    S_->GetW<CompositeVector>(key_, tag_next_, name_).Shift(eps);
+    ChangedSolution();
+    S_->GetEvaluator(source_key_, tag_next_).Update(*S_, name_);
+    auto dsource_dT_nc =
+      Teuchos::rcp(new CompositeVector(S_->Get<CompositeVector>(source_key_, tag_next_)));
 
-      S_->GetW<CompositeVector>(key_, tag_next_, name_).Shift(-eps);
-      ChangedSolution();
-      S_->GetEvaluator(source_key_, tag_next_).Update(*S_, name_);
+    S_->GetW<CompositeVector>(key_, tag_next_, name_).Shift(-eps);
+    ChangedSolution();
+    S_->GetEvaluator(source_key_, tag_next_).Update(*S_, name_);
 
-      dsource_dT_nc->Update(-1 / eps, S_->Get<CompositeVector>(source_key_, tag_next_), 1 / eps);
-      dsource_dT = dsource_dT_nc;
+    dsource_dT_nc->Update(-1 / eps, S_->Get<CompositeVector>(source_key_, tag_next_), 1 / eps);
+    dsource_dT = dsource_dT_nc;
 
-    } else {
-      // evaluate the derivative through the dag
-      S_->GetEvaluator(source_key_, tag_next_).UpdateDerivative(*S_, name_, key_, tag_next_);
-      dsource_dT = S_->GetDerivativePtrW<CompositeVector>(
-        source_key_, tag_next_, key_, tag_next_, source_key_);
-    }
+  } else if (is_source_term_differentiable_) {
+    // evaluate the derivative through the dag
+    S_->GetEvaluator(source_key_, tag_next_).UpdateDerivative(*S_, name_, key_, tag_next_);
+    dsource_dT = S_->GetDerivativePtrW<CompositeVector>(
+      source_key_, tag_next_, key_, tag_next_, source_key_);
+  }
+
+  if (dsource_dT != Teuchos::null) {
     db_->WriteVector("  dQ_ext/dT", dsource_dT.ptr(), false);
     preconditioner_acc_->AddAccumulationTerm(*dsource_dT, -1.0, "cell", true);
   }

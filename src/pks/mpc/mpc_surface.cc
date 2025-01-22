@@ -40,7 +40,13 @@ MPCSurface::MPCSurface(Teuchos::ParameterList& pk_tree_list,
                        const Teuchos::RCP<TreeVector>& soln)
   : PK(pk_tree_list, global_list, S, soln),
     StrongMPC<PK_PhysicalBDF_Default>(pk_tree_list, global_list, S, soln)
+{}
+
+void
+MPCSurface::parseParameterList()
 {
+  StrongMPC<PK_PhysicalBDF_Default>::parseParameterList();
+
   auto pk_order = plist_->get<Teuchos::Array<std::string>>("PKs order");
   domain_ = plist_->get<std::string>("domain name");
 

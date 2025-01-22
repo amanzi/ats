@@ -9,16 +9,23 @@
 
 /*!
 
-Computes the depth to a saturated water table.
+Computes the depth to the water table.
 
 `"evaluator type`" = `"water table depth`"
 
 .. _water-table-depth-spec:
 .. admonition:: water-table-depth-spec
 
+    * `"interpolate depth from pressure`" ``[bool]`` **false** Default to calculate
+      water table depth by locating the top face of the last continuously saturated 
+      cell from bottom upward. If true, use the height and pressure at the centroids 
+      of the last continuously saturated cell and its adjacent unsaturated cell to 
+      determine the water table depth through interpolation.
+
     KEYS:
 
     - `"saturation of gas`" **SUBSURFACE_DOMAIN-saturation-gas**
+    - `"pressure`" **SUBSURFACE_DOMAIN-pressure**
     - `"subsurface cell volume`" **SUBSURFACE_DOMAIN-cell_volume**
     - `"surface cell volume`" **DOMAIN-cell_volume**
 
@@ -28,7 +35,7 @@ Computes the depth to a saturated water table.
 #pragma once
 
 #include "Factory.hh"
-#include "EvaluatorColumnIntegrator.hh"
+#include "WaterTableColumnIntegrator.hh"
 
 namespace Amanzi {
 namespace Relations {
@@ -49,13 +56,15 @@ class IntegratorWaterTableDepth {
 
  private:
   const Epetra_MultiVector* sat_;
+  const Epetra_MultiVector* pres_;
   const Epetra_MultiVector* cv_;
   const Epetra_MultiVector* surf_cv_;
+  const AmanziMesh::Mesh* mesh_;
+  bool is_interp_;
 };
 
 using WaterTableDepthEvaluator =
-  EvaluatorColumnIntegrator<ParserWaterTableDepth, IntegratorWaterTableDepth>;
-
+  WaterTableColumnIntegrator<ParserWaterTableDepth, IntegratorWaterTableDepth>;
 
 } //namespace Relations
 } //namespace Amanzi

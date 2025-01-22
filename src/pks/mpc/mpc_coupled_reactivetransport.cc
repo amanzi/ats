@@ -32,6 +32,12 @@ MPCCoupledReactiveTransport::MPCCoupledReactiveTransport(
 
   alquimia_timer_ = Teuchos::TimeMonitor::getNewCounter("alquimia " + name());
   alquimia_surf_timer_ = Teuchos::TimeMonitor::getNewCounter("alquimia surface " + name());
+}
+
+void
+MPCCoupledReactiveTransport::parseParameterList()
+{
+  WeakMPC::parseParameterList();
 
   domain_ = Keys::readDomain(*plist_, "domain", "domain");
   domain_surf_ = Keys::readDomainHint(*plist_, domain_, "domain", "surface");
@@ -212,7 +218,7 @@ MPCCoupledReactiveTransport::AdvanceStep(double t_old, double t_new, bool reinit
     return fail;
   } else {
     transport_pk_surf_->debugger()->WriteCellVector("tcc (chem)", *tcc_surf);
-    transport_pk_surf_->VV_PrintSoluteExtrema(*tcc_surf, t_new - t_old);
+    transport_pk_surf_->PrintSoluteExtrema(*tcc_surf, t_new - t_old);
   }
 
   // Chemistry in the subsurface
@@ -233,7 +239,7 @@ MPCCoupledReactiveTransport::AdvanceStep(double t_old, double t_new, bool reinit
     return fail;
   } else {
     transport_pk_->debugger()->WriteCellVector("tcc (chem)", *tcc);
-    transport_pk_->VV_PrintSoluteExtrema(*tcc, t_new - t_old);
+    transport_pk_->PrintSoluteExtrema(*tcc, t_new - t_old);
   }
 
   chem_step_succeeded_ = true;
