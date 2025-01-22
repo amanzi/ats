@@ -839,6 +839,8 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   // interpolate in time, allowing transport to not have to know how flow is
   // being integrated... FIXME --etc
   S_->GetEvaluator(flux_key_, Tags::NEXT).Update(*S_, name_);
+  S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ScatterMasterToGhosted("face");
+
   S_->GetEvaluator(saturation_key_, Tags::NEXT).Update(*S_, name_);
   S_->GetEvaluator(saturation_key_, Tags::CURRENT).Update(*S_, name_);
   S_->GetEvaluator(molar_density_key_, Tags::NEXT).Update(*S_, name_);
@@ -971,7 +973,6 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   }
 
   ComputeStableTimeStep_();
-
   ChangedSolutionPK(tag_next_);
   return failed;
 }
