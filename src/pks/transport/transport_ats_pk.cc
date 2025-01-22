@@ -5,6 +5,7 @@
   provided in the top-level COPYRIGHT file.
 
   Authors: Konstantin Lipnikov (lipnikov@lanl.gov)
+           Daniil Svyatsky (dasvyat@lanl.gov)
            Ethan Coon (ecoont@ornl.gov)
            Phong Le (lepv@ornl.gov)
 */
@@ -843,6 +844,9 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   S_->GetEvaluator(saturation_key_, Tags::CURRENT).Update(*S_, name_);
   S_->GetEvaluator(molar_density_key_, Tags::NEXT).Update(*S_, name_);
   S_->GetEvaluator(molar_density_key_, Tags::CURRENT).Update(*S_, name_);
+
+  S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ScatterMasterToGhosted("face");
+
 
 #ifdef ALQUIMIA_ENABLED
   if (plist_->sublist("source terms").isSublist("geochemical")) {
