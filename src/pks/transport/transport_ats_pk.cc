@@ -838,10 +838,14 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   S_->GetEvaluator(flux_key_, Tags::NEXT).Update(*S_, name_);
 
   // why are we re-assigning all of these?  The previous pointers shouldn't have changed... --ETC
+  S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ScatterMasterToGhosted("face");
+  
   flux_ = S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ViewComponent("face", true);
+
   // why are we copying this?  This should result in constant flux, no need to copy? --ETC
   *flux_copy_ = *flux_; // copy flux vector from S_next_ to S_;
-
+    
+  
   S_->GetEvaluator(saturation_key_, Tags::NEXT).Update(*S_, name_);
   ws_ = S_->Get<CompositeVector>(saturation_key_, Tags::NEXT).ViewComponent("cell", false);
   S_->GetEvaluator(saturation_key_, Tags::CURRENT).Update(*S_, name_);
@@ -852,7 +856,7 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   S_->GetEvaluator(molar_density_key_, Tags::CURRENT).Update(*S_, name_);
   mol_dens_prev_ =
     S_->Get<CompositeVector>(molar_density_key_, Tags::CURRENT).ViewComponent("cell", false);
-
+  
   //if (subcycling_) S_->set_time(tag_subcycle_current_, t_old);
 
   // this is locally created and has no evaluator -- should get a primary
@@ -1034,6 +1038,7 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
 
     VV_PrintSoluteExtrema(tcc_next, dt_MPC);
   }
+
 
   // ETC BEGIN HACKING
   StableTimeStep();
