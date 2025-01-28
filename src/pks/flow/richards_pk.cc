@@ -804,6 +804,7 @@ Richards::CalculateDiagnostics(const Tag& tag)
   // derive fluxes
   Teuchos::RCP<CompositeVector> flux = S_->GetPtrW<CompositeVector>(flux_key_, tag_next_, name_);
   matrix_diff_->UpdateFlux(pres.ptr(), flux.ptr());
+  flux->ScatterMasterToGhosted("face");
   UpdateVelocity_(tag);
 };
 
