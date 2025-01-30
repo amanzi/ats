@@ -14,7 +14,7 @@
 // faces.
 // -----------------------------------------------------------------------------
 
-#include "Tensor.hh"
+#include "TensorVector.hh"
 #include "CompositeVector.hh"
 #include "State.hh"
 #include "upwind_gravity_flux.hh"
@@ -24,7 +24,7 @@ namespace Operators {
 
 UpwindGravityFlux::UpwindGravityFlux(const std::string& pkname,
                                      const Tag& tag,
-                                     const Teuchos::RCP<std::vector<WhetStone::Tensor>> K)
+                                     const Teuchos::RCP<const TensorVector>& K)
   : pkname_(pkname), tag_(tag), K_(K){};
 
 void

@@ -12,6 +12,7 @@
 #include "flow_bc_factory.hh"
 
 #include "Point.hh"
+#include "TensorVector.hh"
 
 #include "upwind_cell_centered.hh"
 #include "upwind_arithmetic_mean.hh"
@@ -131,9 +132,10 @@ Preferential::UpdatePermeabilityData_(const Tag& tag)
         S_->GetPtrW<CompositeVector>(flux_dir_key_, tag, name_);
       Teuchos::RCP<const CompositeVector> pres = S_->GetPtr<CompositeVector>(key_, tag);
 
-      if (!deform_key_.empty() &&
-          S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_ + " flux dir"))
-        face_matrix_diff_->SetTensorCoefficient(K_);
+      if ((!deform_key_.empty() &&
+           S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_ + " flux dir")) ||
+          S_->GetEvaluator(perm_key_, tag_next_).Update(*S_, name_+" flux dir"))
+        face_matrix_diff_->SetTensorCoefficient(Teuchos::rcpFromRef(S_->Get<TensorVector>(perm_key_, tag_next_).data));
 
       face_matrix_diff_->SetDensity(rho);
       face_matrix_diff_->UpdateMatrices(Teuchos::null, pres.ptr());

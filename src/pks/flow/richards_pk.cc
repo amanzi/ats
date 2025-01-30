@@ -28,6 +28,7 @@
 #include "OperatorDefs.hh"
 #include "BoundaryFlux.hh"
 #include "pk_helpers.hh"
+#include "TensorVector.hh"
 
 #include "richards.hh"
 
@@ -106,6 +107,7 @@ Richards::parseParameterList()
   perm_scale_ = plist_->get<double>("permeability rescaling", 1.e7);
   S_->ICList().sublist("permeability_rescaling").set<double>("value", perm_scale_);
   S_->GetEvaluatorList(coef_key_).set<double>("permeability rescaling", perm_scale_);
+  S_->GetEvaluatorList(perm_key_).set<double>("rescaling factor", perm_scale_);
 
   // source terms
   is_source_term_ = plist_->get<bool>("source term", false);
@@ -160,8 +162,6 @@ Richards::SetupRichardsFlow_()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireEvaluator(cell_vol_key_, tag_next_);
 
-  S_->Require<double>("permeability_rescaling", Tags::DEFAULT);
-
   // Set up Operators
   // -- boundary conditions
   Teuchos::ParameterList bc_plist = plist_->sublist("boundary conditions", true);
@@ -189,27 +189,13 @@ Richards::SetupRichardsFlow_()
   bc_rho_water_ = bc_plist.get<double>("hydrostatic water density [kg m^-3]", 1000.);
 
   // -- linear tensor coefficients
-  // permeability type - scalar or tensor?
-  Teuchos::ParameterList& perm_list = S_->GetEvaluatorList(perm_key_);
-  std::string perm_type = perm_list.get<std::string>("permeability type", "scalar");
-  if (perm_type == "scalar") {
-    perm_tensor_rank_ = 1;
-    num_perm_vals_ = 1;
-  } else if (perm_type == "horizontal and vertical") {
-    perm_tensor_rank_ = 2;
-    num_perm_vals_ = 2;
-  } else if (perm_type == "diagonal tensor") {
-    perm_tensor_rank_ = 2;
-    num_perm_vals_ = mesh_->getSpaceDimension();
-  } else if (perm_type == "full tensor") {
-    perm_tensor_rank_ = 2;
-    num_perm_vals_ = (mesh_->getSpaceDimension() == 3) ? 6 : 3;
-  } else {
-    Errors::Message message(
-      "`permeability type` must be one of the following: \"scalar\", \"diagonal tensor\", \"full "
-      "tensor\", or \"horizontal and vertical\".");
-    Exceptions::amanzi_throw(message);
-  }
+  S_->Require<double>("permeability_rescaling", Tags::DEFAULT);
+
+  CompositeVectorSpace perm_space;
+  perm_space.SetMesh(mesh_)->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+  S_->Require<TensorVector, TensorVector_Factory>(perm_key_, tag_next_)
+    .set_map(perm_space);
+  S_->RequireEvaluator(perm_key_, tag_next_);
 
   // is dynamic mesh?  If so, get a key for indicating when the mesh has changed.
   if (!deform_key_.empty()) S_->RequireEvaluator(deform_key_, tag_next_);
@@ -217,10 +203,6 @@ Richards::SetupRichardsFlow_()
   // data allocation -- move to State!
   unsigned int c_owned =
     mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
-  K_ = Teuchos::rcp(new std::vector<WhetStone::Tensor>(c_owned));
-  for (unsigned int c = 0; c != c_owned; ++c) {
-    (*K_)[c].Init(mesh_->getSpaceDimension(), perm_tensor_rank_);
-  }
 
   // -- nonlinear coefficients/upwinding
   // if coupled to the surface, how do we deal with the surface face
@@ -242,7 +224,8 @@ Richards::SetupRichardsFlow_()
   std::string method_name =
     plist_->get<std::string>("relative permeability method", "upwind with Darcy flux");
   if (method_name == "upwind with gravity") {
-    upwinding_ = Teuchos::rcp(new Operators::UpwindGravityFlux(name_, tag_next_, K_));
+    auto K = S_->GetPtr<TensorVector>(perm_key_, tag_next_);
+    upwinding_ = Teuchos::rcp(new Operators::UpwindGravityFlux(name_, tag_next_, K));
     Krel_method_ = Operators::UPWIND_METHOD_GRAVITY;
   } else if (method_name == "cell centered") {
     upwinding_ = Teuchos::rcp(new Operators::UpwindCellCentered(name_, tag_next_));
@@ -460,12 +443,6 @@ Richards::SetupRichardsFlow_()
 void
 Richards::SetupPhysicalEvaluators_()
 {
-  // -- Absolute permeability.
-  requireAtNext(perm_key_, tag_next_, *S_)
-    .SetMesh(mesh_)
-    ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_perm_vals_);
-
   // -- water content, and evaluator, and derivative for PC
   requireAtNext(conserved_key_, tag_next_, *S_)
     .SetMesh(mesh_)
@@ -574,21 +551,18 @@ Richards::Initialize()
   S_->GetRecordW(velocity_key_, Tags::NEXT, name()).set_initialized();
 
   // absolute perm
-  SetAbsolutePermeabilityTensor_(tag_next_);
+  // SetAbsolutePermeabilityTensor_(tag_next_);
 
   // operators
   const AmanziGeometry::Point& g = S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
   matrix_diff_->SetGravity(g);
   matrix_diff_->SetBCs(bc_, bc_);
-  matrix_diff_->SetTensorCoefficient(K_);
 
   preconditioner_diff_->SetGravity(g);
   preconditioner_diff_->SetBCs(bc_, bc_);
-  preconditioner_diff_->SetTensorCoefficient(K_);
 
   face_matrix_diff_->SetGravity(g);
   face_matrix_diff_->SetBCs(bc_, bc_);
-  face_matrix_diff_->SetTensorCoefficient(K_);
   face_matrix_diff_->SetScalarCoefficient(Teuchos::null, Teuchos::null);
 
   // if (vapor_diffusion_){
@@ -795,6 +769,11 @@ Richards::CalculateDiagnostics(const Tag& tag)
   Teuchos::RCP<const CompositeVector> rel_perm =
     S_->GetPtr<CompositeVector>(uw_coef_key_, tag_next_);
   Teuchos::RCP<const CompositeVector> rho = S_->GetPtr<CompositeVector>(mass_dens_key_, tag_next_);
+
+  // update mass matrix?
+  if (S_->GetEvaluator(perm_key_, tag_next_).Update(*S_, name_+" matrix diff"))
+    matrix_diff_->SetTensorCoefficient(Teuchos::rcpFromRef(S_->Get<TensorVector>(perm_key_, tag_next_).data));
+
   // update the stiffness matrix
   matrix_diff_->SetDensity(rho);
   matrix_diff_->SetScalarCoefficient(rel_perm, Teuchos::null);
@@ -821,7 +800,9 @@ Richards::UpdatePermeabilityData_(const Tag& tag)
   if (fixed_kr_) return false;
 
   Teuchos::RCP<const CompositeVector> rel_perm = S_->GetPtr<CompositeVector>(coef_key_, tag);
+  bool update_abs_perm = S_->GetEvaluator(perm_key_, tag_next_).Update(*S_, name_+"face matrix diff");
   bool update_perm = S_->GetEvaluator(coef_key_, tag).Update(*S_, name_);
+  update_perm |= update_abs_perm;
 
   // requirements due to the upwinding method
   if (Krel_method_ == Operators::UPWIND_METHOD_TOTAL_FLUX) {
@@ -835,9 +816,11 @@ Richards::UpdatePermeabilityData_(const Tag& tag)
         S_->GetPtrW<CompositeVector>(flux_dir_key_, tag, name_);
       Teuchos::RCP<const CompositeVector> pres = S_->GetPtr<CompositeVector>(key_, tag);
 
-      if (!deform_key_.empty() &&
-          S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_ + " flux dir"))
-        face_matrix_diff_->SetTensorCoefficient(K_);
+      if ((!deform_key_.empty() &&
+           S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_ + " flux dir")) ||
+          update_abs_perm) {
+        face_matrix_diff_->SetTensorCoefficient(Teuchos::rcpFromRef(S_->Get<TensorVector>(perm_key_, tag_next_).data));
+      }
       face_matrix_diff_->SetDensity(rho);
       face_matrix_diff_->UpdateMatrices(Teuchos::null, pres.ptr());
       face_matrix_diff_->ApplyBCs(true, true, true);
@@ -1346,6 +1329,11 @@ Richards::ModifyPredictorFluxBCs_(double h, Teuchos::RCP<TreeVector> u)
   matrix_diff_->SetScalarCoefficient(rel_perm, Teuchos::null);
   Teuchos::RCP<const CompositeVector> rho = S_->GetPtr<CompositeVector>(mass_dens_key_, tag_next_);
   Teuchos::RCP<const CompositeVector> pres = S_->GetPtr<CompositeVector>(key_, tag_next_);
+
+  // update mass matrix?
+  if (S_->GetEvaluator(perm_key_, tag_next_).Update(*S_, name_+" matrix diff"))
+    matrix_diff_->SetTensorCoefficient(Teuchos::rcpFromRef(S_->Get<TensorVector>(perm_key_, tag_next_).data));
+
   matrix_diff_->SetDensity(rho);
   matrix_diff_->UpdateMatrices(Teuchos::null, pres.ptr());
   //matrix_diff_->ApplyBCs(true, true, true);
@@ -1445,6 +1433,11 @@ Richards::CalculateConsistentFaces(const Teuchos::Ptr<CompositeVector>& u)
 
   // Update the preconditioner with darcy and gravity fluxes
   matrix_->Init();
+
+  // update mass matrix?
+  if (S_->GetEvaluator(perm_key_, tag_next_).Update(*S_, name_+" matrix diff"))
+    matrix_diff_->SetTensorCoefficient(Teuchos::rcpFromRef(S_->Get<TensorVector>(perm_key_, tag_next_).data));
+
   matrix_diff_->SetDensity(rho);
   matrix_diff_->SetScalarCoefficient(rel_perm, Teuchos::null);
   matrix_diff_->UpdateMatrices(Teuchos::null, u);

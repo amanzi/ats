@@ -36,13 +36,6 @@ namespace Flow {
 void
 Permafrost::SetupPhysicalEvaluators_()
 {
-  // -- Absolute permeability.
-  //       For now, we assume scalar permeability.  This will change.
-  requireAtNext(perm_key_, tag_next_, *S_)
-    .SetMesh(mesh_)
-    ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_perm_vals_);
-
   // -- water content, and evaluator, and derivative for PC
   requireAtNext(conserved_key_, tag_next_, *S_)
     .SetMesh(mesh_)
@@ -77,7 +70,6 @@ Permafrost::SetupPhysicalEvaluators_()
   requireAtCurrent(sat_ice_key_, tag_current_, *S_, name_, true);
 
   // -- the rel perm evaluator, also with the same underlying WRM.
-  S_->GetEvaluatorList(coef_key_).set<double>("permeability rescaling", perm_scale_);
   requireAtNext(coef_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
