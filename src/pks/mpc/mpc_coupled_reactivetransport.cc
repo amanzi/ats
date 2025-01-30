@@ -37,7 +37,20 @@ MPCCoupledReactiveTransport::MPCCoupledReactiveTransport(
 void
 MPCCoupledReactiveTransport::parseParameterList()
 {
-  WeakMPC::parseParameterList();
+  cast_sub_pks_();
+  coupled_chemistry_pk_->parseParameterList();
+
+  // communicate chemistry engine to transport.
+#ifdef ALQUIMIA_ENABLED
+  transport_pk_->setChemEngine(
+    Teuchos::rcp_static_cast<AmanziChemistry::Alquimia_PK>(chemistry_pk_),
+    chemistry_pk_->chem_engine());
+  transport_pk_surf_->setChemEngine(
+    Teuchos::rcp_static_cast<AmanziChemistry::Alquimia_PK>(chemistry_pk_surf_),
+    chemistry_pk_surf_->chem_engine());
+#endif
+
+  coupled_transport_pk_->parseParameterList();
 
   domain_ = Keys::readDomain(*plist_, "domain", "domain");
   domain_surf_ = Keys::readDomainHint(*plist_, domain_, "domain", "surface");
@@ -57,8 +70,6 @@ MPCCoupledReactiveTransport::parseParameterList()
 void
 MPCCoupledReactiveTransport::Setup()
 {
-  cast_sub_pks_();
-
   // must Setup transport first to get alias for saturation, etc set up correctly
   coupled_transport_pk_->Setup();
   coupled_chemistry_pk_->Setup();
@@ -106,26 +117,10 @@ MPCCoupledReactiveTransport::cast_sub_pks_()
     Teuchos::rcp_dynamic_cast<Transport::Transport_ATS>(coupled_transport_pk_->get_subpk(1));
   AMANZI_ASSERT(transport_pk_surf_ != Teuchos::null);
 
-  chemistry_pk_ =
-    Teuchos::rcp_dynamic_cast<AmanziChemistry::Chemistry_PK>(coupled_chemistry_pk_->get_subpk(0));
-  AMANZI_ASSERT(chemistry_pk_ != Teuchos::null);
-  chemistry_pk_surf_ =
-    Teuchos::rcp_dynamic_cast<AmanziChemistry::Chemistry_PK>(coupled_chemistry_pk_->get_subpk(1));
-  AMANZI_ASSERT(chemistry_pk_surf_ != Teuchos::null);
-
   AMANZI_ASSERT(transport_pk_->domain() == chemistry_pk_->domain());
   AMANZI_ASSERT(transport_pk_surf_->domain() == chemistry_pk_surf_->domain());
-
-// communicate chemistry engine to transport.
-#ifdef ALQUIMIA_ENABLED
-  transport_pk_->SetupAlquimia(
-    Teuchos::rcp_static_cast<AmanziChemistry::Alquimia_PK>(chemistry_pk_),
-    chemistry_pk_->chem_engine());
-  transport_pk_surf_->SetupAlquimia(
-    Teuchos::rcp_static_cast<AmanziChemistry::Alquimia_PK>(chemistry_pk_surf_),
-    chemistry_pk_surf_->chem_engine());
-#endif
 }
+
 
 // -----------------------------------------------------------------------------
 //

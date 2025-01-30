@@ -154,7 +154,7 @@ Transport_ATS::set_tags(const Tag& current, const Tag& next)
 ****************************************************************** */
 #ifdef ALQUIMIA_ENABLED
 void
-Transport_ATS::SetupAlquimia(Teuchos::RCP<AmanziChemistry::Alquimia_PK> chem_pk,
+Transport_ATS::setChemEngine(Teuchos::RCP<AmanziChemistry::Alquimia_PK> chem_pk,
                              Teuchos::RCP<AmanziChemistry::ChemistryEngine> chem_engine)
 {
   chem_pk_ = chem_pk;
@@ -1042,6 +1042,7 @@ Transport_ATS ::Advance_Dispersion_Diffusion_(double t_old, double t_new)
     // Disperse and diffuse aqueous components
     for (int i = 0; i < num_aqueous_; i++) {
       FindDiffusionValue_(component_names_[i], &md_new, &phase);
+      AMANZI_ASSERT(phase == 0);
       md_change = md_new - md_old;
       md_old = md_new;
 
@@ -1112,8 +1113,9 @@ Transport_ATS ::Advance_Dispersion_Diffusion_(double t_old, double t_new)
     // are treated with a hack of the accumulation term.
     D_.clear();
     md_old = 0.0;
-    for (int i = num_aqueous_; i < num_components_; i++) {
+    for (int i = num_aqueous_; i < (num_aqueous_ + num_gaseous_); i++) {
       FindDiffusionValue_(component_names_[i], &md_new, &phase);
+      AMANZI_ASSERT(phase == 1);
       md_change = md_new - md_old;
       md_old = md_new;
 

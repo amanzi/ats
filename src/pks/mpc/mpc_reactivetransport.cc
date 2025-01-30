@@ -39,20 +39,33 @@ MPCReactiveTransport::MPCReactiveTransport(Teuchos::ParameterList& pk_tree,
 
 
 void
-MPCReactiveTransport::Setup()
+MPCReactiveTransport::parseParameterList()
 {
   cast_sub_pks_();
+  chemistry_pk_->parseParameterList();
 
+#ifdef ALQUIMIA_ENABLED
+  transport_pk_->setChemEngine(
+    Teuchos::rcp_static_cast<AmanziChemistry::Alquimia_PK>(chemistry_pk_),
+    chemistry_pk_->chem_engine());
+#endif
+
+  // now transport can be parse with knowledge of names
+  transport_pk_->parseParameterList();
+}
+
+
+void
+MPCReactiveTransport::Setup()
+{
   transport_pk_->Setup();
   chemistry_pk_->Setup();
-
 
   S_->Require<CompositeVector, CompositeVectorSpace>(tcc_key_, tag_next_, "state")
     .SetMesh(S_->GetMesh(domain_))
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, chemistry_pk_->num_aqueous_components());
   S_->RequireEvaluator(tcc_key_, tag_next_);
-
 
   S_->Require<CompositeVector, CompositeVectorSpace>(mol_dens_key_, tag_next_)
     .SetMesh(S_->GetMesh(domain_))
@@ -64,18 +77,13 @@ MPCReactiveTransport::Setup()
 void
 MPCReactiveTransport::cast_sub_pks_()
 {
-  transport_pk_ = Teuchos::rcp_dynamic_cast<Transport::Transport_ATS>(sub_pks_[1]);
-  AMANZI_ASSERT(transport_pk_ != Teuchos::null);
-
+  // cast and call parse on chemistry
   chemistry_pk_ = Teuchos::rcp_dynamic_cast<AmanziChemistry::Chemistry_PK>(sub_pks_[0]);
   AMANZI_ASSERT(chemistry_pk_ != Teuchos::null);
 
-  // communicate chemistry engine to transport.
-#ifdef ALQUIMIA_ENABLED
-  transport_pk_->SetupAlquimia(
-    Teuchos::rcp_static_cast<AmanziChemistry::Alquimia_PK>(chemistry_pk_),
-    chemistry_pk_->chem_engine());
-#endif
+  // now chem engine is set and we can hand it to transport
+  transport_pk_ = Teuchos::rcp_dynamic_cast<Transport::Transport_ATS>(sub_pks_[1]);
+  AMANZI_ASSERT(transport_pk_ != Teuchos::null);
 }
 
 // -----------------------------------------------------------------------------

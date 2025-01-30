@@ -311,7 +311,7 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
 
   // coupling with chemistry
 #ifdef ALQUIMIA_ENABLED
-  void SetupAlquimia(Teuchos::RCP<AmanziChemistry::Alquimia_PK> chem_pk,
+  void setChemEngine(Teuchos::RCP<AmanziChemistry::Alquimia_PK> chem_pk,
                      Teuchos::RCP<AmanziChemistry::ChemistryEngine> chem_engine);
 #endif
 
