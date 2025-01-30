@@ -35,6 +35,9 @@ class MPCReactiveTransport : public WeakMPC {
 
   // PK methods
   virtual double get_dt() override;
+
+  virtual void parseParameterList() override;
+
   virtual void Setup() override;
   virtual void Initialize() override;
   virtual bool AdvanceStep(double t_old, double t_new, bool reinit = false) override;
@@ -44,6 +47,7 @@ class MPCReactiveTransport : public WeakMPC {
 
  protected:
   bool chem_step_succeeded_;
+  bool trans_step_succeeded_;
 
   Key domain_;
   Key tcc_key_;
