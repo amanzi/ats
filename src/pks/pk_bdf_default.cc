@@ -119,10 +119,12 @@ PK_BDF_Default::AdvanceStep(double t_old, double t_new, bool reinit)
 
   if (vo_->os_OK(Teuchos::VERB_LOW))
     *vo_->os() << "----------------------------------------------------------------" << std::endl
-               << "Advancing: t0 = " << S_->get_time(tag_current_)
-               << " t1 = " << S_->get_time(tag_next_) << " h = " << dt << std::endl
+               << "Advancing: t0 = " << t_old
+               << " t1 = " << t_new << " h = " << dt << std::endl
                << "----------------------------------------------------------------" << std::endl;
 
+  AMANZI_ASSERT(std::abs(S_->get_time(tag_current_) - t_old) < 1.e-4);
+  AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t_new) < 1.e-4);
   State_to_Solution(Tags::NEXT, *solution_);
 
   // take a bdf timestep

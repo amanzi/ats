@@ -213,7 +213,7 @@ MPCCoupledReactiveTransport::AdvanceStep(double t_old, double t_new, bool reinit
     return fail;
   } else {
     transport_pk_surf_->debugger()->WriteCellVector("tcc (chem)", *tcc_surf);
-    transport_pk_surf_->PrintSoluteExtrema(*tcc_surf, t_new - t_old);
+    // transport_pk_surf_->PrintSoluteExtrema(*tcc_surf, t_new - t_old);
   }
 
   // Chemistry in the subsurface
@@ -234,7 +234,7 @@ MPCCoupledReactiveTransport::AdvanceStep(double t_old, double t_new, bool reinit
     return fail;
   } else {
     transport_pk_->debugger()->WriteCellVector("tcc (chem)", *tcc);
-    transport_pk_->PrintSoluteExtrema(*tcc, t_new - t_old);
+    // transport_pk_->PrintSoluteExtrema(*tcc, t_new - t_old);
   }
 
   chem_step_succeeded_ = true;

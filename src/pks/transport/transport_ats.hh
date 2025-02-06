@@ -269,7 +269,7 @@ The advection-diffusion equation for component *i* in the surface may be written
 #include "Units.hh"
 #include "VerboseObject.hh"
 #include "Debugger.hh"
-#include "PK_PhysicalExplicit.hh"
+#include "pk_physical_default.hh"
 #include "DenseVector.hh"
 
 #include <string>
@@ -287,10 +287,20 @@ The advection-diffusion equation for component *i* in the surface may be written
 #include "TransportDefs.hh"
 
 namespace Amanzi {
+
+// forward declarations
+struct TensorVector;
+namespace Operators {
+class PDE_Diffusion;
+class PDE_Accumulation;
+class BCs;
+class Operator;
+}
+
 namespace Transport {
 
 // ummm -- why does this not use TreeVector? --ETC
-class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
+class Transport_ATS : public PK_Physical_Default {
  public:
   Transport_ATS(Teuchos::ParameterList& pk_tree,
                 const Teuchos::RCP<Teuchos::ParameterList>& glist,
@@ -319,43 +329,26 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
 
   virtual double get_dt() override;
   virtual void set_dt(double dt) override{};
-  virtual void set_tags(const Tag& current, const Tag& next) override;
 
   virtual bool AdvanceStep(double t_old, double t_new, bool reinit = false) override;
   virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
   virtual void CalculateDiagnostics(const Tag& tag) override{};
 
-  virtual void ChangedSolutionPK(const Tag& tag) override;
-
-  // Time integration members
-  virtual void FunctionalTimeDerivative(const double t,
-          const Epetra_Vector& component,
-          Epetra_Vector& f_component) override;
-
   // -- helper functions
-  // These are in the public API because reactive transport calls them when
-  // chemistry fails.  Probably should go away or become nonmember functions.
-  void PrintSoluteExtrema(const Epetra_MultiVector& tcc_next,
-                          double dT_MPC);
   int get_num_aqueous_component() const {
     return num_aqueous_;
   }
 
- private:
+ protected:
+
+  // component-based or phase-based parameters
+  using ParameterMap = std::map<std::string, double>;
+  ParameterMap readParameterMapByComponent(Teuchos::ParameterList& plist, double default_val);
+  ParameterMap readParameterMapByPhase(Teuchos::ParameterList& plist, double default_val);
 
   // transport physics members
   // -- calculation of a stable timestep needs saturations and darcy flux
   double ComputeStableTimeStep_();
-
-  // -- WHAT DOES THIS DO?
-  void ComputeSinks2TotalOutFlux_(Epetra_MultiVector& tcc,
-          std::vector<double>& total_outflux, int n0, int n1);
-
-  void CheckInfluxBC_(const Epetra_MultiVector& flux) const;
-  bool PopulateBoundaryData_(std::vector<int>& bc_model, std::vector<double>& bc_value, int component);
-
-  // -- sources and sinks for components from n0 to n1 including
-  void ComputeAddSourceTerms_(double tp, double dtp, Epetra_MultiVector& tcc, int n0, int n1);
 
   // -- setup/initialize helper functions
   void InitializeFields_();
@@ -363,125 +356,118 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   void SetupTransport_();
   void SetupPhysicalEvaluators_();
 
-  // -- advection members
-  void AdvanceDonorUpwind_(double dT);
-  void AdvanceSecondOrderUpwindRKn_(double dT);
-  void AdvanceSecondOrderUpwindRK1_(double dT);
-  void AdvanceSecondOrderUpwindRK2_(double dT);
-  void Advance_Dispersion_Diffusion_(double t_old, double t_new);
+  // -- advance members -- portions of the operator
+  void AdvanceAdvectionSources_RK1_(double t_old, double t_new, int spatial_order);
+  void AdvanceAdvectionSources_RK2_(double t_old, double t_new, int spatial_order);
+  void AdvanceDispersionDiffusion_(double t_old, double t_new);
 
+  // -- helper functions used in AdvanceDispersionDiffusion_
+  bool PopulateBoundaryData_(int component, Operators::BCs& bcs);
+
+  // -- helper functions used in AdvanceAdvectionSources*
   void IdentifyUpwindCells_();
+  void AddAdvection_FirstOrderUpwind_(double t_old,
+          double t_new,
+          const Epetra_MultiVector& tcc,
+          Epetra_MultiVector& f);
+  void AddAdvection_SecondOrderUpwind_(double t_old,
+          double t_new,
+          const Epetra_MultiVector& tcc,
+          Epetra_MultiVector& f);
+  void AddAdvection_SecondOrderUpwind_(double t_old,
+          double t_new,
+          const Epetra_Vector& tcc,
+          Epetra_Vector& f,
+          int component);
 
-  // physical models
-  // -- dispersion and diffusion
-  void CalculateDispersionTensor_(const Epetra_MultiVector& darcy_flux,
-                                  const Epetra_MultiVector& porosity,
-                                  const Epetra_MultiVector& saturation,
-                                  const Epetra_MultiVector& mol_density);
+  void AddSourceTerms_(double t_old,
+                       double t_new,
+                       Epetra_MultiVector& conserve_qty,
+                       int n0,
+                       int n1);
 
-  void CalculateDiffusionTensor_(double md,
-                                 int phase,
-                                 const Epetra_MultiVector& porosity,
-                                 const Epetra_MultiVector& saturation,
-                                 const Epetra_MultiVector& mol_density);
-
-  int FindDiffusionValue_(const std::string& tcc_name, double* md, int* phase);
-  void CalculateAxiSymmetryDirection_();
+  void InvertTccNew_(const Epetra_MultiVector& conserve_qty,
+                     Epetra_MultiVector& tcc,
+                     Epetra_MultiVector* solid_qty);
 
   // -- air-water partitioning using Henry's law. This is a temporary
   //    solution to get things moving.
-  void PrepareAirWaterPartitioning_();
-  void MakeAirWaterPartitioning_();
+  // void PrepareAirWaterPartitioning_();
+  // void MakeAirWaterPartitioning_();
 
   // -- multiscale methods
-  void AddMultiscalePorosity_(double t_old, double t_new, double t_int1, double t_int2);
+  // void AddMultiscalePorosity_(double t_old, double t_new, double t_int1, double t_int2);
 
-  // miscaleneous methods
-  int FindComponentNumber_(const std::string& component_name);
+  // miscillaneous methods
+  int FindComponentNumber_(const std::string& component_name) {
+    auto comp = std::find(component_names_.begin(), component_names_.end(), component_name);
+    if (comp == component_names_.end()) return -1;
+    else return comp - component_names_.begin();
+  }
 
  protected:
-  Key saturation_key_;
-  Key flux_key_;
-  Key darcy_flux_key_;
-  Key permeability_key_;
-  Key tcc_key_;
-  Key porosity_key_;
-  Key tcc_matrix_key_;
-  Key molar_density_key_;
-  Key solid_residue_mass_key_;
-  Key water_content_key_;
-  Key water_src_key_, solute_src_key_;
-  Key water_src_tile_key_;
-  bool has_water_src_key_;
-  bool water_src_in_meters_;
-  bool has_water_src_tile_key_;
-  Key geochem_src_factor_key_;
-  Key conserve_qty_key_;
+
+  // dependencies
+  Key flux_key_; // advecting water flux [mol / s] on faces
+  Key lwc_key_; // liquid water content [mol]
   Key cv_key_;
 
-  // control flags
-  std::unordered_map<std::string, bool> convert_to_field_;
-  Key passwd_;
+  // workspace
+  Key solid_residue_mass_key_; // residue -- mass that was left behind by water
+                               // sinks that do not carry aqueous species, e.g. freezing or evaporation
+  Key conserve_qty_key_;
+  Key dispersion_tensor_key_;
 
-  // NOTE: these should go away -- instead get vectors from State, then pass as
-  // function arguments if needed.  --ETC
-  Teuchos::RCP<CompositeVector> tcc_w_src;
-  Teuchos::RCP<CompositeVector> tcc_tmp; // next tcc
-  Teuchos::RCP<CompositeVector> tcc;     // smart mirrow of tcc
+  // component information
+  std::vector<std::string> component_names_; // details of components
+  int num_components_, num_solid_, num_aqueous_, num_gaseous_;
 
-  Teuchos::RCP<const Epetra_MultiVector> ws_, ws_prev_, mol_dens_, mol_dens_prev_;
+  // parameters
+  ParameterMap molar_masses_; // molar mass [kg / mol C] by component
+  ParameterMap tcc_max_; // maximum valid concentration [mol C / mol H2O] by component
+
+  ParameterMap molec_diff_; // molecular diffusivity by component [m^2 s^-1]
+  ParameterMap tortuosity_; // phase-based tortuosity [-]
+  double water_tolerance_; // mol H2O / m^d (d = 2 for surface, d = 3 for subsurface)
 
 #ifdef ALQUIMIA_ENABLED
   Teuchos::RCP<AmanziChemistry::Alquimia_PK> chem_pk_;
   Teuchos::RCP<AmanziChemistry::ChemistryEngine> chem_engine_;
 #endif
 
-  Teuchos::RCP<Epetra_IntVector> upwind_cell_, downwind_cell_;
+  // temporal integration
+  // -- discretization order: RK1 (forward Euler) or RK2 (predictor-corrector)
+  int temporal_disc_order_;
+  double cfl_;
+  double dt_stable_, dt_max_;
 
-  int current_component_; // data for lifting
+  // Source terms
+  // srcs should go away, and instead use vectors from State and evaluators --ETC
+  Key water_src_key_;
+  Key geochem_src_factor_key_;
+  bool has_water_src_key_;
+  bool water_src_in_meters_;
+  Key molar_dens_key_;
+  std::vector<Teuchos::RCP<TransportDomainFunction>> srcs_; // Source or sink for components
+
+  // operators for advection
+  int adv_spatial_disc_order_;
+  Teuchos::RCP<Epetra_IntVector> upwind_cell_, downwind_cell_;
   Teuchos::RCP<Operators::ReconstructionCellLinear> lifting_;
   Teuchos::RCP<Operators::LimiterCell> limiter_;
+  int limiter_model_;
 
-  // srcs should go away, and instead use vectors from State and evaluators --ETC
-  std::vector<Teuchos::RCP<TransportDomainFunction>> srcs_; // Source or sink for components
-  std::vector<Teuchos::RCP<TransportDomainFunction>> bcs_;  // influx BC for components
-  Teuchos::RCP<Epetra_Vector> Kxy_; // absolute permeability in plane xy
+  Teuchos::RCP<Operators::BCs> adv_bcs_;
+  std::vector<Teuchos::RCP<TransportDomainFunction>> bcs_;
 
-  // mechanical dispersion and molecual diffusion
-  Teuchos::RCP<MDMPartition> mdm_;
-  std::vector<WhetStone::Tensor> D_;
-
-  bool flag_dispersion_;
-  std::vector<int> axi_symmetry_; // axi-symmetry direction of permeability tensor
-
-  std::vector<Teuchos::RCP<MaterialProperties>> mat_properties_; // vector of materials
-  std::vector<Teuchos::RCP<DiffusionPhase>> diffusion_phase_;    // vector of phases
-
-  // Hosting temporarily Henry law
-  bool henry_law_;
-  std::vector<double> kH_;
-  std::vector<int> air_water_map_;
-
-  // control parameters
-  int spatial_disc_order_, temporal_disc_order_, limiter_model_;
-
-  int nsubcycles; // output information
-  int internal_tests;
-  double tests_tolerance;
-
-  double cfl_, dt_, dt_max_, t_physics_;
-
-  std::vector<double> mass_solutes_exact_, mass_solutes_source_; // mass for all solutes
-  std::vector<double> mass_solutes_bc_, mass_solutes_stepstart_;
-  std::vector<std::string> runtime_solutes_; // solutes tracked for diagnostics
-  std::vector<std::string> runtime_regions_;
-
-  std::vector<std::string> component_names_; // details of components
-  Teuchos::Array<double> tcc_max_; // max concentrations of components allowed
-  std::vector<double> mol_masses_; // molar masses of components
-  int num_aqueous_, num_gaseous_, num_components_, num_advect_;
-  double water_tolerance_, max_tcc_;
-  bool dissolution_;
+  // operators for dispersion/diffusion
+  bool has_diffusion_, has_dispersion_;
+  Teuchos::RCP<TensorVector> D_; // workspace, disp + diff
+  Teuchos::RCP<Operators::BCs> diff_bcs_;
+  Teuchos::RCP<Operators::Operator> diff_global_op_;
+  Teuchos::RCP<Operators::PDE_Diffusion> diff_op_;
+  Teuchos::RCP<Operators::PDE_Accumulation> diff_acc_op_;
+  Teuchos::RCP<CompositeVector> diff_sol_; // workspace
 
   // io
   Utils::Units units_;
