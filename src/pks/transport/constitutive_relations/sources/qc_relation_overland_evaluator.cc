@@ -62,22 +62,31 @@ QCRelationOverlandEvaluator::Evaluate_(const State& S, const std::vector<Composi
     const auto& [faces, dirs] = mesh.getCellFacesAndDirections(c);
     int nfaces = faces.size();
     
-    for (int i = 0; i < nfaces; i++) {
-      int f = faces[i];     // get each face of the cell
-      double dir = dirs[i]; // 1: water goes out of the cell; -1: water goes into the cell
+    if (nfaces < 4) {   // skip triangle cells that are not river corridor
+      surf_src[0][c] = 0;
+    } else {
+      for (int i = 0; i < nfaces; i++) {
+        int f = faces[i];     // get each face of the cell
+        double dir = dirs[i]; // 1: water goes out of the cell; -1: water goes into the cell
 
-      if (mesh.getFaceCells(f).size() == 1) {
-        // external faces which contributes sinks/sources
-        total_external_flux += water_from_field[0][f] * (-dir);
+        auto cells = mesh.getFaceCells(f);        
+        const auto& [faces0, dirs0] = mesh.getCellFacesAndDirections(cells[0]);
+        const auto& [faces1, dirs1] = mesh.getCellFacesAndDirections(cells[1]);
+        bool is_external = (faces0.size()<4) || (faces1.size()<4);
+
+        if ((mesh.getFaceCells(f).size() == 1) || (is_external)) {
+          // external faces which contributes sinks/sources
+          total_external_flux += water_from_field[0][f] * (-dir);
+        }
       }
-    }
-    
-    // convert from mol/s to m3/s. We do NOT multiply with cv here
-    double total_flux_meter = total_external_flux / molar_den[0][c];
+      
+      // convert from mol/s to m3/s. We do NOT multiply with cv here
+      double total_flux_meter = total_external_flux / molar_den[0][c];
 
-    // transport source (mass) as a function of discharge (e.g. overland)
-    double source_transport = (*QC_curve_)(std::vector<double>{ total_flux_meter });
-    surf_src[0][c] = source_transport * total_flux_meter * molar_den[0][c] / cv[0][c];
+      // transport source (mass) as a function of discharge (e.g. overland)
+      double source_transport = (*QC_curve_)(std::vector<double>{ total_flux_meter });
+      surf_src[0][c] = source_transport * total_flux_meter * molar_den[0][c] / cv[0][c];
+    }
   }
 }
 
