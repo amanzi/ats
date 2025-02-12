@@ -226,6 +226,8 @@ Richards::UpdateVelocity_(const Tag& tag)
 
     for (int i = 0; i != d; ++i) velocity[i][c] = rhs[i] / nliq_c[0][c];
   }
+
+  changedEvaluatorPrimary(velocity_key_, tag, *S_);
 }
 
 

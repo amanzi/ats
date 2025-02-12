@@ -28,6 +28,8 @@ PK_PhysicalBDF_Default::parseParameterList()
   max_valid_change_ = plist_->get<double>("max valid change", -1.0);
 
   conserved_key_ = Keys::readKey(*plist_, domain_, "conserved quantity");
+  requireAtCurrent(conserved_key_, tag_current_, *S_, name_);
+
   atol_ = plist_->get<double>("absolute error tolerance", 1.0);
   rtol_ = plist_->get<double>("relative error tolerance", 1.0);
   fluxtol_ = plist_->get<double>("flux error tolerance", 1.0);

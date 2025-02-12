@@ -270,7 +270,7 @@ Transport_ATS::InvertTccNew_(const Epetra_MultiVector& conserve_qty,
   // calculate the new conc based on advected term
   for (int c = 0; c < conserve_qty.MyLength(); c++) {
     double water_new = lwc_new[0][c];
-    double water_sink = conserve_qty[num_components_+1][c];
+    double water_sink = conserve_qty[num_aqueous_][c];
     double water_total = water_sink + water_new;
 
     for (int i = 0; i != num_components_; ++i) {

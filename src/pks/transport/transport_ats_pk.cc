@@ -98,15 +98,23 @@ Transport_ATS::parseParameterList()
   has_dispersion_ = plist_->get<bool>("has dispersion", false);
 
   // keys, dependencies, etc
+  // -- flux -- only needed at new time, evaluator controlled elsewhere
   flux_key_ = Keys::readKey(*plist_, domain_, "water flux", "water_flux");
+
+  // -- liquid water content - need at new time, copy at current time
   lwc_key_ = Keys::readKey(*plist_, domain_, "liquid water content", "liquid_water_content");
+  requireAtCurrent(lwc_key_, tag_current_, *S_, name_);
+
   water_src_key_ = Keys::readKey(*plist_, domain_, "water source", "water_source");
   cv_key_ = Keys::readKey(*plist_, domain_, "cell volume", "cell_volume");
 
-  // workspace
+  // workspace, no evaluator
   conserve_qty_key_ =
     Keys::readKey(*plist_, domain_, "conserved quantity", "total_component_quantity");
+  requireAtNext(conserve_qty_key_, tag_next_, *S_, name_);
+
   solid_residue_mass_key_ = Keys::readKey(*plist_, domain_, "solid residue", "solid_residue_mass");
+
   geochem_src_factor_key_ =
     Keys::readKey(*plist_, domain_, "geochem source factor", "geochem_src_factor");
 
@@ -491,7 +499,7 @@ Transport_ATS::SetupPhysicalEvaluators_()
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  requireAtCurrent(lwc_key_, tag_current_, *S_);
+  requireAtCurrent(lwc_key_, tag_current_, *S_, name_);
 
   requireAtNext(molar_dens_key_, tag_next_, *S_)
     .SetMesh(mesh_)
@@ -747,6 +755,7 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
                << "----------------------------------------------------------------" << std::endl;
   AMANZI_ASSERT(std::abs(S_->get_time(tag_current_) - t_old) < 1.e-4);
   AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t_new) < 1.e-4);
+  db_->WriteCellInfo(true);
 
   // check the stable step size again -- flow can now be computed at the
   // correct, new time, and may have changed, resulting in a smaller dt.
@@ -754,7 +763,11 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   // By failing the step, it will get repeated with the smaller dt, again
   // potentially recomputing a flow field, but should be closer.
   dt_stable_ = ComputeStableTimeStep_();
-  if (dt > dt_stable_ + 1.e-4) return true;
+  if (dt > dt_stable_ + 1.e-4) {
+    if (vo_->os_OK(Teuchos::VERB_LOW))
+      *vo_->os() << "Failed step: requested dt = " << dt << " > stable dt = " << dt_stable_ << std::endl;
+    return true;
+  }
 
   if (vo_->os_OK(Teuchos::VERB_HIGH))
     *vo_->os() << "Water state:" << std::endl;
@@ -935,9 +948,8 @@ Transport_ATS::CommitStep(double t_old, double t_new, const Tag& tag_next)
 
   PK_Physical_Default::CommitStep(t_old, t_new, tag_next);
 
-  if (tag_next == Tags::NEXT) {
-    assign(lwc_key_, Tags::CURRENT, tag_next, *S_);
-  }
+  Tag tag_current = tag_next == tag_next_ ? tag_current_ : Tags::CURRENT;
+  assign(lwc_key_, tag_current, tag_next, *S_);
 }
 
 

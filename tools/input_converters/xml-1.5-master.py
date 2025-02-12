@@ -111,11 +111,125 @@ def tensorPerm_(perm):
         else:
             perm.setParameter("tensor type", "string", "scalar")
 
+
+def fixTransportPK(pk, evals_list):
+    if pk.isElement("domain name"):
+        domain = pk.getElement("domain name").getValue()
+    else:
+        domain = "domain"
+
+
+    if not pk.isElement("primary variable key") and not pk.isElement("primary variable key suffix"):
+        pk.setParameter("primary variable key suffix", "string", "total_component_concentration")
+
+    if not pk.isElement("advection spatial discretization order") and pk.isElement("spatial discretization order"):
+        order = pk.getElement("spatial discretization order")
+        order.setName("advection spatial discretization order")
+
+    if pk.isElement("molecular diffusion") and not pk.isElement("molecular diffusivity [m^2 s^-1]"):
+        md = pk.pop("molecular diffusion")
+        names = md.getElement("aqueous names").getValue()
+        vals = md.getElement("aqueous values").getValue()
+        print("found MD for names:", names)
+        if len(names) > 0 and names[0] != '':
+            diff = pk.sublist("molecular diffusivity [m^2 s^-1]")
+            for name, val in zip(names, vals):
+                diff.setParameter(name, "string", val)
+
+    if pk.isElement("inverse") and pk.isElement("diffusion"):
+        inv = pk.pop("inverse")
+        pk.sublist("diffusion").append(inv)
+    elif pk.isElement("inverse"):
+        pk.pop("inverse")
+
+    if pk.isElement("transport subcycling"):
+        pk.pop("transport subcycling")
+
+    if pk.isElement("runtime diagnostics: regions"):
+        pk.pop("runtime diagnostics: regions")
+
+    if pk.isElement("material properties"):
+        mat_props = pk.pop("material properties").sublist("domain")
+        if mat_props.isElement("model"):
+            pk.setParameter("has dispersivity", "bool", True)
+
+            if domain == "domain":
+                disp_key = "dispersion_coefficient"
+            else:
+                disp_key = domain + "-dispersion_coefficient"
+
+            if not evals_list.isElement(disp_key):
+                disp_list = evals_list.sublist(disp_key)
+                disp_list.setParameter("evaluator type", "string", "dispersion tensor")
+                disp_list2 = disp_list.sublist("mechanical dispersion parameters").sublist(domain)
+                if domain == "domain":
+                    disp_list2.setParameter("region", "string", "computational domain")
+                else:
+                    disp_list2.setParameter("region", "string", domain + " domain")
+
+                disp_type = mat_props.getElement("model").getValue()
+                if disp_type == "scalar":
+                    disp_list2.setParameter("mechanical dispersion type", "string", "isotropic")
+                    params_list = mat_props.sublist(f"parameters for {disp_type}")
+                    params_list.setName("isotropic parameters")
+                    disp_list2.append(params_list)
+                else:
+                    disp_list2.setParameter("mechanical dispersion type", "string", disp_type)
+                    params_list = mat_props.sublist(f"parameters for {disp_type}")
+                    params_list.setName(f"{disp_type} parameters")
+                    disp_list2.append(params_list)
+
+        if mat_props.isElement("aqueous tortuosity"):
+            pk.sublist("tortuosity [-]").setParameter("aqueous", "double", mat_props.getElement("aqueous tortuosity").getValue())
+        if mat_props.isElement("gaseous tortuosity"):
+            pk.sublist("tortuosity [-]").setParameter("gaseous", "double", mat_props.getElement("gaseous tortuosity").getValue())
+
+    if pk.isElement("component molar masses"):
+        mms = pk.pop("component molar masses")
+        names = pk.getElement("component names").getValue()
+        for name, mm in zip(names, mms):
+            pk.sublist("molar mass [kg mol^-1]").setParameter(name, "double", mm)
+
+    if domain == "domain":
+        lwc_key = "liquid_water_content"
+    else:
+        lwc_key = f"{domain}-liquid_water_content"
+
+    print(f'searching for LWC = {lwc_key}')
+        
+    if not evals_list.isElement(lwc_key):
+        print(' ... is not eval')
+        lwc_list = evals_list.sublist(lwc_key)
+        lwc_list.setParameter("evaluator type", "string", "multiplicative evaluator")
+
+        if "surface" in domain:
+            print('adding surface quantities for LWC')
+            lwc_list.setParameter("dependencies", "Array(string)", [f"{domain}-ponded_depth", f"{domain}-molar_density_liquid", f"{domain}-cell_volume"])
+        else:            
+            print('adding subsurface quantities for LWC')
+            lwc_list.setParameter("dependencies", "Array(string)", ["saturation_liquid", "molar_density_liquid", "porosity", "cell_volume"])
+
+    
+
+
+def fixTransportPKs(xml):
+    evals_list = asearch.find_path(xml, ["state", "evaluators"], True)
+    pk_list = asearch.child_by_name(xml, "PKs")
+    for pk in pk_list:
+        pk_type = pk.getElement("PK type")
+        print(pk_type)
+
+        if pk_type.getValue() == "transport ATS":
+            print("fixing transport pk")
+            fixTransportPK(pk, evals_list)
+                    
+            
 def update(xml):
     #enforceDtHistory(xml)
     timeStep(xml)
     tensorPerm(xml)
-
+    fixTransportPKs(xml)
+    
 
 if __name__ == "__main__":
     import argparse

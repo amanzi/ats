@@ -223,7 +223,9 @@ MPCSubcycled::CommitStep(double t_old, double t_new, const Tag& tag)
     // initial commit, also do the substep commits
     int i = 0;
     for (auto& pk : sub_pks_) {
-      if (subcycling_[i]) { pk->CommitStep(t_old, t_new, tags_[i].second); }
+      if (subcycling_[i]) {
+        pk->CommitStep(t_old, t_new, tags_[i].second);
+      }
       ++i;
     }
   }

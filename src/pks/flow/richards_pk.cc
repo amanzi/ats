@@ -90,7 +90,10 @@ Richards::parseParameterList()
   requireAtNext(flux_key_, tag_next_, *S_, name_);
 
   flux_dir_key_ = Keys::readKey(*plist_, domain_, "darcy flux direction", "water_flux_direction");
+
   velocity_key_ = Keys::readKey(*plist_, domain_, "darcy velocity", "darcy_velocity");
+  requireAtNext(velocity_key_, Tags::NEXT, *S_, name_);
+
   sat_key_ = Keys::readKey(*plist_, domain_, "saturation", "saturation_liquid");
   sat_gas_key_ = Keys::readKey(*plist_, domain_, "saturation gas", "saturation_gas");
   sat_ice_key_ = Keys::readKey(*plist_, domain_, "saturation ice", "saturation_ice");
@@ -450,9 +453,6 @@ Richards::SetupPhysicalEvaluators_()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
     conserved_key_, tag_next_, key_, tag_next_);
-
-  //    and at the current time, where it is a copy evaluator
-  requireAtCurrent(conserved_key_, tag_current_, *S_, name_);
 
   // -- Water retention evaluators
   // -- saturation
