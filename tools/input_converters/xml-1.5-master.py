@@ -151,7 +151,7 @@ def fixTransportPK(pk, evals_list):
     if pk.isElement("material properties"):
         mat_props = pk.pop("material properties").sublist("domain")
         if mat_props.isElement("model"):
-            pk.setParameter("has dispersivity", "bool", True)
+            pk.setParameter("has dispersion", "bool", True)
 
             if domain == "domain":
                 disp_key = "dispersion_coefficient"

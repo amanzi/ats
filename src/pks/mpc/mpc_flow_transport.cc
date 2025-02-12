@@ -47,9 +47,9 @@ MPCFlowTransport::parseParameterList()
       flux_list.set<std::string>("target", Keys::getKey("water_flux", flow_next_tag, true));
 
       // velocity for dispersivity
-      Teuchos::ParameterList& velo_list = S_->GetEvaluatorList(Keys::getKey("velocity", transport_next_tag));
+      Teuchos::ParameterList& velo_list = S_->GetEvaluatorList(Keys::getKey("darcy_velocity", transport_next_tag));
       velo_list.set<std::string>("evaluator type", "alias");
-      velo_list.set<std::string>("target", Keys::getKey("velocity", flow_next_tag, true));
+      velo_list.set<std::string>("target", Keys::getKey("darcy_velocity", flow_next_tag, true));
 
       // now set the liquid water content as an interpolated field at next
       // note that current copy is kept by transport PK
@@ -78,9 +78,9 @@ MPCFlowTransport::parseParameterList()
       flux_list.set<std::string>("target", Keys::getKey("surface-water_flux", flow_next_tag, true));
 
       // velocity for dispersivity
-      Teuchos::ParameterList& velo_list = S_->GetEvaluatorList(Keys::getKey("surface-velocity", transport_next_tag));
+      Teuchos::ParameterList& velo_list = S_->GetEvaluatorList(Keys::getKey("surface-water_velocity", transport_next_tag));
       velo_list.set<std::string>("evaluator type", "alias");
-      velo_list.set<std::string>("target", Keys::getKey("velocity", flow_next_tag, true));
+      velo_list.set<std::string>("target", Keys::getKey("surface-water_velocity", flow_next_tag, true));
 
       // set the liquid water content as an interpolated field
       // note that current copy is kept by transport PK

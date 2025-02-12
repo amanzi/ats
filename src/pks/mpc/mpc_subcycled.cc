@@ -43,16 +43,21 @@ MPCSubcycled::MPCSubcycled(Teuchos::ParameterList& pk_tree,
 void
 MPCSubcycled::parseParameterList()
 {
+  for (int i = 0; i != tsms_.size(); ++i) {
+    if (subcycling_[i]) {
+      Teuchos::ParameterList tsm_plist(std::string("TSM: ") + sub_pks_[i]->name());
+      tsms_[i] = Teuchos::rcp(new Utils::TimeStepManager(tsm_plist));
+
+      const auto& tag = tags_[i];
+      S_->require_time(tag.first);
+      S_->require_time(tag.second);
+    }
+  }
+
   MPC<PK>::parseParameterList();
 
   // min dt allowed in subcycling
   target_dt_ = plist_->get<double>("subcycling target timestep [s]", -1);
-
-  for (int i = 0; i != tsms_.size(); ++i) {
-    if (subcycling_[i]) {
-      tsms_[i] = Teuchos::rcp(new Utils::TimeStepManager());
-    }
-  }
 }
 
 
@@ -82,8 +87,6 @@ MPCSubcycled::Setup()
 {
   int i = 0;
   for (const auto& tag : tags_) {
-    S_->require_time(tag.first);
-    S_->require_time(tag.second);
     S_->require_cycle(tag.second);
     if (subcycling_[i]) S_->Require<double>("dt", tag.first, name());
     ++i;

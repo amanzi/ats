@@ -98,6 +98,9 @@ Transport_ATS::AddAdvection_FirstOrderUpwind_(double t_old,
   }
 
   // loop over exterior boundary sets
+  //
+  // Why no check on the boundary type?  This can be Dirichlet or Neumann?  Or
+  // is this hard-coded as just Dirichlet data? --ETC
   for (int m = 0; m < bcs_.size(); m++) {
     std::vector<int>& tcc_index = bcs_[m]->tcc_index();
     int ncomp = tcc_index.size();
@@ -279,8 +282,9 @@ Transport_ATS::InvertTccNew_(const Epetra_MultiVector& conserve_qty,
         // at the new time + stuff leaving through the domain coupling, divided
         // by water of both
         tcc[i][c] = conserve_qty[i][c] / water_total;
-        if (i == 0 && c == 0) {
-          std::cout << "inverting: conserve_qty = " << conserve_qty[i][c] << " / water_total = " << water_total << " = " << tcc[i][c] << std::endl;
+        if (i == 0 && (c == 0 || c == 99)) {
+          std::cout << "inverting: conserve_qty = " << conserve_qty[i][c] << " / water_sink = "
+                    << water_sink << " + water_new = " << water_new << " = water_total = " << water_total << " --> tcc = " << tcc[i][c] << std::endl;
         }
       } else if (water_sink > water_tolerance_ / cv[0][c] && conserve_qty[i][c] > 0) {
         // there is water and stuff leaving through the domain coupling, but it
