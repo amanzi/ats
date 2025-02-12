@@ -66,6 +66,7 @@ class MPCSubcycled : public MPC<PK> {
   double dt_, target_dt_;
   std::vector<double> dts_;
   std::vector<std::pair<Tag, Tag>> tags_;
+  std::vector<Teuchos::RCP<Utils::TimeStepManager>> tsms_;
 
  private:
   // factory registration

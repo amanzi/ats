@@ -12,6 +12,7 @@
 */
 
 #include "Event.hh"
+#include "TimeStepManager.hh"
 #include "mpc_subcycled.hh"
 #include "pk_helpers.hh"
 
@@ -36,6 +37,7 @@ MPCSubcycled::MPCSubcycled(Teuchos::ParameterList& pk_tree,
     Exceptions::amanzi_throw(msg);
   }
   dts_.resize(sub_pks_.size(), -1);
+  tsms_.resize(sub_pks_.size(), Teuchos::null);
 }
 
 void
@@ -45,6 +47,12 @@ MPCSubcycled::parseParameterList()
 
   // min dt allowed in subcycling
   target_dt_ = plist_->get<double>("subcycling target timestep [s]", -1);
+
+  for (int i = 0; i != tsms_.size(); ++i) {
+    if (subcycling_[i]) {
+      tsms_[i] = Teuchos::rcp(new Utils::TimeStepManager());
+    }
+  }
 }
 
 
@@ -147,28 +155,26 @@ MPCSubcycled::AdvanceStep_i_(std::size_t i, double t_old, double t_new, bool rei
     bool done = false;
     double t_inner = t_old;
     double dt_inner = dts_[i];
+    bool fail_inner = false;
 
     Tag tag_subcycle_current = tags_[i].first;
     Tag tag_subcycle_next = tags_[i].second;
 
+    tsms_[i]->RegisterTimeEvent(t_new);
     S_->set_time(tag_subcycle_current, t_old);
-    while (!done) {
-      if (Utils::isNearEqual(t_new, t_inner + dt_inner) || (t_inner + dt_inner) > t_new) {
-        dt_inner = t_new - t_inner;
-      }
 
+    while (!done) {
+      dt_inner = tsms_[i]->TimeStep(t_inner, dt_inner, fail_inner);
       S_->Assign("dt", tag_subcycle_current, name(), dt_inner);
       S_->set_time(tag_subcycle_next, t_inner + dt_inner);
-      bool fail_inner = sub_pks_[i]->AdvanceStep(t_inner, t_inner + dt_inner, false);
+      fail_inner = sub_pks_[i]->AdvanceStep(t_inner, t_inner + dt_inner, false);
 
       if (vo_->os_OK(Teuchos::VERB_EXTREME))
         *vo_->os() << "  step failed? " << fail_inner << std::endl;
 
       if (fail_inner) {
         sub_pks_[i]->FailStep(t_old, t_new, tag_subcycle_next);
-
         dt_inner = sub_pks_[i]->get_dt();
-        S_->set_time(tag_subcycle_next, S_->get_time(tag_subcycle_current));
 
         if (vo_->os_OK(Teuchos::VERB_EXTREME))
           *vo_->os() << "  failed, new timestep is " << dt_inner << std::endl;
