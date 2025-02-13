@@ -473,7 +473,21 @@ Transport_ATS::SetupTransport_()
           }
           bc->set_state(S_);
           bcs_.push_back(bc);
+        } else if (bc_type == "periodic") {
+          // current domain takes a BC from the last cell of the same domain --
+          // find the GID of that entity.
+          int num_cells_ = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::ALL);          
+          bc_list.set("entity_gid_out", num_cells_-1);
 
+          Teuchos::RCP<TransportDomainFunction> bc = factory.Create(
+            bc_list, "boundary concentration", AmanziMesh::Entity_kind::FACE, Kxy_, tag_current_);
+
+          for (int i = 0; i < num_components_; i++) {
+            bc->tcc_names().push_back(component_names_[i]);
+            bc->tcc_index().push_back(i);
+          }
+          bc->set_state(S_);
+          bcs_.push_back(bc);
         } else {
           Teuchos::RCP<TransportDomainFunction> bc =
             factory.Create(bc_list,
