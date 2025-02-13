@@ -33,6 +33,21 @@ MPCCoupledTransport::parseParameterList()
   Key domain_ss = pks_list_->sublist(name_ss_).get<std::string>("domain name", "domain");
   Key domain_surf = pks_list_->sublist(name_surf_).get<std::string>("domain name", "surface");
 
+  // first make sure predictor-corrector scheme is turned off -- this isn't valid for coupled transport
+  for (const auto& name : std::vector<std::string>{name_ss_, name_surf_}) {
+    if (pks_list_->sublist(name).isParameter("temporal discretization order")) {
+      int order = pks_list_->sublist(name).get<int>("temporal discretization order");
+      if (order != 1) {
+        if (vo_->os_OK(Teuchos::VERB_LOW))
+          *vo_->os() << vo_->color("yellow")
+                     << "Transport PK \"" << name << "\" prescribes \"temporal discretization order\" "
+                     << order << ", but this is not valid for integrated transport.  Using \"temporal discretization order\" 1 instead."
+                     << vo_->reset() << std::endl;
+      }
+      pks_list_->sublist(name).set<int>("temporal discretization order", 1);
+    }
+  }
+
   Key ss_flux_key =
     Keys::readKey(pks_list_->sublist(name_ss_), domain_ss, "water flux", "water_flux");
   Key surf_flux_key =

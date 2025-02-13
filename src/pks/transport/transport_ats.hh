@@ -388,7 +388,8 @@ class Transport_ATS : public PK_Physical_Default {
 
   void InvertTccNew_(const Epetra_MultiVector& conserve_qty,
                      Epetra_MultiVector& tcc,
-                     Epetra_MultiVector* solid_qty);
+                     Epetra_MultiVector* solid_qty,
+                     bool include_current_water_mass);
 
   // -- air-water partitioning using Henry's law. This is a temporary
   //    solution to get things moving.

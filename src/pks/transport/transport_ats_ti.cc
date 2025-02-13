@@ -262,7 +262,8 @@ Transport_ATS::AddAdvection_SecondOrderUpwind_(double t_old,
 void
 Transport_ATS::InvertTccNew_(const Epetra_MultiVector& conserve_qty,
                              Epetra_MultiVector& tcc,
-                             Epetra_MultiVector* solid_qty)
+                             Epetra_MultiVector* solid_qty,
+                             bool include_current_water_mass)
 {
   // note this was updated in StableStep
   const Epetra_MultiVector& lwc_new = *S_->Get<CompositeVector>(lwc_key_, tag_next_)
@@ -286,6 +287,7 @@ Transport_ATS::InvertTccNew_(const Epetra_MultiVector& conserve_qty,
           std::cout << "inverting: conserve_qty = " << conserve_qty[i][c] << " / water_sink = "
                     << water_sink << " + water_new = " << water_new << " = water_total = " << water_total << " --> tcc = " << tcc[i][c] << std::endl;
         }
+        if (include_current_water_mass) conserve_qty[num_aqueous_][c] = water_total;
       } else if (water_sink > water_tolerance_ / cv[0][c] && conserve_qty[i][c] > 0) {
         // there is water and stuff leaving through the domain coupling, but it
         // all leaves (none at the new time)

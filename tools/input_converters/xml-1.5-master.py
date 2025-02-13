@@ -134,7 +134,7 @@ def fixTransportPK(pk, evals_list):
         if len(names) > 0 and names[0] != '':
             diff = pk.sublist("molecular diffusivity [m^2 s^-1]")
             for name, val in zip(names, vals):
-                diff.setParameter(name, "string", val)
+                diff.setParameter(name.strip(), "double", val)
 
     if pk.isElement("inverse") and pk.isElement("diffusion"):
         inv = pk.pop("inverse")

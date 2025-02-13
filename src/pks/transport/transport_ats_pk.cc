@@ -121,15 +121,16 @@ Transport_ATS::parseParameterList()
   // needed by geochemical bcs
   molar_dens_key_ = Keys::readKey(*plist_, domain_, "molar density liquid", "molar_density_liquid");
 
-  // is this the right name?  tensor!
+  // dispersion coefficient tensor
   dispersion_tensor_key_ = Keys::readKey(*plist_, domain_, "dispersion coefficient", "dispersion_coefficient");
 
   // other parameters
+  // -- a small amount of water, used to define when we are going to completely dry out a grid cell
   water_tolerance_ = plist_->get<double>("water tolerance [mol H2O / m^d]", 1e-6);
 
   // global transport parameters
   cfl_ = plist_->get<double>("cfl", 1.0);
-  dt_max_ = plist_->get<double>("maximum timestep", TRANSPORT_LARGE_TIME_STEP);
+  dt_max_ = plist_->get<double>("maximum timestep [s]", TRANSPORT_LARGE_TIME_STEP);
 
   adv_spatial_disc_order_ = plist_->get<int>("advection spatial discretization order", 1);
   if (adv_spatial_disc_order_ < 1 || adv_spatial_disc_order_ > 2) {
@@ -846,6 +847,12 @@ Transport_ATS ::AdvanceDispersionDiffusion_(double t_old, double t_new)
   Epetra_MultiVector& tcc_new = *S_->GetW<CompositeVector>(key_, tag_next_, name_)
     .ViewComponent("cell", false);
 
+  // needed for diffusion coefficent and for accumulation term
+  const Epetra_MultiVector& lwc = *S_->Get<CompositeVector>(lwc_key_, tag_next_)
+    .ViewComponent("cell", false);
+  const Epetra_MultiVector& cv = *S_->Get<CompositeVector>(cv_key_, tag_next_)
+    .ViewComponent("cell", false);
+
   //
   // first step  -- aqueous dispersion + diffusion
   //
@@ -854,15 +861,14 @@ Transport_ATS ::AdvanceDispersionDiffusion_(double t_old, double t_new)
     // The dispersion tensor is consistent for all aqueous phase components.
     S_->GetEvaluator(dispersion_tensor_key_, tag_next_).Update(*S_, name_);
     (*D_) = S_->Get<TensorVector>(dispersion_tensor_key_, tag_next_);
+
+    // scale by (volumetric) liquid water content
+    for (int c = 0; c != lwc.MyLength(); ++c) {
+      (*D_)[c] *= (lwc[0][c] / cv[0][c]);
+    }
   } else {
     D_->Zero();
   }
-
-  // needed for diffusion coefficent and for accumulation term
-  const Epetra_MultiVector& lwc = *S_->Get<CompositeVector>(lwc_key_, tag_next_)
-    .ViewComponent("cell", false);
-  const Epetra_MultiVector& cv = *S_->Get<CompositeVector>(cv_key_, tag_next_)
-    .ViewComponent("cell", false);
 
   // we track only the difference in molecular diffusion from component to
   // component -- if they don't exist or stay the same, the matrices do not
@@ -878,8 +884,9 @@ Transport_ATS ::AdvanceDispersionDiffusion_(double t_old, double t_new)
       if (std::abs(md_change) > 1.e-12) {
         // shift the tensor diagonal by the lwc * delta diff coef
         for (int c = 0; c != cv.MyLength(); ++c) {
-          (*D_)[c] += md_change;
+          (*D_)[c] += md_change * lwc[0][c] / cv[0][c];
         }
+        md_old = md_new;
         changed_tensor = true;
       }
     }
@@ -894,10 +901,7 @@ Transport_ATS ::AdvanceDispersionDiffusion_(double t_old, double t_new)
 
     // -- build the matrices if needed
     if (changed_tensor || i == 0) {
-      // scale by liquid water content
-      for (int c = 0; c != lwc.MyLength(); ++c) {
-        (*D_)[c] *= (lwc[0][c] / cv[0][c]);
-      }
+      std::cout << "D = " << (*D_)[0] << std::endl;
 
       // update mass, stiffness matrices of diffusion operator
       diff_global_op_->Init();
@@ -1011,7 +1015,7 @@ Transport_ATS::AdvanceAdvectionSources_RK1_(double t_old,
   db_->WriteCellVector("M (src)", conserve_qty);
 
   // invert for C1: C1 <-- M / WC1, also deals with dissolution/precipitation
-  InvertTccNew_(conserve_qty, tcc_new, &solid_qty);
+  InvertTccNew_(conserve_qty, tcc_new, &solid_qty, true);
   db_->WriteCellVector("C new", tcc_new);
 }
 
@@ -1076,7 +1080,7 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(double t_old,
   db_->WriteCellVector("M (pred src)", conserve_qty);
 
   // -- invert for C': C' <-- M / WC1, note no dissolution/precip
-  InvertTccNew_(conserve_qty, tcc_new, nullptr);
+  InvertTccNew_(conserve_qty, tcc_new, nullptr, false);
   db_->WriteCellVector("C (pred new)", tcc_new);
 
   // Corrector Step:
@@ -1107,7 +1111,7 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(double t_old,
   db_->WriteCellVector("M (corr src)", conserve_qty);
 
   // -- Invert to get C1, this time with dissolution/solidification
-  InvertTccNew_(conserve_qty, tcc_new, &solid_qty);
+  InvertTccNew_(conserve_qty, tcc_new, &solid_qty, true);
   db_->WriteCellVector("C2 (final)", tcc_new);
 }
 
