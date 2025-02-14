@@ -36,6 +36,7 @@
 
 // registration files
 #include "ats_registration_files.hh"
+#include "pks_shallow_water_registration.hh"
 
 int
 main(int argc, char* argv[])
