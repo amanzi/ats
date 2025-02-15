@@ -118,7 +118,6 @@ def fixTransportPK(pk, evals_list):
     else:
         domain = "domain"
 
-
     if not pk.isElement("primary variable key") and not pk.isElement("primary variable key suffix"):
         pk.setParameter("primary variable key suffix", "string", "total_component_concentration")
 
@@ -207,6 +206,38 @@ def fixTransportPK(pk, evals_list):
             print('adding subsurface quantities for LWC')
             lwc_list.setParameter("dependencies", "Array(string)", ["saturation_liquid", "molar_density_liquid", "porosity", "cell_volume"])
 
+    # remove dead keys
+    def removeDead(keyname, default_names, remove_eval=False):
+        if isinstance(default_names, str):
+            default_names = [default_names,]
+        keyname_key = keyname+" key"
+
+        if pk.isElement(keyname_key):
+            key = pk.getElement(keyname_key).getValue()
+            if key in default_names:
+                pk.pop(keyname_key)
+                if remove_eval and evals_list.isElement(key):
+                    evals_list.pop(key)
+
+    removeDead("porosity", ["porosity",])
+    removeDead("porosity", ["surface-porosity", "surface-one"], True)
+    removeDead("molar density liquid", ["surface-molar_density_liquid", "molar_density_liquid"])
+    removeDead("saturation", ["surface-saturation_liquid", "surface-ponded_depth", "saturation_liquid"])
+    removeDead("saturation liquid", ["surface-saturation_liquid", "surface-ponded_depth", "saturation_liquid"])
+    removeDead("flux", ["surface-water_flux", "water_flux"])
+    if pk.isElement("flux_key"):
+        pk.pop("flux_key")
+    if pk.isElement("molar_density_key"):
+        pk.pop("molar_density_key")
+
+    if pk.isElement("number of liquid components"):
+        pk.pop("number of liquid components")
+    if pk.isElement("number of gaseous components") and pk.getElement("number of gaseous components").getValue() == 0:
+        pk.pop("number of gaseous components")
+    if pk.isElement("number of aqueous components") and pk.isElement("component names") and \
+       pk.getElement("number of aqueous components").getValue() == len(pk.getElement("component names").getValue()):
+        pk.pop("number of aqueous components")
+                                                                       
     
 
 
