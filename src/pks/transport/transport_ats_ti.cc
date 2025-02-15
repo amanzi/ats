@@ -160,14 +160,9 @@ Transport_ATS::AddAdvection_SecondOrderUpwind_(double t_old,
   int nfaces_all =
     mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::ALL);
 
-  // should Init be moved to Setup?  Or does it also zero things out? --ETC
-  Teuchos::ParameterList recon_list = plist_->sublist("reconstruction");
-  lifting_->Init(recon_list);
-
-  // ugly API funkiness
-  auto tcc_tmp = Teuchos::rcp(new Epetra_Vector(tcc));
-  *tcc_tmp = tcc;
-  lifting_->Compute(tcc_tmp, 0);
+  // API funkiness
+  Teuchos::RCP<const Epetra_MultiVector> tcc_rcp = Teuchos::rcpFromRef<const Epetra_MultiVector>(tcc);
+  lifting_->Compute(tcc_rcp, 0);
 
   // populate boundary conditions for the current component
   PopulateBoundaryData_(component, *adv_bcs_);
@@ -175,9 +170,8 @@ Transport_ATS::AddAdvection_SecondOrderUpwind_(double t_old,
   auto& bc_value = adv_bcs_->bc_value();
 
   auto flux = S_->Get<CompositeVector>(flux_key_, tag_next_).ViewComponent("face", true);
-  limiter_->Init(recon_list, flux);
-  limiter_->ApplyLimiter(tcc_tmp, 0, lifting_, bc_model, bc_value);
-  lifting_->data()->ScatterMasterToGhosted("cell");
+  limiter_->SetFlux(flux);
+  limiter_->ApplyLimiter(tcc_rcp, 0, lifting_, bc_model, bc_value);
 
   // ADVECTIVE FLUXES
   // We assume that limiters made their job up to round-off errors.
@@ -188,14 +182,14 @@ Transport_ATS::AddAdvection_SecondOrderUpwind_(double t_old,
 
     double u1, u2, umin, umax;
     if (c1 >= 0 && c2 >= 0) {
-      u1 = (*tcc_tmp)[c1];
-      u2 = (*tcc_tmp)[c2];
+      u1 = tcc[c1];
+      u2 = tcc[c2];
       umin = std::min(u1, u2);
       umax = std::max(u1, u2);
     } else if (c1 >= 0) {
-      u1 = u2 = umin = umax = (*tcc_tmp)[c1];
+      u1 = u2 = umin = umax = tcc[c1];
     } else if (c2 >= 0) {
-      u1 = u2 = umin = umax = (*tcc_tmp)[c2];
+      u1 = u2 = umin = umax = tcc[c2];
     }
 
     double u = std::abs((*flux)[0][f]);
@@ -220,7 +214,7 @@ Transport_ATS::AddAdvection_SecondOrderUpwind_(double t_old,
       cq_flux[c1] -= tcc_flux;
 
     } else if (c1 >= 0 && c1 < cq_flux.MyLength() && (c2 < 0)) {
-      upwind_tcc = (*tcc_tmp)[c1];
+      upwind_tcc = tcc[c1];
       upwind_tcc = std::max(upwind_tcc, umin);
       upwind_tcc = std::min(upwind_tcc, umax);
 
@@ -290,10 +284,6 @@ Transport_ATS::InvertTccNew_(const Epetra_MultiVector& conserve_qty,
         // at the new time + stuff leaving through the domain coupling, divided
         // by water of both
         tcc[i][c] = conserve_qty[i][c] / water_total;
-        if (i == 0 && (c == 0 || c == 99)) {
-          std::cout << "inverting: conserve_qty = " << conserve_qty[i][c] << " / water_sink = "
-                    << water_sink << " + water_new = " << water_new << " = water_total = " << water_total << " --> tcc = " << tcc[i][c] << std::endl;
-        }
         if (include_current_water_mass) conserve_qty[num_aqueous_][c] = water_total;
       } else if (water_sink > water_tolerance_ / cv[0][c] && conserve_qty[i][c] > 0) {
         // there is water and stuff leaving through the domain coupling, but it

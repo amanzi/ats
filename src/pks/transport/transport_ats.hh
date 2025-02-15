@@ -456,7 +456,6 @@ class Transport_ATS : public PK_Physical_Default {
   Teuchos::RCP<Epetra_IntVector> upwind_cell_, downwind_cell_;
   Teuchos::RCP<Operators::ReconstructionCellLinear> lifting_;
   Teuchos::RCP<Operators::LimiterCell> limiter_;
-  int limiter_model_;
 
   Teuchos::RCP<Operators::BCs> adv_bcs_;
   std::vector<Teuchos::RCP<TransportDomainFunction>> bcs_;

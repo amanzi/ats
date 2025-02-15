@@ -95,7 +95,6 @@ Transport_ATS::parseParameterList()
 
     tortuosity_ = readParameterMapByPhase(plist_->sublist("tortuosity [-]"), 1.);
   }
-  has_dispersion_ = plist_->get<bool>("has dispersion", false);
 
   // keys, dependencies, etc
   // -- flux -- only needed at new time, evaluator controlled elsewhere
@@ -123,6 +122,7 @@ Transport_ATS::parseParameterList()
 
   // dispersion coefficient tensor
   dispersion_tensor_key_ = Keys::readKey(*plist_, domain_, "dispersion coefficient", "dispersion_coefficient");
+  has_dispersion_ = S_->HasEvaluatorList(dispersion_tensor_key_);
 
   // other parameters
   // -- a small amount of water, used to define when we are going to completely dry out a grid cell
@@ -221,8 +221,19 @@ Transport_ATS::SetupTransport_()
 
   if (adv_spatial_disc_order_ == 2) {
     // reconstruction initialization
-    limiter_ = Teuchos::rcp(new Operators::LimiterCell(mesh_));
+    Teuchos::ParameterList& recon_list = plist_->sublist("reconstruction");
+
+    // check and set defaults
+    if (!recon_list.isParameter("limiter extention for transport"))
+      recon_list.set<bool>("limiter extention for transport", true);
+    if (!recon_list.isParameter("limiter"))
+      recon_list.set<std::string>("limiter", "tensorial");
+
     lifting_ = Teuchos::rcp(new Operators::ReconstructionCellLinear(mesh_));
+    lifting_->Init(recon_list);
+
+    limiter_ = Teuchos::rcp(new Operators::LimiterCell(mesh_));
+    limiter_->Init(recon_list);
   }
 
   adv_bcs_ = Teuchos::rcp(
@@ -901,8 +912,6 @@ Transport_ATS ::AdvanceDispersionDiffusion_(double t_old, double t_new)
 
     // -- build the matrices if needed
     if (changed_tensor || i == 0) {
-      std::cout << "D = " << (*D_)[0] << std::endl;
-
       // update mass, stiffness matrices of diffusion operator
       diff_global_op_->Init();
       diff_op_->SetTensorCoefficient(Teuchos::rcpFromRef(D_->data));
