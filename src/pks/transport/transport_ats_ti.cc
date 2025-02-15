@@ -279,12 +279,20 @@ Transport_ATS::InvertTccNew_(const Epetra_MultiVector& conserve_qty,
     double water_total = water_sink + water_new;
 
     for (int i = 0; i != num_components_; ++i) {
+      double tcc_max = tcc_max_[component_names_[i]];
+
       if (water_new > water_tolerance_ / cv[0][c] && conserve_qty[i][c] > 0) {
         // there is both water and stuff present at the new time this is stuff
         // at the new time + stuff leaving through the domain coupling, divided
         // by water of both
         tcc[i][c] = conserve_qty[i][c] / water_total;
         if (include_current_water_mass) conserve_qty[num_aqueous_][c] = water_total;
+
+        if (solid_qty && tcc_max > 0 && tcc[i][c] > tcc_max) {
+          (*solid_qty)[i][c] += (tcc[i][c] - tcc_max) * water_total;
+          tcc[i][c] = tcc_max;
+        }
+
       } else if (water_sink > water_tolerance_ / cv[0][c] && conserve_qty[i][c] > 0) {
         // there is water and stuff leaving through the domain coupling, but it
         // all leaves (none at the new time)
@@ -293,30 +301,27 @@ Transport_ATS::InvertTccNew_(const Epetra_MultiVector& conserve_qty,
         // there is no water leaving, and no water at the new time.  Change any
         // stuff into solid
         if (solid_qty) (*solid_qty)[i][c] += std::max(conserve_qty[i][c], 0.);
+        conserve_qty[i][c] = 0.;
         tcc[i][c] = 0.;
       }
+
+      // dissolve solid
+      if (solid_qty &&
+          water_total > water_tolerance_ / cv[0][c] && // water available for dissolution
+          (*solid_qty)[i][c] > 0. && // solid available to dissolve
+          tcc[i][c] < tcc_max) {
+        double dissolved_qty = std::min( (tcc_max - tcc[i][c]) * water_total, (*solid_qty)[i][c]);
+        if (water_new > water_tolerance_ / cv[0][c]) {
+          // new water -- dissolve in place
+          tcc[i][c] += dissolved_qty / water_new;
+        } // otherwise dissolve into water_sink, advect out, tcc stays 0
+
+        (*solid_qty)[i][c] -= dissolved_qty;
+        conserve_qty[i][c] += dissolved_qty;
+      }
+
     }
   }
-
-  // DEAL WITH DISSOLUTION! --ETC
-  // // dissolve
-  // if (dissolution_) {
-  //   for (int i = 0; i != num_aqueous_; ++i) {
-  //     double tcc_max = tcc_max_[component_names_[i]];
-  //     if (tcc_max > 0.) {
-  //       for (int c = 0; c != lwc_new.MyLength(); ++c) {
-  //         if ((lwc_new[0][c] / cv[0][c] > water_tolerance_) &&
-  //             (solid_qty[i][c] > 0)) {
-  //           double add_mass =
-  //             std::min(solid_qty[i][c], tcc_max * lwc_next[0][c] - conserve_qty[i][c]);
-  //           if (add_mass > 0.) {
-  //             solid_qty[i][c] -= add_mass;
-  //             conserve_qty[i][c] += add_mass;
-  //           }
-  //         }
-  //       }
-  //     }
-  //   }
 }
 
 
