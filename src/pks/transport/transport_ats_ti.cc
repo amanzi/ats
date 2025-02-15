@@ -29,6 +29,8 @@ namespace Transport {
 //
 // This uses a first-order donor upwind scheme.
 //
+// DEV NOTE: this requires that tcc is ghosted and scattered, and that cq_flux is
+// owned.
 void
 Transport_ATS::AddAdvection_FirstOrderUpwind_(double t_old,
         double t_new,
@@ -113,7 +115,7 @@ Transport_ATS::AddAdvection_FirstOrderUpwind_(double t_old,
       int c1 = (*upwind_cell_)[f];
 
       double u = std::abs(flux[0][f]);
-      if (c2 >= 0) {
+      if (c2 >= 0 && c2 < cq_flux.MyLength()) {
         for (int i = 0; i < ncomp; i++) {
           int k = tcc_index[i];
           if (k < num_aqueous_) {
@@ -142,6 +144,8 @@ Transport_ATS::AddAdvection_SecondOrderUpwind_(double t_old,
 //
 // Given C_old, this computes div Cq using a second order limiter
 //
+// DEV NOTE: requires that tcc is ghosted and scattered, while cq_flux is
+// owned.
 void
 Transport_ATS::AddAdvection_SecondOrderUpwind_(double t_old,
         double t_new,
@@ -258,7 +262,10 @@ Transport_ATS::AddAdvection_SecondOrderUpwind_(double t_old,
 
 
 
-
+// Given the conserved quantity, computes new tcc
+//
+// DEV NOTE: all vectors are owned only
+//
 void
 Transport_ATS::InvertTccNew_(const Epetra_MultiVector& conserve_qty,
                              Epetra_MultiVector& tcc,
@@ -320,8 +327,6 @@ Transport_ATS::InvertTccNew_(const Epetra_MultiVector& conserve_qty,
   //       }
   //     }
   //   }
-
-
 }
 
 
@@ -347,28 +352,24 @@ Transport_ATS::AddSourceTerms_(double t0,
       int c = it->first;
       std::vector<double>& values = it->second;
 
-      if (c >= conserve_qty.MyLength()) continue;
+      if (c < conserve_qty.MyLength()) {
+        if (srcs_[m]->getType() == DomainFunction_kind::COUPLING && n0 == 0) {
+          AMANZI_ASSERT(values.size() == num_aqueous_ + 1);
+          conserve_qty[num_aqueous_][c] += values[num_aqueous_];
+        }
 
-      if (srcs_[m]->getType() == DomainFunction_kind::COUPLING && n0 == 0) {
-        AMANZI_ASSERT(values.size() == num_aqueous_ + 1);
-        conserve_qty[num_aqueous_][c] += values[num_aqueous_];
-      }
+        for (int k = 0; k < tcc_index.size(); ++k) {
+          int i = tcc_index[k];
+          if (i < n0 || i > n1) continue;
 
-      for (int k = 0; k < tcc_index.size(); ++k) {
-        int i = tcc_index[k];
-        if (i < n0 || i > n1) continue;
-
-        int imap = i;
-        double value = mesh_->getCellVolume(c) * values[k];
-        conserve_qty[imap][c] += (t1 - t0) * value;
+          int imap = i;
+          double value = mesh_->getCellVolume(c) * values[k];
+          conserve_qty[imap][c] += (t1 - t0) * value;
+        }
       }
     }
   }
 }
-
-
-
-
 
 
 } // namespace Transport

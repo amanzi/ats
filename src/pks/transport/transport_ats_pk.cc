@@ -668,9 +668,7 @@ Transport_ATS::ComputeStableTimeStep_()
   // Get flux at faces for time NEXT
   IdentifyUpwindCells_();
 
-  // Total concentration at current tag
-  const Epetra_MultiVector& tcc_old = *S_->Get<CompositeVector>(key_, tag_current_)
-    .ViewComponent("cell");
+  int ncells_owned = S_->GetMesh(domain_)->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
   // flux at next tag
   S_->GetEvaluator(flux_key_, tag_next_).Update(*S_, name_);
@@ -684,11 +682,13 @@ Transport_ATS::ComputeStableTimeStep_()
   const Epetra_MultiVector& lwc_new = *S_->Get<CompositeVector>(lwc_key_, tag_next_).ViewComponent("cell");
 
   // loop over ALL faces and accumulate outgoing fluxes from each OWNED cell
-  std::vector<double> total_outflux(tcc_old.MyLength(), 0.0);
+  std::vector<double> total_outflux(ncells_owned, 0.0);
 
   for (int f = 0; f < flux.MyLength(); f++) {
     int c = (*upwind_cell_)[f];
-    if (c >= 0) { total_outflux[c] += std::abs(flux[0][f]); }
+    if (c >= 0 && c < ncells_owned) {
+      total_outflux[c] += std::abs(flux[0][f]);
+    }
   }
 
   // loop over cells and calculate minimal timestep
@@ -696,7 +696,7 @@ Transport_ATS::ComputeStableTimeStep_()
   double min_dt_outflux = 0.;
   int min_dt_cell = 0;
 
-  for (int c = 0; c < tcc_old.MyLength(); c++) {
+  for (int c = 0; c != ncells_owned; ++c) {
     double outflux = total_outflux[c];
     double min_lwc = std::min(lwc_old[0][c], lwc_new[0][c]);
     double dt_cell = TRANSPORT_LARGE_TIME_STEP;
@@ -972,19 +972,9 @@ Transport_ATS::AdvanceAdvectionSources_RK1_(double t_old,
   S_->Get<CompositeVector>(key_, tag_current_).ScatterMasterToGhosted();
   const Epetra_MultiVector& tcc_old = *S_->Get<CompositeVector>(key_, tag_current_)
     .ViewComponent("cell", true);
-  Epetra_MultiVector& tcc_new = *S_->GetW<CompositeVector>(key_, tag_next_, name_)
-    .ViewComponent("cell", true);
 
   // old and new water contents -- note these were updated in StableStep
   const Epetra_MultiVector& lwc_old = *S_->Get<CompositeVector>(lwc_key_, tag_current_)
-    .ViewComponent("cell", false);
-  const Epetra_MultiVector& lwc_new = *S_->Get<CompositeVector>(lwc_key_, tag_next_)
-    .ViewComponent("cell", false);
-
-  // solid quantity (unit: molC) stores extra solute mass
-  // solid_qty has `num_components_` vectors only (solute mass)
-  Epetra_MultiVector& solid_qty =
-    *S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, name_)
     .ViewComponent("cell", false);
 
   // populating conserved quantity (unit: molC)
@@ -1015,6 +1005,16 @@ Transport_ATS::AdvanceAdvectionSources_RK1_(double t_old,
   db_->WriteCellVector("M (src)", conserve_qty);
 
   // invert for C1: C1 <-- M / WC1, also deals with dissolution/precipitation
+  // tcc_new, the new solution
+  Epetra_MultiVector& tcc_new = *S_->GetW<CompositeVector>(key_, tag_next_, name_)
+    .ViewComponent("cell", false);
+
+  // solid quantity (unit: molC) stores extra solute mass
+  // solid_qty has `num_components_` vectors only (solute mass)
+  Epetra_MultiVector& solid_qty =
+    *S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, name_)
+    .ViewComponent("cell", false);
+
   InvertTccNew_(conserve_qty, tcc_new, &solid_qty, true);
   db_->WriteCellVector("C new", tcc_new);
 }
@@ -1036,19 +1036,9 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(double t_old,
   S_->Get<CompositeVector>(key_, tag_current_).ScatterMasterToGhosted();
   const Epetra_MultiVector& tcc_old = *S_->Get<CompositeVector>(key_, tag_current_)
     .ViewComponent("cell", true);
-  Epetra_MultiVector& tcc_new = *S_->GetW<CompositeVector>(key_, tag_next_, name_)
-    .ViewComponent("cell", true);
 
   // old and new water contents -- note these were updated in StableStep
   const Epetra_MultiVector& lwc_old = *S_->Get<CompositeVector>(lwc_key_, tag_current_)
-    .ViewComponent("cell", false);
-  const Epetra_MultiVector& lwc_new = *S_->Get<CompositeVector>(lwc_key_, tag_next_)
-    .ViewComponent("cell", false);
-
-  // solid quantity (unit: molC) stores extra solute mass
-  // solid_qty has `num_components_` vectors only (solute mass)
-  Epetra_MultiVector& solid_qty =
-    *S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, name_)
     .ViewComponent("cell", false);
 
   // populating conserved quantity (unit: molC)
@@ -1080,8 +1070,13 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(double t_old,
   db_->WriteCellVector("M (pred src)", conserve_qty);
 
   // -- invert for C': C' <-- M / WC1, note no dissolution/precip
-  InvertTccNew_(conserve_qty, tcc_new, nullptr, false);
-  db_->WriteCellVector("C (pred new)", tcc_new);
+  {
+    Epetra_MultiVector& tcc_new = *S_->GetW<CompositeVector>(key_, tag_next_, name_)
+      .ViewComponent("cell", false);
+
+    InvertTccNew_(conserve_qty, tcc_new, nullptr, false);
+    db_->WriteCellVector("C (pred new)", tcc_new);
+  }
 
   // Corrector Step:
   // -- M <-- M/2 + M0 C0 / 2
@@ -1094,14 +1089,20 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(double t_old,
   db_->WriteCellVector("M (corr start)", conserve_qty);
 
   // -- advect the predicted C'
-  //   M <-- M + dt/2 * div q * C'
-  //     <-- (C0 W0 + dt div q C0 + dt Q0) / 2 + W0 C0 / 2 + dt div q C' / 2
-  if (spatial_order == 1) {
-    AddAdvection_FirstOrderUpwind_(t_old + dt/2., t_new, tcc_new, conserve_qty);
-  } else if (spatial_order == 2) {
-    AddAdvection_SecondOrderUpwind_(t_old + dt/2., t_new, tcc_new, conserve_qty);
+  {
+    S_->Get<CompositeVector>(key_, tag_next_).ScatterMasterToGhosted();
+    const Epetra_MultiVector& tcc_new = *S_->Get<CompositeVector>(key_, tag_next_)
+      .ViewComponent("cell", true);
+
+    //   M <-- M + dt/2 * div q * C'
+    //     <-- (C0 W0 + dt div q C0 + dt Q0) / 2 + W0 C0 / 2 + dt div q C' / 2
+    if (spatial_order == 1) {
+      AddAdvection_FirstOrderUpwind_(t_old + dt/2., t_new, tcc_new, conserve_qty);
+    } else if (spatial_order == 2) {
+      AddAdvection_SecondOrderUpwind_(t_old + dt/2., t_new, tcc_new, conserve_qty);
+    }
+    db_->WriteCellVector("M (corr adv)", conserve_qty);
   }
-  db_->WriteCellVector("M (corr adv)", conserve_qty);
 
   // -- add sources at the new time, predicted C'
   //   M <-- M + dt/2 Q(t1)
@@ -1111,8 +1112,19 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(double t_old,
   db_->WriteCellVector("M (corr src)", conserve_qty);
 
   // -- Invert to get C1, this time with dissolution/solidification
-  InvertTccNew_(conserve_qty, tcc_new, &solid_qty, true);
-  db_->WriteCellVector("C2 (final)", tcc_new);
+  {
+    // solid quantity (unit: molC) stores extra solute mass
+    // solid_qty has `num_components_` vectors only (solute mass)
+    Epetra_MultiVector& solid_qty =
+      *S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, name_)
+      .ViewComponent("cell", false);
+
+    Epetra_MultiVector& tcc_new = *S_->GetW<CompositeVector>(key_, tag_next_, name_)
+      .ViewComponent("cell", true);
+
+    InvertTccNew_(conserve_qty, tcc_new, &solid_qty, true);
+    db_->WriteCellVector("C2 (final)", tcc_new);
+  }
 }
 
 
@@ -1183,10 +1195,10 @@ Transport_ATS::IdentifyUpwindCells_()
   const Epetra_MultiVector& flux = *S_->Get<CompositeVector>(flux_key_, tag_next_).ViewComponent("face", true);
 
   // identify upwind and downwind cell of each face
-  for (int c = 0; c < ncells_all; c++) {
+  for (int c = 0; c != ncells_all; ++c) {
     const auto& [faces, dirs] = mesh_->getCellFacesAndDirections(c);
 
-    for (int i = 0; i < faces.size(); i++) {
+    for (int i = 0; i != faces.size(); ++i) {
       int f = faces[i];
       double tmp = flux[0][f] * dirs[i];
       if (tmp > 0.0) {
