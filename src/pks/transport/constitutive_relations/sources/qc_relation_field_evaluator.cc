@@ -58,21 +58,26 @@ QCRelationFieldEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
   // Loop through each cell
   AmanziMesh::Entity_ID ncells = cv.MyLength();
   for (AmanziMesh::Entity_ID c = 0; c != ncells; ++c) {
-    
-    if (extensive_) {
-      // convert extensive quantity in mol/m2/s to m3/s
-      field_flow = water_from_field[0][c] / molar_den[0][c];
+    const auto& [faces, dirs] = mesh.getCellFacesAndDirections(c);
+    int nfaces = faces.size();
+    if (nfaces < 4) {   // skip triangle cells that are not river corridor
+      surf_src[0][c] = 0;
     } else {
-      // convert intensive quantity from mol/s to m3/s
-      field_flow = water_from_field[0][c] * cv[0][c] / molar_den[0][c];
+      if (extensive_) {
+        // convert extensive quantity in mol/m2/s to m3/s
+        field_flow = water_from_field[0][c] / molar_den[0][c];
+      } else {
+        // convert intensive quantity from mol/s to m3/s
+        field_flow = water_from_field[0][c] * cv[0][c] / molar_den[0][c];
+      }
+
+      // transport source (concentration g/m3) as a function of discharge from a field (e.g. tile, groundwater)
+      source_mass = (*QC_curve_)(std::vector<double>{field_flow});
+
+      // return solute mass rate by multiplying with discharge (molC/s)
+      // Here we assume the molar mass is 1. TODO: add molar mass to the function.
+      surf_src[0][c] = source_mass * field_flow * molar_den[0][c] / cv[0][c];
     }
-
-    // transport source (concentration g/m3) as a function of discharge from a field (e.g. tile, groundwater)
-    source_mass = (*QC_curve_)(std::vector<double>{field_flow});
-
-    // return solute mass rate by multiplying with discharge (molC/s)
-    // Here we assume the molar mass is 1. TODO: add molar mass to the function.
-    surf_src[0][c] = source_mass * field_flow * molar_den[0][c] / cv[0][c];
   }
 }
 
