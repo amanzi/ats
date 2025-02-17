@@ -112,7 +112,7 @@ Transport_ATS::parseParameterList()
     Keys::readKey(*plist_, domain_, "conserved quantity", "total_component_quantity");
   requireAtNext(conserve_qty_key_, tag_next_, *S_, name_);
 
-  solid_residue_mass_key_ = Keys::readKey(*plist_, domain_, "solid residue", "solid_residue_mass");
+  solid_residue_mass_key_ = Keys::readKey(*plist_, domain_, "solid residue", "solid_residue_quantity");
 
   geochem_src_factor_key_ =
     Keys::readKey(*plist_, domain_, "geochem source factor", "geochem_src_factor");
@@ -656,7 +656,15 @@ Transport_ATS::InitializeFields_()
   Teuchos::OSTab tab = vo_->getOSTab();
   S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, name_).PutScalar(0.0);
   S_->GetRecordW(solid_residue_mass_key_, tag_next_, name_).set_initialized();
-  S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_).PutScalar(0.0);
+
+  // initialize conserved quantity
+  S_->GetEvaluator(lwc_key_, tag_next_).Update(*S_, name_);
+  const Epetra_MultiVector& lwc = *S_->Get<CompositeVector>(lwc_key_, tag_next_).ViewComponent("cell", false);
+  const Epetra_MultiVector& tcc = *S_->Get<CompositeVector>(key_, tag_next_).ViewComponent("cell", false);
+  Epetra_MultiVector& conserve_qty = *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_).ViewComponent("cell", false);
+  for (int i = 0; i != num_aqueous_; ++i) {
+    conserve_qty(i)->Multiply(1., *lwc(0), *tcc(i), 0.);
+  }
   S_->GetRecordW(conserve_qty_key_, tag_next_, name_).set_initialized();
 }
 
