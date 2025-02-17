@@ -76,7 +76,7 @@ QCRelationFieldEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
 
       // return solute mass rate by multiplying with discharge (molC/s)
       // Here we assume the molar mass is 1. TODO: add molar mass to the function.
-      surf_src[0][c] = source_mass * field_flow * molar_den[0][c] / cv[0][c];
+      surf_src[0][c] = source_mass * field_flow / cv[0][c];
     }
   }
 }
