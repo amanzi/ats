@@ -493,12 +493,11 @@ void
 Transport_ATS::SetupPhysicalEvaluators_()
 {
   // primary variable
-  requireAtNext(key_, tag_next_, *S_, name_)
+  S_->Require<CompositeVector, CompositeVectorSpace>(key_, tag_next_, passwd_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_components_);
   S_->GetRecordSetW(key_).set_subfieldnames(component_names_);
-  requireAtCurrent(key_, tag_current_, *S_, name_);
 
   // -- water flux
   requireAtNext(flux_key_, tag_next_, *S_)
@@ -863,7 +862,7 @@ Transport_ATS ::AdvanceDispersionDiffusion_(double t_old, double t_new)
   if (!has_diffusion_ && !has_dispersion_) return;
   double dt = t_new - t_old;
 
-  Epetra_MultiVector& tcc_new = *S_->GetW<CompositeVector>(key_, tag_next_, name_)
+  Epetra_MultiVector& tcc_new = *S_->GetW<CompositeVector>(key_, tag_next_, passwd_)
     .ViewComponent("cell", false);
 
   // needed for diffusion coefficent and for accumulation term
@@ -1023,7 +1022,7 @@ Transport_ATS::AdvanceAdvectionSources_RK1_(double t_old,
 
   // invert for C1: C1 <-- M / WC1, also deals with dissolution/precipitation
   // tcc_new, the new solution
-  Epetra_MultiVector& tcc_new = *S_->GetW<CompositeVector>(key_, tag_next_, name_)
+  Epetra_MultiVector& tcc_new = *S_->GetW<CompositeVector>(key_, tag_next_, passwd_)
     .ViewComponent("cell", false);
 
   // solid quantity (unit: molC) stores extra solute mass
@@ -1088,7 +1087,7 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(double t_old,
 
   // -- invert for C': C' <-- M / WC1, note no dissolution/precip
   {
-    Epetra_MultiVector& tcc_new = *S_->GetW<CompositeVector>(key_, tag_next_, name_)
+    Epetra_MultiVector& tcc_new = *S_->GetW<CompositeVector>(key_, tag_next_, passwd_)
       .ViewComponent("cell", false);
 
     InvertTccNew_(conserve_qty, tcc_new, nullptr, false);
@@ -1136,7 +1135,7 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(double t_old,
       *S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, name_)
       .ViewComponent("cell", false);
 
-    Epetra_MultiVector& tcc_new = *S_->GetW<CompositeVector>(key_, tag_next_, name_)
+    Epetra_MultiVector& tcc_new = *S_->GetW<CompositeVector>(key_, tag_next_, passwd_)
       .ViewComponent("cell", true);
 
     InvertTccNew_(conserve_qty, tcc_new, &solid_qty, true);

@@ -47,6 +47,7 @@ class MPCReactiveTransport : public WeakMPC {
 
  protected:
   bool chem_step_succeeded_;
+  bool trans_step_succeeded_;
 
   Key domain_;
   Key tcc_key_;

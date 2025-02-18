@@ -124,16 +124,21 @@ def fixTransportPK(pk, evals_list):
     if not pk.isElement("advection spatial discretization order") and pk.isElement("spatial discretization order"):
         order = pk.getElement("spatial discretization order")
         order.setName("advection spatial discretization order")
+    order = pk.getElement("advection spatial discretization order").getValue()
+    if order == 1 and pk.isElement("reconstruction"):
+        pk.pop("reconstruction")
+    
 
     if pk.isElement("molecular diffusion") and not pk.isElement("molecular diffusivity [m^2 s^-1]"):
         md = pk.pop("molecular diffusion")
-        names = md.getElement("aqueous names").getValue()
-        vals = md.getElement("aqueous values").getValue()
-        print("found MD for names:", names)
-        if len(names) > 0 and names[0] != '':
-            diff = pk.sublist("molecular diffusivity [m^2 s^-1]")
-            for name, val in zip(names, vals):
-                diff.setParameter(name.strip(), "double", val)
+        if md.isElement("aqueous names"):
+            names = md.getElement("aqueous names").getValue()
+            vals = md.getElement("aqueous values").getValue()
+            print("found MD for names:", names)
+            if len(names) > 0 and names[0] != '':
+                diff = pk.sublist("molecular diffusivity [m^2 s^-1]")
+                for name, val in zip(names, vals):
+                    diff.setParameter(name.strip(), "double", val)
 
     if pk.isElement("inverse") and pk.isElement("diffusion"):
         inv = pk.pop("inverse")
@@ -210,7 +215,7 @@ def fixTransportPK(pk, evals_list):
     def removeDead(keyname, default_names, remove_eval=False):
         if isinstance(default_names, str):
             default_names = [default_names,]
-        keyname_key = keyname+" key"
+        keyname_key = keyname + " key"
 
         if pk.isElement(keyname_key):
             key = pk.getElement(keyname_key).getValue()
@@ -219,12 +224,20 @@ def fixTransportPK(pk, evals_list):
                 if remove_eval and evals_list.isElement(key):
                     evals_list.pop(key)
 
+        keyname_key = keyname_key + " suffix"
+        default_names = [dn.split('-')[-1] for dn in default_names]
+        if pk.isElement(keyname_key):
+            key = pk.getElement(keyname_key).getValue()
+            if key in default_names:
+                pk.pop(keyname_key)
+
     removeDead("porosity", ["porosity",])
     removeDead("porosity", ["surface-porosity", "surface-one"], True)
     removeDead("molar density liquid", ["surface-molar_density_liquid", "molar_density_liquid"])
     removeDead("saturation", ["surface-saturation_liquid", "surface-ponded_depth", "saturation_liquid"])
     removeDead("saturation liquid", ["surface-saturation_liquid", "surface-ponded_depth", "saturation_liquid"])
     removeDead("flux", ["surface-water_flux", "water_flux"])
+    removeDead("water flux", ["surface-water_flux", "water_flux"])
     if pk.isElement("flux_key"):
         pk.pop("flux_key")
     if pk.isElement("molar_density_key"):
@@ -237,8 +250,13 @@ def fixTransportPK(pk, evals_list):
     if pk.isElement("number of aqueous components") and pk.isElement("component names") and \
        pk.getElement("number of aqueous components").getValue() == len(pk.getElement("component names").getValue()):
         pk.pop("number of aqueous components")
-                                                                       
-    
+    if pk.isElement("PK origin"):
+        pk.pop("PK origin")
+    if pk.isElement("solver"):
+        pk.pop("solver")
+
+    if pk.isElement("physical models and assumptions"):
+        pk.pop("physical models and assumptions")
 
 
 def fixTransportPKs(xml):
@@ -251,6 +269,11 @@ def fixTransportPKs(xml):
         if pk_type.getValue() == "transport ATS":
             print("fixing transport pk")
             fixTransportPK(pk, evals_list)
+        elif pk_type.getValue() == "transport ats":
+            pk_type.setValue("transport ATS")
+            print("fixing transport pk")
+            fixTransportPK(pk, evals_list)
+            
                     
             
 def update(xml):

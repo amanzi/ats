@@ -33,8 +33,9 @@ PK_Physical_Default::parseParameterList()
 {
   // require primary variable evaluators
   key_ = Keys::readKey(*plist_, domain_, "primary variable");
-  requireAtNext(key_, tag_next_, *S_, name_);
-  requireAtCurrent(key_, tag_current_, *S_, name_);
+  passwd_ = plist_->get<std::string>("primary variable password", name_);
+  requireAtNext(key_, tag_next_, *S_, passwd_);
+  requireAtCurrent(key_, tag_current_, *S_, passwd_);
 }
 
 
@@ -95,7 +96,7 @@ void
 PK_Physical_Default::Initialize()
 {
   // Get the record
-  Record& record = S_->GetRecordW(key_, tag_next_, name());
+  Record& record = S_->GetRecordW(key_, tag_next_, passwd_);
 
   // Initialize the data
   if (!record.initialized()) {
@@ -118,7 +119,7 @@ PK_Physical_Default::Initialize()
   }
 
   // Push the data into the solution.
-  solution_->SetData(record.GetPtrW<CompositeVector>(name()));
+  solution_->SetData(record.GetPtrW<CompositeVector>(passwd_));
 };
 
 

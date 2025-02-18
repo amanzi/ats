@@ -25,22 +25,29 @@ MPCReactiveTransport::MPCReactiveTransport(Teuchos::ParameterList& pk_tree,
                                            const Teuchos::RCP<Teuchos::ParameterList>& global_list,
                                            const Teuchos::RCP<State>& S,
                                            const Teuchos::RCP<TreeVector>& soln)
-  : PK(pk_tree, global_list, S, soln), WeakMPC(pk_tree, global_list, S, soln)
+  : PK(pk_tree, global_list, S, soln), WeakMPC(pk_tree, global_list, S, soln),
+    chem_step_succeeded_(true),
+    trans_step_succeeded_(true)
 {
-  chem_step_succeeded_ = true;
-
   alquimia_timer_ = Teuchos::TimeMonitor::getNewCounter("alquimia " + name());
-
-  domain_ = Keys::readDomain(*plist_, "domain", "domain");
-  tcc_key_ = Keys::readKey(
-    *plist_, domain_, "total component concentration", "total_component_concentration");
-  mol_dens_key_ = Keys::readKey(*plist_, domain_, "molar density liquid", "molar_density_liquid");
 }
 
 
 void
 MPCReactiveTransport::parseParameterList()
 {
+  Teuchos::Array<std::string> names = plist_->get<Teuchos::Array<std::string>>("PKs order");
+  domain_ = pks_list_->sublist(names[1]).get<std::string>("domain name", "domain");
+
+  // chemistry and transport share the same primary variable
+  tcc_key_ = Keys::readKey(pks_list_->sublist(names[1]), domain_, "primary variable key",
+                           "total_component_concentration");
+  pks_list_->sublist(names[0]).set<std::string>("primary variable key", tcc_key_);
+  pks_list_->sublist(names[0]).set<std::string>("primary variable password", name_);
+  pks_list_->sublist(names[1]).set<std::string>("primary variable password", name_);
+
+  mol_dens_key_ = Keys::readKey(*plist_, domain_, "molar density liquid", "molar_density_liquid");
+
   cast_sub_pks_();
   chemistry_pk_->parseParameterList();
 
@@ -61,7 +68,7 @@ MPCReactiveTransport::Setup()
   transport_pk_->Setup();
   chemistry_pk_->Setup();
 
-  S_->Require<CompositeVector, CompositeVectorSpace>(tcc_key_, tag_next_, "state")
+  S_->Require<CompositeVector, CompositeVectorSpace>(tcc_key_, tag_next_, name_)
     .SetMesh(S_->GetMesh(domain_))
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, chemistry_pk_->num_aqueous_components());
@@ -97,7 +104,7 @@ MPCReactiveTransport::Initialize()
   // for, e.g., salinity intrusion problems where water density is a function
   // of concentration itself, but should work for all other problems?
   Teuchos::RCP<Epetra_MultiVector> tcc =
-    S_->GetW<CompositeVector>(tcc_key_, tag_next_, "state").ViewComponent("cell", true);
+    S_->GetW<CompositeVector>(tcc_key_, tag_next_, name_).ViewComponent("cell", true);
   S_->GetEvaluator(mol_dens_key_, tag_next_).Update(*S_, name_);
   Teuchos::RCP<const Epetra_MultiVector> mol_dens =
     S_->Get<CompositeVector>(mol_dens_key_, tag_next_).ViewComponent("cell", true);
@@ -119,11 +126,13 @@ MPCReactiveTransport::Initialize()
 double
 MPCReactiveTransport::get_dt()
 {
-  double dTtran = transport_pk_->get_dt();
-  double dTchem = chemistry_pk_->get_dt();
+  double dt_tran = transport_pk_->get_dt();
+  double dt_chem = chemistry_pk_->get_dt();
 
-  if (!chem_step_succeeded_ && (dTchem / dTtran > 0.99)) { dTchem *= 0.5; }
-  return dTchem;
+  // chemistry should manage its own timestep, and which point the default
+  // MPC::get_dt() is fine.  --ETC
+  if (trans_step_succeeded_ && !chem_step_succeeded_) dt_chem *= 0.5;
+  return std::min(dt_tran, dt_chem);
 }
 
 
@@ -133,17 +142,19 @@ MPCReactiveTransport::get_dt()
 bool
 MPCReactiveTransport::AdvanceStep(double t_old, double t_new, bool reinit)
 {
+  trans_step_succeeded_ = false;
   chem_step_succeeded_ = false;
 
   // First we do a transport step.
   bool fail = transport_pk_->AdvanceStep(t_old, t_new, reinit);
   if (fail) return fail;
+  trans_step_succeeded_ = true;
 
   // Second, we do a chemistry step.
   int num_aq_componets = transport_pk_->get_num_aqueous_component();
 
   Teuchos::RCP<Epetra_MultiVector> tcc_copy =
-    S_->GetW<CompositeVector>(tcc_key_, tag_next_, "state").ViewComponent("cell", true);
+    S_->GetW<CompositeVector>(tcc_key_, tag_next_, name_).ViewComponent("cell", true);
 
   S_->GetEvaluator(mol_dens_key_, tag_next_).Update(*S_, name_);
   Teuchos::RCP<const Epetra_MultiVector> mol_dens =
@@ -153,6 +164,7 @@ MPCReactiveTransport::AdvanceStep(double t_old, double t_new, bool reinit)
     advanceChemistry(chemistry_pk_, t_old, t_new, reinit, *mol_dens, tcc_copy, *alquimia_timer_);
   changedEvaluatorPrimary(tcc_key_, tag_next_, *S_);
   if (!fail) chem_step_succeeded_ = true;
+
   return fail;
 };
 
