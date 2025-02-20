@@ -24,10 +24,10 @@ MPCFlowTransport::parseParameterList()
     std::string domain = Keys::readDomain(*flow_plist);
     if (Keys::in(domain, "surface")) {
       surface = true;
-      sub_lwc_key = Keys::readKey(*getSubPKPlist_(1), domain, "water content", "water_content");
+      surf_lwc_key = Keys::readKey(*getSubPKPlist_(1), domain, "water content", "water_content");
     } else {
       subsurface = true;
-      surf_lwc_key = Keys::readKey(*getSubPKPlist_(1), domain, "water content", "water_content");
+      sub_lwc_key = Keys::readKey(*getSubPKPlist_(1), domain, "water content", "water_content");
     }
   } else {
     // no domain name means it is an MPC, likely coupled water, but maybe permafrost
@@ -35,7 +35,16 @@ MPCFlowTransport::parseParameterList()
     subsurface = true;
     auto transport_names = getSubPKPlist_(1)->get<Teuchos::Array<std::string>>("PKs order");
 
+    // if reactive_transport_names[0] has a domain, it is transport only.
+    // otherwise it is reactive transport, and we have to go another level down
     AMANZI_ASSERT(transport_names.size() == 2);
+
+    if (!pks_list_->sublist(transport_names[0]).isParameter("domain name")) {
+      // reactions first
+      transport_names = pks_list_->sublist(transport_names[1]).get<Teuchos::Array<std::string>>("PKs order");
+    }
+
+    // now we have the actual transport names!
     auto subsurf_domain = Keys::readDomain(pks_list_->sublist(transport_names[0]));
     sub_lwc_key = Keys::readKey(pks_list_->sublist(transport_names[0]), subsurf_domain, "liquid water content", "water_content");
 

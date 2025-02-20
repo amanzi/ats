@@ -24,7 +24,7 @@ how to use this option is via examples:
 
    Makes a figure with 4 axes in a 2x2 block.  Note each list is a row.
 
- --layout="saturation_liquid + saturation_ice, temperature"
+--layout="saturation_liquid & saturation_ice, temperature"
 
    Makes a figure with 2 axes, the first containing saturations and
    the second temperature.
@@ -90,7 +90,7 @@ def valid_layout(arg):
         if columns[-1] == '':
             columns.pop()
         for column in columns:
-            variables = column.split('+')
+            variables = column.split('&')
             row_layout.append(variables)
         layout.append(row_layout)
 
@@ -102,13 +102,30 @@ def valid_layout(arg):
 
 
 def domain_var(varname):
-    vs = varname.split('-')
-    if len(vs) == 2:
-        return vs[0],vs[1]
-    elif len(vs) == 1:
-        return '', varname
+    if '.' in varname:
+        dot_split = varname.split('.')
+        suffix = '.'.join(dot_split[1:])
+        varname = dot_split[0]
     else:
-        raise RuntimeError("Invalid variable name: {}".format(varname))
+        suffix = ''
+
+    vs = varname.split('-')
+
+    if len(vs) >= 2:
+        domain = vs[0]
+        varname = '-'.join(vs[1:])
+        if suffix != '':
+            varname = varname + '.' + suffix
+        
+    elif len(vs) == 1:
+        domain = ''
+        varname = varname
+        if suffix != '':
+            varname = varname + '.' + suffix
+
+    return domain, varname
+
+
 
 def label(varname):
     return '{} [{}]'.format(varname, ats_units.get_units(varname))
