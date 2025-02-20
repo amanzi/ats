@@ -37,14 +37,14 @@ void
 MPCReactiveTransport::parseParameterList()
 {
   Teuchos::Array<std::string> names = plist_->get<Teuchos::Array<std::string>>("PKs order");
-  domain_ = pks_list_->sublist(names[1]).get<std::string>("domain name", "domain");
+  domain_ = getSubPKPlist_(1)->get<std::string>("domain name", "domain");
 
   // chemistry and transport share the same primary variable
-  tcc_key_ = Keys::readKey(pks_list_->sublist(names[1]), domain_, "primary variable key",
+  tcc_key_ = Keys::readKey(*getSubPKPlist_(1), domain_, "primary variable key",
                            "total_component_concentration");
-  pks_list_->sublist(names[0]).set<std::string>("primary variable key", tcc_key_);
-  pks_list_->sublist(names[0]).set<std::string>("primary variable password", name_);
-  pks_list_->sublist(names[1]).set<std::string>("primary variable password", name_);
+  getSubPKPlist_(0)->set<std::string>("primary variable key", tcc_key_);
+  getSubPKPlist_(0)->set<std::string>("primary variable password", name_);
+  getSubPKPlist_(1)->set<std::string>("primary variable password", name_);
 
   mol_dens_key_ = Keys::readKey(*plist_, domain_, "molar density liquid", "molar_density_liquid");
 

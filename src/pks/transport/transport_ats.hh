@@ -434,6 +434,9 @@ class Transport_ATS : public PK_Physical_Default {
 #ifdef ALQUIMIA_ENABLED
   Teuchos::RCP<AmanziChemistry::Alquimia_PK> chem_pk_;
   Teuchos::RCP<AmanziChemistry::ChemistryEngine> chem_engine_;
+#else
+  Teuchos::RCP<bool> chem_pk_;
+  Teuchos::RCP<bool> chem_engine_;
 #endif
 
   // temporal integration

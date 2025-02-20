@@ -101,7 +101,7 @@ Transport_ATS::parseParameterList()
   flux_key_ = Keys::readKey(*plist_, domain_, "water flux", "water_flux");
 
   // -- liquid water content - need at new time, copy at current time
-  lwc_key_ = Keys::readKey(*plist_, domain_, "liquid water content", "liquid_water_content");
+  lwc_key_ = Keys::readKey(*plist_, domain_, "liquid water content", "water_content");
   requireAtCurrent(lwc_key_, tag_current_, *S_, name_);
 
   water_src_key_ = Keys::readKey(*plist_, domain_, "water source", "water_source");
@@ -117,8 +117,10 @@ Transport_ATS::parseParameterList()
   geochem_src_factor_key_ =
     Keys::readKey(*plist_, domain_, "geochem source factor", "geochem_src_factor");
 
-  // needed by geochemical bcs
-  molar_dens_key_ = Keys::readKey(*plist_, domain_, "molar density liquid", "molar_density_liquid");
+  if (chem_engine_ != Teuchos::null) {
+    // needed by geochemical bcs
+    molar_dens_key_ = Keys::readKey(*plist_, domain_, "molar density liquid", "molar_density_liquid");
+  }
 
   // dispersion coefficient tensor
   dispersion_tensor_key_ = Keys::readKey(*plist_, domain_, "dispersion coefficient", "dispersion_coefficient");
@@ -224,8 +226,8 @@ Transport_ATS::SetupTransport_()
     Teuchos::ParameterList& recon_list = plist_->sublist("reconstruction");
 
     // check and set defaults
-    if (!recon_list.isParameter("limiter extention for transport"))
-      recon_list.set<bool>("limiter extention for transport", true);
+    if (!recon_list.isParameter("limiter extension for transport"))
+      recon_list.set<bool>("limiter extension for transport", true);
     if (!recon_list.isParameter("limiter"))
       recon_list.set<std::string>("limiter", "tensorial");
 
@@ -512,11 +514,13 @@ Transport_ATS::SetupPhysicalEvaluators_()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   requireAtCurrent(lwc_key_, tag_current_, *S_, name_);
 
-  requireAtNext(molar_dens_key_, tag_next_, *S_)
-    .SetMesh(mesh_)
-    ->SetGhosted(true)
-    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  requireAtCurrent(molar_dens_key_, tag_current_, *S_);
+  if (!molar_dens_key_.empty()) {
+    requireAtNext(molar_dens_key_, tag_next_, *S_)
+      .SetMesh(mesh_)
+      ->SetGhosted(true)
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+    requireAtCurrent(molar_dens_key_, tag_current_, *S_);
+  }
 
   // CellVolume it may not be used in this PK, but having it makes vis nicer
   requireAtNext(cv_key_, tag_next_, *S_)

@@ -193,9 +193,9 @@ def fixTransportPK(pk, evals_list):
             pk.sublist("molar mass [kg mol^-1]").setParameter(name, "double", mm)
 
     if domain == "domain":
-        lwc_key = "liquid_water_content"
+        lwc_key = "water_content"
     else:
-        lwc_key = f"{domain}-liquid_water_content"
+        lwc_key = f"{domain}-water_content"
 
     print(f'searching for LWC = {lwc_key}')
         
@@ -257,6 +257,8 @@ def fixTransportPK(pk, evals_list):
 
     if pk.isElement("physical models and assumptions"):
         pk.pop("physical models and assumptions")
+    if pk.isElement("flow mode"):
+        pk.pop("flow mode")
 
 
 def fixTransportPKs(xml):
@@ -273,7 +275,6 @@ def fixTransportPKs(xml):
             pk_type.setValue("transport ATS")
             print("fixing transport pk")
             fixTransportPK(pk, evals_list)
-            
                     
             
 def update(xml):
