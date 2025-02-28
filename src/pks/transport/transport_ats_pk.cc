@@ -182,11 +182,10 @@ Transport_ATS::readParameterMapByPhase(Teuchos::ParameterList& plist,
 ****************************************************************** */
 #ifdef ALQUIMIA_ENABLED
 void
-Transport_ATS::setChemEngine(Teuchos::RCP<AmanziChemistry::Alquimia_PK> chem_pk,
-                             Teuchos::RCP<AmanziChemistry::ChemistryEngine> chem_engine)
+Transport_ATS::setChemEngine(Teuchos::RCP<AmanziChemistry::Alquimia_PK> chem_pk)
 {
   chem_pk_ = chem_pk;
-  chem_engine_ = chem_engine;
+  chem_engine_ = chem_pk->getChemEngine();
 
   if (chem_engine_ != Teuchos::null) {
     // Retrieve the component names (primary and secondary) from the chemistry

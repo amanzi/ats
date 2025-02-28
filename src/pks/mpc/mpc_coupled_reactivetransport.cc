@@ -14,6 +14,7 @@
 */
 
 #include "mpc_coupled_reactivetransport.hh"
+#include "chem_pk_helpers.hh"
 #include "pk_helpers.hh"
 
 namespace Amanzi {
@@ -63,12 +64,8 @@ MPCCoupledReactiveTransport::parseParameterList()
 
   // communicate chemistry engine to transport.
 #ifdef ALQUIMIA_ENABLED
-  transport_pk_->setChemEngine(
-    Teuchos::rcp_static_cast<AmanziChemistry::Alquimia_PK>(chemistry_pk_),
-    chemistry_pk_->chem_engine());
-  transport_pk_surf_->setChemEngine(
-    Teuchos::rcp_static_cast<AmanziChemistry::Alquimia_PK>(chemistry_pk_surf_),
-    chemistry_pk_surf_->chem_engine());
+  transport_pk_->setChemEngine(Teuchos::rcp_static_cast<AmanziChemistry::Alquimia_PK>(chemistry_pk_));
+  transport_pk_surf_->setChemEngine(Teuchos::rcp_static_cast<AmanziChemistry::Alquimia_PK>(chemistry_pk_surf_));
 #endif
 
   coupled_transport_pk_->parseParameterList();
@@ -85,31 +82,6 @@ MPCCoupledReactiveTransport::Setup()
   // must Setup transport first to get alias for saturation, etc set up correctly
   coupled_transport_pk_->Setup();
   coupled_chemistry_pk_->Setup();
-
-  S_->Require<CompositeVector, CompositeVectorSpace>(tcc_key_, tag_next_, name_)
-    .SetMesh(S_->GetMesh(domain_))
-    ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, chemistry_pk_->num_aqueous_components());
-  S_->RequireEvaluator(tcc_key_, tag_next_);
-
-  S_->Require<CompositeVector, CompositeVectorSpace>(tcc_surf_key_, tag_next_, name_)
-    .SetMesh(S_->GetMesh(domain_surf_))
-    ->SetGhosted()
-    ->AddComponent(
-      "cell", AmanziMesh::Entity_kind::CELL, chemistry_pk_surf_->num_aqueous_components());
-  S_->RequireEvaluator(tcc_surf_key_, tag_next_);
-
-  S_->Require<CompositeVector, CompositeVectorSpace>(mol_dens_key_, tag_next_)
-    .SetMesh(S_->GetMesh(domain_))
-    ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  S_->RequireEvaluator(mol_dens_key_, tag_next_);
-
-  S_->Require<CompositeVector, CompositeVectorSpace>(mol_dens_surf_key_, tag_next_)
-    .SetMesh(S_->GetMesh(domain_surf_))
-    ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  S_->RequireEvaluator(mol_dens_surf_key_, tag_next_);
 }
 
 
@@ -163,20 +135,14 @@ MPCCoupledReactiveTransport::Initialize()
   Teuchos::RCP<const Epetra_MultiVector> mol_dens =
     S_->Get<CompositeVector>(mol_dens_key_, tag_next_).ViewComponent("cell", true);
 
-  int num_aqueous = chemistry_pk_surf_->num_aqueous_components();
-  convertConcentrationToAmanzi(*mol_dens_surf, num_aqueous, *tcc_surf, *tcc_surf);
-  convertConcentrationToAmanzi(*mol_dens, num_aqueous, *tcc, *tcc);
+  convertConcentrationToAmanzi(*mol_dens_surf, *tcc_surf, *tcc_surf);
+  convertConcentrationToAmanzi(*mol_dens, *tcc, *tcc);
 
-  chemistry_pk_surf_->set_aqueous_components(tcc_surf);
   chemistry_pk_surf_->Initialize();
-  //*tcc_surf = *chemistry_pk_surf_->aqueous_components();
-
-  chemistry_pk_->set_aqueous_components(tcc);
   chemistry_pk_->Initialize();
-  //*tcc = *chemistry_pk_->aqueous_components();
 
-  convertConcentrationToATS(*mol_dens_surf, num_aqueous, *tcc_surf, *tcc_surf);
-  convertConcentrationToATS(*mol_dens, num_aqueous, *tcc, *tcc);
+  convertConcentrationToATS(*mol_dens_surf, *tcc_surf, *tcc_surf);
+  convertConcentrationToATS(*mol_dens, *tcc, *tcc);
 
   transport_pk_surf_->Initialize();
   transport_pk_->Initialize();
@@ -223,8 +189,8 @@ MPCCoupledReactiveTransport::AdvanceStep(double t_old, double t_new, bool reinit
   S_->GetEvaluator(mol_dens_surf_key_, tag_next_).Update(*S_, name_);
   Teuchos::RCP<const Epetra_MultiVector> mol_dens_surf =
     S_->Get<CompositeVector>(mol_dens_surf_key_, tag_next_).ViewComponent("cell", true);
-  fail = advanceChemistry(
-    chemistry_pk_surf_, t_old, t_new, reinit, *mol_dens_surf, tcc_surf, *alquimia_surf_timer_);
+
+  fail = advanceChemistry(*chemistry_pk_surf_, t_old, t_new, reinit, *mol_dens_surf, *tcc_surf, *alquimia_surf_timer_);
   changedEvaluatorPrimary(tcc_surf_key_, tag_next_, *S_);
   if (fail) {
     if (vo_->os_OK(Teuchos::VERB_MEDIUM))
@@ -242,7 +208,7 @@ MPCCoupledReactiveTransport::AdvanceStep(double t_old, double t_new, bool reinit
   Teuchos::RCP<const Epetra_MultiVector> mol_dens =
     S_->Get<CompositeVector>(mol_dens_key_, tag_next_).ViewComponent("cell", true);
   try {
-    fail = advanceChemistry(chemistry_pk_, t_old, t_new, reinit, *mol_dens, tcc, *alquimia_timer_);
+    fail = advanceChemistry(*chemistry_pk_, t_old, t_new, reinit, *mol_dens, *tcc, *alquimia_timer_);
     changedEvaluatorPrimary(tcc_key_, tag_next_, *S_);
   } catch (const Errors::Message& chem_error) {
     fail = true;

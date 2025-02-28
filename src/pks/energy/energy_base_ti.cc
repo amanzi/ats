@@ -10,8 +10,10 @@
 #include "Debugger.hh"
 #include "BoundaryFunction.hh"
 #include "Evaluator.hh"
-#include "energy_base.hh"
+#include "pk_helpers.hh"
 #include "Op.hh"
+
+#include "energy_base.hh"
 
 namespace Amanzi {
 namespace Energy {

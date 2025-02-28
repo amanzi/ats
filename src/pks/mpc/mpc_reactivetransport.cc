@@ -15,6 +15,7 @@
 
 #include "mpc_reactivetransport.hh"
 #include "pk_helpers.hh"
+#include "chem_pk_helpers.hh"
 
 namespace Amanzi {
 
@@ -52,9 +53,7 @@ MPCReactiveTransport::parseParameterList()
   chemistry_pk_->parseParameterList();
 
 #ifdef ALQUIMIA_ENABLED
-  transport_pk_->setChemEngine(
-    Teuchos::rcp_static_cast<AmanziChemistry::Alquimia_PK>(chemistry_pk_),
-    chemistry_pk_->chem_engine());
+  transport_pk_->setChemEngine(Teuchos::rcp_static_cast<AmanziChemistry::Alquimia_PK>(chemistry_pk_));
 #endif
 
   // now transport can be parse with knowledge of names
@@ -67,12 +66,6 @@ MPCReactiveTransport::Setup()
 {
   transport_pk_->Setup();
   chemistry_pk_->Setup();
-
-  S_->Require<CompositeVector, CompositeVectorSpace>(tcc_key_, tag_next_, name_)
-    .SetMesh(S_->GetMesh(domain_))
-    ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, chemistry_pk_->num_aqueous_components());
-  S_->RequireEvaluator(tcc_key_, tag_next_);
 
   S_->Require<CompositeVector, CompositeVectorSpace>(mol_dens_key_, tag_next_)
     .SetMesh(S_->GetMesh(domain_))
@@ -109,13 +102,9 @@ MPCReactiveTransport::Initialize()
   Teuchos::RCP<const Epetra_MultiVector> mol_dens =
     S_->Get<CompositeVector>(mol_dens_key_, tag_next_).ViewComponent("cell", true);
 
-  int num_aqueous = chemistry_pk_->num_aqueous_components();
-  convertConcentrationToAmanzi(*mol_dens, num_aqueous, *tcc, *tcc);
-  chemistry_pk_->set_aqueous_components(tcc);
+  convertConcentrationToAmanzi(*mol_dens, *tcc, *tcc);
   chemistry_pk_->Initialize();
-  //*tcc = *chemistry_pk_->aqueous_components();
-  convertConcentrationToATS(*mol_dens, num_aqueous, *tcc, *tcc);
-
+  convertConcentrationToATS(*mol_dens, *tcc, *tcc);
   transport_pk_->Initialize();
 }
 
@@ -153,7 +142,7 @@ MPCReactiveTransport::AdvanceStep(double t_old, double t_new, bool reinit)
   // Second, we do a chemistry step.
   int num_aq_componets = transport_pk_->get_num_aqueous_component();
 
-  Teuchos::RCP<Epetra_MultiVector> tcc_copy =
+  Teuchos::RCP<Epetra_MultiVector> tcc =
     S_->GetW<CompositeVector>(tcc_key_, tag_next_, name_).ViewComponent("cell", true);
 
   S_->GetEvaluator(mol_dens_key_, tag_next_).Update(*S_, name_);
@@ -161,7 +150,7 @@ MPCReactiveTransport::AdvanceStep(double t_old, double t_new, bool reinit)
     S_->Get<CompositeVector>(mol_dens_key_, tag_next_).ViewComponent("cell", true);
 
   fail |=
-    advanceChemistry(chemistry_pk_, t_old, t_new, reinit, *mol_dens, tcc_copy, *alquimia_timer_);
+    advanceChemistry(*chemistry_pk_, t_old, t_new, reinit, *mol_dens, *tcc, *alquimia_timer_);
   changedEvaluatorPrimary(tcc_key_, tag_next_, *S_);
   if (!fail) chem_step_succeeded_ = true;
 

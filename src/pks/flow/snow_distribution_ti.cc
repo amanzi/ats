@@ -8,6 +8,7 @@
 */
 
 #include "Op.hh"
+#include "pk_helpers.hh"
 #include "snow_distribution.hh"
 
 #define DEBUG_FLAG 1

@@ -321,8 +321,7 @@ class Transport_ATS : public PK_Physical_Default {
 
   // coupling with chemistry
 #ifdef ALQUIMIA_ENABLED
-  void setChemEngine(Teuchos::RCP<AmanziChemistry::Alquimia_PK> chem_pk,
-                     Teuchos::RCP<AmanziChemistry::ChemistryEngine> chem_engine);
+  void setChemEngine(Teuchos::RCP<AmanziChemistry::Alquimia_PK> chem_pk);
 #endif
 
   virtual void Initialize() override;

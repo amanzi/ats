@@ -11,7 +11,7 @@
 #pragma once
 
 #include "Teuchos_TimeMonitor.hpp"
-#include "Epetra_MultiVector.hpp"
+#include "Epetra_MultiVector.h"
 
 namespace Amanzi {
 
@@ -24,23 +24,21 @@ class Chemistry_PK;
 // -----------------------------------------------------------------------------
 void
 convertConcentrationToAmanzi(const Epetra_MultiVector& mol_den,
-                             int num_aqueous,
                              const Epetra_MultiVector& tcc_ats,
                              Epetra_MultiVector& tcc_amanzi);
 
 void
 convertConcentrationToATS(const Epetra_MultiVector& mol_den,
-                          int num_aqueous,
                           const Epetra_MultiVector& tcc_ats,
                           Epetra_MultiVector& tcc_amanzi);
 
 bool
-advanceChemistry(Teuchos::RCP<AmanziChemistry::Chemistry_PK> chem_pk,
+advanceChemistry(AmanziChemistry::Chemistry_PK& chem_pk,
                  double t_old,
                  double t_new,
                  bool reinit,
                  const Epetra_MultiVector& mol_dens,
-                 Teuchos::RCP<Epetra_MultiVector> tcc,
+                 Epetra_MultiVector& tcc,
                  Teuchos::Time& timer);
 
 } // namespace Amanzi
