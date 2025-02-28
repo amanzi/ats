@@ -8,7 +8,7 @@ include_directories(${GEOCHEM_SOURCE_DIR})
 include_directories(${CHEMPK_SOURCE_DIR})
 
 set(ats_pks_src_files
-  pk_helpers.cc
+  chem_pk_helpers.cc
   pk_bdf_default.cc
   pk_physical_default.cc
   pk_physical_bdf_default.cc
@@ -17,7 +17,7 @@ set(ats_pks_src_files
   )
 
 set(ats_pks_inc_files
-  pk_helpers.hh
+  chem_pk_helpers.hh
   pk_bdf_default.hh
   pk_physical_default.hh
   pk_physical_bdf_default.hh
