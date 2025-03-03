@@ -109,7 +109,7 @@ set(ats_link_libs
   ats_eos
   ats_pks
   ats_transport
-  #ats_sed_transport  
+  ats_sed_transport  
   ats_energy
   ats_energy_relations
   ats_flow

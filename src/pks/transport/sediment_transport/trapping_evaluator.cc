@@ -63,34 +63,34 @@ TrappingRateEvaluator::Evaluate_(const State& S, const std::vector<CompositeVect
   const Epetra_MultiVector& tcc = *S.Get<CompositeVector>(sediment_key_, tag).ViewComponent("cell");
   const Epetra_MultiVector& depth =
     *S.Get<CompositeVector>(ponded_depth_key_, tag).ViewComponent("cell");
-  const Epetra_MultiVector& bio_n =
-    *S.Get<CompositeVector>("surface-stem_density", tag).ViewComponent("cell");
-  const Epetra_MultiVector& bio_d =
-    *S.Get<CompositeVector>("surface-stem_diameter", tag).ViewComponent("cell");
-  const Epetra_MultiVector& bio_h =
-    *S.Get<CompositeVector>("surface-stem_height", tag).ViewComponent("cell");
+  // const Epetra_MultiVector& bio_n =
+  //   *S.Get<CompositeVector>("surface-stem_density", tag).ViewComponent("cell");
+  // const Epetra_MultiVector& bio_d =
+  //   *S.Get<CompositeVector>("surface-stem_diameter", tag).ViewComponent("cell");
+  // const Epetra_MultiVector& bio_h =
+  //   *S.Get<CompositeVector>("surface-stem_height", tag).ViewComponent("cell");
   Epetra_MultiVector& result_c = *result[0]->ViewComponent("cell");
 
   result_c.PutScalar(0.);
 
-  for (int c = 0; c < result_c.MyLength(); c++) {
-    for (int j = 0; j < bio_n.NumVectors(); j++) {
-      double h_s = bio_h[j][c];
-      double d_s = bio_d[j][c];
-      double n_s = bio_n[j][c];
+  // for (int c = 0; c < result_c.MyLength(); c++) {
+  //   for (int j = 0; j < bio_n.NumVectors(); j++) {
+  //     double h_s = bio_h[j][c];
+  //     double d_s = bio_d[j][c];
+  //     double n_s = bio_n[j][c];
 
-      double u_abs = sqrt(vel[0][c] * vel[0][c] + vel[1][c] * vel[1][c]);
-      double eps;
-      if (d_s > 1e-12) {
-        eps = alpha_ * std::pow(u_abs * d_s / visc_, beta_) * std::pow(d_p_ / d_s, gamma_);
-      } else {
-        eps = 0.;
-      }
+  //     double u_abs = sqrt(vel[0][c] * vel[0][c] + vel[1][c] * vel[1][c]);
+  //     double eps;
+  //     if (d_s > 1e-12) {
+  //       eps = alpha_ * std::pow(u_abs * d_s / visc_, beta_) * std::pow(d_p_ / d_s, gamma_);
+  //     } else {
+  //       eps = 0.;
+  //     }
 
-      result_c[0][c] +=
-        sediment_density_ * tcc[0][c] * u_abs * eps * d_s * n_s * std::min(depth[0][c], h_s);
-    }
-  }
+  //     result_c[0][c] +=
+  //       sediment_density_ * tcc[0][c] * u_abs * eps * d_s * n_s * std::min(depth[0][c], h_s);
+  //   }
+  // }
 }
 
 

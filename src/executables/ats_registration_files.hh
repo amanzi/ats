@@ -19,7 +19,7 @@
 #include "ats_bgc_registration.hh"
 #include "ats_surface_balance_registration.hh"
 #include "ats_mpc_registration.hh"
-//#include "ats_sediment_transport_registration.hh"
+#include "ats_sediment_transport_registration.hh"
 #include "models_transport_reg.hh"
 #ifdef ALQUIMIA_ENABLED
 #  include "pks_chemistry_reg.hh"

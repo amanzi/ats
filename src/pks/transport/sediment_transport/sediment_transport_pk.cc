@@ -52,7 +52,8 @@ SedimentTransport_PK::SedimentTransport_PK(Teuchos::ParameterList& pk_tree,
                                            const Teuchos::RCP<State>& S,
                                            const Teuchos::RCP<TreeVector>& solution)
   : PK(pk_tree, global_plist, S, solution),
-    PK_PhysicalExplicit<Epetra_Vector>(pk_tree, global_plist, S, solution)
+    PK_PhysicalExplicit<Epetra_Vector>(pk_tree, global_plist, S, solution),
+    S_(S)
 {
 
   passwd_ = "state"; // this is what Amanzi uses
@@ -72,7 +73,7 @@ SedimentTransport_PK::SedimentTransport_PK(Teuchos::ParameterList& pk_tree,
 
   // are we subcycling internally?
   subcycling_ = plist_->get<bool>("transport subcycling", false);
-  tag_flux_next_ts_ = Tag{ name() + "_flux_next_ts" }; // what is this for? --ETC
+  //tag_flux_next_ts_ = Tag{ name() + "_flux_next_ts" }; // what is this for? --ETC
 
   // initialize io
   units_.Init(global_plist->sublist("units"));
@@ -80,7 +81,7 @@ SedimentTransport_PK::SedimentTransport_PK(Teuchos::ParameterList& pk_tree,
 
   saturation_key_ = Keys::readKey(*plist_, domain_, "saturation liquid");
   prev_saturation_key_ = Keys::readKey(*plist_, domain_, "previous saturation liquid");
-  flux_key_ = Keys::readKey(*plist_, domain_, "mass flux", "mass_flux");
+  flux_key_ = Keys::readKey(*plist_, domain_, "water flux", "water_flux");
   tcc_key_ = Keys::readKey(*plist_, domain_, "concentration", "sediment");
   molar_density_key_ = Keys::readKey(*plist_, domain_, "molar density", "molar_density_liquid");
   solid_residue_mass_key_ =  Keys::readKey(*plist_, domain_, "solid residue", "solid_residue_mass");
@@ -88,15 +89,16 @@ SedimentTransport_PK::SedimentTransport_PK(Teuchos::ParameterList& pk_tree,
   sd_settling_key_ =  Keys::readKey(*plist_, domain_, "settling rate", "settling_rate");
   sd_erosion_key_ =  Keys::readKey(*plist_, domain_, "erosion rate", "erosion_rate");
   sd_organic_key_ =  Keys::readKey(*plist_, domain_, "organic rate", "organic_rate");
+  biomass_key_ =  Keys::readKey(*plist_, domain_, "biomass", "biomass");
   horiz_mixing_key_ = Keys::readKey(*plist_, domain_, "horizontal mixing", "horizontal_mixing");
   elevation_increase_key_ = Keys::getKey(domain_, "deformation");
   porosity_key_ = Keys::getKey(domain_, "soil_porosity");
 
-  water_tolerance_ = plist_->get<double>("water tolerance", 1e-1);
+  water_tolerance_ = plist_->get<double>("water tolerance", 1e-3);
   max_tcc_ = plist_->get<double>("maximal concentration", 0.9);
   sediment_density_ = plist_->get<double>("sediment density [kg m^-3]");
 
-  
+  mesh_ = S->GetMesh(domain_);  
 
   vo_ = Teuchos::null;
 }
@@ -114,6 +116,9 @@ SedimentTransport_PK::set_tags(const Tag& current, const Tag& next)  {
    tag_subcycle_next_ = tag_next_;
  }
 
+ tag_subcycle_state_current_ = Tag{ Keys::cleanName(name() + "_inner_state_subcycling_current") };
+ tag_subcycle_state_next_ = Tag{ Keys::cleanName(name() + "_inner_state_subcycling_next") };
+
 }  
 
   
@@ -125,7 +130,6 @@ SedimentTransport_PK::Setup()
 {
   passwd_ = "state"; // owner's password
 
-  mesh_ = S_->GetMesh(domain_);
   dim = mesh_->space_dimension();
 
   // -- water flux
@@ -133,15 +137,19 @@ SedimentTransport_PK::Setup()
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->SetComponent("face", AmanziMesh::FACE, 1);
-  S_->Require<CompositeVector, CompositeVectorSpace>(flux_key_, tag_flux_next_ts_, name_);
 
   // -- water saturation
   requireAtNext(saturation_key_, Tags::NEXT, *S_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::CELL, 1);
-
   requireAtCurrent(saturation_key_, Tags::CURRENT, *S_);
+
+
+  S_->Require<CompositeVector, CompositeVectorSpace>(
+      saturation_key_, tag_subcycle_state_current_, name_);
+  S_->Require<CompositeVector, CompositeVectorSpace>(
+      saturation_key_, tag_subcycle_state_next_, name_);
   
 
   requireAtNext(sd_organic_key_, Tags::NEXT, *S_)
@@ -164,7 +172,12 @@ SedimentTransport_PK::Setup()
     ->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  requireAtNext(horiz_mixing_key_, Tags::NEXT, *S_)
+  requireAtNext(biomass_key_, Tags::NEXT, *S_)
+    .SetMesh(mesh_)
+    ->SetGhosted(true)
+    ->AddComponent("cell", AmanziMesh::CELL, 1);
+
+  requireAtNext(horiz_mixing_key_, Tags::CURRENT, *S_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::CELL, 1);
@@ -174,12 +187,17 @@ SedimentTransport_PK::Setup()
     ->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::CELL, 1);
 
+  // requireAtNext(elevation_increase_key_, Tags::NEXT, *S_)
+  //   .SetMesh(mesh_)
+  //   ->SetGhosted(true)
+  //   ->AddComponent("cell", AmanziMesh::CELL, 1);
+
 
   int ncomponents = component_names_.size();
   std::vector<std::vector<std::string>> subfield_names(1);
   subfield_names[0] = component_names_;
 
-  requireAtNext(solid_residue_mass_key_, Tags::NEXT, *S_)
+  requireAtNext(solid_residue_mass_key_, tag_next_, *S_, solid_residue_mass_key_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::CELL, ncomponents);
@@ -188,6 +206,13 @@ SedimentTransport_PK::Setup()
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::CELL, 1);
+  requireAtCurrent(molar_density_key_, Tags::CURRENT, *S_);
+   
+  S_->Require<CompositeVector, CompositeVectorSpace>(
+      molar_density_key_, tag_subcycle_state_current_, name_);
+  S_->Require<CompositeVector, CompositeVectorSpace>(
+      molar_density_key_, tag_subcycle_state_next_, name_);
+ 
   
   // require state fields when Transport PK is on
   if (component_names_.size() == 0) {
@@ -196,12 +221,22 @@ SedimentTransport_PK::Setup()
     Exceptions::amanzi_throw(msg);
   }
 
-  requireAtNext(tcc_key_, tag_subcycle_next_, *S_, passwd_)
+  requireAtNext(tcc_key_, tag_next_, *S_, passwd_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::CELL, num_components);
   S_->GetRecordSetW(tcc_key_).set_subfieldnames(component_names_);
-  requireAtCurrent(tcc_key_, tag_subcycle_current_, *S_, passwd_);
+  requireAtCurrent(tcc_key_, tag_current_, *S_, passwd_);
+
+
+   if (subcycling_){
+     requireAtNext(tcc_key_, tag_subcycle_next_, *S_, passwd_)
+       .SetMesh(mesh_)
+       ->SetGhosted(true)
+       ->AddComponent("cell", AmanziMesh::CELL, num_components);
+     S_->GetRecordSetW(tcc_key_).set_subfieldnames(component_names_);
+     requireAtCurrent(tcc_key_, tag_subcycle_current_, *S_, passwd_);
+   }
 
 }
 
@@ -220,7 +255,7 @@ SedimentTransport_PK::Initialize()
 
 
   if (plist_->isSublist("initial conditions")) {
-    S_->GetRecordW(tcc_key_, tag_current_, passwd_)
+    S_->GetRecordW(tcc_key_, tag_subcycle_current_, passwd_)
       .Initialize(plist_->sublist("initial conditions"));
   }
   
@@ -244,16 +279,16 @@ SedimentTransport_PK::Initialize()
 
   //create copies
   //S->RequireFieldCopy(tcc_key_, "subcycling", passwd_);
-  tcc_tmp = S_->GetPtrW<CompositeVector>(tcc_key_, tag_subcycle_next_, name_);
-  tcc = S_->GetPtrW<CompositeVector>(tcc_key_, tag_subcycle_current_, name_);
+  tcc_tmp = S_->GetPtrW<CompositeVector>(tcc_key_, tag_subcycle_next_, passwd_);
+  tcc = S_->GetPtrW<CompositeVector>(tcc_key_, tag_subcycle_current_, passwd_);
   *tcc_tmp = *tcc;
 
-  if (subcycling_) {
-    ws_subcycle_start =
-      S_->GetW<CompositeVector>(saturation_key_, tag_subcycle_current_, name_).ViewComponent("cell");
-    ws_subcycle_end =
-      S_->GetW<CompositeVector>(saturation_key_, tag_subcycle_next_, name_).ViewComponent("cell");
-  }
+  //  if (subcycling_) {
+  ws_subcycle_start =
+    S_->GetW<CompositeVector>(saturation_key_, tag_subcycle_state_current_, name_).ViewComponent("cell");
+  ws_subcycle_end =
+    S_->GetW<CompositeVector>(saturation_key_, tag_subcycle_state_next_, name_).ViewComponent("cell");
+    //}
 
   // Check input parameters. Due to limited amount of checks, we can do it earlier.
   // Policy(S.ptr());
@@ -271,24 +306,22 @@ SedimentTransport_PK::Initialize()
   // state pre-prosessing
   Teuchos::RCP<const CompositeVector> cv;
 
-  ws_ = S_->Get<CompositeVector>(saturation_key_, tag_next_).ViewComponent("cell", false);
+  ws_ = S_->Get<CompositeVector>(saturation_key_, Tags::NEXT).ViewComponent("cell", false);
   ws_prev_ =
-    S_->GetPtr<CompositeVector>(saturation_key_, tag_current_)->ViewComponent("cell", false);
+    S_->GetPtr<CompositeVector>(saturation_key_, Tags::CURRENT)->ViewComponent("cell", false);
 
   mol_dens_ =
-    S_->GetPtr<CompositeVector>(molar_density_key_, tag_next_)->ViewComponent("cell", false);
+    S_->GetPtr<CompositeVector>(molar_density_key_, Tags::NEXT)->ViewComponent("cell", false);
   //  mol_dens_prev_ = S_->GetPtr<CompositeVector>(molar_density_key_) -> ViewComponent("cell", false);
-  km_ = S_->GetPtr<CompositeVector>(horiz_mixing_key_, tag_next_)->ViewComponent("cell", false);
+  km_ = S_->GetPtr<CompositeVector>(horiz_mixing_key_, Tags::CURRENT)->ViewComponent("cell", false);
 
-  tcc = S_->GetPtrW<CompositeVector>(tcc_key_, tag_next_, passwd_);
-
-  flux_ = S_->Get<CompositeVector>(flux_key_, tag_next_).ViewComponent("face", true);
-  solid_qty_ = S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, passwd_)
+  flux_ = S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ViewComponent("face", true);
+  solid_qty_ = S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, solid_residue_mass_key_)
                  .ViewComponent("cell", false);
 
   //create vector of conserved quatities
   conserve_qty_ = Teuchos::rcp(new Epetra_MultiVector(
-    *(S_->Get<CompositeVector>(tcc_key_, tag_next_).ViewComponent("cell", true))));
+    *(S_->Get<CompositeVector>(tcc_key_, tag_subcycle_next_).ViewComponent("cell", true))));
 
   // memory for new components
   // tcc_tmp = Teuchos::rcp(new CompositeVector(*(S->GetPtr<CompositeVector>(tcc_key_))));
@@ -316,6 +349,7 @@ SedimentTransport_PK::Initialize()
     PK_DomainFunctionFactory<TransportDomainFunction> factory(mesh_, S_);
     Teuchos::ParameterList& clist =
       plist_->sublist("boundary conditions").sublist("concentration");
+    std::cout<<clist<<"\n";
 
     for (Teuchos::ParameterList::ConstIterator it = clist.begin(); it != clist.end(); ++it) {
       std::string name = it->first;
@@ -458,8 +492,8 @@ SedimentTransport_PK::InitializeFields_()
 {
   Teuchos::OSTab tab = vo_->getOSTab();
 
-  S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_current_, passwd_).PutScalar(0.0);
-  S_->GetRecordW(solid_residue_mass_key_, passwd_).set_initialized();
+  S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, solid_residue_mass_key_).PutScalar(0.0);
+  S_->GetRecordW(solid_residue_mass_key_, solid_residue_mass_key_).set_initialized();
 }
 
 
@@ -627,7 +661,7 @@ SedimentTransport_PK::get_dt()
   if (subcycling_) {
     return std::numeric_limits<double>::max();
   } else {
-    //StableTimeStep();
+    StableTimeStep();
     return dt_;
   }
 }
@@ -654,16 +688,16 @@ SedimentTransport_PK::AdvanceStep(double t_old, double t_new, bool reinit)
   S_->GetEvaluator(flux_key_, Tags::NEXT).Update(*S_, name_);
 
   S_->GetEvaluator(saturation_key_, Tags::NEXT).Update(*S_, name_);
-  ws_ = S_->Get<CompositeVector>(saturation_key_, tag_next_).ViewComponent("cell", false);
+  ws_ = S_->Get<CompositeVector>(saturation_key_, Tags::NEXT).ViewComponent("cell", false);
 
   S_->GetEvaluator(saturation_key_, Tags::CURRENT).Update(*S_, name_);
-  ws_prev_ = S_->Get<CompositeVector>(saturation_key_, tag_current_).ViewComponent("cell", false);
+  ws_prev_ = S_->Get<CompositeVector>(saturation_key_, Tags::CURRENT).ViewComponent("cell", false);
 
   S_->GetEvaluator(molar_density_key_, Tags::NEXT).Update(*S_, name_);
-  mol_dens_ = S_->Get<CompositeVector>(molar_density_key_, tag_next_).ViewComponent("cell", false);
+  mol_dens_ = S_->Get<CompositeVector>(molar_density_key_, Tags::NEXT).ViewComponent("cell", false);
 
 
-  solid_qty_ = S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, passwd_)
+  solid_qty_ = S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, solid_residue_mass_key_)
                  .ViewComponent("cell", false);
 
   // We use original tcc and make a copy of it later if needed.
@@ -689,6 +723,7 @@ SedimentTransport_PK::AdvanceStep(double t_old, double t_new, bool reinit)
 
   // start subcycling
   double dt_sum = 0.0;
+  if (interpolate_ws) std::cout<<"dt_   dt_global "<<dt_ <<" "<<dt_global<<"\n";
   double dt_cycle;
   if (interpolate_ws) {
     dt_cycle = std::min(dt_stable, dt_MPC);
@@ -766,7 +801,7 @@ SedimentTransport_PK::AdvanceStep(double t_old, double t_new, bool reinit)
       swap = 1 - swap;
     }
 
-    if (spatial_disc_order == 1) { // temporary solution (lipnikov@lanl.gov)
+    if (spatial_disc_order == 1) { 
       AdvanceDonorUpwind(dt_cycle);
       // } else if (spatial_disc_order == 2 && temporal_disc_order == 1) {
       //   AdvanceSecondOrderUpwindRK1(dt_cycle);
@@ -815,9 +850,10 @@ SedimentTransport_PK ::Advance_Diffusion(double t_old, double t_new)
   bool flag_diffusion(true);
 
   if (flag_diffusion) {
-    Teuchos::ParameterList& op_list =
-      plist_->sublist("operators").sublist("diffusion operator").sublist("matrix");
 
+    Teuchos::ParameterList& op_list = plist_->sublist("diffusion");    
+    op_list.set("inverse", plist_->sublist("inverse"));
+    
     Teuchos::RCP<Operators::BCs> bc_dummy =
       Teuchos::rcp(new Operators::BCs(mesh_, AmanziMesh::FACE, WhetStone::DOF_Type::SCALAR));
 
@@ -839,7 +875,7 @@ SedimentTransport_PK ::Advance_Diffusion(double t_old, double t_new)
 
     // instantiate solver
 
-    S_->GetEvaluator(horiz_mixing_key_, tag_current_).Update(*S_, horiz_mixing_key_);
+    S_->GetEvaluator(horiz_mixing_key_, Tags::CURRENT).Update(*S_, horiz_mixing_key_);
 
     CalculateDiffusionTensor_(*km_, *ws_, *mol_dens_);
 
@@ -1009,14 +1045,18 @@ SedimentTransport_PK::AdvanceDonorUpwind(double dt_cycle)
     for (auto it = bcs_[m]->begin(); it != bcs_[m]->end(); ++it) {
       int f = it->first;
       std::vector<double>& values = it->second;
+
+      
       int c2 = (*downwind_cell_)[f];
       if (c2 >= 0) {
         double u = fabs((*flux_)[0][f]);
+        
         for (int i = 0; i < ncomp; i++) {
           int k = tcc_index[i];
           if (k < num_advect) {
             tcc_flux = dt_ * u * values[i];
             (*conserve_qty_)[k][c2] += tcc_flux;
+            // std::cout<<"conserve_qty_ "<<(*conserve_qty_)[k][c2]<<"\n";
             mass_sediment_bc_ += tcc_flux;
           }
         }
@@ -1034,6 +1074,7 @@ SedimentTransport_PK::AdvanceDonorUpwind(double dt_cycle)
   // recover concentration from new conservative state
   for (int c = 0; c < ncells_owned; c++) {
     vol_ws_den = mesh_->cell_volume(c) * (*ws_end)[0][c] * (*mol_dens_end)[0][c];
+    
     for (int i = 0; i < num_advect; i++) {
       if ((*ws_end)[0][c] > water_tolerance_ && (*conserve_qty_)[i][c] > 0) {
         tcc_next[i][c] = (*conserve_qty_)[i][c] / vol_ws_den;
@@ -1068,6 +1109,10 @@ SedimentTransport_PK::AdvanceDonorUpwind(double dt_cycle)
     // *vo_->os()<<"Surface mass_sediment source "<<mass_sediment_source_ * dt_<<"\n";
 
   }
+
+  // std::cout << tcc_next<<"\n";
+  // std::cout << *conserve_qty_<<"\n";
+  // std::cout << *ws_end<<"\n";
 
 
 }
@@ -1295,35 +1340,38 @@ SedimentTransport_PK::ComputeAddSourceTerms(double tp,
   double mass1 = 0., mass2 = 0., add_mass = 0., tmp1;
   bool chg;
 
-  chg = S_->GetEvaluator(sd_trapping_key_, tag_next_).Update(*S_, sd_trapping_key_);
+  chg = S_->GetEvaluator(sd_trapping_key_, Tags::NEXT).Update(*S_, sd_trapping_key_);
   const Epetra_MultiVector& Q_dt =
-    *S_->GetPtr<CompositeVector>(sd_trapping_key_, tag_next_)->ViewComponent("cell", false);
+    *S_->GetPtr<CompositeVector>(sd_trapping_key_, Tags::NEXT)->ViewComponent("cell", false);
 
-  chg = S_->GetEvaluator(sd_settling_key_, tag_next_).Update(*S_, sd_settling_key_);
+  chg = S_->GetEvaluator(sd_settling_key_, Tags::NEXT).Update(*S_, sd_settling_key_);
   const Epetra_MultiVector& Q_ds =
-    *S_->GetPtr<CompositeVector>(sd_settling_key_, tag_next_)->ViewComponent("cell", false);
+    *S_->GetPtr<CompositeVector>(sd_settling_key_, Tags::NEXT)->ViewComponent("cell", false);
 
-  chg = S_->GetEvaluator(sd_erosion_key_, tag_next_).Update(*S_, sd_erosion_key_);
+  chg = S_->GetEvaluator(sd_erosion_key_, Tags::NEXT).Update(*S_, sd_erosion_key_);
   const Epetra_MultiVector& Q_e =
-    *S_->GetPtr<CompositeVector>(sd_erosion_key_, tag_next_)->ViewComponent("cell", false);
+    *S_->GetPtr<CompositeVector>(sd_erosion_key_, Tags::NEXT)->ViewComponent("cell", false);
 
-  chg = S_->GetEvaluator(sd_organic_key_, tag_next_).Update(*S_, sd_organic_key_);
+  chg = S_->GetEvaluator(sd_organic_key_, Tags::NEXT).Update(*S_, sd_organic_key_);
   const Epetra_MultiVector& Q_db =
-    *S_->GetPtr<CompositeVector>(sd_organic_key_, tag_next_)->ViewComponent("cell", false);
+    *S_->GetPtr<CompositeVector>(sd_organic_key_, Tags::NEXT)->ViewComponent("cell", false);
 
-  Epetra_MultiVector& dz = *S_->GetW<CompositeVector>(elevation_increase_key_, tag_next_, "state")
+
+  if (S_->HasRecordSet(elevation_increase_key_)) {
+    Epetra_MultiVector& dz = *S_->GetW<CompositeVector>(elevation_increase_key_, Tags::NEXT, elevation_increase_key_)
                               .ViewComponent("cell", false);
 
-  const Epetra_MultiVector& poro =
-    *S_->Get<CompositeVector>(porosity_key_, tag_next_).ViewComponent("cell", false);
+    const Epetra_MultiVector& poro =
+      *S_->Get<CompositeVector>(porosity_key_, Tags::NEXT).ViewComponent("cell", false);
 
 
-  for (int c = 0; c < ncells_owned; c++) {
-    double value = mesh_->cell_volume(c) * (Q_e[0][c] - Q_dt[0][c] - Q_ds[0][c]);
-    tcc[0][c] += value * dtp;
-    mass_sediment_source_ += value;
-    dz[0][c] += ((1. / sediment_density_) * ((Q_dt[0][c] + Q_ds[0][c]) - Q_e[0][c]) + +Q_db[0][c]) *
-                dtp / (1 - poro[0][c]);
+    for (int c = 0; c < ncells_owned; c++) {
+      double value = mesh_->cell_volume(c) * (Q_e[0][c] - Q_dt[0][c] - Q_ds[0][c]);
+      tcc[0][c] += value * dtp;
+      mass_sediment_source_ += value;
+      dz[0][c] += ((1. / sediment_density_) * ((Q_dt[0][c] + Q_ds[0][c]) - Q_e[0][c]) + Q_db[0][c]) *
+        dtp / (1 - poro[0][c]);
+    }
   }
 
 

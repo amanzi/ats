@@ -26,16 +26,22 @@ class BiomassEvaluator : public EvaluatorSecondaryMonotypeCV {
 
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
-  virtual bool HasFieldChanged(const Teuchos::Ptr<State>& S, Key request) override;
+  // virtual bool HasFieldChanged(const Teuchos::Ptr<State>& S, Key request) override;
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-                              const std::vector<Teuchos::Ptr<CompositeVector>>& results) override;
-  virtual void EvaluateFieldPartialDerivative_(
-    const Teuchos::Ptr<State>& S,
-    Key wrt_key,
-    const std::vector<Teuchos::Ptr<CompositeVector>>& results) override;
+  virtual void Evaluate_(const State& S,
+                            const std::vector<CompositeVector*>& results) override;
+  // virtual void EvaluatePartialDerivative_(State& S,
+  //                                         const Key& wrt_key,
+  //                                         const Tag& wrt_tag,
+  //                                         const std::vector<CompositeVector*>& result) { AMANZI_ASSERT(0);} override;
+
+  virtual void EvaluatePartialDerivative_(const State& S,
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& results) { AMANZI_ASSERT(0);} 
+  
 
   void InitializeFromPlist_();
 
@@ -48,7 +54,7 @@ class BiomassEvaluator : public EvaluatorSecondaryMonotypeCV {
   double last_update_, update_frequency_;
 
   Key biomass_key_, stem_density_key_, stem_height_key_, stem_diameter_key_, plant_area_key_;
-  Key domain_name_, elev_key_, msl_key_;
+  Key elev_key_, msl_key_;
 
  private:
   static Utils::RegisteredFactory<Evaluator, BiomassEvaluator> factory_;

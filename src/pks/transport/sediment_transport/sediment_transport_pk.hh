@@ -83,6 +83,7 @@ class SedimentTransport_PK : public PK_PhysicalExplicit<Epetra_Vector> {
   virtual void Initialize() override;
 
   virtual double get_dt() override;
+  virtual void set_dt( double dt) override {dt_ = dt;} ;
   virtual void set_tags(const Tag& current, const Tag& next) override;
   
   virtual bool AdvanceStep(double t_old, double t_new, bool reinit = false) override; 
@@ -207,7 +208,7 @@ class SedimentTransport_PK : public PK_PhysicalExplicit<Epetra_Vector> {
   Key molar_density_key_;
   Key solid_residue_mass_key_;
   Key sd_trapping_key_, sd_settling_key_, sd_erosion_key_, horiz_mixing_key_, porosity_key_,
-    sd_organic_key_;
+    sd_organic_key_, biomass_key_;
   Key elevation_increase_key_;
 
 
@@ -282,8 +283,8 @@ class SedimentTransport_PK : public PK_PhysicalExplicit<Epetra_Vector> {
   Utils::Units units_;
   Teuchos::RCP<VerboseObject> vo_;
   Tag tag_subcycle_;
-  Tag tag_subcycle_current_;
-  Tag tag_subcycle_next_;
+  Tag tag_subcycle_current_, tag_subcycle_next_;
+  Tag tag_subcycle_state_current_, tag_subcycle_state_next_;
   Tag tag_flux_next_ts_; // what is this? --ETC
 
   // Forbidden.

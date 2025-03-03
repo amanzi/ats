@@ -18,14 +18,14 @@
 
 #include "Teuchos_RCP.hpp"
 
-#include "pk_mpcsubcycled_ats.hh"
+#include "mpc_subcycled.hh"
 #include "pk_physical_bdf_default.hh"
 #include "PK.hh"
 #include "Debugger.hh"
 
 namespace Amanzi {
 
-class Morphology_PK : public PK_MPCSubcycled_ATS {
+class Morphology_PK : public MPCSubcycled {
  public:
   Morphology_PK(Teuchos::ParameterList& pk_tree_or_fe_list,
                 const Teuchos::RCP<Teuchos::ParameterList>& global_list,
@@ -37,22 +37,22 @@ class Morphology_PK : public PK_MPCSubcycled_ATS {
   // -- dt is the minimum of the sub pks
   virtual double get_dt();
   //virtual void set_dt(double dt);
-  virtual void Setup(const Teuchos::Ptr<State>& S);
-  virtual void Initialize(const Teuchos::Ptr<State>& S);
+  virtual void Setup();
+  virtual void Initialize();
 
   // -- advance each sub pk from t_old to t_new.
   virtual bool AdvanceStep(double t_old, double t_new, bool reinit = false);
 
-  virtual void CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S);
+  virtual void CommitStep(double t_old, double t_new, const Tag& tag);
 
   std::string name() { return name_; }
 
  protected:
   void Initialize_MeshVertices_(const Teuchos::Ptr<State>& S,
                                 Teuchos::RCP<const AmanziMesh::Mesh> mesh,
-                                Key vert_field_key);
+                                Key vert_field_key, const Amanzi::Tag field_tag);
 
-  void Update_MeshVertices_(const Teuchos::Ptr<State>& S);
+  void Update_MeshVertices_(const Teuchos::Ptr<State>& S, const Amanzi::Tag field_tag);
 
   void FlowAnalyticalSolution_(const Teuchos::Ptr<State>& S, double time);
 
@@ -70,7 +70,7 @@ class Morphology_PK : public PK_MPCSubcycled_ATS {
   double MSF_; // morphology scaling factor
 
   Teuchos::RCP<AmanziMesh::Mesh> mesh_, mesh_3d_, mesh_ss_;
-  Teuchos::RCP<EvaluatorPrimary> deform_eval_;
+  Teuchos::RCP<EvaluatorPrimaryCV> deform_eval_;
   Key erosion_rate_;
 
   // debugger for dumping vectors

@@ -4,11 +4,11 @@
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
+  Authors: Daniil Svyatsky (dasvyat@lanl.gov)
 */
 
 /*
-  Determining the molar fraction of a gas component within a gas mixture.
+
 
 */
 
@@ -16,7 +16,7 @@
 #include "boost/math/constants/constants.hpp"
 
 namespace Amanzi {
-
+  
 ErosionRateEvaluator ::ErosionRateEvaluator(Teuchos::ParameterList& plist)
   : EvaluatorSecondaryMonotypeCV(plist)
 {
@@ -89,6 +89,5 @@ ErosionRateEvaluator::EvaluatePartialDerivative_(const State& S,
 {
   AMANZI_ASSERT(0);
 }
-
 
 } // namespace Amanzi

@@ -181,7 +181,7 @@ MPCSubcycled::AdvanceStep_i_(std::size_t i, double t_old, double t_new, bool rei
         S_->advance_cycle(tag_subcycle_next);
 
         dt_inner = sub_pks_[i]->get_dt();
-        if (vo_->os_OK(Teuchos::VERB_EXTREME))
+        if (vo_->os_OK(Teuchos::VERB_EXTREME)&&(!done))
           *vo_->os() << "  success, new timestep is " << dt_inner << std::endl;
       }
     }

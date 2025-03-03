@@ -51,8 +51,8 @@ set(ats_mpc_src_files
   mpc_weak_subdomain.cc
   mpc_coupled_water_split_flux.cc
   mpc_permafrost_split_flux.cc
-  # mpc_morphology_pk.cc
-  # biomass_evaluator.cc
+  mpc_morphology_pk.cc
+  biomass_evaluator.cc
   )
 
 set(ats_mpc_inc_files
@@ -137,10 +137,10 @@ register_evaluator_with_factory(
   LISTNAME   ATS_MPC_REG
   )
 
-# register_evaluator_with_factory(
-#    HEADERFILE mpc_morphology_reg.hh
-#    LISTNAME   ATS_MPC_REG
-#    )
+register_evaluator_with_factory(
+   HEADERFILE mpc_morphology_reg.hh
+   LISTNAME   ATS_MPC_REG
+   )
     
 register_evaluator_with_factory(
   HEADERFILE mpc_subsurface_reg.hh
@@ -193,10 +193,10 @@ register_evaluator_with_factory(
   LISTNAME   ATS_MPC_REG
   )
 
-# register_evaluator_with_factory(
-#   HEADERFILE biomass_evaluator_reg.hh
-#   LISTNAME ATS_MPC_REG
-#   )
+register_evaluator_with_factory(
+  HEADERFILE biomass_evaluator_reg.hh
+  LISTNAME ATS_MPC_REG
+  )
 
 generate_evaluators_registration_header(
   HEADERFILE ats_mpc_registration.hh
