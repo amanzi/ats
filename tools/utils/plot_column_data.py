@@ -4,6 +4,7 @@ import sys,os
 from matplotlib import pyplot as plt
 import matplotlib.cm
 import colors
+import plot_lines
 
 import ats_xdmf, ats_units
 
@@ -150,27 +151,10 @@ def annotate(layout, axs, time_unit):
 def plot_subsurface(vis, col, ax, label, color=None, cmap=None):
     if cmap is None:
         cmap = colors.alpha_cmap(color)
-    
-    z = vis.centroids[:,2]
-
-    if len(vis.times) == 1:
-        cm = colors.cm_mapper(vis.times[0]-1, vis.times[0], cmap)
-    else:
-        cm = colors.cm_mapper(vis.times[0], vis.times[-1], cmap)
 
     formats = ['-', '--', '-.']
-
-    for varname, form in zip(col, formats):
-        data = vis.getArray(varname)
-        assert(len(data.shape) == 2)
-        assert(data.shape[1] == len(vis.centroids))
-        
-        for i,time in enumerate(vis.times):
-            mylabel = None
-            if i == len(vis.times)-1:
-                mylabel = label
-
-            ax.plot(data[i,:], z, form, color=cm(time), label=mylabel)
+    for i, (varname, form) in enumerate(zip(col, formats)):
+        vis.plotLinesInTime(varname, ax=ax, colorbar_ticks=(i == 0), cmap=cmap, linestyle=form, colorbar_label=f'{varname} of {label} in time')
 
 def animate_subsurface(vis, varnames, ax, label, colors=None):
     if type(colors) is str:
@@ -255,7 +239,60 @@ def time_slice(sl):
     else:
         return int(sl)
                 
+def plotColumnData(directories,
+       layout,
+       color_mode='runs',
+       color_sample='enumerated',
+       color_map='jet',
+       subsurface_time_slice=None,
+       surface_time_slice=None,
+       data_filename_format='ats_vis_{}_data.h5',
+       mesh_filename_format='ats_vis_{}_mesh.h5',
+       time_unit='d',
+       figsize=[5,3]):
+    """Plots the column data given directories and a layout."""
 
+    if isinstance(layout, str):
+        layout = valid_layout(layout)
+
+    if color_mode == 'runs':
+        if color_sample == 'enumerated':
+            color_list = colors.enumerated_colors(len(directories))
+        else:
+            color_list = colors.sampled_colors(len(directories),
+                                               getattr(matplotlib.cm, color_map))
+    elif color_mode == 'time':
+        color_list = [color_map,]*len(directories)
+        
+
+    fig = plt.figure(figsize=figsize)
+    axs = fig.subplots(len(layout), len(layout[0]), squeeze=False)
+
+    domains = set([domain_var(v)[0] for v in layout_flattener(layout)])
+    for dirname, color in zip(directories, color_list):
+        vis_objs = dict()
+        for domain in domains:
+            vis = ats_xdmf.VisFile(dirname, domain,
+                                   ats_xdmf.valid_data_filename(domain, data_filename_format),
+                                   ats_xdmf.valid_mesh_filename(domain, mesh_filename_format),
+                                   time_unit=time_unit)
+            if domain == '':
+                vis.loadMesh(columnar=True)
+                if subsurface_time_slice is not None:
+                    vis.filterIndices(subsurface_time_slice)
+            else:
+                vis.loadMesh()
+                if surface_time_slice is not None:    
+                    vis.filterIndices(surface_time_slice)
+
+            vis_objs[domain] = vis
+
+        plot(vis_objs, layout, axs, dirname, color, color_mode)
+
+    annotate(layout, axs, time_unit)
+    return axs
+
+    
 if __name__ == '__main__':
     import argparse
     import colors
@@ -293,42 +330,10 @@ if __name__ == '__main__':
 
     
     args = parser.parse_args()
-    if args.color_mode == 'runs':
-        if args.color_sample == 'enumerated':
-            color_list = colors.enumerated_colors(len(args.directories))
-        else:
-            color_list = colors.sampled_colors(len(args.directories),
-                                               getattr(matplotlib.cm, args.color_map))
-    elif args.color_mode == 'time':
-        color_list = [args.color_map,]*len(args.directories)
-        
-    
-
-    fig = plt.figure(figsize=args.figsize)
-    axs = fig.subplots(len(args.layout), len(args.layout[0]), squeeze=False)
-
-    domains = set([domain_var(v)[0] for v in layout_flattener(args.layout)])
-    for dirname, color in zip(args.directories, color_list):
-        vis_objs = dict()
-        for domain in domains:
-            vis = ats_xdmf.VisFile(dirname, domain,
-                                   ats_xdmf.valid_data_filename(domain, args.data_filename_format),
-                                   ats_xdmf.valid_mesh_filename(domain, args.mesh_filename_format),
-                                   time_unit=args.time_unit)
-            if domain == '':
-                vis.loadMesh(columnar=True)
-                if args.subsurface_time_slice is not None:
-                    vis.filterIndices(args.subsurface_time_slice)
-            else:
-                vis.loadMesh()
-                if args.surface_time_slice is not None:    
-                    vis.filterIndices(args.surface_time_slice)
-
-            vis_objs[domain] = vis
-
-        plot(vis_objs, args.layout, axs, dirname, color, args.color_mode)
-
-    annotate(args.layout, axs, args.time_unit)        
+    plotColumnData(args.directories, args.layout, args.color_mode, args.color_sample, args.color_map,
+                   args.subsurface_time_slice, args.surface_time_slice,
+                   args.data_filename_format, args.mesh_filename_format,
+                   args.time_unit, args.figsize)
     plt.show()
     sys.exit(0)
     
