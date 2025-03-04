@@ -135,6 +135,9 @@ Richards::parseParameterList()
     ss_primary_key_ = Keys::readKey(*plist_, domain_surf, "pressure", "pressure");
   }
 
+  // require a few primary variable keys now to set the leaf node in the dep graph
+  requireAtCurrent(sat_key_, tag_current_, *S_, name_);
+
   // parse inherited lists
   PK_PhysicalBDF_Default::parseParameterList();
 }

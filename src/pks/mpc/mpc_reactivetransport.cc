@@ -40,12 +40,22 @@ MPCReactiveTransport::parseParameterList()
   Teuchos::Array<std::string> names = plist_->get<Teuchos::Array<std::string>>("PKs order");
   domain_ = getSubPKPlist_(1)->get<std::string>("domain name", "domain");
 
-  // chemistry and transport share the same primary variable
+  // chemistry and transport share the same primary variable, we take it from transport
   tcc_key_ = Keys::readKey(*getSubPKPlist_(1), domain_, "primary variable key",
                            "total_component_concentration");
   getSubPKPlist_(0)->set<std::string>("primary variable key", tcc_key_);
+
+  // both pks need access to the primary variable
   getSubPKPlist_(0)->set<std::string>("primary variable password", name_);
   getSubPKPlist_(1)->set<std::string>("primary variable password", name_);
+
+  // tell chemistry to operator split
+  getSubPKPlist_(0)->set("operator split", true);
+
+  // Only one PK needs to set the IC -- we use chemistry to process geochemical
+  // initial conditions -- but the "initial conditions" list must be present
+  // for all PK_Physical PKs, so just touch it here to make sure it exists.
+  getSubPKPlist_(1)->sublist("initial conditions");
 
   mol_dens_key_ = Keys::readKey(*plist_, domain_, "molar density liquid", "molar_density_liquid");
 

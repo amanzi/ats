@@ -39,6 +39,7 @@ def plotLines(x, y, t, ax=None, colorbar=True, colorbar_ticks=True, colorbar_lab
         if colorbar_ticks:
             xticks = axcb.get_ticks()
             new_ticks = [t * (t_max - t_min) + t_min for t in xticks]
+            axcb.set_ticks(new_ticks)
             axcb.set_ticklabels([str(np.round(t, 2)) for t in new_ticks])
         else:
             axcb.set_ticks(list())

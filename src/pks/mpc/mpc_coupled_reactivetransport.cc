@@ -52,12 +52,20 @@ MPCCoupledReactiveTransport::parseParameterList()
                            "primary variable key", "total_component_concentration");
 
   // chemistry and transport share the same primary variable
-  pks_list_->sublist(chem_names[0]).set<std::string>("primary variable key", tcc_surf_key_);
-  pks_list_->sublist(chem_names[1]).set<std::string>("primary variable key", tcc_key_);
+  pks_list_->sublist(chem_names[0]).set<std::string>("primary variable key", tcc_key_);
+  pks_list_->sublist(chem_names[1]).set<std::string>("primary variable key", tcc_surf_key_);
   pks_list_->sublist(chem_names[0]).set<std::string>("primary variable password", name_);
   pks_list_->sublist(chem_names[1]).set<std::string>("primary variable password", name_);
   pks_list_->sublist(transport_names[0]).set<std::string>("primary variable password", name_);
   pks_list_->sublist(transport_names[1]).set<std::string>("primary variable password", name_);
+
+  // tell chemistry to operator split
+  pks_list_->sublist(chem_names[0]).set("operator split", true);
+  pks_list_->sublist(chem_names[1]).set("operator split", true);
+
+  // Only reaction PKs set IC, but all need the list to be  PK_Physical.
+  pks_list_->sublist(transport_names[0]).sublist("initial conditions");
+  pks_list_->sublist(transport_names[1]).sublist("initial conditions");
 
   cast_sub_pks_();
   coupled_chemistry_pk_->parseParameterList();

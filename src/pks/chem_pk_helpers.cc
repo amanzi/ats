@@ -30,7 +30,7 @@ convertConcentrationToATS(const Epetra_MultiVector& mol_dens,
                           Epetra_MultiVector& tcc_ats)
 {
   // convert from [mol C / L] to mol fraction [mol C / mol H20]
-  tcc_ats.ReciprocalMultiply(1.e3, tcc_amanzi, mol_dens, 0.);
+  tcc_ats.ReciprocalMultiply(1.e3, mol_dens, tcc_amanzi, 0.);
 }
 
 

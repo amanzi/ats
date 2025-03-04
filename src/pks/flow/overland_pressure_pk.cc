@@ -117,6 +117,10 @@ OverlandPressureFlow::parseParameterList()
   patm_hard_limit_ = plist_->get<bool>("allow no negative ponded depths", false);
   min_vel_ponded_depth_ = plist_->get<double>("min ponded depth for velocity calculation", 1e-2);
   min_tidal_bc_ponded_depth_ = plist_->get<double>("min ponded depth for tidal bc", 0.02);
+
+  // require a few primary variable keys now to set the leaf node in the dep graph
+  requireAtCurrent(pd_key_, tag_current_, *S_, name_);
+
 }
 
 
