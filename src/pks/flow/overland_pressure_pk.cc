@@ -428,7 +428,7 @@ OverlandPressureFlow::Initialize()
 
   // initial condition is tricky
   if (!S_->GetRecord(key_, tag_next_).initialized()) {
-    if (!plist_->isSublist("initial condition")) {
+    if (!plist_->isSublist("initial conditions")) {
       Errors::Message message;
       message << name_ << " has no initial condition parameter list.";
       Exceptions::amanzi_throw(message);
@@ -443,7 +443,7 @@ OverlandPressureFlow::Initialize()
     // There is a function to do this already in that MPC.
     //
     // set the cell initial condition if it is taken from the subsurface
-    Teuchos::ParameterList ic_plist = plist_->sublist("initial condition");
+    Teuchos::ParameterList ic_plist = plist_->sublist("initial conditions");
     if (ic_plist.get<bool>("initialize surface head from subsurface", false)) {
       Epetra_MultiVector& pres = *pres_cv->ViewComponent("cell", false);
 

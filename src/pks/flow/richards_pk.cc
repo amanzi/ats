@@ -578,10 +578,10 @@ void
 Richards::InitializeHydrostatic_(const Tag& tag)
 {
   // constant head over the surface
-  if (plist_->sublist("initial condition").isParameter("hydrostatic head [m]")) {
-    double head_wt = plist_->sublist("initial condition").get<double>("hydrostatic head [m]");
+  if (plist_->sublist("initial conditions").isParameter("hydrostatic head [m]")) {
+    double head_wt = plist_->sublist("initial conditions").get<double>("hydrostatic head [m]");
     double rho =
-      plist_->sublist("initial condition").get<double>("hydrostatic water density [kg m^-3]");
+      plist_->sublist("initial conditions").get<double>("hydrostatic water density [kg m^-3]");
     int ncols = mesh_->columns.num_columns_owned;
 
     const auto& gvec = S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
@@ -653,10 +653,10 @@ Richards::InitializeHydrostatic_(const Tag& tag)
   }
 
   // constant head datum
-  if (plist_->sublist("initial condition").isParameter("hydrostatic water level [m]")) {
-    double z_wt = plist_->sublist("initial condition").get<double>("hydrostatic water level [m]");
+  if (plist_->sublist("initial conditions").isParameter("hydrostatic water level [m]")) {
+    double z_wt = plist_->sublist("initial conditions").get<double>("hydrostatic water level [m]");
     double rho =
-      plist_->sublist("initial condition").get<double>("hydrostatic water density [kg m^-3]");
+      plist_->sublist("initial conditions").get<double>("hydrostatic water density [kg m^-3]");
 
     int z_index = mesh_->getSpaceDimension() - 1;
     const auto& gravity = S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);

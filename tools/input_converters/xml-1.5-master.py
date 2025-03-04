@@ -16,7 +16,7 @@ from amanzi_xml.utils import search as asearch
 from amanzi_xml.utils import io as aio
 from amanzi_xml.utils import errors as aerrors
 from amanzi_xml.common import parameter, parameter_list
-
+import fix_chemistry_ts_control
 
 def enforceDtHistory(xml):
     """Find and revert the timestep from file option, moving it to the cycle driver list."""
@@ -275,13 +275,22 @@ def fixTransportPKs(xml):
             pk_type.setValue("transport ATS")
             print("fixing transport pk")
             fixTransportPK(pk, evals_list)
-                    
+
+def initialConditionsList(xml):
+    for pk in xml.sublist("PKs"):
+        if pk.isElement("initial condition"):
+            pk.sublist("initial condition").setName("initial conditions")
+            
             
 def update(xml):
     #enforceDtHistory(xml)
     timeStep(xml)
     tensorPerm(xml)
+    initialConditionsList(xml)
     fixTransportPKs(xml)
+
+    # this fixes chemistry
+    fix_chemistry_ts_control.fixAll(xml)
     
 
 if __name__ == "__main__":
