@@ -200,7 +200,7 @@ class VisFile:
           Variable name mangled like it is used in Amanzi/ATS.  Something like
           'DOMAIN-vname.cell.0'
         """
-        if self.domain and '-' not in vname:
+        if self.domain and '-' not in vname[:-1]:
             vname = self.domain + '-' + vname
         return vname
     
