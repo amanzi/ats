@@ -57,10 +57,9 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
                              const Teuchos::RCP<State>& S,
                              const Teuchos::RCP<TreeVector>& solution)
   : PK(pk_tree, global_plist, S, solution),
-    PK_PhysicalExplicit<Epetra_Vector>(pk_tree, global_plist, S, solution),
+    PK_Physical(pk_tree, global_plist, S, solution),
     has_water_src_key_(false),
     flow_tag_(Tags::NEXT),
-    passwd_("state"),
     internal_tests(0),
     tests_tolerance(TRANSPORT_CONCENTRATION_OVERSHOOT),
     dt_(0.0),
@@ -76,6 +75,9 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
 void
 Transport_ATS::parseParameterList()
 {
+  key_ = Keys::readKey(*plist_, domain_, "primary variable", "total_component_concentration");
+  PK_Physical::parseParameterList();
+
   if (plist_->isParameter("component molar masses")) {
     mol_masses_ = plist_->get<Teuchos::Array<double>>("component molar masses").toVector();
   } else {
@@ -145,7 +147,7 @@ Transport_ATS::parseParameterList()
 void
 Transport_ATS::set_tags(const Tag& current, const Tag& next)
 {
-  PK_PhysicalExplicit<Epetra_Vector>::set_tags(current, next);
+  PK_Physical::set_tags(current, next);
 }
 
 
@@ -597,8 +599,8 @@ Transport_ATS::Initialize()
   Teuchos::OSTab tab = vo_->getOSTab();
 
   // Set initial values for transport variables.
-  if (plist_->isSublist("initial condition")) {
-    S_->GetRecordW(tcc_key_, tag_next_, passwd_).Initialize(plist_->sublist("initial condition"));
+  if (plist_->isSublist("initial conditions")) {
+    S_->GetRecordW(tcc_key_, tag_next_, passwd_).Initialize(plist_->sublist("initial conditions"));
   }
 
   // initialize missed fields

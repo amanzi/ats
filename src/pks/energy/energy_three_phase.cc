@@ -45,9 +45,9 @@ void
 ThreePhase::Initialize()
 {
   // INTERFROST comparison needs some very specialized ICs
-  if (plist_->sublist("initial condition").isParameter("interfrost initial condition")) {
+  if (plist_->sublist("initial conditions").isParameter("interfrost initial condition")) {
     AMANZI_ASSERT(
-      plist_->sublist("initial condition").get<std::string>("interfrost initial condition") ==
+      plist_->sublist("initial conditions").get<std::string>("interfrost initial condition") ==
       "TH3");
     Teuchos::RCP<CompositeVector> temp = S_->GetPtrW<CompositeVector>(key_, tag_next_, name_);
     double r_sq = std::pow(0.5099, 2);
@@ -67,7 +67,7 @@ ThreePhase::Initialize()
     S_->GetRecordW(key_, tag_next_, name_).set_initialized();
 
     // additionally call Initalize() to get faces from cell values
-    S_->GetRecordW(key_, tag_next_, name_).Initialize(plist_->sublist("initial condition"));
+    S_->GetRecordW(key_, tag_next_, name_).Initialize(plist_->sublist("initial conditions"));
   }
 
   EnergyBase::Initialize();

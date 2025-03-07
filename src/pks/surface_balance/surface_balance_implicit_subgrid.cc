@@ -91,7 +91,7 @@ ImplicitSubgrid::Initialize()
   SurfaceBalanceBase::Initialize();
 
   // initialize snow density, age
-  Teuchos::ParameterList& ic_list = plist_->sublist("initial condition");
+  Teuchos::ParameterList& ic_list = plist_->sublist("initial conditions");
 
   if (!S_->GetRecord(snow_dens_key_, tag_next_).initialized()) {
     if (ic_list.isParameter("restart file")) {

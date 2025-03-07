@@ -8,6 +8,7 @@
 */
 
 #include "Op.hh"
+#include "TensorVector.hh"
 #include "richards.hh"
 
 namespace Amanzi {
@@ -74,9 +75,6 @@ Richards::FunctionalResidual(double t_old,
     vecs.emplace_back(
       S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "saturation_ice"), tag_next_).ptr());
   }
-  vnames.emplace_back("perm_K");
-  vecs.emplace_back(
-    S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "permeability"), tag_next_).ptr());
   vnames.emplace_back("k_rel");
   vecs.emplace_back(S_->GetPtr<CompositeVector>(coef_key_, tag_next_).ptr());
   vnames.emplace_back("wind");
@@ -140,9 +138,10 @@ Richards::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, doub
   if (vo_->os_OK(Teuchos::VERB_HIGH)) *vo_->os() << "Precon update at t = " << t << std::endl;
 
   // Recreate mass matrices
-  if (!deform_key_.empty() &&
-      S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_ + " precon"))
-    preconditioner_diff_->SetTensorCoefficient(K_);
+  if ((!deform_key_.empty() &&
+       S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_ + " precon")) ||
+      S_->GetEvaluator(perm_key_, tag_next_).Update(*S_, name_+" precon"))
+    preconditioner_diff_->SetTensorCoefficient(Teuchos::rcpFromRef(S_->Get<TensorVector>(perm_key_, tag_next_).data));
 
   // update state with the solution up.
   if (std::abs(t - iter_counter_time_) / t > 1.e-4) {
@@ -180,6 +179,10 @@ Richards::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, doub
   Teuchos::RCP<const CompositeVector> rel_perm =
     S_->GetPtr<CompositeVector>(uw_coef_key_, tag_next_);
   preconditioner_diff_->SetScalarCoefficient(rel_perm, dkrdp);
+
+  // update mass matrix?
+  if (S_->GetEvaluator(perm_key_, tag_next_).Update(*S_, name_+" precon"))
+    preconditioner_diff_->SetTensorCoefficient(Teuchos::rcpFromRef(S_->Get<TensorVector>(perm_key_, tag_next_).data));
 
   // -- local matries, primary term
   preconditioner_->Init();

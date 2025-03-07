@@ -28,6 +28,8 @@ PK_PhysicalBDF_Default::parseParameterList()
   max_valid_change_ = plist_->get<double>("max valid change", -1.0);
 
   conserved_key_ = Keys::readKey(*plist_, domain_, "conserved quantity");
+  requireAtCurrent(conserved_key_, tag_current_, *S_, name_);
+
   atol_ = plist_->get<double>("absolute error tolerance", 1.0);
   rtol_ = plist_->get<double>("relative error tolerance", 1.0);
   fluxtol_ = plist_->get<double>("flux error tolerance", 1.0);
@@ -50,12 +52,12 @@ PK_PhysicalBDF_Default::Setup()
     new Operators::BCs(mesh_, AmanziMesh::Entity_kind::FACE, WhetStone::DOF_Type::SCALAR));
 
   // convergence criteria is based on a conserved quantity
-  requireAtNext(conserved_key_, tag_next_, *S_)
+  requireAtNext(conserved_key_, tag_next_, *S_, true)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, true);
   // we also use a copy of the conserved quantity, as this is a better choice in the error norm
-  requireAtCurrent(conserved_key_, tag_current_, *S_, name_, true);
+  requireAtCurrent(conserved_key_, tag_current_, *S_, name_);
 
   // cell volume used throughout
   requireAtNext(cell_vol_key_, tag_next_, *S_)

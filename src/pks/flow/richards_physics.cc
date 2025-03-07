@@ -12,6 +12,7 @@
 
 #include "Evaluator.hh"
 #include "Op.hh"
+#include "TensorVector.hh"
 
 #include "pk_helpers.hh"
 #include "richards.hh"
@@ -26,9 +27,10 @@ void
 Richards::ApplyDiffusion_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& g)
 {
   // force mass matrices to change
-  if (!deform_key_.empty() &&
-      S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_ + " matrix"))
-    matrix_diff_->SetTensorCoefficient(K_);
+  if ((!deform_key_.empty() &&
+       S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_ + " matrix")) ||
+      S_->GetEvaluator(perm_key_, tag_next_).Update(*S_, name_+" matrix diff"))
+    matrix_diff_->SetTensorCoefficient(Teuchos::rcpFromRef(S_->Get<TensorVector>(perm_key_, tag_next_).data));
 
   // update the rel perm according to the scheme of choice
   UpdatePermeabilityData_(tag);
@@ -127,54 +129,54 @@ Richards::AddSourcesToPrecon_(double h)
 }
 
 
-// -------------------------------------------------------------
-// Convert abs perm vector to tensor.
-// -------------------------------------------------------------
-void
-Richards::SetAbsolutePermeabilityTensor_(const Tag& tag)
-{
-  // currently assumes isotropic perm, should be updated
-  S_->GetEvaluator(perm_key_, tag).Update(*S_, name_);
-  const Epetra_MultiVector& perm =
-    *S_->Get<CompositeVector>(perm_key_, tag).ViewComponent("cell", false);
-  unsigned int ncells = perm.MyLength();
-  unsigned int ndofs = perm.NumVectors();
-  int space_dim = mesh_->getSpaceDimension();
-  if (ndofs == 1) { // isotropic
-    for (unsigned int c = 0; c != ncells; ++c) { (*K_)[c](0, 0) = perm[0][c] * perm_scale_; }
-  } else if (ndofs == 2 && space_dim == 3) {
-    // horizontal and vertical perms
-    for (unsigned int c = 0; c != ncells; ++c) {
-      (*K_)[c](0, 0) = perm[0][c] * perm_scale_;
-      (*K_)[c](1, 1) = perm[0][c] * perm_scale_;
-      (*K_)[c](2, 2) = perm[1][c] * perm_scale_;
-    }
-  } else if (ndofs >= space_dim) {
-    // diagonal tensor
-    for (unsigned int dim = 0; dim != space_dim; ++dim) {
-      for (unsigned int c = 0; c != ncells; ++c) {
-        (*K_)[c](dim, dim) = perm[dim][c] * perm_scale_;
-      }
-    }
-    if (ndofs > space_dim) {
-      // full tensor
-      if (ndofs == 3) { // 2D
-        for (unsigned int c = 0; c != ncells; ++c) {
-          (*K_)[c](0, 1) = (*K_)[c](1, 0) = perm[2][c] * perm_scale_;
-        }
-      } else if (ndofs == 6) { // 3D
-        for (unsigned int c = 0; c != ncells; ++c) {
-          (*K_)[c](0, 1) = (*K_)[c](1, 0) = perm[3][c] * perm_scale_; // xy & yx
-          (*K_)[c](0, 2) = (*K_)[c](2, 0) = perm[4][c] * perm_scale_; // xz & zx
-          (*K_)[c](1, 2) = (*K_)[c](2, 1) = perm[5][c] * perm_scale_; // yz & zy
-        }
-      }
-    }
-  } else {
-    // ERROR -- unknown perm type
-    AMANZI_ASSERT(0);
-  }
-};
+// // -------------------------------------------------------------
+// // Convert abs perm vector to tensor.
+// // -------------------------------------------------------------
+// void
+// Richards::SetAbsolutePermeabilityTensor_(const Tag& tag)
+// {
+//   // currently assumes isotropic perm, should be updated
+//   S_->GetEvaluator(perm_key_, tag).Update(*S_, name_);
+//   const Epetra_MultiVector& perm =
+//     *S_->Get<CompositeVector>(perm_key_, tag).ViewComponent("cell", false);
+//   unsigned int ncells = perm.MyLength();
+//   unsigned int ndofs = perm.NumVectors();
+//   int space_dim = mesh_->getSpaceDimension();
+//   if (ndofs == 1) { // isotropic
+//     for (unsigned int c = 0; c != ncells; ++c) { (*K_)[c](0, 0) = perm[0][c] * perm_scale_; }
+//   } else if (ndofs == 2 && space_dim == 3) {
+//     // horizontal and vertical perms
+//     for (unsigned int c = 0; c != ncells; ++c) {
+//       (*K_)[c](0, 0) = perm[0][c] * perm_scale_;
+//       (*K_)[c](1, 1) = perm[0][c] * perm_scale_;
+//       (*K_)[c](2, 2) = perm[1][c] * perm_scale_;
+//     }
+//   } else if (ndofs >= space_dim) {
+//     // diagonal tensor
+//     for (unsigned int dim = 0; dim != space_dim; ++dim) {
+//       for (unsigned int c = 0; c != ncells; ++c) {
+//         (*K_)[c](dim, dim) = perm[dim][c] * perm_scale_;
+//       }
+//     }
+//     if (ndofs > space_dim) {
+//       // full tensor
+//       if (ndofs == 3) { // 2D
+//         for (unsigned int c = 0; c != ncells; ++c) {
+//           (*K_)[c](0, 1) = (*K_)[c](1, 0) = perm[2][c] * perm_scale_;
+//         }
+//       } else if (ndofs == 6) { // 3D
+//         for (unsigned int c = 0; c != ncells; ++c) {
+//           (*K_)[c](0, 1) = (*K_)[c](1, 0) = perm[3][c] * perm_scale_; // xy & yx
+//           (*K_)[c](0, 2) = (*K_)[c](2, 0) = perm[4][c] * perm_scale_; // xz & zx
+//           (*K_)[c](1, 2) = (*K_)[c](2, 1) = perm[5][c] * perm_scale_; // yz & zy
+//         }
+//       }
+//     }
+//   } else {
+//     // ERROR -- unknown perm type
+//     AMANZI_ASSERT(0);
+//   }
+// };
 
 
 void
@@ -224,6 +226,8 @@ Richards::UpdateVelocity_(const Tag& tag)
 
     for (int i = 0; i != d; ++i) velocity[i][c] = rhs[i] / nliq_c[0][c];
   }
+
+  changedEvaluatorPrimary(velocity_key_, tag, *S_);
 }
 
 

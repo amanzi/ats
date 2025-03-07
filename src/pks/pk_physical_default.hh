@@ -44,6 +44,9 @@ all leaves of the PK tree will inherit from `PKPhysicalBase`.
 
 namespace Amanzi {
 
+//
+// CAN THIS FINALLY GO AWAY?!?!?
+//
 class PK_Physical_Default : public PK_Physical {
  public:
   PK_Physical_Default(Teuchos::ParameterList& pk_tree,
@@ -54,23 +57,6 @@ class PK_Physical_Default : public PK_Physical {
   // Virtual destructor
   virtual ~PK_Physical_Default() = default;
 
-  virtual void parseParameterList() override;
-
-  // Tag the primary variable as changed in the DAG
-  virtual void ChangedSolutionPK(const Tag& tag) override;
-
-  virtual void Setup() override;
-  virtual void Initialize() override;
-
-  virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
-  virtual void FailStep(double t_old, double t_new, const Tag& tag) override;
-
- protected:
-  // ENORM struct
-  typedef struct ENorm_t {
-    double value;
-    int gid;
-  } ENorm_t;
 };
 
 } // namespace Amanzi

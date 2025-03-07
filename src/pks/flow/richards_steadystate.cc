@@ -12,6 +12,7 @@ Steady state solution of Richards equation
 
 */
 
+#include "TensorVector.hh"
 #include "richards_steadystate.hh"
 
 namespace Amanzi {
@@ -93,9 +94,6 @@ RichardsSteadyState::FunctionalResidual(double t_old,
   }
   vnames.push_back("poro");
   vecs.push_back(S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "porosity"), tag_next_).ptr());
-  vnames.push_back("perm_K");
-  vecs.push_back(
-    S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "permeability"), tag_next_).ptr());
   vnames.push_back("k_rel");
   vecs.push_back(S_->GetPtr<CompositeVector>(coef_key_, tag_next_).ptr());
   vnames.push_back("wind");
@@ -131,9 +129,9 @@ RichardsSteadyState::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVecto
   if (vo_->os_OK(Teuchos::VERB_HIGH)) { *vo_->os() << "Precon update at t = " << t << std::endl; }
 
   // Recreate mass matrices
-  if (!deform_key_.empty() &&
-      S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_ + " precon"))
-    preconditioner_diff_->SetTensorCoefficient(K_);
+  if ((!deform_key_.empty() && S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_ + " precon")) ||
+      S_->GetEvaluator(perm_key_, tag_next_).Update(*S_, name_+" precon"))
+    preconditioner_diff_->SetTensorCoefficient(Teuchos::rcpFromRef(S_->Get<TensorVector>(perm_key_, tag_next_).data));
 
   AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t) <= 1.e-4 * t);
   PK_PhysicalBDF_Default::Solution_to_State(*up, tag_next_);

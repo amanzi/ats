@@ -75,9 +75,55 @@ def timeStep(xml):
                 ti.setParameter("initial timestep [s]", "double", 1.0)
 
 
+def tensorPerm(xml):
+    for eval_list in asearch.find_path(xml, ["state", "evaluators"], True):
+        ename = eval_list.getName()
+        if ename == "permeability" or ename.endswith("-permeability"):
+            tensorPerm_(eval_list)
+
+def tensorPerm_(perm):
+    # set the type to tensor
+    ptype = perm.getElement("evaluator type")
+    if ptype.getValue() == "independent variable":
+        ptype.setValue("independent variable tensor")
+    elif ptype.getValue() == "independent variable constant":
+        ptype.setValue("independent variable tensor")
+
+        # create the function list
+        value = perm.getElement("value").getValue()
+        flist = perm.sublist("function").sublist("domain")
+        flist.setParameter("region", "string", "computational domain")
+        flist.setParameter("component", "string", "cell")
+        flist.sublist("function").sublist("function-constant").setParameter("value", 'double', value)
+
+    else:
+        return
+            
+    # set the rank
+    if not perm.isElement("tensor rank"):
+        if perm.isElement("permeability type"):
+            tt = perm.getElement("permeability type")
+            tt.setName("tensor type")
+            if tt.getValue() == "full tensor":
+                tt.setValue("full symmetric")
+            elif tt.getValue() == "diagonal tensor":
+                tt.setValue("diagonal")
+        else:
+            perm.setParameter("tensor type", "string", "scalar")
+
+
+
+def initialConditionsList(xml):
+    for pk in xml.sublist("PKs"):
+        if pk.isElement("initial condition"):
+            pk.sublist("initial condition").setName("initial conditions")
+            
+            
 def update(xml):
-    enforceDtHistory(xml)
+    #enforceDtHistory(xml)
     timeStep(xml)
+    tensorPerm(xml)
+    initialConditionsList(xml)
 
 
 if __name__ == "__main__":

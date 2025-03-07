@@ -36,13 +36,6 @@ namespace Flow {
 void
 Permafrost::SetupPhysicalEvaluators_()
 {
-  // -- Absolute permeability.
-  //       For now, we assume scalar permeability.  This will change.
-  requireAtNext(perm_key_, tag_next_, *S_)
-    .SetMesh(mesh_)
-    ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_perm_vals_);
-
   // -- water content, and evaluator, and derivative for PC
   requireAtNext(conserved_key_, tag_next_, *S_)
     .SetMesh(mesh_)
@@ -52,20 +45,20 @@ Permafrost::SetupPhysicalEvaluators_()
     conserved_key_, tag_next_, key_, tag_next_);
 
   //    and at the current time, where it is a copy evaluator
-  requireAtCurrent(conserved_key_, tag_current_, *S_, name_, true);
+  requireAtCurrent(conserved_key_, tag_current_, *S_, name_);
 
   // -- saturation
-  requireAtNext(sat_key_, tag_next_, *S_)
+  requireAtNext(sat_key_, tag_next_, *S_, true)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1)
     ->AddComponent("boundary_face", AmanziMesh::Entity_kind::BOUNDARY_FACE, 1);
-  requireAtNext(sat_gas_key_, tag_next_, *S_)
+  requireAtNext(sat_gas_key_, tag_next_, *S_, true)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1)
     ->AddComponent("boundary_face", AmanziMesh::Entity_kind::BOUNDARY_FACE, 1);
-  requireAtNext(sat_ice_key_, tag_next_, *S_)
+  requireAtNext(sat_ice_key_, tag_next_, *S_, true)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1)
@@ -73,11 +66,10 @@ Permafrost::SetupPhysicalEvaluators_()
   auto& wrm = S_->RequireEvaluator(sat_key_, tag_next_);
 
   //    and at the current time, where it is a copy evaluator
-  requireAtCurrent(sat_key_, tag_current_, *S_, name_, true);
-  requireAtCurrent(sat_ice_key_, tag_current_, *S_, name_, true);
+  requireAtCurrent(sat_key_, tag_current_, *S_, name_);
+  requireAtCurrent(sat_ice_key_, tag_current_, *S_, name_);
 
   // -- the rel perm evaluator, also with the same underlying WRM.
-  S_->GetEvaluatorList(coef_key_).set<double>("permeability rescaling", perm_scale_);
   requireAtNext(coef_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()

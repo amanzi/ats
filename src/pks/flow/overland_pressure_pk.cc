@@ -117,6 +117,10 @@ OverlandPressureFlow::parseParameterList()
   patm_hard_limit_ = plist_->get<bool>("allow no negative ponded depths", false);
   min_vel_ponded_depth_ = plist_->get<double>("min ponded depth for velocity calculation", 1e-2);
   min_tidal_bc_ponded_depth_ = plist_->get<double>("min ponded depth for tidal bc", 0.02);
+
+  // require a few primary variable keys now to set the leaf node in the dep graph
+  requireAtCurrent(pd_key_, tag_current_, *S_, name_);
+
 }
 
 
@@ -396,7 +400,7 @@ OverlandPressureFlow::SetupPhysicalEvaluators_()
     wc_bar_key_, tag_next_, key_, tag_next_);
 
   // -- ponded depth
-  requireAtNext(pd_key_, tag_next_, *S_).Update(matrix_->RangeMap())->SetGhosted();
+  requireAtNext(pd_key_, tag_next_, *S_, true).Update(matrix_->RangeMap())->SetGhosted();
   S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(pd_key_, tag_next_, key_, tag_next_);
   //    ...with a copy at the old time
   requireAtCurrent(pd_key_, tag_current_, *S_, pd_key_);
@@ -428,7 +432,7 @@ OverlandPressureFlow::Initialize()
 
   // initial condition is tricky
   if (!S_->GetRecord(key_, tag_next_).initialized()) {
-    if (!plist_->isSublist("initial condition")) {
+    if (!plist_->isSublist("initial conditions")) {
       Errors::Message message;
       message << name_ << " has no initial condition parameter list.";
       Exceptions::amanzi_throw(message);
@@ -443,7 +447,7 @@ OverlandPressureFlow::Initialize()
     // There is a function to do this already in that MPC.
     //
     // set the cell initial condition if it is taken from the subsurface
-    Teuchos::ParameterList ic_plist = plist_->sublist("initial condition");
+    Teuchos::ParameterList ic_plist = plist_->sublist("initial conditions");
     if (ic_plist.get<bool>("initialize surface head from subsurface", false)) {
       Epetra_MultiVector& pres = *pres_cv->ViewComponent("cell", false);
 

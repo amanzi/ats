@@ -290,7 +290,7 @@ namespace Amanzi {
 namespace Transport {
 
 // ummm -- why does this not use TreeVector? --ETC
-class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
+class Transport_ATS : public PK_Physical {
  public:
   Transport_ATS(Teuchos::ParameterList& pk_tree,
                 const Teuchos::RCP<Teuchos::ParameterList>& glist,
@@ -330,7 +330,7 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   // Time integration members
   virtual void FunctionalTimeDerivative(const double t,
           const Epetra_Vector& component,
-          Epetra_Vector& f_component) override;
+          Epetra_Vector& f_component);
 
   // -- helper functions
   // These are in the public API because reactive transport calls them when
@@ -421,7 +421,6 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
 
   // control flags
   std::unordered_map<std::string, bool> convert_to_field_;
-  Key passwd_;
 
   // NOTE: these should go away -- instead get vectors from State, then pass as
   // function arguments if needed.  --ETC

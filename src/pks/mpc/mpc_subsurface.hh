@@ -256,6 +256,7 @@ class MPCSubsurface : public StrongMPC<PK_PhysicalBDF_Default> {
   Key rho_key_;
   Key duw_krdT_key_;
   Key duw_tcdp_key_;
+  Key perm_key_;
 
   bool is_fv_;
 

@@ -14,6 +14,7 @@
 */
 
 #include "mpc_coupled_reactivetransport.hh"
+#include "chem_pk_helpers.hh"
 #include "pk_helpers.hh"
 
 namespace Amanzi {
@@ -37,17 +38,48 @@ MPCCoupledReactiveTransport::MPCCoupledReactiveTransport(
 void
 MPCCoupledReactiveTransport::parseParameterList()
 {
-  WeakMPC::parseParameterList();
+  // tweak the sub-PK parameter lists
+  auto coupled_pk_names = plist_->get<Teuchos::Array<std::string>>("PKs order");
+  auto chem_names = getSubPKPlist_(0)->get<Teuchos::Array<std::string>>("PKs order");
+  auto transport_names = getSubPKPlist_(1)->get<Teuchos::Array<std::string>>("PKs order");
 
-  domain_ = Keys::readDomain(*plist_, "domain", "domain");
-  domain_surf_ = Keys::readDomainHint(*plist_, domain_, "domain", "surface");
+  domain_ = pks_list_->sublist(transport_names[0]).get<std::string>("domain name", "domain");
+  domain_surf_ = pks_list_->sublist(transport_names[1]).get<std::string>("domain name", "surface");
 
-  tcc_key_ = Keys::readKey(
-    *plist_, domain_, "total component concentration", "total_component_concentration");
-  tcc_surf_key_ = Keys::readKey(*plist_,
-                                domain_surf_,
-                                "surface total component concentration",
-                                "total_component_concentration");
+  tcc_key_ = Keys::readKey(pks_list_->sublist(transport_names[0]), domain_,
+                           "primary variable", "total_component_concentration");
+  tcc_surf_key_ = Keys::readKey(pks_list_->sublist(transport_names[1]), domain_surf_,
+                           "primary variable", "total_component_concentration");
+
+  // chemistry and transport share the same primary variable
+  pks_list_->sublist(chem_names[0]).set<std::string>("primary variable key", tcc_key_);
+  pks_list_->sublist(chem_names[1]).set<std::string>("primary variable key", tcc_surf_key_);
+  pks_list_->sublist(chem_names[0]).set<std::string>("primary variable password", name_);
+  pks_list_->sublist(chem_names[1]).set<std::string>("primary variable password", name_);
+  pks_list_->sublist(transport_names[0]).set<std::string>("primary variable password", name_);
+  pks_list_->sublist(transport_names[1]).set<std::string>("primary variable password", name_);
+
+  // tell chemistry to operator split
+  pks_list_->sublist(chem_names[0]).set("operator split", true);
+  pks_list_->sublist(chem_names[1]).set("operator split", true);
+
+  // Only reaction PKs set IC, but all need the list to be  PK_Physical.
+  pks_list_->sublist(transport_names[0]).sublist("initial conditions");
+  pks_list_->sublist(transport_names[1]).sublist("initial conditions");
+
+  cast_sub_pks_();
+  coupled_chemistry_pk_->parseParameterList();
+
+  // communicate chemistry engine to transport.
+#ifdef ALQUIMIA_ENABLED
+  transport_pk_->SetupAlquimia(Teuchos::rcp_static_cast<AmanziChemistry::Alquimia_PK>(chemistry_pk_),
+          chemistry_pk_->chem_engine());
+  transport_pk_surf_->SetupAlquimia(Teuchos::rcp_static_cast<AmanziChemistry::Alquimia_PK>(chemistry_pk_surf_),
+          chemistry_pk_surf_->chem_engine());
+#endif
+
+  coupled_transport_pk_->parseParameterList();
+
   mol_dens_key_ = Keys::readKey(*plist_, domain_, "molar density liquid", "molar_density_liquid");
   mol_dens_surf_key_ =
     Keys::readKey(*plist_, domain_surf_, "surface molar density liquid", "molar_density_liquid");
@@ -57,19 +89,17 @@ MPCCoupledReactiveTransport::parseParameterList()
 void
 MPCCoupledReactiveTransport::Setup()
 {
-  cast_sub_pks_();
-
   // must Setup transport first to get alias for saturation, etc set up correctly
   coupled_transport_pk_->Setup();
   coupled_chemistry_pk_->Setup();
 
-  S_->Require<CompositeVector, CompositeVectorSpace>(tcc_key_, tag_next_, "state")
+  S_->Require<CompositeVector, CompositeVectorSpace>(tcc_key_, tag_next_, name())
     .SetMesh(S_->GetMesh(domain_))
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, chemistry_pk_->num_aqueous_components());
   S_->RequireEvaluator(tcc_key_, tag_next_);
 
-  S_->Require<CompositeVector, CompositeVectorSpace>(tcc_surf_key_, tag_next_, "state")
+  S_->Require<CompositeVector, CompositeVectorSpace>(tcc_surf_key_, tag_next_, name())
     .SetMesh(S_->GetMesh(domain_surf_))
     ->SetGhosted()
     ->AddComponent(
@@ -115,17 +145,8 @@ MPCCoupledReactiveTransport::cast_sub_pks_()
 
   AMANZI_ASSERT(transport_pk_->domain() == chemistry_pk_->domain());
   AMANZI_ASSERT(transport_pk_surf_->domain() == chemistry_pk_surf_->domain());
-
-// communicate chemistry engine to transport.
-#ifdef ALQUIMIA_ENABLED
-  transport_pk_->SetupAlquimia(
-    Teuchos::rcp_static_cast<AmanziChemistry::Alquimia_PK>(chemistry_pk_),
-    chemistry_pk_->chem_engine());
-  transport_pk_surf_->SetupAlquimia(
-    Teuchos::rcp_static_cast<AmanziChemistry::Alquimia_PK>(chemistry_pk_surf_),
-    chemistry_pk_surf_->chem_engine());
-#endif
 }
+
 
 // -----------------------------------------------------------------------------
 //
@@ -138,31 +159,25 @@ MPCCoupledReactiveTransport::Initialize()
   // for, e.g., salinity intrusion problems where water density is a function
   // of concentration itself, but should work for all other problems?
   Teuchos::RCP<Epetra_MultiVector> tcc_surf =
-    S_->GetW<CompositeVector>(tcc_surf_key_, tag_next_, "state").ViewComponent("cell", true);
+    S_->GetW<CompositeVector>(tcc_surf_key_, tag_next_, name_).ViewComponent("cell", true);
   S_->GetEvaluator(mol_dens_surf_key_, tag_next_).Update(*S_, name_);
   Teuchos::RCP<const Epetra_MultiVector> mol_dens_surf =
     S_->Get<CompositeVector>(mol_dens_surf_key_, tag_next_).ViewComponent("cell", true);
 
   Teuchos::RCP<Epetra_MultiVector> tcc =
-    S_->GetW<CompositeVector>(tcc_key_, tag_next_, "state").ViewComponent("cell", true);
+    S_->GetW<CompositeVector>(tcc_key_, tag_next_, name_).ViewComponent("cell", true);
   S_->GetEvaluator(mol_dens_key_, tag_next_).Update(*S_, name_);
   Teuchos::RCP<const Epetra_MultiVector> mol_dens =
     S_->Get<CompositeVector>(mol_dens_key_, tag_next_).ViewComponent("cell", true);
 
-  int num_aqueous = chemistry_pk_surf_->num_aqueous_components();
-  convertConcentrationToAmanzi(*mol_dens_surf, num_aqueous, *tcc_surf, *tcc_surf);
-  convertConcentrationToAmanzi(*mol_dens, num_aqueous, *tcc, *tcc);
+  convertConcentrationToAmanzi(*mol_dens_surf, *tcc_surf, *tcc_surf);
+  convertConcentrationToAmanzi(*mol_dens, *tcc, *tcc);
 
-  chemistry_pk_surf_->set_aqueous_components(tcc_surf);
   chemistry_pk_surf_->Initialize();
-  //*tcc_surf = *chemistry_pk_surf_->aqueous_components();
-
-  chemistry_pk_->set_aqueous_components(tcc);
   chemistry_pk_->Initialize();
-  //*tcc = *chemistry_pk_->aqueous_components();
 
-  convertConcentrationToATS(*mol_dens_surf, num_aqueous, *tcc_surf, *tcc_surf);
-  convertConcentrationToATS(*mol_dens, num_aqueous, *tcc, *tcc);
+  convertConcentrationToATS(*mol_dens_surf, *tcc_surf, *tcc_surf);
+  convertConcentrationToATS(*mol_dens, *tcc, *tcc);
 
   transport_pk_surf_->Initialize();
   transport_pk_->Initialize();
@@ -205,12 +220,12 @@ MPCCoupledReactiveTransport::AdvanceStep(double t_old, double t_new, bool reinit
 
   // Chemistry on the surface
   Teuchos::RCP<Epetra_MultiVector> tcc_surf =
-    S_->GetW<CompositeVector>(tcc_surf_key_, tag_next_, "state").ViewComponent("cell", true);
+    S_->GetW<CompositeVector>(tcc_surf_key_, tag_next_, name_).ViewComponent("cell", true);
   S_->GetEvaluator(mol_dens_surf_key_, tag_next_).Update(*S_, name_);
   Teuchos::RCP<const Epetra_MultiVector> mol_dens_surf =
     S_->Get<CompositeVector>(mol_dens_surf_key_, tag_next_).ViewComponent("cell", true);
-  fail = advanceChemistry(
-    chemistry_pk_surf_, t_old, t_new, reinit, *mol_dens_surf, tcc_surf, *alquimia_surf_timer_);
+
+  fail = advanceChemistry(*chemistry_pk_surf_, t_old, t_new, reinit, *mol_dens_surf, *tcc_surf, *alquimia_surf_timer_);
   changedEvaluatorPrimary(tcc_surf_key_, tag_next_, *S_);
   if (fail) {
     if (vo_->os_OK(Teuchos::VERB_MEDIUM))
@@ -218,17 +233,17 @@ MPCCoupledReactiveTransport::AdvanceStep(double t_old, double t_new, bool reinit
     return fail;
   } else {
     transport_pk_surf_->debugger()->WriteCellVector("tcc (chem)", *tcc_surf);
-    transport_pk_surf_->PrintSoluteExtrema(*tcc_surf, t_new - t_old);
+    // transport_pk_surf_->PrintSoluteExtrema(*tcc_surf, t_new - t_old);
   }
 
   // Chemistry in the subsurface
   Teuchos::RCP<Epetra_MultiVector> tcc =
-    S_->GetW<CompositeVector>(tcc_key_, tag_next_, "state").ViewComponent("cell", true);
+    S_->GetW<CompositeVector>(tcc_key_, tag_next_, name_).ViewComponent("cell", true);
   S_->GetEvaluator(mol_dens_key_, tag_next_).Update(*S_, name_);
   Teuchos::RCP<const Epetra_MultiVector> mol_dens =
     S_->Get<CompositeVector>(mol_dens_key_, tag_next_).ViewComponent("cell", true);
   try {
-    fail = advanceChemistry(chemistry_pk_, t_old, t_new, reinit, *mol_dens, tcc, *alquimia_timer_);
+    fail = advanceChemistry(*chemistry_pk_, t_old, t_new, reinit, *mol_dens, *tcc, *alquimia_timer_);
     changedEvaluatorPrimary(tcc_key_, tag_next_, *S_);
   } catch (const Errors::Message& chem_error) {
     fail = true;
@@ -239,7 +254,7 @@ MPCCoupledReactiveTransport::AdvanceStep(double t_old, double t_new, bool reinit
     return fail;
   } else {
     transport_pk_->debugger()->WriteCellVector("tcc (chem)", *tcc);
-    transport_pk_->PrintSoluteExtrema(*tcc, t_new - t_old);
+    // transport_pk_->PrintSoluteExtrema(*tcc, t_new - t_old);
   }
 
   chem_step_succeeded_ = true;

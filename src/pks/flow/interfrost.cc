@@ -7,6 +7,7 @@
   Authors: Ethan Coon (coonet@ornl.gov)
 */
 
+#include "TensorVector.hh"
 #include "Op.hh"
 #include "interfrost.hh"
 
@@ -48,9 +49,10 @@ Interfrost::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, do
   if (vo_->os_OK(Teuchos::VERB_HIGH)) *vo_->os() << "Precon update at t = " << t << std::endl;
 
   // Recreate mass matrices
-  if (!deform_key_.empty() &&
-      S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_ + " precon"))
-    preconditioner_diff_->SetTensorCoefficient(K_);
+  if ((!deform_key_.empty() &&
+       S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_ + " precon")) ||
+      S_->GetEvaluator(perm_key_, tag_next_).Update(*S_, name_+" precon"))
+    preconditioner_diff_->SetTensorCoefficient(Teuchos::rcpFromRef(S_->Get<TensorVector>(perm_key_, tag_next_).data));
 
   // update state with the solution up.
   AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t) <= 1.e-4 * t);

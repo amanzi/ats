@@ -77,7 +77,7 @@ SurfaceBalanceBase::Setup()
   // requirements: source terms from above
   if (is_source_term_) {
     if (theta_ > 0) {
-      requireAtNext(source_key_, tag_next_, *S_)
+      requireAtNext(source_key_, tag_next_, *S_, true)
         .SetMesh(mesh_)
         ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
