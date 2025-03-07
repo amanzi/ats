@@ -22,7 +22,7 @@
 
 #include "CompositeVectorFunction.hh"
 #include "CompositeVectorFunctionFactory.hh"
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 #include "MeshAlgorithms.hh"
 
 #include "energy_base.hh"

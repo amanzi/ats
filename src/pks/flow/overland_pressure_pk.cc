@@ -26,7 +26,7 @@
 #include "upwind_total_flux.hh"
 #include "UpwindFluxFactory.hh"
 
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 
 #include "overland_pressure.hh"
 

@@ -7,7 +7,7 @@
   Authors: Ethan Coon (coonet@ornl.gov)
 */
 
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 
 #include "surface_balance_base.hh"
 
@@ -220,7 +220,7 @@ SurfaceBalanceBase::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector
 {
   // update state with the solution up.
   AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t) <= 1.e-4 * t);
-  PK_Physical_Default::Solution_to_State(*up, tag_next_);
+  PK_Physical::Solution_to_State(*up, tag_next_);
 
   if (conserved_quantity_) {
     preconditioner_->Init();

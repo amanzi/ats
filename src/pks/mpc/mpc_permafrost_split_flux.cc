@@ -9,7 +9,7 @@
 
 #include "mpc_permafrost_split_flux.hh"
 #include "mpc_surface_subsurface_helpers.hh"
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 
 namespace Amanzi {
 

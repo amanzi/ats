@@ -14,7 +14,7 @@
 #include "Event.hh"
 #include "TimeStepManager.hh"
 #include "mpc_subcycled.hh"
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 
 namespace Amanzi {
 

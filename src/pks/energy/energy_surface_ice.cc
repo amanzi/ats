@@ -23,7 +23,7 @@ Process kernel for energy equation for overland flow.
 #include "EvaluatorPrimary.hh"
 #include "Op.hh"
 
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 #include "energy_surface_ice.hh"
 
 namespace Amanzi {

@@ -27,7 +27,7 @@
 namespace Amanzi {
 namespace SurfaceBalance {
 
-class SurfaceBalanceCLM : public PK_Physical_Default {
+class SurfaceBalanceCLM : public PK_Physical {
  public:
   SurfaceBalanceCLM(Teuchos::ParameterList& pk_tree,
                     const Teuchos::RCP<Teuchos::ParameterList>& global_list,

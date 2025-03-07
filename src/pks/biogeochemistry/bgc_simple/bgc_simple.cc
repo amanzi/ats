@@ -20,7 +20,7 @@
    ------------------------------------------------------------------------- */
 
 #include "MeshPartition.hh"
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 #include "bgc_simple_funcs.hh"
 
 #include "bgc_simple.hh"
@@ -33,7 +33,7 @@ BGCSimple::BGCSimple(Teuchos::ParameterList& pk_tree,
                      const Teuchos::RCP<Teuchos::ParameterList>& global_list,
                      const Teuchos::RCP<State>& S,
                      const Teuchos::RCP<TreeVector>& solution)
-  : PK_Physical_Default(pk_tree, global_list, S, solution),
+  : PK_Physical(pk_tree, global_list, S, solution),
     PK(pk_tree, global_list, S, solution),
     ncells_per_col_(-1)
 {
@@ -69,7 +69,7 @@ BGCSimple::BGCSimple(Teuchos::ParameterList& pk_tree,
 void
 BGCSimple::Setup()
 {
-  PK_Physical_Default::Setup();
+  PK_Physical::Setup();
 
   // my mesh is the subsurface mesh, but we need the surface mesh, index by column, as well
   mesh_surf_ = S_->GetMesh(domain_surf_);
@@ -249,7 +249,7 @@ BGCSimple::Setup()
 void
 BGCSimple::Initialize()
 {
-  PK_Physical_Default::Initialize();
+  PK_Physical::Initialize();
 
   // diagnostic variable
   S_->GetW<CompositeVector>("co2_decomposition", tag_next_, name_).PutScalar(0.);

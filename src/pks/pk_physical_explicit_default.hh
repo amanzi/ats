@@ -20,13 +20,13 @@ domains/meshes of PKPhysicalBase and Explicit methods of PKExplicitBase.
 #include "errors.hh"
 #include "PK.hh"
 #include "pk_explicit_default.hh"
-#include "pk_physical_default.hh"
+#include "PK_Physical.hh"
 
 
 namespace Amanzi {
 
 
-class PK_Physical_Explicit_Default : public PK_Explicit_Default, public PK_Physical_Default {
+class PK_Physical_Explicit_Default : public PK_Explicit_Default, public PK_Physical {
  public:
   PK_Physical_Explicit_Default(Teuchos::ParameterList& pk_tree,
                                const Teuchos::RCP<Teuchos::ParameterList>& glist,
@@ -34,12 +34,12 @@ class PK_Physical_Explicit_Default : public PK_Explicit_Default, public PK_Physi
                                const Teuchos::RCP<TreeVector>& solution)
     : PK(pk_tree, glist, S, solution),
       PK_Explicit_Default(pk_tree, glist, S, solution),
-      PK_Physical_Default(pk_tree, glist, S, solution)
+      PK_Physical(pk_tree, glist, S, solution)
   {}
 
   virtual void Setup() override
   {
-    PK_Physical_Default::Setup();
+    PK_Physical::Setup();
     PK_Explicit_Default::Setup();
   }
 
@@ -47,7 +47,7 @@ class PK_Physical_Explicit_Default : public PK_Explicit_Default, public PK_Physi
   // methods, so we need a unique overrider.
   virtual void Initialize() override
   {
-    PK_Physical_Default::Initialize();
+    PK_Physical::Initialize();
     PK_Explicit_Default::Initialize();
   }
 
@@ -61,7 +61,7 @@ class PK_Physical_Explicit_Default : public PK_Explicit_Default, public PK_Physi
 
   virtual void FailStep(double t_old, double t_new, const Tag& tag) override
   {
-    PK_Physical_Default::FailStep(t_old, t_new, tag);
+    PK_Physical::FailStep(t_old, t_new, tag);
   }
 };
 

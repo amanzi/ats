@@ -14,7 +14,7 @@
 #include "Op.hh"
 #include "TensorVector.hh"
 
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 #include "richards.hh"
 
 namespace Amanzi {

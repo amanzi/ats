@@ -35,7 +35,7 @@
 #include "PDE_Accumulation.hh"
 #include "PK_DomainFunctionFactory.hh"
 #include "PK_Utils.hh"
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 
 #include "TransportDomainFunction.hh"
 #include "TransportBoundaryFunction_Alquimia.hh"

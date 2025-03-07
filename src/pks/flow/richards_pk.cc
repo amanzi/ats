@@ -27,7 +27,7 @@
 #include "richards_water_content_evaluator.hh"
 #include "OperatorDefs.hh"
 #include "BoundaryFlux.hh"
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 #include "TensorVector.hh"
 
 #include "richards.hh"

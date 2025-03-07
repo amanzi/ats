@@ -20,7 +20,7 @@
 #include "surface_ice_model.hh"
 #include "energy_base.hh"
 #include "advection.hh"
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 
 #include "mpc_permafrost.hh"
 

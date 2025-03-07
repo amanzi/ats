@@ -28,7 +28,7 @@ water sources, etc.
 
 #include <cmath>
 
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 #include "ats_clm_interface.hh"
 #include "surface_balance_CLM.hh"
 
@@ -39,7 +39,7 @@ SurfaceBalanceCLM::SurfaceBalanceCLM(Teuchos::ParameterList& pk_tree,
                                      const Teuchos::RCP<Teuchos::ParameterList>& global_list,
                                      const Teuchos::RCP<State>& S,
                                      const Teuchos::RCP<TreeVector>& solution)
-  : PK(pk_tree, global_list, S, solution), PK_Physical_Default(pk_tree, global_list, S, solution)
+  : PK(pk_tree, global_list, S, solution), PK_Physical(pk_tree, global_list, S, solution)
 {
   domain_ss_ = Keys::readDomainHint(*plist_, domain_, "surface", "subsurface");
   domain_snow_ = Keys::readDomainHint(*plist_, domain_, "surface", "snow");
@@ -98,7 +98,7 @@ SurfaceBalanceCLM::SurfaceBalanceCLM(Teuchos::ParameterList& pk_tree,
 void
 SurfaceBalanceCLM::Setup()
 {
-  PK_Physical_Default::Setup();
+  PK_Physical::Setup();
   auto subsurf_mesh = S_->GetMesh(domain_ss_);
 
   // requirements: primary variable
@@ -271,7 +271,7 @@ SurfaceBalanceCLM::SetupDependencies_(const Tag& tag)
 void
 SurfaceBalanceCLM::Initialize()
 {
-  PK_Physical_Default::Initialize();
+  PK_Physical::Initialize();
   InitializeCLM_(tag_next_);
   InitializePrimaryVariables_(tag_next_);
 }

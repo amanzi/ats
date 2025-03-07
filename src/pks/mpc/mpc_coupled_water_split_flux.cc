@@ -9,7 +9,7 @@
 
 #include "mpc_coupled_water_split_flux.hh"
 #include "mpc_surface_subsurface_helpers.hh"
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 
 namespace Amanzi {
 

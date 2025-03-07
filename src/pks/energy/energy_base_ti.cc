@@ -10,7 +10,7 @@
 #include "Debugger.hh"
 #include "BoundaryFunction.hh"
 #include "Evaluator.hh"
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 #include "Op.hh"
 
 #include "energy_base.hh"

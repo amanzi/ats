@@ -24,7 +24,7 @@
 
 #include "snow_distribution.hh"
 
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 
 namespace Amanzi {
 namespace Flow {

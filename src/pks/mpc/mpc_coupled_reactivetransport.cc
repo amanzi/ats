@@ -15,7 +15,7 @@
 
 #include "mpc_coupled_reactivetransport.hh"
 #include "chem_pk_helpers.hh"
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 
 namespace Amanzi {
 

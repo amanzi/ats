@@ -14,7 +14,7 @@ Standard base for most PKs, this combines both domains/meshes of
 PKPhysicalBase and BDF methods of PK_BDF_Default.
 ------------------------------------------------------------------------- */
 
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 #include "pk_physical_bdf_default.hh"
 
 namespace Amanzi {
@@ -22,7 +22,7 @@ namespace Amanzi {
 void
 PK_PhysicalBDF_Default::parseParameterList()
 {
-  PK_Physical_Default::parseParameterList();
+  PK_Physical::parseParameterList();
 
   // primary variable max change
   max_valid_change_ = plist_->get<double>("max valid change", -1.0);
@@ -44,7 +44,7 @@ void
 PK_PhysicalBDF_Default::Setup()
 {
   // call the meat of the base constructurs via Setup methods
-  PK_Physical_Default::Setup();
+  PK_Physical::Setup();
   PK_BDF_Default::Setup();
 
   // boundary conditions
@@ -76,7 +76,7 @@ PK_PhysicalBDF_Default::Initialize()
   // Just calls both subclass's initialize.  NOTE - order is important here --
   // PhysicalBase grabs the primary variable and stuffs it into the solution,
   // which must be done prior to BDFBase initializing the timestepper.
-  PK_Physical_Default::Initialize();
+  PK_Physical::Initialize();
   PK_BDF_Default::Initialize();
 }
 
@@ -227,7 +227,7 @@ void
 PK_PhysicalBDF_Default::CommitStep(double t_old, double t_new, const Tag& tag_next)
 {
   PK_BDF_Default::CommitStep(t_old, t_new, tag_next);
-  PK_Physical_Default::CommitStep(t_old, t_new, tag_next);
+  PK_Physical::CommitStep(t_old, t_new, tag_next);
 
   AMANZI_ASSERT(tag_next == tag_next_ || tag_next == Tags::NEXT);
   Tag tag_current = tag_next == tag_next_ ? tag_current_ : Tags::CURRENT;
@@ -241,7 +241,7 @@ PK_PhysicalBDF_Default::CommitStep(double t_old, double t_new, const Tag& tag_ne
 void
 PK_PhysicalBDF_Default::FailStep(double t_old, double t_new, const Tag& tag)
 {
-  PK_Physical_Default::FailStep(t_old, t_new, tag);
+  PK_Physical::FailStep(t_old, t_new, tag);
 }
 
 

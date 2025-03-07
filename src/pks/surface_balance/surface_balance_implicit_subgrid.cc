@@ -20,7 +20,7 @@
 
 #include <algorithm>
 
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 #include "seb_physics_defs.hh"
 #include "surface_balance_implicit_subgrid.hh"
 

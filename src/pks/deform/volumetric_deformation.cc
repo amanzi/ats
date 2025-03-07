@@ -11,7 +11,7 @@
 
 //! Subsidence through bulk ice loss and cell volumetric change.
 #include "CompositeVectorFunctionFactory.hh"
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 #include "volumetric_deformation.hh"
 
 #define DEBUG 0
@@ -27,7 +27,7 @@ VolumetricDeformation::VolumetricDeformation(Teuchos::ParameterList& pk_tree,
                                              const Teuchos::RCP<State>& S,
                                              const Teuchos::RCP<TreeVector>& solution)
   : PK(pk_tree, glist, S, solution),
-    PK_Physical_Default(pk_tree, glist, S, solution),
+    PK_Physical(pk_tree, glist, S, solution),
     surf_mesh_(Teuchos::null),
     deformed_this_step_(false)
 {}
@@ -36,7 +36,7 @@ VolumetricDeformation::VolumetricDeformation(Teuchos::ParameterList& pk_tree,
 void
 VolumetricDeformation::parseParameterList()
 {
-  PK_Physical_Default::parseParameterList();
+  PK_Physical::parseParameterList();
 
   dt_max_ = plist_->get<double>("max timestep [s]", std::numeric_limits<double>::max());
 
@@ -106,7 +106,7 @@ VolumetricDeformation::parseParameterList()
 void
 VolumetricDeformation::Setup()
 {
-  PK_Physical_Default::Setup();
+  PK_Physical::Setup();
 
   // Save both non-const deformable versions of the meshes and create storage
   // for the vertex coordinates.  These are saved to be able to create the
@@ -271,7 +271,7 @@ void
 VolumetricDeformation::Initialize()
 {
   // sets base porosity
-  PK_Physical_Default::Initialize();
+  PK_Physical::Initialize();
 
   // initialize the deformation
   S_->GetW<CompositeVector>(del_cv_key_, tag_next_, name_).PutScalar(0.);
@@ -703,7 +703,7 @@ void
 VolumetricDeformation::CommitStep(double t_old, double t_new, const Tag& tag_next)
 {
   // saves primary variable
-  PK_Physical_Default::CommitStep(t_old, t_new, tag_next);
+  PK_Physical::CommitStep(t_old, t_new, tag_next);
 
   AMANZI_ASSERT(tag_next == tag_next_ || tag_next == Tags::NEXT);
   Tag tag_current = tag_next == tag_next_ ? tag_current_ : Tags::CURRENT;

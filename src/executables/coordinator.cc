@@ -50,7 +50,7 @@ actual work.
 #include "PK.hh"
 #include "TreeVector.hh"
 #include "PK_Factory.hh"
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 
 
 #include "ats_mesh_factory.hh"

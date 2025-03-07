@@ -88,7 +88,7 @@ that build_columns in the subsurface Mesh_ spec has been supplied.
 #include "TreeVector.hh"
 
 #include "PK_Factory.hh"
-#include "pk_physical_default.hh"
+#include "PK_Physical.hh"
 
 #include "SoilCarbonParameters.hh"
 #include "PFT.hh"
@@ -97,7 +97,7 @@ that build_columns in the subsurface Mesh_ spec has been supplied.
 namespace Amanzi {
 namespace BGC {
 
-class BGCSimple : public PK_Physical_Default {
+class BGCSimple : public PK_Physical {
  public:
   BGCSimple(Teuchos::ParameterList& pk_tree,
             const Teuchos::RCP<Teuchos::ParameterList>& glist,

@@ -115,14 +115,14 @@ values from the old time.
 
 #include "PK.hh"
 #include "PK_Factory.hh"
-#include "pk_physical_default.hh"
-#include "pk_helpers.hh"
+#include "PK_Physical.hh"
+#include "PK_Helpers.hh"
 //#include "MatrixVolumetricDeformation.hh"
 
 namespace Amanzi {
 namespace Deform {
 
-class VolumetricDeformation : public PK_Physical_Default {
+class VolumetricDeformation : public PK_Physical {
  public:
   VolumetricDeformation(Teuchos::ParameterList& pk_tree,
                         const Teuchos::RCP<Teuchos::ParameterList>& global_plist,

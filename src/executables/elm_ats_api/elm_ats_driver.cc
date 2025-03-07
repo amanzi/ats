@@ -21,7 +21,7 @@
 #include "CompositeVector.hh"
 #include "IO.hh"
 #include "UnstructuredObservations.hh"
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 #include "elm_ats_driver.hh"
 
 namespace ATS {
