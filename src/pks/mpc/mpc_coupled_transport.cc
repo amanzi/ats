@@ -33,20 +33,35 @@ MPCCoupledTransport::parseParameterList()
   Key domain_ss = pks_list_->sublist(name_ss_).get<std::string>("domain name", "domain");
   Key domain_surf = pks_list_->sublist(name_surf_).get<std::string>("domain name", "surface");
 
+  // first make sure predictor-corrector scheme is turned off -- this isn't valid for coupled transport
+  for (const auto& name : std::vector<std::string>{name_ss_, name_surf_}) {
+    if (pks_list_->sublist(name).isParameter("temporal discretization order")) {
+      int order = pks_list_->sublist(name).get<int>("temporal discretization order");
+      if (order != 1) {
+        if (vo_->os_OK(Teuchos::VERB_LOW))
+          *vo_->os() << vo_->color("yellow")
+                     << "Transport PK \"" << name << "\" prescribes \"temporal discretization order\" "
+                     << order << ", but this is not valid for integrated transport.  Using \"temporal discretization order\" 1 instead."
+                     << vo_->reset() << std::endl;
+      }
+      pks_list_->sublist(name).set<int>("temporal discretization order", 1);
+    }
+  }
+
   Key ss_flux_key =
     Keys::readKey(pks_list_->sublist(name_ss_), domain_ss, "water flux", "water_flux");
   Key surf_flux_key =
     Keys::readKey(pks_list_->sublist(name_surf_), domain_surf, "water flux", "water_flux");
 
   Key ss_tcc_key = Keys::readKey(
-    pks_list_->sublist(name_ss_), domain_ss, "concentration", "total_component_concentration");
+    pks_list_->sublist(name_ss_), domain_ss, "primary variable", "molar_ratio");
   Key surf_tcc_key = Keys::readKey(
-    pks_list_->sublist(name_surf_), domain_surf, "concentration", "total_component_concentration");
+    pks_list_->sublist(name_surf_), domain_surf, "primary variable", "molar_ratio");
   Key surf_tcq_key = Keys::readKey(
     pks_list_->sublist(name_surf_), domain_surf, "conserved quantity", "total_component_quantity");
 
   auto& bc_list =
-    pks_list_->sublist(name_ss_).sublist("boundary conditions").sublist("concentration");
+    pks_list_->sublist(name_ss_).sublist("boundary conditions").sublist("molar mixing ratio");
   if (!bc_list.isSublist("BC coupling")) {
     Teuchos::ParameterList& bc_coupling = bc_list.sublist("BC coupling");
     bc_coupling.set<std::string>("spatial distribution method", "domain coupling");

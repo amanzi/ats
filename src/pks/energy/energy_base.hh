@@ -154,7 +154,6 @@ Solves an advection-diffusion equation for energy:
 #include "PDE_Accumulation.hh"
 #include "PDE_AdvectionUpwind.hh"
 
-//#include "PK_PhysicalBDF_ATS.hh"
 #include "pk_physical_bdf_default.hh"
 #include "upwinding.hh"
 

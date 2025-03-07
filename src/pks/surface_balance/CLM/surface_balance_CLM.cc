@@ -28,7 +28,7 @@ water sources, etc.
 
 #include <cmath>
 
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 #include "ats_clm_interface.hh"
 #include "surface_balance_CLM.hh"
 
@@ -109,16 +109,14 @@ SurfaceBalanceCLM::Setup()
 
   // requirements: other primary variables
   // -- surface water source  -- note we keep old and new in case of Crank-Nicholson Richards PK
-  S_->Require<CompositeVector, CompositeVectorSpace>(surf_water_src_key_, tag_next_, name_)
+  requireEvaluatorAtNext(surf_water_src_key_, tag_next_, *S_, name_)
     .SetMesh(mesh_)
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  requireEvaluatorPrimary(surf_water_src_key_, tag_next_, *S_);
 
   // -- subsurface water source  -- note we keep old and new in case of Crank-Nicholson Richards PK
-  S_->Require<CompositeVector, CompositeVectorSpace>(ss_water_src_key_, tag_next_, name_)
+  requireEvaluatorPrimary(ss_water_src_key_, tag_next_, *S_, name_)
     .SetMesh(subsurf_mesh)
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  requireEvaluatorPrimary(ss_water_src_key_, tag_next_, *S_);
 
   // set requirements on dependencies
   SetupDependencies_(tag_next_);
@@ -281,7 +279,7 @@ void
 SurfaceBalanceCLM::InitializeCLM_(const Tag& tag)
 {
   // Initialize the CLM instance
-  Teuchos::ParameterList& ic_list = plist_->sublist("initial condition");
+  Teuchos::ParameterList& ic_list = plist_->sublist("initial conditions");
   double snow_depth = ic_list.get<double>("initial snow depth [m]");
   double temp = ic_list.get<double>("initial temperature [K]");
   double year = ic_list.get<double>("initial time [yr]");

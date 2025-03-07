@@ -23,7 +23,7 @@ Process kernel for energy equation for overland flow.
 #include "EvaluatorPrimary.hh"
 #include "Op.hh"
 
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 #include "energy_surface_ice.hh"
 
 namespace Amanzi {
@@ -79,13 +79,13 @@ EnergySurfaceIce::SetupPhysicalEvaluators_()
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
     // -- ensure enthalpy exists at the new time
-    requireAtNext(enthalpy_key_, tag_next_, *S_)
+    requireEvaluatorAtNext(enthalpy_key_, tag_next_, *S_)
       .SetMesh(mesh_)
       ->SetGhosted()
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
     // -- and on the subsurface
-    requireAtNext(Keys::getKey(domain_ss_, "enthalpy"), tag_next_, *S_)
+    requireEvaluatorAtNext(Keys::getKey(domain_ss_, "enthalpy"), tag_next_, *S_)
       .SetMesh(S_->GetMesh(domain_ss_))
       ->SetGhosted()
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
@@ -109,7 +109,7 @@ EnergySurfaceIce::Initialize()
 {
   // -- set the cell initial condition if it is taken from the subsurface
   if (!S_->GetRecord(key_, tag_next_).initialized()) {
-    if (!plist_->isSublist("initial condition")) {
+    if (!plist_->isSublist("initial conditions")) {
       Errors::Message message;
       message << name_ << " has no initial condition parameter list.";
       Exceptions::amanzi_throw(message);
@@ -122,7 +122,7 @@ EnergySurfaceIce::Initialize()
   // Set the cell initial condition if it is taken from the subsurface
   if (!S_->GetRecord(key_, tag_next_).initialized()) {
     // TODO: make this go away!  This should be in an MPC?
-    Teuchos::ParameterList& ic_plist = plist_->sublist("initial condition");
+    Teuchos::ParameterList& ic_plist = plist_->sublist("initial conditions");
     if (ic_plist.get<bool>("initialize surface temperature from subsurface", false)) {
       Teuchos::RCP<CompositeVector> surf_temp_cv =
         S_->GetPtrW<CompositeVector>(key_, tag_next_, name_);

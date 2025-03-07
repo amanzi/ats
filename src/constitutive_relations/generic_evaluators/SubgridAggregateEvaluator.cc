@@ -64,7 +64,7 @@ SubgridAggregateEvaluator::EnsureEvaluators(State& S)
 {
   if (dependencies_.size() == 0) {
     auto ds = S.GetDomainSet(source_domain_);
-    Tag dep_tag = Keys::readTag(plist_, my_keys_.front().second);
+    Tag dep_tag = Keys::readTag(plist_, "dependency", my_keys_.front().second);
     if (ds->getReferencingParent() == Teuchos::null) {
       Errors::Message msg;
       msg << "SubgridAggregateEvaluator: DomainSet \"" << source_domain_

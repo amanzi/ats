@@ -11,7 +11,7 @@
 
 //! Subsidence through bulk ice loss and cell volumetric change.
 #include "CompositeVectorFunctionFactory.hh"
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 #include "volumetric_deformation.hh"
 
 #define DEBUG 0
@@ -171,20 +171,20 @@ VolumetricDeformation::Setup()
   }
 
   case (DEFORM_MODE_SATURATION, DEFORM_MODE_STRUCTURAL): {
-    requireAtNext(sat_liq_key_, tag_next_, *S_);
-    requireAtCurrent(sat_liq_key_, tag_current_, *S_, name_)
+    requireEvaluatorAtNext(sat_liq_key_, tag_next_, *S_);
+    requireEvaluatorAtCurrent(sat_liq_key_, tag_current_, *S_, name_)
       .SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-    requireAtNext(sat_ice_key_, tag_next_, *S_);
-    requireAtCurrent(sat_ice_key_, tag_current_, *S_, name_)
+    requireEvaluatorAtNext(sat_ice_key_, tag_next_, *S_);
+    requireEvaluatorAtCurrent(sat_ice_key_, tag_current_, *S_, name_)
       .SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-    requireAtNext(sat_gas_key_, tag_next_, *S_);
-    requireAtCurrent(sat_gas_key_, tag_current_, *S_, name_)
+    requireEvaluatorAtNext(sat_gas_key_, tag_next_, *S_);
+    requireEvaluatorAtCurrent(sat_gas_key_, tag_current_, *S_, name_)
       .SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-    requireAtNext(poro_key_, tag_next_, *S_);
-    requireAtCurrent(poro_key_, tag_current_, *S_, name_)
+    requireEvaluatorAtNext(poro_key_, tag_next_, *S_, true);
+    requireEvaluatorAtCurrent(poro_key_, tag_current_, *S_, name_)
       .SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     break;
@@ -202,13 +202,13 @@ VolumetricDeformation::Setup()
     cv_eval_list.set<std::string>("evaluator type", "deforming cell volume");
     cv_eval_list.set<std::string>("deformation key", key_);
   }
-  requireAtNext(cv_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(cv_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   // require a copy at the old tag
-  requireAtCurrent(cv_key_, tag_current_, *S_, name_);
+  requireEvaluatorAtCurrent(cv_key_, tag_current_, *S_, name_);
 
   // Strategy-specific setup
   switch (strategy_) {
@@ -229,11 +229,11 @@ VolumetricDeformation::Setup()
   }
 
   case (DEFORM_STRATEGY_MSTK): {
-    requireAtCurrent(sat_ice_key_, tag_current_, *S_, name_)
+    requireEvaluatorAtCurrent(sat_ice_key_, tag_current_, *S_, name_)
       .SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
-    requireAtCurrent(poro_key_, tag_current_, *S_, name_)
+    requireEvaluatorAtCurrent(poro_key_, tag_current_, *S_, name_)
       .SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     break;
@@ -248,7 +248,7 @@ VolumetricDeformation::Setup()
     //  dof 0: the volume-averaged displacement
     //  dof 1: the simply averaged displacement
     //  dof 2: count of number of faces contributing to the node change
-    requireAtNext(nodal_dz_key_, tag_next_, *S_, name_)
+    requireEvaluatorAtNext(nodal_dz_key_, tag_next_, *S_, name_)
       .SetMesh(mesh_)
       ->SetGhosted()
       ->SetComponent("node", AmanziMesh::Entity_kind::NODE, 3);

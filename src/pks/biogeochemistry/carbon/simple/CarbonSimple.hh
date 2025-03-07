@@ -23,7 +23,7 @@ Process kernel for energy equation for Richard's flow.
 namespace Amanzi {
 namespace BGC {
 
-class CarbonSimple : public PK_Physical_Explicit_Default {
+class CarbonSimple : public PK_Physical_Default_Explicit_Default {
  public:
   CarbonSimple(Teuchos::ParameterList& pk_tree,
                const Teuchos::RCP<Teuchos::ParameterList>& glist,

@@ -16,6 +16,7 @@ with freezing.
 ------------------------------------------------------------------------- */
 #include "EpetraExt_RowMatrixOut.h"
 
+#include "TensorVector.hh"
 #include "MultiplicativeEvaluator.hh"
 #include "TreeOperator.hh"
 #include "PDE_DiffusionFactory.hh"
@@ -77,6 +78,8 @@ MPCSubsurface::parseParameterList()
   water_flux_dir_key_ =
     Keys::readKey(*plist_, domain_name_, "water flux direction", "water_flux_direction");
   rho_key_ = Keys::readKey(*plist_, domain_name_, "mass density liquid", "mass_density_liquid");
+
+  perm_key_ = Keys::readKey(*plist_, domain_name_, "permeability", "permeability");
 }
 
 // -- Initialize owned (dependent) variables.
@@ -442,7 +445,7 @@ MPCSubsurface::Initialize()
     const AmanziGeometry::Point& g = S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
     ddivq_dT_->SetGravity(g);
     ddivq_dT_->SetBCs(sub_pks_[0]->BCs(), sub_pks_[1]->BCs());
-    ddivq_dT_->SetTensorCoefficient(richards_pk->K_);
+    ddivq_dT_->SetTensorCoefficient(Teuchos::rcpFromRef(S_->Get<TensorVector>(perm_key_, tag_next_).data));
   }
 
   if (ddivKgT_dp_ != Teuchos::null) {
@@ -475,11 +478,11 @@ MPCSubsurface::Initialize()
     const AmanziGeometry::Point& g = S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
     ddivhq_dp_->SetGravity(g);
     ddivhq_dp_->SetBCs(sub_pks_[1]->BCs(), sub_pks_[0]->BCs());
-    ddivhq_dp_->SetTensorCoefficient(richards_pk->K_);
+    ddivhq_dp_->SetTensorCoefficient(Teuchos::rcpFromRef(S_->Get<TensorVector>(perm_key_, tag_next_).data));
 
     ddivhq_dT_->SetGravity(g);
     ddivhq_dT_->SetBCs(sub_pks_[1]->BCs(), sub_pks_[1]->BCs());
-    ddivhq_dT_->SetTensorCoefficient(richards_pk->K_);
+    ddivhq_dT_->SetTensorCoefficient(Teuchos::rcpFromRef(S_->Get<TensorVector>(perm_key_, tag_next_).data));
   }
 }
 

@@ -9,7 +9,7 @@
 
 #include "mpc_permafrost_split_flux.hh"
 #include "mpc_surface_subsurface_helpers.hh"
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 
 namespace Amanzi {
 
@@ -69,14 +69,14 @@ MPCPermafrostSplitFlux::parseParameterList()
       for (const auto& domain : *domain_set) {
         auto p_key = Keys::getKey(domain, p_lateral_flow_source_suffix_);
         Tag ds_tag_next = get_ds_tag_next_(domain);
-        requireAtNext(p_key, ds_tag_next, *S_, name_);
+        requireEvaluatorAtNext(p_key, ds_tag_next, *S_, name_);
 
         auto T_key = Keys::getKey(domain, T_lateral_flow_source_suffix_);
-        requireAtNext(T_key, ds_tag_next, *S_, name_);
+        requireEvaluatorAtNext(T_key, ds_tag_next, *S_, name_);
       }
     } else {
-      requireAtNext(p_lateral_flow_source_, tags_[1].second, *S_, name_);
-      requireAtNext(T_lateral_flow_source_, tags_[1].second, *S_, name_);
+      requireEvaluatorAtNext(p_lateral_flow_source_, tags_[1].second, *S_, name_);
+      requireEvaluatorAtNext(T_lateral_flow_source_, tags_[1].second, *S_, name_);
     }
   }
 
@@ -116,6 +116,35 @@ MPCPermafrostSplitFlux::parseParameterList()
                                            "temperature primary variable star",
                                            Keys::getVarName(T_primary_variable_));
 
+  // alias porosity for use in the subcycled elevation evaluator for surface_star
+  if (subcycling_[0]) {
+    auto [star_current_tag, star_next_tag] = tags_[0];
+
+    if (is_domain_set_) {
+      auto domain_set = S_->GetDomainSet(domain_set_);
+      for (const auto& domain : *domain_set) {
+        AMANZI_ASSERT(Keys::starts_with(domain, "surface_"));
+        std::string domain_sub = domain.substr(8, std::string::npos);
+        auto base_poro_key = Keys::getKey(domain_sub, "base_porosity");
+        Tag ds_tag_next = get_ds_tag_next_(domain);
+
+        Teuchos::ParameterList& base_poro_list = S_->GetEvaluatorList(Keys::getKey(base_poro_key, star_next_tag));
+        if (!base_poro_list.isParameter("evaluator type")) {
+          base_poro_list.set<std::string>("evaluator type", "alias");
+          base_poro_list.set<std::string>("target", Keys::getKey(base_poro_key, ds_tag_next, true));
+        }
+      }
+    } else {
+      auto [column_current_tag, column_next_tag] = tags_[1];
+
+      Teuchos::ParameterList& base_poro_list = S_->GetEvaluatorList(Keys::getKey("base_porosity", star_next_tag));
+      if (!base_poro_list.isParameter("evaluator type")) {
+        base_poro_list.set<std::string>("evaluator type", "alias");
+        base_poro_list.set<std::string>("target", Keys::getKey("base_porosity", column_next_tag, true));
+      }
+    }
+  }
+
   MPCSubcycled::parseParameterList();
 };
 
@@ -131,37 +160,37 @@ MPCPermafrostSplitFlux::Setup()
       for (const auto& domain : *domain_set) {
         auto p_key = Keys::getKey(domain, p_lateral_flow_source_suffix_);
         Tag ds_tag_next = get_ds_tag_next_(domain);
-        requireAtNext(p_key, ds_tag_next, *S_, name_)
+        requireEvaluatorAtNext(p_key, ds_tag_next, *S_, name_)
           .SetMesh(S_->GetMesh(domain))
           ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
         auto T_key = Keys::getKey(domain, T_lateral_flow_source_suffix_);
-        requireAtNext(T_key, ds_tag_next, *S_, name_)
+        requireEvaluatorAtNext(T_key, ds_tag_next, *S_, name_)
           .SetMesh(S_->GetMesh(domain))
           ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
       }
     } else {
-      requireAtNext(p_lateral_flow_source_, tags_[1].second, *S_, name_)
+      requireEvaluatorAtNext(p_lateral_flow_source_, tags_[1].second, *S_, name_)
         .SetMesh(S_->GetMesh(Keys::getDomain(p_lateral_flow_source_)))
         ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
-      requireAtNext(T_lateral_flow_source_, tags_[1].second, *S_, name_)
+      requireEvaluatorAtNext(T_lateral_flow_source_, tags_[1].second, *S_, name_)
         .SetMesh(S_->GetMesh(Keys::getDomain(T_lateral_flow_source_)))
         ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     }
 
     // also need conserved quantities at old and new times
-    requireAtNext(p_conserved_variable_star_, tags_[0].second, *S_)
+    requireEvaluatorAtNext(p_conserved_variable_star_, tags_[0].second, *S_)
       .SetMesh(S_->GetMesh(domain_star_))
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-    requireAtCurrent(p_conserved_variable_star_, tags_[0].first, *S_)
+    requireEvaluatorAtCurrent(p_conserved_variable_star_, tags_[0].first, *S_)
       .SetMesh(S_->GetMesh(domain_star_))
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
-    requireAtNext(T_conserved_variable_star_, tags_[0].second, *S_)
+    requireEvaluatorAtNext(T_conserved_variable_star_, tags_[0].second, *S_)
       .SetMesh(S_->GetMesh(domain_star_))
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-    requireAtCurrent(T_conserved_variable_star_, tags_[0].first, *S_)
+    requireEvaluatorAtCurrent(T_conserved_variable_star_, tags_[0].first, *S_)
       .SetMesh(S_->GetMesh(domain_star_))
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   }

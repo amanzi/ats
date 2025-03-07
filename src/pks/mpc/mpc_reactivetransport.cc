@@ -14,7 +14,8 @@
 */
 
 #include "mpc_reactivetransport.hh"
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
+#include "chem_pk_helpers.hh"
 
 namespace Amanzi {
 
@@ -25,57 +26,67 @@ MPCReactiveTransport::MPCReactiveTransport(Teuchos::ParameterList& pk_tree,
                                            const Teuchos::RCP<Teuchos::ParameterList>& global_list,
                                            const Teuchos::RCP<State>& S,
                                            const Teuchos::RCP<TreeVector>& soln)
-  : PK(pk_tree, global_list, S, soln), WeakMPC(pk_tree, global_list, S, soln)
+  : PK(pk_tree, global_list, S, soln),
+    WeakMPC(pk_tree, global_list, S, soln) {}
+
+
+void
+MPCReactiveTransport::parseParameterList()
 {
-  chem_step_succeeded_ = true;
+  // 0 is chem, 1 is transport
+  cast_sub_pks_();
 
-  alquimia_timer_ = Teuchos::TimeMonitor::getNewCounter("alquimia " + name());
+  domain_ = getSubPKPlist_(1)->get<std::string>("domain name", "domain");
+  tcc_key_ = Keys::readKey(*getSubPKPlist_(0), domain_, "primary variable",
+                           "total_component_concentration");
+  mol_frac_key_ = Keys::readKey(*getSubPKPlist_(1), domain_, "primary variable",
+                           "molar_ratio");
+  if (tcc_key_ == mol_frac_key_) {
+    Errors::Message msg;
+    msg << "Chemistry and Transport may not be given the same primary variable name (\"" << tcc_key_
+        << "\") -- rename one or the other.";
+    Exceptions::amanzi_throw(msg);
+  }
 
-  domain_ = Keys::readDomain(*plist_, "domain", "domain");
-  tcc_key_ = Keys::readKey(
-    *plist_, domain_, "total component concentration", "total_component_concentration");
   mol_dens_key_ = Keys::readKey(*plist_, domain_, "molar density liquid", "molar_density_liquid");
+
+  // Only chemistry PK needs to set the IC -- we use chemistry to process geochemical
+  // initial conditions -- but the "initial conditions" list must be present
+  // for all PK_Physical PKs, so just touch it here to make sure it exists.
+  getSubPKPlist_(1)->sublist("initial conditions");
+
+  // this MPC need access to both primary variables
+  getSubPKPlist_(0)->set<std::string>("primary variable password", name_);
+  getSubPKPlist_(1)->set<std::string>("primary variable password", name_);
+
+  WeakMPC::parseParameterList();
 }
 
 
 void
 MPCReactiveTransport::Setup()
 {
-  cast_sub_pks_();
-
+  // must Setup transport first to get alias for saturation, etc set up correctly
   transport_pk_->Setup();
   chemistry_pk_->Setup();
 
-
-  S_->Require<CompositeVector, CompositeVectorSpace>(tcc_key_, tag_next_, "state")
-    .SetMesh(S_->GetMesh(domain_))
-    ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, chemistry_pk_->num_aqueous_components());
-  S_->RequireEvaluator(tcc_key_, tag_next_);
-
-
-  S_->Require<CompositeVector, CompositeVectorSpace>(mol_dens_key_, tag_next_)
+  requireEvaluatorAtNext(mol_dens_key_, tag_next_, *S_)
     .SetMesh(S_->GetMesh(domain_))
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  S_->RequireEvaluator(mol_dens_key_, tag_next_);
 }
 
 void
 MPCReactiveTransport::cast_sub_pks_()
 {
-  transport_pk_ = Teuchos::rcp_dynamic_cast<Transport::Transport_ATS>(sub_pks_[1]);
-  AMANZI_ASSERT(transport_pk_ != Teuchos::null);
-
-  chemistry_pk_ = Teuchos::rcp_dynamic_cast<AmanziChemistry::Chemistry_PK>(sub_pks_[0]);
+  // cast and call parse on chemistry
+  chemistry_pk_ = Teuchos::rcp_dynamic_cast<AmanziChemistry::Alquimia_PK>(sub_pks_[0]);
   AMANZI_ASSERT(chemistry_pk_ != Teuchos::null);
 
-  // communicate chemistry engine to transport.
-#ifdef ALQUIMIA_ENABLED
-  transport_pk_->SetupAlquimia(
-    Teuchos::rcp_static_cast<AmanziChemistry::Alquimia_PK>(chemistry_pk_),
-    chemistry_pk_->chem_engine());
-#endif
+  // now chem engine is set and we can hand it to transport
+  transport_pk_ = Teuchos::rcp_dynamic_cast<Transport::Transport_ATS>(sub_pks_[1]);
+  AMANZI_ASSERT(transport_pk_ != Teuchos::null);
+  transport_pk_->setChemEngine(chemistry_pk_);
 }
 
 // -----------------------------------------------------------------------------
@@ -84,39 +95,24 @@ MPCReactiveTransport::cast_sub_pks_()
 void
 MPCReactiveTransport::Initialize()
 {
+  // initialize chemistry, including geochemical ICs
+  chemistry_pk_->Initialize();
+  AMANZI_ASSERT(S_->GetRecord(tcc_key_, tag_next_).initialized());
+
+  // Compute mol frac from concentration
+  //
   // NOTE: this requires that Reactive-Transport is done last, or at least
   // after the density of water can be evaluated.  This could be problematic
   // for, e.g., salinity intrusion problems where water density is a function
   // of concentration itself, but should work for all other problems?
-  Teuchos::RCP<Epetra_MultiVector> tcc =
-    S_->GetW<CompositeVector>(tcc_key_, tag_next_, "state").ViewComponent("cell", true);
-  S_->GetEvaluator(mol_dens_key_, tag_next_).Update(*S_, name_);
-  Teuchos::RCP<const Epetra_MultiVector> mol_dens =
-    S_->Get<CompositeVector>(mol_dens_key_, tag_next_).ViewComponent("cell", true);
+  convertConcentrationToMolFrac(*S_, {tcc_key_, tag_next_},
+          {mol_frac_key_, tag_next_}, {mol_dens_key_, tag_next_}, name());
+  S_->GetRecordW(mol_frac_key_, tag_next_, name()).set_initialized();
 
-  int num_aqueous = chemistry_pk_->num_aqueous_components();
-  convertConcentrationToAmanzi(*mol_dens, num_aqueous, *tcc, *tcc);
-  chemistry_pk_->set_aqueous_components(tcc);
-  chemistry_pk_->Initialize();
-  //*tcc = *chemistry_pk_->aqueous_components();
-  convertConcentrationToATS(*mol_dens, num_aqueous, *tcc, *tcc);
-
+  // initialize transport
   transport_pk_->Initialize();
 }
 
-
-// -----------------------------------------------------------------------------
-// Calculate the min of sub PKs timestep sizes.
-// -----------------------------------------------------------------------------
-double
-MPCReactiveTransport::get_dt()
-{
-  double dTtran = transport_pk_->get_dt();
-  double dTchem = chemistry_pk_->get_dt();
-
-  if (!chem_step_succeeded_ && (dTchem / dTtran > 0.99)) { dTchem *= 0.5; }
-  return dTchem;
-}
 
 
 // -----------------------------------------------------------------------------
@@ -125,26 +121,21 @@ MPCReactiveTransport::get_dt()
 bool
 MPCReactiveTransport::AdvanceStep(double t_old, double t_new, bool reinit)
 {
-  chem_step_succeeded_ = false;
-
   // First we do a transport step.
   bool fail = transport_pk_->AdvanceStep(t_old, t_new, reinit);
   if (fail) return fail;
 
-  // Second, we do a chemistry step.
-  int num_aq_componets = transport_pk_->get_num_aqueous_component();
+  // move from mol_frac@next to tcc@current
+  convertMolFracToConcentration(*S_, {mol_frac_key_, tag_next_},
+          {tcc_key_, tag_current_}, {mol_dens_key_, tag_next_}, name());
 
-  Teuchos::RCP<Epetra_MultiVector> tcc_copy =
-    S_->GetW<CompositeVector>(tcc_key_, tag_next_, "state").ViewComponent("cell", true);
+  // Next to chemistry step
+  fail = chemistry_pk_->AdvanceStep(t_old, t_new, reinit);
+  if (fail) return fail;
 
-  S_->GetEvaluator(mol_dens_key_, tag_next_).Update(*S_, name_);
-  Teuchos::RCP<const Epetra_MultiVector> mol_dens =
-    S_->Get<CompositeVector>(mol_dens_key_, tag_next_).ViewComponent("cell", true);
-
-  fail |=
-    advanceChemistry(chemistry_pk_, t_old, t_new, reinit, *mol_dens, tcc_copy, *alquimia_timer_);
-  changedEvaluatorPrimary(tcc_key_, tag_next_, *S_);
-  if (!fail) chem_step_succeeded_ = true;
+  // move from tcc@next to mol_frac@next
+  convertConcentrationToMolFrac(*S_, {tcc_key_, tag_next_},
+          {mol_frac_key_, tag_next_}, {mol_dens_key_, tag_next_}, name());
   return fail;
 };
 

@@ -79,7 +79,7 @@ void
 DivGradTest::initialize(const Teuchos::Ptr<State>& S)
 {
   // Check for PK-specific initialization
-  if (!plist_->isSublist("initial condition")) {
+  if (!plist_->isSublist("initial conditions")) {
     std::stringstream messagestream;
     messagestream << name_ << " has no initial condition parameter list.";
     Errors::Message message(messagestream.str());
@@ -87,7 +87,7 @@ DivGradTest::initialize(const Teuchos::Ptr<State>& S)
   }
 
   // make sure the initial condition doesn't set faces in another way
-  Teuchos::ParameterList ic_plist = plist_->sublist("initial condition");
+  Teuchos::ParameterList ic_plist = plist_->sublist("initial conditions");
   ic_plist.set("initialize faces from cells", false);
 
   // initialize primary variable from the ic_plist condition

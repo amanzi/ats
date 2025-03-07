@@ -7,7 +7,7 @@
   Authors: Ethan Coon (coonet@ornl.gov)
 */
 
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 
 #include "surface_balance_base.hh"
 
@@ -77,7 +77,7 @@ SurfaceBalanceBase::Setup()
   // requirements: source terms from above
   if (is_source_term_) {
     if (theta_ > 0) {
-      requireAtNext(source_key_, tag_next_, *S_)
+      requireEvaluatorAtNext(source_key_, tag_next_, *S_, true)
         .SetMesh(mesh_)
         ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
@@ -89,7 +89,7 @@ SurfaceBalanceBase::Setup()
       }
     }
     if (theta_ < 1) {
-      requireAtCurrent(source_key_, tag_current_, *S_, name_)
+      requireEvaluatorAtCurrent(source_key_, tag_current_, *S_, name_)
         .SetMesh(mesh_)
         ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     }
@@ -98,14 +98,14 @@ SurfaceBalanceBase::Setup()
   // requirements: conserved quantity at current and new times
   conserved_quantity_ = conserved_key_ != key_;
   if (conserved_quantity_) {
-    requireAtNext(conserved_key_, tag_next_, *S_)
+    requireEvaluatorAtNext(conserved_key_, tag_next_, *S_)
       .SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
       conserved_key_, tag_next_, key_, tag_next_);
 
     //    and at the current time, where it is a copy evaluator
-    requireAtCurrent(conserved_key_, tag_current_, *S_, name_);
+    requireEvaluatorAtCurrent(conserved_key_, tag_current_, *S_, name_);
   }
 
   // operator for inverse

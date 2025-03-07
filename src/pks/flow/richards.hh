@@ -309,7 +309,6 @@ class Richards : public PK_PhysicalBDF_Default {
   virtual void UpdateBoundaryConditions_(const Tag& tag, bool kr = true);
 
   // -- builds tensor K, along with faced-based Krel if needed by the rel-perm method
-  virtual void SetAbsolutePermeabilityTensor_(const Tag& tag);
   virtual bool UpdatePermeabilityData_(const Tag& tag);
   virtual bool UpdatePermeabilityDerivativeData_(const Tag& tag);
 
@@ -374,7 +373,6 @@ class Richards : public PK_PhysicalBDF_Default {
   double surface_head_eps_;
 
   // permeability
-  Teuchos::RCP<std::vector<WhetStone::Tensor>> K_; // absolute permeability
   Teuchos::RCP<Operators::Upwinding> upwinding_;
   Teuchos::RCP<Operators::Upwinding> upwinding_deriv_;
   Teuchos::RCP<Flow::WRMPartition> wrms_;

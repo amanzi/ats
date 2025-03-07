@@ -38,7 +38,7 @@ ColumnElevationEvaluator::Clone() const
 void
 ColumnElevationEvaluator::EnsureEvaluators(State& S)
 {
-  Tag tag = Keys::readTag(plist_, my_keys_.front().second);
+  Tag tag = Keys::readTag(plist_, "", my_keys_.front().second);
   auto dset = S.GetDomainSet(dset_name_);
   for (const auto& domain : *dset) {
     dependencies_.insert(KeyTag{ Keys::getKey(domain, base_poro_suffix_), tag });

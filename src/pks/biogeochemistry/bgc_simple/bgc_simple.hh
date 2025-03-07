@@ -88,7 +88,7 @@ that build_columns in the subsurface Mesh_ spec has been supplied.
 #include "TreeVector.hh"
 
 #include "PK_Factory.hh"
-#include "pk_physical_default.hh"
+#include "PK_Physical_Default.hh"
 
 #include "SoilCarbonParameters.hh"
 #include "PFT.hh"

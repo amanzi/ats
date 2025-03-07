@@ -7,10 +7,30 @@
   Authors: Daniil Svyatskiy
 */
 
-/*
-  This is the mpc_pk component of the Amanzi code.
+/*!
 
-  Process kernel for coupling of Transport_PK and Chemistry_PK.
+This couples integrated (surface + subsurface) transport MPC with an integrated
+chemistry MPC.
+
+Transport must be tightly coupled in order to correctly pass surface-subsurface
+advective fluxes between the two domains.  Chemistry is just a weak MPC.  The
+two are then coupled to form an integrated reactive-transport PK.
+
+This performs operatoring splitting between transport and chemistry in each
+domain.  Note that transport's primary variable is "molar_fraction", which is
+in units of [mol-C mol-H2O^-1].  Chemistry is in
+"total_component_concentration", which is in units of [mol-C L^-1].  Therefore,
+between steps, we convert between the two.
+
+.. _mpc-coupled-reactivetransport-spec:
+.. admonition:: mpc-coupled-reactivetransport-spec
+
+   * `"PK type`" ``[string]`` **"integrated reactive transport"**
+
+   KEYS:
+   - `"molar density liquid`"
+
+
 */
 
 
@@ -38,7 +58,6 @@ class MPCCoupledReactiveTransport : public WeakMPC {
   void parseParameterList() override;
 
   // PK methods
-  virtual double get_dt() override;
   virtual void Setup() override;
   virtual void Initialize() override;
   virtual bool AdvanceStep(double t_old, double t_new, bool reinit = false) override;
@@ -47,13 +66,10 @@ class MPCCoupledReactiveTransport : public WeakMPC {
   virtual void cast_sub_pks_();
 
  protected:
-  bool chem_step_succeeded_;
-
   Key domain_, domain_surf_;
   Key tcc_key_, tcc_surf_key_;
+  Key mol_frac_key_, mol_frac_surf_key_;
   Key mol_dens_key_, mol_dens_surf_key_;
-
-  Teuchos::RCP<Teuchos::Time> alquimia_timer_, alquimia_surf_timer_;
 
   // storage for the component concentration intermediate values
   Teuchos::RCP<MPCCoupledTransport> coupled_transport_pk_;

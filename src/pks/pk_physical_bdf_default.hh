@@ -62,7 +62,7 @@ code, so usually are not supplied by the user.
 
 #include "errors.hh"
 #include "pk_bdf_default.hh"
-#include "pk_physical_default.hh"
+#include "PK_Physical_Default.hh"
 
 #include "BCs.hh"
 #include "Operator.hh"

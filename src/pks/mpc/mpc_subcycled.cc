@@ -12,8 +12,9 @@
 */
 
 #include "Event.hh"
+#include "TimeStepManager.hh"
 #include "mpc_subcycled.hh"
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 
 namespace Amanzi {
 
@@ -29,8 +30,6 @@ MPCSubcycled::MPCSubcycled(Teuchos::ParameterList& pk_tree,
   init_();
 
   // NOTE: this must be done prior to set_tags(), therefore before even parseParameterList()
-  //
-  // Master PK is the PK whose timestep size sets the size, the subcycled is subcycled.
   subcycling_ = plist_->get<Teuchos::Array<int>>("subcycle");
   if (subcycling_.size() != sub_pks_.size()) {
     Errors::Message msg(
@@ -38,11 +37,23 @@ MPCSubcycled::MPCSubcycled(Teuchos::ParameterList& pk_tree,
     Exceptions::amanzi_throw(msg);
   }
   dts_.resize(sub_pks_.size(), -1);
+  tsms_.resize(sub_pks_.size(), Teuchos::null);
 }
 
 void
 MPCSubcycled::parseParameterList()
 {
+  for (int i = 0; i != tsms_.size(); ++i) {
+    if (subcycling_[i]) {
+      Teuchos::ParameterList tsm_plist(std::string("TSM: ") + sub_pks_[i]->name());
+      tsms_[i] = Teuchos::rcp(new Utils::TimeStepManager(tsm_plist));
+
+      const auto& tag = tags_[i];
+      S_->require_time(tag.first);
+      S_->require_time(tag.second);
+    }
+  }
+
   MPC<PK>::parseParameterList();
 
   // min dt allowed in subcycling
@@ -76,8 +87,6 @@ MPCSubcycled::Setup()
 {
   int i = 0;
   for (const auto& tag : tags_) {
-    S_->require_time(tag.first);
-    S_->require_time(tag.second);
     S_->require_cycle(tag.second);
     if (subcycling_[i]) S_->Require<double>("dt", tag.first, name());
     ++i;
@@ -149,28 +158,26 @@ MPCSubcycled::AdvanceStep_i_(std::size_t i, double t_old, double t_new, bool rei
     bool done = false;
     double t_inner = t_old;
     double dt_inner = dts_[i];
+    bool fail_inner = false;
 
     Tag tag_subcycle_current = tags_[i].first;
     Tag tag_subcycle_next = tags_[i].second;
 
+    tsms_[i]->RegisterTimeEvent(t_new);
     S_->set_time(tag_subcycle_current, t_old);
-    while (!done) {
-      if (Utils::isNearEqual(t_new, t_inner + dt_inner) || (t_inner + dt_inner) > t_new) {
-        dt_inner = t_new - t_inner;
-      }
 
+    while (!done) {
+      dt_inner = tsms_[i]->TimeStep(t_inner, dt_inner, fail_inner);
       S_->Assign("dt", tag_subcycle_current, name(), dt_inner);
       S_->set_time(tag_subcycle_next, t_inner + dt_inner);
-      bool fail_inner = sub_pks_[i]->AdvanceStep(t_inner, t_inner + dt_inner, false);
+      fail_inner = sub_pks_[i]->AdvanceStep(t_inner, t_inner + dt_inner, false);
 
       if (vo_->os_OK(Teuchos::VERB_EXTREME))
         *vo_->os() << "  step failed? " << fail_inner << std::endl;
 
       if (fail_inner) {
         sub_pks_[i]->FailStep(t_old, t_new, tag_subcycle_next);
-
         dt_inner = sub_pks_[i]->get_dt();
-        S_->set_time(tag_subcycle_next, S_->get_time(tag_subcycle_current));
 
         if (vo_->os_OK(Teuchos::VERB_EXTREME))
           *vo_->os() << "  failed, new timestep is " << dt_inner << std::endl;
@@ -225,7 +232,9 @@ MPCSubcycled::CommitStep(double t_old, double t_new, const Tag& tag)
     // initial commit, also do the substep commits
     int i = 0;
     for (auto& pk : sub_pks_) {
-      if (subcycling_[i]) { pk->CommitStep(t_old, t_new, tags_[i].second); }
+      if (subcycling_[i]) {
+        pk->CommitStep(t_old, t_new, tags_[i].second);
+      }
       ++i;
     }
   }

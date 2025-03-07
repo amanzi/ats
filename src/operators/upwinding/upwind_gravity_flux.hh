@@ -17,8 +17,7 @@
 #ifndef AMANZI_UPWINDING_GRAVITYFLUX_SCHEME_
 #define AMANZI_UPWINDING_GRAVITYFLUX_SCHEME_
 
-#include "Epetra_Vector.h"
-#include "Tensor.hh"
+#include "TensorVector.hh"
 
 #include "upwinding.hh"
 
@@ -33,7 +32,7 @@ class UpwindGravityFlux : public Upwinding {
  public:
   UpwindGravityFlux(const std::string& pkname,
                     const Tag& tag,
-                    const Teuchos::RCP<std::vector<WhetStone::Tensor>> K);
+                    const Teuchos::RCP<const TensorVector>& K);
 
   virtual void Update(const CompositeVector& cells,
                       CompositeVector& faces,
@@ -58,7 +57,7 @@ class UpwindGravityFlux : public Upwinding {
  private:
   std::string pkname_;
   Tag tag_;
-  Teuchos::RCP<std::vector<WhetStone::Tensor>> K_;
+  Teuchos::RCP<const TensorVector> K_;
 };
 
 } // namespace Operators

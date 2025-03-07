@@ -7,7 +7,9 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
+#include "Reductions.hh"
 #include "Op.hh"
+#include "PK_Helpers.hh"
 #include "snow_distribution.hh"
 
 #define DEBUG_FLAG 1
@@ -199,37 +201,29 @@ SnowDistribution::ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const
 
   // Cell error is based upon error in mass conservation
   double Qe = (*precip_func_)(time);
-  double enorm_cell(0.);
-  int bad_cell = -1;
+  Reductions::MaxLoc enorm_c = Reductions::createEmptyMaxLoc();
+
   unsigned int ncells = res_c.MyLength();
   for (unsigned int c = 0; c != ncells; ++c) {
     double tmp =
       std::abs(res_c[0][c] * dt) / (atol_ * .1 * cv[0][c] + rtol_ * 10 * dt * precip_c[0][c]);
-    if (tmp > enorm_cell) {
-      enorm_cell = tmp;
-      bad_cell = c;
+    if (tmp > enorm_c.value) {
+      enorm_c.value = tmp;
+      enorm_c.gid = res_c.Map().GID(c);
     }
   }
+
+  enorm_c = Reductions::reduceAllMaxLoc(*mesh_->getComm(), enorm_c);
 
   // Write out Inf norms too.
   if (vo_->os_OK(Teuchos::VERB_MEDIUM)) {
     double infnorm_c(0.);
     res_c.NormInf(&infnorm_c);
-
-    ENorm_t err_c;
-    ENorm_t l_err_c;
-    l_err_c.value = enorm_cell;
-    l_err_c.gid = res_c.Map().GID(bad_cell);
-
-    MPI_Allreduce(&l_err_c, &err_c, 1, MPI_DOUBLE_INT, MPI_MAXLOC, MPI_COMM_WORLD);
-
-    *vo_->os() << "ENorm (cells) = " << err_c.value << "[" << err_c.gid << "] (" << infnorm_c << ")"
-               << std::endl;
+    *vo_->os() << "ENorm (cells) = " << enorm_c.value
+               << " (" << infnorm_c << ")" << std::endl;
   }
 
-  double buf = enorm_cell;
-  MPI_Allreduce(&buf, &enorm_cell, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-  return enorm_cell;
+  return enorm_c.value;
 };
 
 bool

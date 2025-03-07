@@ -19,7 +19,6 @@ Simple model of two-phase thermal conductivity, based upon:
 .. _thermal-conductivity-twophase-wetdry-spec:
 .. admonition:: thermal-conductivity-twophase-wetdry-spec
 
-   * `"region`" ``[string]`` Region name on which to apply these parameters.
    * `"thermal conductivity, wet [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of saturated soil
    * `"thermal conductivity, dry [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of dry soil
    * `"unsaturated alpha [-]`" ``[double]`` Interpolating exponent

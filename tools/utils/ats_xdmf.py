@@ -3,7 +3,12 @@
 import sys,os
 import numpy as np
 import h5py
+import math
 import matplotlib.collections
+from matplotlib import pyplot as plt
+import plot_lines
+
+from numpy import s_ as s
 
 def valid_data_filename(domain, format=None):
     """The filename for an HDF5 data filename formatter"""
@@ -195,14 +200,14 @@ class VisFile:
           Variable name mangled like it is used in Amanzi/ATS.  Something like
           'DOMAIN-vname.cell.0'
         """
-        if self.domain and '-' not in vname:
+        if self.domain and '-' not in vname[:-1]:
             vname = self.domain + '-' + vname
         return vname
-
+    
     def _get(self, vname, cycle):
         """Private get: assumes vname is fully resolved, and does not deal with maps."""
         return self.d[vname][cycle][:,0]
-
+    
     def get(self, vname, cycle):
         """Access a data member.
 
@@ -225,7 +230,7 @@ class VisFile:
         else:
             return reorder(val, self.map)
         return
-
+    
     def getArray(self, vname):
         """Access an array of all cycle values.
 
@@ -245,7 +250,6 @@ class VisFile:
             return val
         else:
             return reorder(val, self.map)
-
 
     def loadMesh(self, cycle=None, order=None, shape=None, columnar=False, round=5):
         """Load and reorder centroids and volumes of mesh.
@@ -270,12 +274,13 @@ class VisFile:
         if order is None and shape is None and not columnar:
             self.map = None
             self.centroids = centroids
+            self.ordering = None
 
         else:
-            self.centroids, self.map = structuredOrdering(centroids, order, shape, columnar)
+            self.ordering, self.centroids, self.map = structuredOrdering(centroids, order, shape, columnar)
 
         self.volume = self.get('cell_volume', cycle)
-
+        
     def loadMeshPolygons(self, cycle=None):
         """Load a mesh into 2D polygons."""
         if cycle is None:
@@ -290,6 +295,67 @@ class VisFile:
         polygons = matplotlib.collections.PolyCollection(self.polygon_coordinates, edgecolor=edgecolor, cmap=cmap, linewidths=linewidth)
         return polygons
 
+    def plotLinesInTime(self, varname, spatial_slice=None, coordinate=None, time_slice=None, transpose=None, ax=None, colorbar_label=None, **kwargs):
+        """Plot multiple lines, one for each slice in time, as a function of coordinate.
+
+        Parameters
+        ----------
+        varname : str
+           The variable to plot
+
+        """
+        # make sure time_slice is a slice
+        if time_slice is None:
+            time_slice = s[:]
+        elif isinstance(time_slice, int):
+            time_slice = s[::time_slice]
+        else:
+            time_slice = s[time_slice]
+
+        # slice centroids to get coordinate
+        if spatial_slice is None:
+            spatial_slice = [s[:],]
+
+        if coordinate is None:
+            coordinate = next(self.ordering[i] for i in range(len(spatial_slice)) if spatial_slice[i] == s[:])
+        if isinstance(coordinate, str):
+            if coordinate == 'x': coordinate = 0
+            elif coordinate == 'y': coordinate = 1
+            elif coordinate == 'z': coordinate = 2
+            elif coordinate == 'xy':
+                raise ValuerError("Cannot infer coordinate 'xy' -- likely this dataset was loaded with inconsistent ordering or you provided an invalid coordinate.")
+        coordinate_slice = spatial_slice + [s[coordinate],]
+        coords = self.centroids[*coordinate_slice]
+
+        # default transpose is True for z, False for others
+        if transpose is None:
+            if coordinate == 2: transpose = True
+            else: transpose = False
+        
+        # slice data to get values
+        vals = self.getArray(varname)
+        vals_slicer = [time_slice,] + spatial_slice
+        vals = vals[*vals_slicer]
+
+        X = np.tile(coords, (vals.shape[0], 1))
+        Y = vals
+
+        if transpose:
+            X,Y = Y,X
+
+        if colorbar_label is None:
+            colorbar_label = f'{varname} in time [{self.time_unit}]'
+        ax, axcb = plot_lines.plotLines(X, Y, self.times[time_slice], ax=ax,
+                                        t_min=self.times[0], t_max=self.times[-1],
+                                        colorbar_label=colorbar_label, **kwargs)
+
+        # label x and y axes
+        xy_labels = (varname, ['x','y','z'][coordinate]+' [m]') if transpose else (['x','y','z'][coordinate]+' [m]', varname)
+        ax.set_xlabel(xy_labels[0])
+        ax.set_ylabel(xy_labels[1])
+
+        return ax, axcb
+    
 
 elem_type = {5:'QUAD',
              8:'PRISM',
@@ -427,6 +493,8 @@ def structuredOrdering(coordinates, order=None, shape=None, columnar=False):
 
     Returns
     -------
+    ordering : List[str]
+      Order used to sort, e.g. ['x', 'y']
     ordered_coordinates : np.ndarray
       The re-ordered coordinates, shape (n_coordinates, dimension).
     map : np.ndarray(int)
@@ -443,33 +511,34 @@ def structuredOrdering(coordinates, order=None, shape=None, columnar=False):
     Sort a column of 100 unordered cells into a 1D sorted array.  The
     input and output are both of shape (100,3).
 
-      > ordered_centroids, map = structuredOrdering(centroids, list())
+      > order, ordered_centroids, map = structuredOrdering(centroids, list())
 
     Sort a logically structured transect of size NX x NY x NZ =
     (100,1,20), where x is structured and z may vary as a function of
     x.  Both input and output are of shape (2000, 3), but the output
     is sorted with each column appearing sequentially and the
-    z-dimension fastest-varying.  map is of shape (2000,).
+    z-dimension fastest-varying.  map is of shape (2000,).  The
+    returned order is ['z',].
 
-      > ordered_centroids, map = structuredOrdering(centroids, ['z',])
+      > order, ordered_centroids, map = structuredOrdering(centroids, ['z',])
 
     Do the same, but this time reshape into a 2D array.  Now the
     ordered_centroids are of shape (100, 20, 3), and the map is of
-    shape (100, 20).
+    shape (100, 20).  The returned order is ['z', 'xy'].
 
-      > ordered_centroids, map = structuredOrdering(centroids, ['z',], [20,])
+      > order, ordered_centroids, map = structuredOrdering(centroids, ['z',], [20,])
 
     Do the same as above, but detect the shape.  This works only
-    because the mesh is columnar.
+    because the mesh is columnar. The returned order is ['z', 'xy'].
 
-      > ordered_centroids, map = structuredOrdering(centroids, columnar=True)
+      > order, ordered_centroids, map = structuredOrdering(centroids, columnar=True)
 
     Sort a 3D map-view "structured-in-z" mesh into arbitrarily-ordered
     x and y columns.  Assume there are 1000 map-view triangles, each
     extruded 20 cells deep.  The input is is of shape (20000, 3) and
-    the output is of shape (1000, 20, 3).
+    the output is of shape (1000, 20, 3).  The returned order is ['z', 'xy'].
 
-      > ordered_centroids, map = structuredOrdering(centroids, columnar=True)
+      > order, ordered_centroids, map = structuredOrdering(centroids, columnar=True)
 
     Note that map can be used with the reorder() function to place
     data in this ordering.
@@ -477,7 +546,6 @@ def structuredOrdering(coordinates, order=None, shape=None, columnar=False):
     """
     if columnar:
         order = ['x', 'y', 'z',]
-
 
     # Surely there is a cleaner way to do this in numpy?
     # The current approach packs, sorts, and unpacks.
@@ -496,6 +564,8 @@ def structuredOrdering(coordinates, order=None, shape=None, columnar=False):
     else:
         ordered_coordinates = np.array([coords_a['x'], coords_a['y']]).transpose()
 
+    out_order = order
+    
     if columnar:
         # try to guess the shape based on new-found contiguity
         n_cells_in_column = 0
@@ -504,7 +574,7 @@ def structuredOrdering(coordinates, order=None, shape=None, columnar=False):
               np.allclose(xy, ordered_coordinates[n_cells_in_column,0:2], 0., 1.e-5):
             n_cells_in_column += 1
         shape = [n_cells_in_column,]
-
+        out_order = ['xy', 'z']
 
     if shape is not None:
         new_shape = (-1,) + tuple(shape)
@@ -512,11 +582,20 @@ def structuredOrdering(coordinates, order=None, shape=None, columnar=False):
         ordered_coordinates = np.reshape(ordered_coordinates, coord_shape)
         map = np.reshape(map, new_shape)
 
+        if len(new_shape) == 3:
+            out_order = ['x', 'y', 'z']
+        elif len(new_shape) == 2:
+            if coordinates.shape[1] == 3:
+                out_order = ['xy', 'z']
+            else:
+                out_order = ['x', 'y']
+        
         if map.shape[0] == 1:
             map = map[0]
             ordered_coordinates = ordered_coordinates[0]
+            out_order = out_order[1:]
 
-    return ordered_coordinates, map
+    return out_order, ordered_coordinates, map
 
 
 def reorder(data, map):
