@@ -95,7 +95,7 @@ Preferential::SetupPhysicalEvaluators_()
   Richards::SetupPhysicalEvaluators_();
 
   // -- rel perm for gravity term
-  requireAtNext(coef_grav_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(coef_grav_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1)

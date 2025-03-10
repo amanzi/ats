@@ -53,7 +53,7 @@ pointers to the original variables.
 namespace Amanzi {
 namespace Transport {
 
-class SedimentTransport_PK : public PK_PhysicalExplicit<Epetra_Vector> {
+class SedimentTransport_PK : public PK_Physical_Explicit<Epetra_Vector> {
  public:
   SedimentTransport_PK(Teuchos::ParameterList& pk_tree,
                        const Teuchos::RCP<Teuchos::ParameterList>& glist,

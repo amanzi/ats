@@ -56,7 +56,7 @@ Interfrost::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, do
 
   // update state with the solution up.
   AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t) <= 1.e-4 * t);
-  PK_PhysicalBDF_Default::Solution_to_State(*up, tag_next_);
+  PK_Physical_DefaultBDF_Default::Solution_to_State(*up, tag_next_);
 
   // update the rel perm according to the scheme of choice, also upwind derivatives of rel perm
   UpdatePermeabilityData_(tag_next_);

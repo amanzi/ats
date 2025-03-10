@@ -22,7 +22,7 @@ MPCCoupledWater::MPCCoupledWater(Teuchos::ParameterList& pk_tree,
                                  const Teuchos::RCP<State>& S,
                                  const Teuchos::RCP<TreeVector>& soln)
   : PK(pk_tree, global_plist, S, soln),
-    StrongMPC<PK_PhysicalBDF_Default>(pk_tree, global_plist, S, soln)
+    StrongMPC<PK_Physical_DefaultBDF_Default>(pk_tree, global_plist, S, soln)
 {}
 
 void
@@ -45,7 +45,7 @@ MPCCoupledWater::parseParameterList()
   exfilt_key_ =
     Keys::readKey(*plist_, domain_surf_, "exfiltration flux", "surface_subsurface_flux");
 
-  StrongMPC<PK_PhysicalBDF_Default>::parseParameterList();
+  StrongMPC<PK_Physical_DefaultBDF_Default>::parseParameterList();
 }
 
 
@@ -61,13 +61,12 @@ MPCCoupledWater::Setup()
   surf_flow_pk_ = sub_pks_[1];
 
   // call the MPC's setup, which calls the sub-pk's setups
-  StrongMPC<PK_PhysicalBDF_Default>::Setup();
+  StrongMPC<PK_Physical_DefaultBDF_Default>::Setup();
 
   // require the coupling fields, claim ownership
-  S_->Require<CompositeVector, CompositeVectorSpace>(exfilt_key_, tag_next_, exfilt_key_)
+  requireEvaluatorAtNext(exfilt_key_, tag_next_, *S_, name_)
     .SetMesh(surf_mesh_)
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  requireEvaluatorPrimary(exfilt_key_, tag_next_, *S_);
 
   // Create the preconditioner.
   // -- collect the preconditioners
@@ -129,12 +128,12 @@ void
 MPCCoupledWater::Initialize()
 {
   // initialize coupling terms
-  S_->GetPtrW<CompositeVector>(exfilt_key_, tag_next_, exfilt_key_)->PutScalar(0.);
-  S_->GetRecordW(exfilt_key_, tag_next_, exfilt_key_).set_initialized();
+  S_->GetPtrW<CompositeVector>(exfilt_key_, tag_next_, name_)->PutScalar(0.);
+  S_->GetRecordW(exfilt_key_, tag_next_, name_).set_initialized();
   changedEvaluatorPrimary(exfilt_key_, tag_next_, *S_);
 
   // Initialize all sub PKs.
-  MPC<PK_PhysicalBDF_Default>::Initialize();
+  MPC<PK_Physical_DefaultBDF_Default>::Initialize();
 
   // ensure continuity of ICs... subsurface takes precedence.
   CopySubsurfaceToSurface(S_->Get<CompositeVector>(Keys::getKey(domain_ss_, "pressure"), tag_next_),
@@ -166,7 +165,7 @@ MPCCoupledWater::FunctionalResidual(double t_old,
   // The residual of the surface flow equation provides the water flux from
   // subsurface to surface.
   Epetra_MultiVector& source =
-    *S_->GetW<CompositeVector>(exfilt_key_, tag_next_, exfilt_key_).ViewComponent("cell", false);
+    *S_->GetW<CompositeVector>(exfilt_key_, tag_next_, name_).ViewComponent("cell", false);
   source = *g->SubVector(1)->Data()->ViewComponent("cell", false);
   changedEvaluatorPrimary(exfilt_key_, tag_next_, *S_);
 
@@ -295,7 +294,7 @@ MPCCoupledWater::ModifyCorrection(double h,
 
   // modify correction using sub-pk approaches
   AmanziSolvers::FnBaseDefs::ModifyCorrectionResult modified_res =
-    StrongMPC<PK_PhysicalBDF_Default>::ModifyCorrection(h, res, u, du);
+    StrongMPC<PK_Physical_DefaultBDF_Default>::ModifyCorrection(h, res, u, du);
 
   // modify correction using water approaches
   int n_modified = 0;
@@ -391,7 +390,7 @@ MPCCoupledWater::ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const 
       res_face[0][f] = 0.;
     }
   }
-  return StrongMPC<PK_PhysicalBDF_Default>::ErrorNorm(u, res2);
+  return StrongMPC<PK_Physical_DefaultBDF_Default>::ErrorNorm(u, res2);
 }
 
 

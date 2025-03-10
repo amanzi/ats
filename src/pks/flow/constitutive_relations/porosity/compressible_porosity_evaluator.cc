@@ -23,10 +23,10 @@ CompressiblePorosityEvaluator::CompressiblePorosityEvaluator(Teuchos::ParameterL
 {
   std::string domain_name = Keys::getDomain(my_keys_.front().first);
   Tag tag = my_keys_.front().second;
-  pres_key_ = Keys::readKey(plist_, domain_name, "pressure key", "pressure");
+  pres_key_ = Keys::readKey(plist_, domain_name, "pressure", "pressure");
   dependencies_.insert(KeyTag{ pres_key_, tag });
 
-  poro_key_ = Keys::readKey(plist_, domain_name, "base porosity key", "base_porosity");
+  poro_key_ = Keys::readKey(plist_, domain_name, "base porosity", "base_porosity");
   dependencies_.insert(KeyTag{ poro_key_, tag });
 
   AMANZI_ASSERT(plist_.isSublist("compressible porosity model parameters"));

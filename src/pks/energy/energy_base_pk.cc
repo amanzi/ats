@@ -39,7 +39,7 @@ EnergyBase::EnergyBase(Teuchos::ParameterList& FElist,
                        const Teuchos::RCP<State>& S,
                        const Teuchos::RCP<TreeVector>& solution)
   : PK(FElist, plist, S, solution),
-    PK_PhysicalBDF_Default(FElist, plist, S, solution),
+    PK_Physical_DefaultBDF_Default(FElist, plist, S, solution),
     modify_predictor_with_consistent_faces_(false),
     modify_predictor_for_freezing_(false),
     coupled_to_subsurface_via_temp_(false),
@@ -77,7 +77,7 @@ EnergyBase::parseParameterList()
     enth_list.set<std::string>("evaluator type", "enthalpy");
   }
 
-  PK_PhysicalBDF_Default::parseParameterList();
+  PK_Physical_DefaultBDF_Default::parseParameterList();
 
   // set a default error tolerance
   if (domain_.find("surface") != std::string::npos) {
@@ -121,7 +121,7 @@ EnergyBase::parseParameterList()
 void
 EnergyBase::Setup()
 {
-  PK_PhysicalBDF_Default::Setup();
+  PK_Physical_DefaultBDF_Default::Setup();
   SetupEnergy_();
   SetupPhysicalEvaluators_();
 };
@@ -132,7 +132,7 @@ EnergyBase::SetupPhysicalEvaluators_()
 {
   // Get data and evaluators needed by the PK
   // -- energy, energy evaluator, and energy derivative
-  requireAtNext(conserved_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(conserved_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
@@ -140,7 +140,7 @@ EnergyBase::SetupPhysicalEvaluators_()
     conserved_key_, tag_next_, key_, tag_next_);
 
   // -- conductivity
-  requireAtNext(conductivity_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(conductivity_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
@@ -154,7 +154,7 @@ void
 EnergyBase::SetupEnergy_()
 {
   // Get data for special-case entities.
-  requireAtNext(cell_vol_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(cell_vol_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
@@ -162,7 +162,7 @@ EnergyBase::SetupEnergy_()
 
   // require data for source terms
   if (is_source_term_) {
-    requireAtNext(source_key_, tag_next_, *S_)
+    requireEvaluatorAtNext(source_key_, tag_next_, *S_)
       .SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
@@ -322,7 +322,7 @@ EnergyBase::SetupEnergy_()
       }
 
       // -- enthalpy data, evaluator
-      requireAtNext(enthalpy_key_, tag_next_, *S_)
+      requireEvaluatorAtNext(enthalpy_key_, tag_next_, *S_)
         .SetMesh(mesh_)
         ->SetGhosted()
         ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1)
@@ -332,21 +332,21 @@ EnergyBase::SetupEnergy_()
         .SetGhosted();
 
       // -- diagnostic for advected energy
-      requireAtNext(adv_energy_flux_key_, tag_next_, *S_, name_)
+      requireEvaluatorAtNext(adv_energy_flux_key_, tag_next_, *S_, name_)
         .SetMesh(mesh_)
         ->SetGhosted()
         ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);
 
     } else {
       // -- enthalpy data, evaluator
-      requireAtCurrent(enthalpy_key_, tag_current_, *S_)
+      requireEvaluatorAtCurrent(enthalpy_key_, tag_current_, *S_)
         .SetMesh(mesh_)
         ->SetGhosted()
         ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1)
         ->AddComponent("boundary_face", AmanziMesh::Entity_kind::BOUNDARY_FACE, 1);
 
       // -- diagnostic for advected energy
-      requireAtCurrent(adv_energy_flux_key_, tag_current_, *S_, name_)
+      requireEvaluatorAtCurrent(adv_energy_flux_key_, tag_current_, *S_, name_)
         .SetMesh(mesh_)
         ->SetGhosted()
         ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);
@@ -403,22 +403,22 @@ EnergyBase::SetupEnergy_()
     ->SetGhosted();
 
   // require a water flux field
-  requireAtNext(flux_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(flux_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("face", AmanziMesh::Entity_kind::FACE, 1);
   //    and at the current time, where it is a copy evaluator
-  requireAtCurrent(flux_key_, tag_current_, *S_, name_);
+  requireEvaluatorAtCurrent(flux_key_, tag_current_, *S_, name_);
 
   // require a water content field -- used for computing energy density in the
   // error norm
-  requireAtNext(wc_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(wc_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  requireAtCurrent(wc_key_, tag_current_, *S_, name_);
+  requireEvaluatorAtCurrent(wc_key_, tag_current_, *S_, name_);
 
   // Require fields for the energy fluxes
-  requireAtNext(energy_flux_key_, tag_next_, *S_, name_)
+  requireEvaluatorAtNext(energy_flux_key_, tag_next_, *S_, name_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);
@@ -438,7 +438,7 @@ void
 EnergyBase::Initialize()
 {
   // initialize BDF stuff and physical domain stuff
-  PK_PhysicalBDF_Default::Initialize();
+  PK_Physical_DefaultBDF_Default::Initialize();
 
   // initialize energy fluxes
   S_->GetW<CompositeVector>(energy_flux_key_, tag_next_, name()).PutScalar(0.0);
@@ -473,7 +473,7 @@ void
 EnergyBase::CommitStep(double t_old, double t_new, const Tag& tag_next)
 {
   // saves primary variable
-  PK_PhysicalBDF_Default::CommitStep(t_old, t_new, tag_next);
+  PK_Physical_DefaultBDF_Default::CommitStep(t_old, t_new, tag_next);
 
   AMANZI_ASSERT(tag_next == tag_next_ || tag_next == Tags::NEXT);
   Tag tag_current = tag_next == tag_next_ ? tag_current_ : Tags::CURRENT;

@@ -78,7 +78,7 @@ InterfrostEnergy::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> 
 
   // update state with the solution up.
   AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t) <= 1.e-4 * t);
-  PK_PhysicalBDF_Default::Solution_to_State(*up, tag_next_);
+  PK_Physical_DefaultBDF_Default::Solution_to_State(*up, tag_next_);
   Teuchos::RCP<const CompositeVector> temp = S_->GetPtr<CompositeVector>(key_, tag_next_);
 
   // update thermal conductivity according to the boundary info and upwindin

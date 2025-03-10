@@ -41,13 +41,13 @@ ImplicitSubgrid::parseParameterList()
   plist_->set("absolute error tolerance", 0.01);
 
   snow_dens_key_ = Keys::readKey(*plist_, domain_, "snow density", "density");
-  requireAtNext(snow_dens_key_, tag_next_, *S_, name_);
+  requireEvaluatorAtNext(snow_dens_key_, tag_next_, *S_, name_);
 
   snow_death_rate_key_ = Keys::readKey(*plist_, domain_, "snow death rate", "death_rate");
-  requireAtNext(snow_death_rate_key_, tag_next_, *S_, name_);
+  requireEvaluatorAtNext(snow_death_rate_key_, tag_next_, *S_, name_);
 
   snow_age_key_ = Keys::readKey(*plist_, domain_, "snow age", "age");
-  requireAtNext(snow_age_key_, tag_next_, *S_, name_);
+  requireEvaluatorAtNext(snow_age_key_, tag_next_, *S_, name_);
 
   new_snow_key_ = Keys::readKey(*plist_, domain_, "new snow source", "source");
   density_snow_max_ = plist_->get<double>("max density of snow [kg m^-3]", 600.);
@@ -63,25 +63,25 @@ ImplicitSubgrid::Setup()
   SurfaceBalanceBase::Setup();
 
   // requirements: things I use
-  requireAtNext(new_snow_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(new_snow_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   // requirements: other primary variables
-  requireAtNext(snow_dens_key_, tag_next_, *S_, name_)
+  requireEvaluatorAtNext(snow_dens_key_, tag_next_, *S_, name_)
     .SetMesh(mesh_)
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  requireAtCurrent(snow_dens_key_, tag_current_, *S_, name_);
+  requireEvaluatorAtCurrent(snow_dens_key_, tag_current_, *S_, name_);
 
-  requireAtNext(snow_death_rate_key_, tag_next_, *S_, name_)
+  requireEvaluatorAtNext(snow_death_rate_key_, tag_next_, *S_, name_)
     .SetMesh(mesh_)
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  requireAtCurrent(snow_death_rate_key_, tag_current_, *S_, name_);
+  requireEvaluatorAtCurrent(snow_death_rate_key_, tag_current_, *S_, name_);
 
-  requireAtNext(snow_age_key_, tag_next_, *S_, name_)
+  requireEvaluatorAtNext(snow_age_key_, tag_next_, *S_, name_)
     .SetMesh(mesh_)
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  requireAtCurrent(snow_age_key_, tag_current_, *S_, name_);
+  requireEvaluatorAtCurrent(snow_age_key_, tag_current_, *S_, name_);
 }
 
 // -- Initialize owned (dependent) variables.

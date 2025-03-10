@@ -38,7 +38,7 @@ OverlandPressureFlow::OverlandPressureFlow(Teuchos::ParameterList& pk_tree,
                                            const Teuchos::RCP<State>& S,
                                            const Teuchos::RCP<TreeVector>& solution)
   : PK(pk_tree, plist, S, solution),
-    PK_PhysicalBDF_Default(pk_tree, plist, S, solution),
+    PK_Physical_DefaultBDF_Default(pk_tree, plist, S, solution),
     standalone_mode_(false),
     is_source_term_(false),
     is_source_term_differentiable_(false),
@@ -67,7 +67,7 @@ OverlandPressureFlow::parseParameterList()
   if (!plist_->isParameter("conserved quantity key suffix"))
     plist_->set<std::string>("conserved quantity key suffix", "water_content");
 
-  PK_PhysicalBDF_Default::parseParameterList();
+  PK_Physical_DefaultBDF_Default::parseParameterList();
 
   // get keys
   potential_key_ = Keys::readKey(*plist_, domain_, "potential", "pres_elev");
@@ -119,7 +119,7 @@ OverlandPressureFlow::parseParameterList()
   min_tidal_bc_ponded_depth_ = plist_->get<double>("min ponded depth for tidal bc", 0.02);
 
   // require a few primary variable keys now to set the leaf node in the dep graph
-  requireAtCurrent(pd_key_, tag_current_, *S_, name_);
+  requireEvaluatorAtCurrent(pd_key_, tag_current_, *S_, name_);
 
 }
 
@@ -130,19 +130,19 @@ OverlandPressureFlow::parseParameterList()
 void
 OverlandPressureFlow::Setup()
 {
-  PK_PhysicalBDF_Default::Setup();
+  PK_Physical_DefaultBDF_Default::Setup();
 
   // -- water content, and evaluator, and derivative for PC
-  requireAtNext(conserved_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(conserved_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   //    and at the current time, where it is a copy evaluator
-  requireAtCurrent(conserved_key_, tag_current_, *S_, name_);
+  requireEvaluatorAtCurrent(conserved_key_, tag_current_, *S_, name_);
 
   // this pk uses density to invert for velocity from flux
-  requireAtNext(molar_dens_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(molar_dens_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
@@ -331,20 +331,20 @@ OverlandPressureFlow::SetupOverlandFlow_()
   //  NOTE: no need to require evaluator for p here, this was done in pk_physical
 
   // potential may not actually need cells, but for debugging and sanity's sake, we require them
-  requireAtNext(potential_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(potential_key_, tag_next_, *S_)
     .Update(matrix_->RangeMap())
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1)
     ->AddComponent("boundary_face", AmanziMesh::Entity_kind::BOUNDARY_FACE, 1);
 
   // flux
-  requireAtNext(flux_key_, tag_next_, *S_, name_)
+  requireEvaluatorAtNext(flux_key_, tag_next_, *S_, name_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);
 
   // velocity for diagnostics
-  requireAtNext(velocity_key_, Tags::NEXT, *S_, name_)
+  requireEvaluatorAtNext(velocity_key_, Tags::NEXT, *S_, name_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 3);
@@ -379,7 +379,7 @@ OverlandPressureFlow::SetupPhysicalEvaluators_()
           "dependencies", std::vector<std::string>{ source_key_meters, source_molar_dens_key_ });
     }
 
-    requireAtNext(source_key_, tag_next_, *S_)
+    requireEvaluatorAtNext(source_key_, tag_next_, *S_)
       .SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
@@ -392,7 +392,7 @@ OverlandPressureFlow::SetupPhysicalEvaluators_()
   }
 
   // -- water content bar (can be negative)
-  requireAtNext(wc_bar_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(wc_bar_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
@@ -400,13 +400,13 @@ OverlandPressureFlow::SetupPhysicalEvaluators_()
     wc_bar_key_, tag_next_, key_, tag_next_);
 
   // -- ponded depth
-  requireAtNext(pd_key_, tag_next_, *S_, true).Update(matrix_->RangeMap())->SetGhosted();
+  requireEvaluatorAtNext(pd_key_, tag_next_, *S_, true).Update(matrix_->RangeMap())->SetGhosted();
   S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(pd_key_, tag_next_, key_, tag_next_);
   //    ...with a copy at the old time
-  requireAtCurrent(pd_key_, tag_current_, *S_, pd_key_);
+  requireEvaluatorAtCurrent(pd_key_, tag_current_, *S_, pd_key_);
 
   // -- ponded depth bar (can be negative)
-  requireAtNext(pd_bar_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(pd_bar_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
@@ -414,7 +414,7 @@ OverlandPressureFlow::SetupPhysicalEvaluators_()
     pd_bar_key_, tag_next_, key_, tag_next_);
 
   // -- conductivity evaluator
-  requireAtNext(cond_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(cond_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1)
@@ -440,7 +440,7 @@ OverlandPressureFlow::Initialize()
   }
 
   // Initialize BDF stuff and physical domain stuff.
-  PK_PhysicalBDF_Default::Initialize();
+  PK_Physical_DefaultBDF_Default::Initialize();
 
   if (!S_->GetRecord(key_, tag_next_).initialized()) {
     // TODO: can this be deprecated?  Shouldn't this get handled by the MPC?
@@ -547,7 +547,7 @@ void
 OverlandPressureFlow::CommitStep(double t_old, double t_new, const Tag& tag_next)
 {
   // saves primary variable
-  PK_PhysicalBDF_Default::CommitStep(t_old, t_new, tag_next);
+  PK_Physical_DefaultBDF_Default::CommitStep(t_old, t_new, tag_next);
 
   AMANZI_ASSERT(tag_next == tag_next_ || tag_next == Tags::NEXT);
   Tag tag_current = tag_next == tag_next_ ? tag_current_ : Tags::CURRENT;

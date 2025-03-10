@@ -147,7 +147,7 @@ EnergyBase::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, do
 
   // update state with the solution up.
   AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t) <= 1.e-4 * t);
-  PK_PhysicalBDF_Default::Solution_to_State(*up, tag_next_);
+  PK_Physical_DefaultBDF_Default::Solution_to_State(*up, tag_next_);
 
   // update boundary conditions
   ComputeBoundaryConditions_(tag_next_);

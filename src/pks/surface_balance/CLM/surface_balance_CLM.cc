@@ -39,7 +39,7 @@ SurfaceBalanceCLM::SurfaceBalanceCLM(Teuchos::ParameterList& pk_tree,
                                      const Teuchos::RCP<Teuchos::ParameterList>& global_list,
                                      const Teuchos::RCP<State>& S,
                                      const Teuchos::RCP<TreeVector>& solution)
-  : PK(pk_tree, global_list, S, solution), PK_Physical(pk_tree, global_list, S, solution)
+  : PK(pk_tree, global_list, S, solution), PK_Physical_Default(pk_tree, global_list, S, solution)
 {
   domain_ss_ = Keys::readDomainHint(*plist_, domain_, "surface", "subsurface");
   domain_snow_ = Keys::readDomainHint(*plist_, domain_, "surface", "snow");
@@ -98,7 +98,7 @@ SurfaceBalanceCLM::SurfaceBalanceCLM(Teuchos::ParameterList& pk_tree,
 void
 SurfaceBalanceCLM::Setup()
 {
-  PK_Physical::Setup();
+  PK_Physical_Default::Setup();
   auto subsurf_mesh = S_->GetMesh(domain_ss_);
 
   // requirements: primary variable
@@ -109,16 +109,14 @@ SurfaceBalanceCLM::Setup()
 
   // requirements: other primary variables
   // -- surface water source  -- note we keep old and new in case of Crank-Nicholson Richards PK
-  S_->Require<CompositeVector, CompositeVectorSpace>(surf_water_src_key_, tag_next_, name_)
+  requireEvaluatorAtNext(surf_water_src_key_, tag_next_, *S_, name_)
     .SetMesh(mesh_)
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  requireEvaluatorPrimary(surf_water_src_key_, tag_next_, *S_);
 
   // -- subsurface water source  -- note we keep old and new in case of Crank-Nicholson Richards PK
-  S_->Require<CompositeVector, CompositeVectorSpace>(ss_water_src_key_, tag_next_, name_)
+  requireEvaluatorPrimary(ss_water_src_key_, tag_next_, *S_, name_)
     .SetMesh(subsurf_mesh)
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  requireEvaluatorPrimary(ss_water_src_key_, tag_next_, *S_);
 
   // set requirements on dependencies
   SetupDependencies_(tag_next_);
@@ -271,7 +269,7 @@ SurfaceBalanceCLM::SetupDependencies_(const Tag& tag)
 void
 SurfaceBalanceCLM::Initialize()
 {
-  PK_Physical::Initialize();
+  PK_Physical_Default::Initialize();
   InitializeCLM_(tag_next_);
   InitializePrimaryVariables_(tag_next_);
 }

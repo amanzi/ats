@@ -154,7 +154,7 @@ Solves an advection-diffusion equation for energy:
 #include "PDE_Accumulation.hh"
 #include "PDE_AdvectionUpwind.hh"
 
-//#include "PK_PhysicalBDF_ATS.hh"
+//#include "PK_Physical_DefaultBDF_ATS.hh"
 #include "pk_physical_bdf_default.hh"
 #include "upwinding.hh"
 
@@ -170,7 +170,7 @@ class BoundaryFunction;
 
 namespace Energy {
 
-class EnergyBase : public PK_PhysicalBDF_Default {
+class EnergyBase : public PK_Physical_DefaultBDF_Default {
  public:
   EnergyBase(Teuchos::ParameterList& FElist,
              const Teuchos::RCP<Teuchos::ParameterList>& plist,

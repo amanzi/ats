@@ -20,7 +20,7 @@ SurfaceBalanceBase::SurfaceBalanceBase(Teuchos::ParameterList& pk_tree,
                                        const Teuchos::RCP<State>& S,
                                        const Teuchos::RCP<TreeVector>& solution)
   : PK(pk_tree, global_list, S, solution),
-    PK_PhysicalBDF_Default(pk_tree, global_list, S, solution),
+    PK_Physical_DefaultBDF_Default(pk_tree, global_list, S, solution),
     is_source_term_(false),
     is_source_term_differentiable_(false),
     is_source_term_finite_differentiable_(false)
@@ -34,7 +34,7 @@ SurfaceBalanceBase::parseParameterList()
   if (!plist_->isParameter("absolute error tolerance"))
     plist_->set("absolute error tolerance", .01 * 55000.); // h * nl
 
-  PK_PhysicalBDF_Default::parseParameterList();
+  PK_Physical_DefaultBDF_Default::parseParameterList();
 
   // source terms
   is_source_term_ = plist_->get<bool>("source term", true);
@@ -64,7 +64,7 @@ SurfaceBalanceBase::parseParameterList()
 void
 SurfaceBalanceBase::Setup()
 {
-  PK_PhysicalBDF_Default::Setup();
+  PK_Physical_DefaultBDF_Default::Setup();
 
   // requirements: primary variable
   //  NOTE: no need to require evaluator here, either at the old or new
@@ -77,7 +77,7 @@ SurfaceBalanceBase::Setup()
   // requirements: source terms from above
   if (is_source_term_) {
     if (theta_ > 0) {
-      requireAtNext(source_key_, tag_next_, *S_, true)
+      requireEvaluatorAtNext(source_key_, tag_next_, *S_, true)
         .SetMesh(mesh_)
         ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
@@ -89,7 +89,7 @@ SurfaceBalanceBase::Setup()
       }
     }
     if (theta_ < 1) {
-      requireAtCurrent(source_key_, tag_current_, *S_, name_)
+      requireEvaluatorAtCurrent(source_key_, tag_current_, *S_, name_)
         .SetMesh(mesh_)
         ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     }
@@ -98,14 +98,14 @@ SurfaceBalanceBase::Setup()
   // requirements: conserved quantity at current and new times
   conserved_quantity_ = conserved_key_ != key_;
   if (conserved_quantity_) {
-    requireAtNext(conserved_key_, tag_next_, *S_)
+    requireEvaluatorAtNext(conserved_key_, tag_next_, *S_)
       .SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
       conserved_key_, tag_next_, key_, tag_next_);
 
     //    and at the current time, where it is a copy evaluator
-    requireAtCurrent(conserved_key_, tag_current_, *S_, name_);
+    requireEvaluatorAtCurrent(conserved_key_, tag_current_, *S_, name_);
   }
 
   // operator for inverse
@@ -125,7 +125,7 @@ void
 SurfaceBalanceBase::CommitStep(double t_old, double t_new, const Tag& tag_next)
 {
   // saves primary variable
-  PK_PhysicalBDF_Default::CommitStep(t_old, t_new, tag_next);
+  PK_Physical_DefaultBDF_Default::CommitStep(t_old, t_new, tag_next);
 
   AMANZI_ASSERT(tag_next == tag_next_ || tag_next == Tags::NEXT);
   Tag tag_current = tag_next == tag_next_ ? tag_current_ : Tags::CURRENT;
@@ -220,7 +220,7 @@ SurfaceBalanceBase::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector
 {
   // update state with the solution up.
   AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t) <= 1.e-4 * t);
-  PK_Physical::Solution_to_State(*up, tag_next_);
+  PK_Physical_Default::Solution_to_State(*up, tag_next_);
 
   if (conserved_quantity_) {
     preconditioner_->Init();

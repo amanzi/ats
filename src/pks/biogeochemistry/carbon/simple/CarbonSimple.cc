@@ -17,7 +17,7 @@ CarbonSimple::CarbonSimple(Teuchos::ParameterList& pk_tree,
                            const Teuchos::RCP<State>& S,
                            const Teuchos::RCP<TreeVector>& solution)
   : Amanzi::PK(pk_tree, glist, S, solution),
-    Amanzi::PK_Physical_Explicit_Default(pk_tree, glist, S, solution),
+    Amanzi::PK_Physical_Default_Explicit_Default(pk_tree, glist, S, solution),
     is_diffusion_(false),
     is_source_(false),
     is_decomp_(false),
@@ -42,7 +42,7 @@ CarbonSimple::CarbonSimple(Teuchos::ParameterList& pk_tree,
 void
 CarbonSimple::Setup()
 {
-  PK_Physical_Explicit_Default::Setup();
+  PK_Physical_Default_Explicit_Default::Setup();
 
   // number of carbon pools
   npools_ = plist_->get<int>("number of carbon pools");
@@ -92,7 +92,7 @@ CarbonSimple::FunctionalTimeDerivative(const double t, const TreeVector& u, Tree
   // eventually we need to ditch this multi-state approach --etc
   AMANZI_ASSERT(std::abs(S_->get_time(tag_current_) - t) <
                 1.e-4 * S_->get_time(tag_next_) - S_->get_time(tag_current_));
-  PK_Physical::Solution_to_State(u, tag_current_);
+  PK_Physical_Default::Solution_to_State(u, tag_current_);
 
   // debugging
   if (vo_->os_OK(Teuchos::VERB_HIGH))

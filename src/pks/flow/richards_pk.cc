@@ -44,7 +44,7 @@ Richards::Richards(Teuchos::ParameterList& pk_tree,
                    const Teuchos::RCP<State>& S,
                    const Teuchos::RCP<TreeVector>& solution)
   : PK(pk_tree, glist, S, solution),
-    PK_PhysicalBDF_Default(pk_tree, glist, S, solution),
+    PK_Physical_DefaultBDF_Default(pk_tree, glist, S, solution),
     coupled_to_surface_via_head_(false),
     coupled_to_surface_via_flux_(false),
     infiltrate_only_if_unfrozen_(false),
@@ -87,12 +87,12 @@ Richards::parseParameterList()
     Keys::readKey(*plist_, domain_, "upwinded conductivity", "upwind_relative_permeability");
 
   flux_key_ = Keys::readKey(*plist_, domain_, "darcy flux", "water_flux");
-  requireAtNext(flux_key_, tag_next_, *S_, name_);
+  requireEvaluatorAtNext(flux_key_, tag_next_, *S_, name_);
 
   flux_dir_key_ = Keys::readKey(*plist_, domain_, "darcy flux direction", "water_flux_direction");
 
   velocity_key_ = Keys::readKey(*plist_, domain_, "darcy velocity", "darcy_velocity");
-  requireAtNext(velocity_key_, Tags::NEXT, *S_, name_);
+  requireEvaluatorAtNext(velocity_key_, Tags::NEXT, *S_, name_);
 
   sat_key_ = Keys::readKey(*plist_, domain_, "saturation", "saturation_liquid");
   sat_gas_key_ = Keys::readKey(*plist_, domain_, "saturation gas", "saturation_gas");
@@ -136,10 +136,10 @@ Richards::parseParameterList()
   }
 
   // require a few primary variable keys now to set the leaf node in the dep graph
-  requireAtCurrent(sat_key_, tag_current_, *S_, name_);
+  requireEvaluatorAtCurrent(sat_key_, tag_current_, *S_, name_);
 
   // parse inherited lists
-  PK_PhysicalBDF_Default::parseParameterList();
+  PK_Physical_DefaultBDF_Default::parseParameterList();
 }
 
 
@@ -149,7 +149,7 @@ Richards::parseParameterList()
 void
 Richards::Setup()
 {
-  PK_PhysicalBDF_Default::Setup();
+  PK_Physical_DefaultBDF_Default::Setup();
   SetupRichardsFlow_();
   SetupPhysicalEvaluators_();
 };
@@ -365,7 +365,7 @@ Richards::SetupRichardsFlow_()
 
   // -- source terms
   if (is_source_term_) {
-    requireAtNext(source_key_, tag_next_, *S_)
+    requireEvaluatorAtNext(source_key_, tag_next_, *S_)
       .SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     if (!explicit_source_ && S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
@@ -410,14 +410,14 @@ Richards::SetupRichardsFlow_()
     ->SetGhosted();
 
   // -- flux is managed here as a primary variable
-  requireAtNext(flux_key_, tag_next_, *S_, name_)
+  requireEvaluatorAtNext(flux_key_, tag_next_, *S_, name_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);
 
   // -- also need a velocity, but only for vis/diagnostics, so might as well
   // -- only keep at NEXT
-  requireAtNext(velocity_key_, Tags::NEXT, *S_, name_)
+  requireEvaluatorAtNext(velocity_key_, Tags::NEXT, *S_, name_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 3);
@@ -450,7 +450,7 @@ void
 Richards::SetupPhysicalEvaluators_()
 {
   // -- water content, and evaluator, and derivative for PC
-  requireAtNext(conserved_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(conserved_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
@@ -459,21 +459,21 @@ Richards::SetupPhysicalEvaluators_()
 
   // -- Water retention evaluators
   // -- saturation
-  requireAtNext(sat_key_, tag_next_, *S_, true)
+  requireEvaluatorAtNext(sat_key_, tag_next_, *S_, true)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  requireAtNext(sat_gas_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(sat_gas_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   auto& wrm = S_->RequireEvaluator(sat_key_, tag_next_);
 
   //    and at the current time, where it is a copy evaluator
-  requireAtCurrent(sat_key_, tag_current_, *S_, name_);
+  requireEvaluatorAtCurrent(sat_key_, tag_current_, *S_, name_);
 
   // -- rel perm
-  requireAtNext(coef_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(coef_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1)
@@ -485,13 +485,13 @@ Richards::SetupPhysicalEvaluators_()
   wrms_ = wrm_eval->get_WRMs();
 
   // -- molar density used to infer liquid Darcy velocity from flux
-  requireAtNext(molar_dens_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(molar_dens_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   // -- liquid mass density for the gravity fluxes
-  requireAtNext(mass_dens_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(mass_dens_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
@@ -532,7 +532,7 @@ Richards::Initialize()
   if (!S_->GetRecordW(key_, tag_next_, name_).initialized()) InitializeHydrostatic_(tag_next_);
 
   // Initialize in the standard ways
-  PK_PhysicalBDF_Default::Initialize();
+  PK_Physical_DefaultBDF_Default::Initialize();
 
   // Set extra fields as initialized -- these don't currently have evaluators,
   // and will be initialized in the call to commit_state()
@@ -695,7 +695,7 @@ void
 Richards::CommitStep(double t_old, double t_new, const Tag& tag_next)
 {
   // saves primary variable
-  PK_PhysicalBDF_Default::CommitStep(t_old, t_new, tag_next);
+  PK_Physical_DefaultBDF_Default::CommitStep(t_old, t_new, tag_next);
 
   AMANZI_ASSERT(tag_next == tag_next_ || tag_next == Tags::NEXT);
   Tag tag_current = tag_next == tag_next_ ? tag_current_ : Tags::CURRENT;
@@ -750,7 +750,7 @@ Richards::IsValid(const Teuchos::RCP<const TreeVector>& u)
       return false;
     }
   }
-  return PK_PhysicalBDF_Default::IsValid(u);
+  return PK_Physical_DefaultBDF_Default::IsValid(u);
 }
 
 

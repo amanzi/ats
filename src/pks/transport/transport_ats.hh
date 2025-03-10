@@ -269,8 +269,8 @@ The advection-diffusion equation for component *i* in the surface may be written
 #include "Units.hh"
 #include "VerboseObject.hh"
 #include "Debugger.hh"
-#include "PK_PhysicalExplicit.hh"
 #include "DenseVector.hh"
+#include "PK_Physical_Default.hh"
 
 #include <string>
 
@@ -290,7 +290,7 @@ namespace Amanzi {
 namespace Transport {
 
 // ummm -- why does this not use TreeVector? --ETC
-class Transport_ATS : public PK_Physical {
+class Transport_ATS : public PK_Physical_Default {
  public:
   Transport_ATS(Teuchos::ParameterList& pk_tree,
                 const Teuchos::RCP<Teuchos::ParameterList>& glist,

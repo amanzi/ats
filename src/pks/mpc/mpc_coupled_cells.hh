@@ -67,13 +67,13 @@ class TreeOperator;
 class PDE_Accumulation;
 } // namespace Operators
 
-class MPCCoupledCells : public StrongMPC<PK_PhysicalBDF_Default> {
+class MPCCoupledCells : public StrongMPC<PK_Physical_DefaultBDF_Default> {
  public:
   MPCCoupledCells(Teuchos::ParameterList& FElist,
                   const Teuchos::RCP<Teuchos::ParameterList>& plist,
                   const Teuchos::RCP<State>& S,
                   const Teuchos::RCP<TreeVector>& solution)
-    : PK(FElist, plist, S, solution), StrongMPC<PK_PhysicalBDF_Default>(FElist, plist, S, solution)
+    : PK(FElist, plist, S, solution), StrongMPC<PK_Physical_DefaultBDF_Default>(FElist, plist, S, solution)
   {}
 
   void parseParameterList() override;

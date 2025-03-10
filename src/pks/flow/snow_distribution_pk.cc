@@ -39,7 +39,7 @@ SnowDistribution::SnowDistribution(Teuchos::ParameterList& pk_tree,
                                    const Teuchos::RCP<State>& S,
                                    const Teuchos::RCP<TreeVector>& solution)
   : PK(pk_tree, plist, S, solution),
-    PK_PhysicalBDF_Default(pk_tree, plist, S, solution),
+    PK_Physical_DefaultBDF_Default(pk_tree, plist, S, solution),
     my_next_time_(-9.e80)
 {
   // set a default absolute tolerance
@@ -70,7 +70,7 @@ SnowDistribution::SnowDistribution(Teuchos::ParameterList& pk_tree,
 void
 SnowDistribution::Setup()
 {
-  PK_PhysicalBDF_Default::Setup();
+  PK_Physical_DefaultBDF_Default::Setup();
   SetupSnowDistribution_();
   SetupPhysicalEvaluators_();
 }
@@ -85,13 +85,13 @@ SnowDistribution::SetupSnowDistribution_()
   precip_func_ = Teuchos::rcp(fac.Create(precip_func));
 
   // -- get conserved variable (snow-precip) and evaluator and derivative for PC
-  requireAtNext(conserved_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(conserved_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   //    and at the current time, where it is a copy evaluator
-  requireAtCurrent(conserved_key_, tag_current_, *S_, name_);
+  requireEvaluatorAtCurrent(conserved_key_, tag_current_, *S_, name_);
 
   // -- cell volume and evaluator
   S_->Require<CompositeVector, CompositeVectorSpace>(cv_key_, tag_next_)
@@ -183,13 +183,13 @@ void
 SnowDistribution::SetupPhysicalEvaluators_()
 {
   // -- evaluator for potential field, h + z
-  requireAtNext(potential_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(potential_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   // -- snow_conductivity evaluator
-  requireAtNext(cond_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(cond_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
@@ -206,7 +206,7 @@ void
 SnowDistribution::Initialize()
 {
   // Initialize BDF stuff and physical domain stuff.
-  PK_PhysicalBDF_Default::Initialize();
+  PK_Physical_DefaultBDF_Default::Initialize();
 
   // Set extra fields as initialized -- these don't currently have evaluators.
   S_->GetW<CompositeVector>(uw_cond_key_, tag_next_, name_).PutScalar(1.0);

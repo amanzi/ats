@@ -37,7 +37,7 @@ void
 Permafrost::SetupPhysicalEvaluators_()
 {
   // -- water content, and evaluator, and derivative for PC
-  requireAtNext(conserved_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(conserved_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
@@ -45,20 +45,20 @@ Permafrost::SetupPhysicalEvaluators_()
     conserved_key_, tag_next_, key_, tag_next_);
 
   //    and at the current time, where it is a copy evaluator
-  requireAtCurrent(conserved_key_, tag_current_, *S_, name_);
+  requireEvaluatorAtCurrent(conserved_key_, tag_current_, *S_, name_);
 
   // -- saturation
-  requireAtNext(sat_key_, tag_next_, *S_, true)
+  requireEvaluatorAtNext(sat_key_, tag_next_, *S_, true)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1)
     ->AddComponent("boundary_face", AmanziMesh::Entity_kind::BOUNDARY_FACE, 1);
-  requireAtNext(sat_gas_key_, tag_next_, *S_, true)
+  requireEvaluatorAtNext(sat_gas_key_, tag_next_, *S_, true)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1)
     ->AddComponent("boundary_face", AmanziMesh::Entity_kind::BOUNDARY_FACE, 1);
-  requireAtNext(sat_ice_key_, tag_next_, *S_, true)
+  requireEvaluatorAtNext(sat_ice_key_, tag_next_, *S_, true)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1)
@@ -66,11 +66,11 @@ Permafrost::SetupPhysicalEvaluators_()
   auto& wrm = S_->RequireEvaluator(sat_key_, tag_next_);
 
   //    and at the current time, where it is a copy evaluator
-  requireAtCurrent(sat_key_, tag_current_, *S_, name_);
-  requireAtCurrent(sat_ice_key_, tag_current_, *S_, name_);
+  requireEvaluatorAtCurrent(sat_key_, tag_current_, *S_, name_);
+  requireEvaluatorAtCurrent(sat_ice_key_, tag_current_, *S_, name_);
 
   // -- the rel perm evaluator, also with the same underlying WRM.
-  requireAtNext(coef_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(coef_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1)
@@ -82,13 +82,13 @@ Permafrost::SetupPhysicalEvaluators_()
   wrms_ = wrm_eval->get_WRMs();
 
   // -- molar density used to infer liquid Darcy velocity from flux
-  requireAtNext(molar_dens_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(molar_dens_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   // -- liquid mass density for the gravity fluxes
-  requireAtNext(mass_dens_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(mass_dens_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);

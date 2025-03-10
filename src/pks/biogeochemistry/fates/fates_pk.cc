@@ -31,7 +31,7 @@ FATES_PK::FATES_PK(Teuchos::ParameterList& pk_tree,
                    const Teuchos::RCP<State>& S,
                    const Teuchos::RCP<TreeVector>& solution)
   : PK(pk_tree, global_list, S, solution),
-    PK_Physical(pk_tree, global_list, S, solution),
+    PK_Physical_Default(pk_tree, global_list, S, solution),
     ncells_per_col_(-1)
 {
   domain_surf_ = plist_->get<std::string>("surface domain name", "surface");
@@ -49,7 +49,7 @@ FATES_PK::FATES_PK(Teuchos::ParameterList& pk_tree,
 void
 FATES_PK::Setup(const Teuchos::Ptr<State>& S)
 {
-  PK_Physical::Setup(S);
+  PK_Physical_Default::Setup(S);
 
   dt_ = plist_->get<double>("initial timestep", 1.);
 
@@ -241,7 +241,7 @@ FATES_PK::Setup(const Teuchos::Ptr<State>& S)
 void
 FATES_PK::Initialize(const Teuchos::Ptr<State>& S)
 {
-  PK_Physical::Initialize(S);
+  PK_Physical_Default::Initialize(S);
 
   ncells_owned_ =
     mesh_surf_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);

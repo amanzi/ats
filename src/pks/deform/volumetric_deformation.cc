@@ -27,7 +27,7 @@ VolumetricDeformation::VolumetricDeformation(Teuchos::ParameterList& pk_tree,
                                              const Teuchos::RCP<State>& S,
                                              const Teuchos::RCP<TreeVector>& solution)
   : PK(pk_tree, glist, S, solution),
-    PK_Physical(pk_tree, glist, S, solution),
+    PK_Physical_Default(pk_tree, glist, S, solution),
     surf_mesh_(Teuchos::null),
     deformed_this_step_(false)
 {}
@@ -36,7 +36,7 @@ VolumetricDeformation::VolumetricDeformation(Teuchos::ParameterList& pk_tree,
 void
 VolumetricDeformation::parseParameterList()
 {
-  PK_Physical::parseParameterList();
+  PK_Physical_Default::parseParameterList();
 
   dt_max_ = plist_->get<double>("max timestep [s]", std::numeric_limits<double>::max());
 
@@ -106,7 +106,7 @@ VolumetricDeformation::parseParameterList()
 void
 VolumetricDeformation::Setup()
 {
-  PK_Physical::Setup();
+  PK_Physical_Default::Setup();
 
   // Save both non-const deformable versions of the meshes and create storage
   // for the vertex coordinates.  These are saved to be able to create the
@@ -171,20 +171,20 @@ VolumetricDeformation::Setup()
   }
 
   case (DEFORM_MODE_SATURATION, DEFORM_MODE_STRUCTURAL): {
-    requireAtNext(sat_liq_key_, tag_next_, *S_);
-    requireAtCurrent(sat_liq_key_, tag_current_, *S_, name_)
+    requireEvaluatorAtNext(sat_liq_key_, tag_next_, *S_);
+    requireEvaluatorAtCurrent(sat_liq_key_, tag_current_, *S_, name_)
       .SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-    requireAtNext(sat_ice_key_, tag_next_, *S_);
-    requireAtCurrent(sat_ice_key_, tag_current_, *S_, name_)
+    requireEvaluatorAtNext(sat_ice_key_, tag_next_, *S_);
+    requireEvaluatorAtCurrent(sat_ice_key_, tag_current_, *S_, name_)
       .SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-    requireAtNext(sat_gas_key_, tag_next_, *S_);
-    requireAtCurrent(sat_gas_key_, tag_current_, *S_, name_)
+    requireEvaluatorAtNext(sat_gas_key_, tag_next_, *S_);
+    requireEvaluatorAtCurrent(sat_gas_key_, tag_current_, *S_, name_)
       .SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-    requireAtNext(poro_key_, tag_next_, *S_, true);
-    requireAtCurrent(poro_key_, tag_current_, *S_, name_)
+    requireEvaluatorAtNext(poro_key_, tag_next_, *S_, true);
+    requireEvaluatorAtCurrent(poro_key_, tag_current_, *S_, name_)
       .SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     break;
@@ -202,13 +202,13 @@ VolumetricDeformation::Setup()
     cv_eval_list.set<std::string>("evaluator type", "deforming cell volume");
     cv_eval_list.set<std::string>("deformation key", key_);
   }
-  requireAtNext(cv_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(cv_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   // require a copy at the old tag
-  requireAtCurrent(cv_key_, tag_current_, *S_, name_);
+  requireEvaluatorAtCurrent(cv_key_, tag_current_, *S_, name_);
 
   // Strategy-specific setup
   switch (strategy_) {
@@ -229,11 +229,11 @@ VolumetricDeformation::Setup()
   }
 
   case (DEFORM_STRATEGY_MSTK): {
-    requireAtCurrent(sat_ice_key_, tag_current_, *S_, name_)
+    requireEvaluatorAtCurrent(sat_ice_key_, tag_current_, *S_, name_)
       .SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
-    requireAtCurrent(poro_key_, tag_current_, *S_, name_)
+    requireEvaluatorAtCurrent(poro_key_, tag_current_, *S_, name_)
       .SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     break;
@@ -248,7 +248,7 @@ VolumetricDeformation::Setup()
     //  dof 0: the volume-averaged displacement
     //  dof 1: the simply averaged displacement
     //  dof 2: count of number of faces contributing to the node change
-    requireAtNext(nodal_dz_key_, tag_next_, *S_, name_)
+    requireEvaluatorAtNext(nodal_dz_key_, tag_next_, *S_, name_)
       .SetMesh(mesh_)
       ->SetGhosted()
       ->SetComponent("node", AmanziMesh::Entity_kind::NODE, 3);
@@ -271,7 +271,7 @@ void
 VolumetricDeformation::Initialize()
 {
   // sets base porosity
-  PK_Physical::Initialize();
+  PK_Physical_Default::Initialize();
 
   // initialize the deformation
   S_->GetW<CompositeVector>(del_cv_key_, tag_next_, name_).PutScalar(0.);
@@ -703,7 +703,7 @@ void
 VolumetricDeformation::CommitStep(double t_old, double t_new, const Tag& tag_next)
 {
   // saves primary variable
-  PK_Physical::CommitStep(t_old, t_new, tag_next);
+  PK_Physical_Default::CommitStep(t_old, t_new, tag_next);
 
   AMANZI_ASSERT(tag_next == tag_next_ || tag_next == Tags::NEXT);
   Tag tag_current = tag_next == tag_next_ ? tag_current_ : Tags::CURRENT;

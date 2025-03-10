@@ -242,7 +242,7 @@ class Tensor;
 
 namespace Flow {
 
-class Richards : public PK_PhysicalBDF_Default {
+class Richards : public PK_Physical_DefaultBDF_Default {
  public:
   Richards(Teuchos::ParameterList& pk_tree,
            const Teuchos::RCP<Teuchos::ParameterList>& plist,

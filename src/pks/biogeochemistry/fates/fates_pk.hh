@@ -11,7 +11,7 @@
 #define PK_FATES_HH_
 
 #include "PK_Factory.hh"
-#include "PK_Physical.hh"
+#include "PK_Physical_Default.hh"
 #include "ISO_Fortran_binding.h"
 
 #include "Teuchos_ParameterList.hpp"
@@ -85,7 +85,7 @@ extern "C"
 } // extern "C"
 #endif
 
-class FATES_PK : public PK_Physical {
+class FATES_PK : public PK_Physical_Default {
  public:
   FATES_PK(Teuchos::ParameterList& FElist,
            const Teuchos::RCP<Teuchos::ParameterList>& plist,

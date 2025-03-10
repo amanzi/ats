@@ -63,7 +63,7 @@ MPCCoupledReactiveTransport::parseParameterList()
   pks_list_->sublist(chem_names[0]).set("operator split", true);
   pks_list_->sublist(chem_names[1]).set("operator split", true);
 
-  // Only reaction PKs set IC, but all need the list to be  PK_Physical.
+  // Only reaction PKs set IC, but all need the list to be  PK_Physical_Default.
   pks_list_->sublist(transport_names[0]).sublist("initial conditions");
   pks_list_->sublist(transport_names[1]).sublist("initial conditions");
 

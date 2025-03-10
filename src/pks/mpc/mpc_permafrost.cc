@@ -65,11 +65,11 @@ MPCPermafrost::parseParameterList()
   // -- primary exchange flux keys and evaluators
   mass_exchange_key_ =
     Keys::readKey(*plist_, domain_surf_, "mass exchange flux", "surface_subsurface_flux");
-  requireAtNext(mass_exchange_key_, tag_next_, *S_, name_);
+  requireEvaluatorAtNext(mass_exchange_key_, tag_next_, *S_, name_);
 
   energy_exchange_key_ =
     Keys::readKey(*plist_, domain_surf_, "energy exchange flux", "surface_subsurface_energy_flux");
-  requireAtNext(energy_exchange_key_, tag_next_, *S_, name_);
+  requireEvaluatorAtNext(energy_exchange_key_, tag_next_, *S_, name_);
 
   // parse keys
   surf_temp_key_ = Keys::readKey(*plist_, domain_surf_, "surface temperature", "temperature");
@@ -143,18 +143,18 @@ MPCPermafrost::Setup()
   MPCSubsurface::Setup();
 
   // require the coupling fields, claim ownership
-  requireAtNext(mass_exchange_key_, tag_next_, *S_, name_)
+  requireEvaluatorAtNext(mass_exchange_key_, tag_next_, *S_, name_)
     .SetMesh(surf_mesh_)
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  requireAtNext(energy_exchange_key_, tag_next_, *S_, name_)
+  requireEvaluatorAtNext(energy_exchange_key_, tag_next_, *S_, name_)
     .SetMesh(surf_mesh_)
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   // require in case the PK did not do so already
-  requireAtNext(surf_pd_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(surf_pd_key_, tag_next_, *S_)
     .SetMesh(surf_mesh_)
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  requireAtCurrent(surf_pd_key_, tag_current_, *S_, surf_pd_key_);
+  requireEvaluatorAtCurrent(surf_pd_key_, tag_current_, *S_, surf_pd_key_);
 
   // require surface derivatives
   S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
@@ -770,7 +770,7 @@ MPCPermafrost::ModifyCorrection(double h,
 
   // apply PK modifications
   AmanziSolvers::FnBaseDefs::ModifyCorrectionResult pk_modified =
-    StrongMPC<PK_PhysicalBDF_Default>::ModifyCorrection(h, r, u, du);
+    StrongMPC<PK_Physical_DefaultBDF_Default>::ModifyCorrection(h, r, u, du);
   if (pk_modified) {
     CopySurfaceToSubsurface(*du->SubVector(2)->Data(), *du->SubVector(0)->Data());
     CopySurfaceToSubsurface(*du->SubVector(3)->Data(), *du->SubVector(1)->Data());

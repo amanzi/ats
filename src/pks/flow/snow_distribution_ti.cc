@@ -145,7 +145,7 @@ SnowDistribution::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> 
 
   // update state with the solution up.
   AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t) <= 1.e-4 * t);
-  PK_PhysicalBDF_Default::Solution_to_State(*up, tag_next_);
+  PK_Physical_DefaultBDF_Default::Solution_to_State(*up, tag_next_);
 
   // update the rel perm according to the scheme of choice
   UpdatePermeabilityData_(tag_next_);
@@ -295,17 +295,17 @@ SnowDistribution::AdvanceStep(double t_old, double t_new, bool reinit)
   Tag tag_subcycle_next(tag_next_);
   S_->set_time(tag_subcycle_current, t_old);
   while (my_t_old < t_old + dt_factor_) {
-    my_dt = PK_PhysicalBDF_Default::get_dt();
+    my_dt = PK_Physical_DefaultBDF_Default::get_dt();
     my_t_new = std::min(my_t_old + my_dt, t_old + dt_factor_);
     S_->set_time(tag_subcycle_next, my_t_new);
 
-    bool failed = PK_PhysicalBDF_Default::AdvanceStep(my_t_old, my_t_new, false);
+    bool failed = PK_Physical_DefaultBDF_Default::AdvanceStep(my_t_old, my_t_new, false);
 
     if (failed) {
       S_->set_time(tag_subcycle_next, S_->get_time(tag_subcycle_current));
     } else {
       S_->set_time(tag_subcycle_current, S_->get_time(tag_subcycle_next));
-      PK_PhysicalBDF_Default::CommitStep(my_t_old, my_t_new, tag_subcycle_next);
+      PK_Physical_DefaultBDF_Default::CommitStep(my_t_old, my_t_new, tag_subcycle_next);
       my_t_old = my_t_new;
     }
   }

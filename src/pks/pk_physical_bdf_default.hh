@@ -62,22 +62,22 @@ code, so usually are not supplied by the user.
 
 #include "errors.hh"
 #include "pk_bdf_default.hh"
-#include "PK_Physical.hh"
+#include "PK_Physical_Default.hh"
 
 #include "BCs.hh"
 #include "Operator.hh"
 
 namespace Amanzi {
 
-class PK_PhysicalBDF_Default : public PK_BDF_Default, public PK_Physical {
+class PK_Physical_DefaultBDF_Default : public PK_BDF_Default, public PK_Physical_Default {
  public:
-  PK_PhysicalBDF_Default(Teuchos::ParameterList& pk_tree,
+  PK_Physical_DefaultBDF_Default(Teuchos::ParameterList& pk_tree,
                          const Teuchos::RCP<Teuchos::ParameterList>& glist,
                          const Teuchos::RCP<State>& S,
                          const Teuchos::RCP<TreeVector>& solution)
     : PK(pk_tree, glist, S, solution),
       PK_BDF_Default(pk_tree, glist, S, solution),
-      PK_Physical(pk_tree, glist, S, solution),
+      PK_Physical_Default(pk_tree, glist, S, solution),
       max_valid_change_(-1.0)
   {}
 

@@ -20,15 +20,15 @@ PKPhysicalBase and BDF methods of PK_BDF_Default.
 namespace Amanzi {
 
 void
-PK_PhysicalBDF_Default::parseParameterList()
+PK_Physical_DefaultBDF_Default::parseParameterList()
 {
-  PK_Physical::parseParameterList();
+  PK_Physical_Default::parseParameterList();
 
   // primary variable max change
   max_valid_change_ = plist_->get<double>("max valid change", -1.0);
 
   conserved_key_ = Keys::readKey(*plist_, domain_, "conserved quantity");
-  requireAtCurrent(conserved_key_, tag_current_, *S_, name_);
+  requireEvaluatorAtCurrent(conserved_key_, tag_current_, *S_, name_);
 
   atol_ = plist_->get<double>("absolute error tolerance", 1.0);
   rtol_ = plist_->get<double>("relative error tolerance", 1.0);
@@ -41,10 +41,10 @@ PK_PhysicalBDF_Default::parseParameterList()
 // Setup
 // -----------------------------------------------------------------------------
 void
-PK_PhysicalBDF_Default::Setup()
+PK_Physical_DefaultBDF_Default::Setup()
 {
   // call the meat of the base constructurs via Setup methods
-  PK_Physical::Setup();
+  PK_Physical_Default::Setup();
   PK_BDF_Default::Setup();
 
   // boundary conditions
@@ -52,15 +52,15 @@ PK_PhysicalBDF_Default::Setup()
     new Operators::BCs(mesh_, AmanziMesh::Entity_kind::FACE, WhetStone::DOF_Type::SCALAR));
 
   // convergence criteria is based on a conserved quantity
-  requireAtNext(conserved_key_, tag_next_, *S_, true)
+  requireEvaluatorAtNext(conserved_key_, tag_next_, *S_, true)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, true);
   // we also use a copy of the conserved quantity, as this is a better choice in the error norm
-  requireAtCurrent(conserved_key_, tag_current_, *S_, name_);
+  requireEvaluatorAtCurrent(conserved_key_, tag_current_, *S_, name_);
 
   // cell volume used throughout
-  requireAtNext(cell_vol_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(cell_vol_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, true);
 };
@@ -71,18 +71,18 @@ PK_PhysicalBDF_Default::Setup()
 // methods, so we need a unique overrider.
 // -----------------------------------------------------------------------------
 void
-PK_PhysicalBDF_Default::Initialize()
+PK_Physical_DefaultBDF_Default::Initialize()
 {
   // Just calls both subclass's initialize.  NOTE - order is important here --
   // PhysicalBase grabs the primary variable and stuffs it into the solution,
   // which must be done prior to BDFBase initializing the timestepper.
-  PK_Physical::Initialize();
+  PK_Physical_Default::Initialize();
   PK_BDF_Default::Initialize();
 }
 
 
 int
-PK_PhysicalBDF_Default::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
+PK_Physical_DefaultBDF_Default::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
                                             Teuchos::RCP<TreeVector> Pu)
 {
   *Pu = *u;
@@ -94,7 +94,7 @@ PK_PhysicalBDF_Default::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
 // Default enorm that uses an abs and rel tolerance to monitor convergence.
 // -----------------------------------------------------------------------------
 double
-PK_PhysicalBDF_Default::ErrorNorm(Teuchos::RCP<const TreeVector> u,
+PK_Physical_DefaultBDF_Default::ErrorNorm(Teuchos::RCP<const TreeVector> u,
                                   Teuchos::RCP<const TreeVector> res)
 {
   // Abs tol based on old conserved quantity -- we know these have been vetted
@@ -200,7 +200,7 @@ PK_PhysicalBDF_Default::ErrorNorm(Teuchos::RCP<const TreeVector> u,
 // Ensures the step size is smaller than max_valid_change
 // -----------------------------------------------------------------------------
 bool
-PK_PhysicalBDF_Default::IsValid(const Teuchos::RCP<const TreeVector>& up)
+PK_Physical_DefaultBDF_Default::IsValid(const Teuchos::RCP<const TreeVector>& up)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "Validating timestep." << std::endl;
@@ -224,10 +224,10 @@ PK_PhysicalBDF_Default::IsValid(const Teuchos::RCP<const TreeVector>& up)
 
 
 void
-PK_PhysicalBDF_Default::CommitStep(double t_old, double t_new, const Tag& tag_next)
+PK_Physical_DefaultBDF_Default::CommitStep(double t_old, double t_new, const Tag& tag_next)
 {
   PK_BDF_Default::CommitStep(t_old, t_new, tag_next);
-  PK_Physical::CommitStep(t_old, t_new, tag_next);
+  PK_Physical_Default::CommitStep(t_old, t_new, tag_next);
 
   AMANZI_ASSERT(tag_next == tag_next_ || tag_next == Tags::NEXT);
   Tag tag_current = tag_next == tag_next_ ? tag_current_ : Tags::CURRENT;
@@ -239,9 +239,9 @@ PK_PhysicalBDF_Default::CommitStep(double t_old, double t_new, const Tag& tag_ne
 
 
 void
-PK_PhysicalBDF_Default::FailStep(double t_old, double t_new, const Tag& tag)
+PK_Physical_DefaultBDF_Default::FailStep(double t_old, double t_new, const Tag& tag)
 {
-  PK_Physical::FailStep(t_old, t_new, tag);
+  PK_Physical_Default::FailStep(t_old, t_new, tag);
 }
 
 
@@ -250,7 +250,7 @@ PK_PhysicalBDF_Default::FailStep(double t_old, double t_new, const Tag& tag)
 // value of the solution in state.
 // -----------------------------------------------------------------------------
 void
-PK_PhysicalBDF_Default::ChangedSolution(const Tag& tag)
+PK_Physical_DefaultBDF_Default::ChangedSolution(const Tag& tag)
 {
   Teuchos::RCP<Evaluator> fm = S_->GetEvaluatorPtr(key_, tag);
   Teuchos::RCP<EvaluatorPrimaryCV> solution_evaluator =

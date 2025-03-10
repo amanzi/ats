@@ -57,7 +57,7 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
                              const Teuchos::RCP<State>& S,
                              const Teuchos::RCP<TreeVector>& solution)
   : PK(pk_tree, global_plist, S, solution),
-    PK_Physical(pk_tree, global_plist, S, solution),
+    PK_Physical_Default(pk_tree, global_plist, S, solution),
     has_water_src_key_(false),
     flow_tag_(Tags::NEXT),
     internal_tests(0),
@@ -76,7 +76,7 @@ void
 Transport_ATS::parseParameterList()
 {
   key_ = Keys::readKey(*plist_, domain_, "primary variable", "total_component_concentration");
-  PK_Physical::parseParameterList();
+  PK_Physical_Default::parseParameterList();
 
   if (plist_->isParameter("component molar masses")) {
     mol_masses_ = plist_->get<Teuchos::Array<double>>("component molar masses").toVector();
@@ -87,8 +87,8 @@ Transport_ATS::parseParameterList()
 
   // primary variable
   tcc_key_ = Keys::readKey(*plist_, domain_, "concentration", "total_component_concentration");
-  requireAtNext(tcc_key_, tag_next_, *S_, passwd_);
-  requireAtCurrent(tcc_key_, tag_current_, *S_, passwd_);
+  requireEvaluatorAtNext(tcc_key_, tag_next_, *S_, passwd_);
+  requireEvaluatorAtCurrent(tcc_key_, tag_current_, *S_, passwd_);
 
   // keys, dependencies, etc
   saturation_key_ = Keys::readKey(*plist_, domain_, "saturation liquid", "saturation_liquid");
@@ -147,7 +147,7 @@ Transport_ATS::parseParameterList()
 void
 Transport_ATS::set_tags(const Tag& current, const Tag& next)
 {
-  PK_Physical::set_tags(current, next);
+  PK_Physical_Default::set_tags(current, next);
 }
 
 
@@ -239,7 +239,7 @@ Transport_ATS::SetupTransport_()
   // -- permeability
   bool abs_perm = physical_models->get<bool>("permeability field is required", false);
   if (abs_perm) {
-    requireAtNext(permeability_key_, tag_next_, *S_)
+    requireEvaluatorAtNext(permeability_key_, tag_next_, *S_)
       .SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, mesh_->getSpaceDimension());
   }
@@ -309,7 +309,7 @@ Transport_ATS::SetupTransport_()
                   sublist_name << "field " << fid << " info";
                   auto field_key = flist.sublist(sublist_name.str()).get<std::string>("field key");
                   auto field_tag = Keys::readTag(flist.sublist(sublist_name.str()), "tag");
-                  requireAtNext(field_key, field_tag, *S_)
+                  requireEvaluatorAtNext(field_key, field_tag, *S_)
                     .SetMesh(mesh_)
                     ->SetGhosted(true)
                     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
@@ -318,7 +318,7 @@ Transport_ATS::SetupTransport_()
             } else { // if only one field
               auto field_key = src_list->sublist("field").get<std::string>("field key");
               auto field_tag = Keys::readTag(src_list->sublist("field"), "tag");
-              requireAtNext(field_key, field_tag, *S_)
+              requireEvaluatorAtNext(field_key, field_tag, *S_)
                 .SetMesh(mesh_)
                 ->SetGhosted(true)
                 ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_components_);
@@ -344,7 +344,7 @@ Transport_ATS::SetupTransport_()
             if (Keys::getDomain(name)!=domain_){
               name = Keys::getKey(domain_, name);
             }
-            requireAtNext(name, Tags::NEXT, *S_, name)
+            requireEvaluatorAtNext(name, Tags::NEXT, *S_, name)
             .SetMesh(mesh_)
             ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_components_);
           }
@@ -356,7 +356,7 @@ Transport_ATS::SetupTransport_()
     if (sources_list->isSublist("geochemical")) {
       // note these are computed at the flow PK's NEXT tag, which assumes all
       // sources are dealt with implicitly (backward Euler).  This could be relaxed --ETC
-      requireAtNext(water_src_key_, flow_tag_, *S_)
+      requireEvaluatorAtNext(water_src_key_, flow_tag_, *S_)
         .SetMesh(mesh_)
         ->SetGhosted(true)
         ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
@@ -376,7 +376,7 @@ Transport_ATS::SetupTransport_()
         wc_eval.set<Teuchos::Array<std::string>>("dependencies", dep);
         wc_eval.set<std::string>("reciprocal", dep[1]);
       }
-      requireAtNext(geochem_src_factor_key_, Tags::NEXT, *S_)
+      requireEvaluatorAtNext(geochem_src_factor_key_, Tags::NEXT, *S_)
         .SetMesh(mesh_)
         ->SetGhosted(true)
         ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
@@ -532,44 +532,44 @@ void
 Transport_ATS::SetupPhysicalEvaluators_()
 {
   // -- water flux
-  requireAtNext(flux_key_, Tags::NEXT, *S_)
+  requireEvaluatorAtNext(flux_key_, Tags::NEXT, *S_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);
 
   // -- water saturation
-  requireAtNext(saturation_key_, Tags::NEXT, *S_)
+  requireEvaluatorAtNext(saturation_key_, Tags::NEXT, *S_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  requireAtCurrent(saturation_key_, Tags::CURRENT, *S_);
+  requireEvaluatorAtCurrent(saturation_key_, Tags::CURRENT, *S_);
 
-  requireAtNext(porosity_key_, Tags::NEXT, *S_)
+  requireEvaluatorAtNext(porosity_key_, Tags::NEXT, *S_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
-  requireAtNext(molar_density_key_, Tags::NEXT, *S_)
+  requireEvaluatorAtNext(molar_density_key_, Tags::NEXT, *S_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  requireAtCurrent(molar_density_key_, Tags::CURRENT, *S_);
+  requireEvaluatorAtCurrent(molar_density_key_, Tags::CURRENT, *S_);
 
-  requireAtNext(tcc_key_, tag_next_, *S_, passwd_)
+  requireEvaluatorAtNext(tcc_key_, tag_next_, *S_, passwd_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_components_);
   S_->GetRecordSetW(tcc_key_).set_subfieldnames(component_names_);
-  requireAtCurrent(tcc_key_, tag_current_, *S_, passwd_);
+  requireEvaluatorAtCurrent(tcc_key_, tag_current_, *S_, passwd_);
 
   // CellVolume it may not be used in this PK, but having it makes vis nicer
-  requireAtNext(cv_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(cv_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   // Need to figure out primary vs secondary -- are both in component names? --ETC
   std::vector<std::string> primary_names = component_names_;
-  requireAtNext(solid_residue_mass_key_, tag_next_, *S_, name_)
+  requireEvaluatorAtNext(solid_residue_mass_key_, tag_next_, *S_, name_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_components_);
@@ -582,7 +582,7 @@ Transport_ATS::SetupPhysicalEvaluators_()
   // Note that component_names includes secondaries, but we only need primaries
   primary_names.emplace_back("H2O_old");
   primary_names.emplace_back("H2O_new");
-  requireAtNext(conserve_qty_key_, tag_next_, *S_, name_)
+  requireEvaluatorAtNext(conserve_qty_key_, tag_next_, *S_, name_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_components_ + 2);
