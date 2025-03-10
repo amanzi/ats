@@ -56,7 +56,7 @@ sinks.
 namespace Amanzi {
 namespace SurfaceBalance {
 
-class SurfaceBalanceBase : public PK_Physical_DefaultBDF_Default {
+class SurfaceBalanceBase : public PK_PhysicalBDF_Default {
  public:
   SurfaceBalanceBase(Teuchos::ParameterList& pk_tree,
                      const Teuchos::RCP<Teuchos::ParameterList>& global_list,

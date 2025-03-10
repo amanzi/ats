@@ -51,7 +51,7 @@ namespace Amanzi {
 void
 MPCCoupledCells::parseParameterList()
 {
-  StrongMPC<PK_Physical_DefaultBDF_Default>::parseParameterList();
+  StrongMPC<PK_PhysicalBDF_Default>::parseParameterList();
 
   Key domain = plist_->get<std::string>("domain name");
   mesh_ = S_->GetMesh(domain);
@@ -65,7 +65,7 @@ MPCCoupledCells::parseParameterList()
 void
 MPCCoupledCells::Setup()
 {
-  StrongMPC<PK_Physical_DefaultBDF_Default>::Setup();
+  StrongMPC<PK_PhysicalBDF_Default>::Setup();
 
   // set up debugger
   db_ = sub_pks_[0]->debugger();
@@ -133,7 +133,7 @@ MPCCoupledCells::Setup()
 void
 MPCCoupledCells::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h)
 {
-  StrongMPC<PK_Physical_DefaultBDF_Default>::UpdatePreconditioner(t, up, h);
+  StrongMPC<PK_PhysicalBDF_Default>::UpdatePreconditioner(t, up, h);
 
   if (dA_dy2_ != Teuchos::null &&
       S_->GetEvaluator(A_key_, tag_next_).IsDifferentiableWRT(*S_, y2_key_, tag_next_)) {

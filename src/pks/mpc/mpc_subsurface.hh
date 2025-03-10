@@ -157,7 +157,7 @@ namespace Flow {
 class Richards;
 }
 
-class MPCSubsurface : public StrongMPC<PK_Physical_DefaultBDF_Default> {
+class MPCSubsurface : public StrongMPC<PK_PhysicalBDF_Default> {
  public:
   MPCSubsurface(Teuchos::ParameterList& pk_tree_list,
                 const Teuchos::RCP<Teuchos::ParameterList>& global_list,

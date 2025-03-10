@@ -20,7 +20,7 @@ SurfaceBalanceBase::SurfaceBalanceBase(Teuchos::ParameterList& pk_tree,
                                        const Teuchos::RCP<State>& S,
                                        const Teuchos::RCP<TreeVector>& solution)
   : PK(pk_tree, global_list, S, solution),
-    PK_Physical_DefaultBDF_Default(pk_tree, global_list, S, solution),
+    PK_PhysicalBDF_Default(pk_tree, global_list, S, solution),
     is_source_term_(false),
     is_source_term_differentiable_(false),
     is_source_term_finite_differentiable_(false)
@@ -34,7 +34,7 @@ SurfaceBalanceBase::parseParameterList()
   if (!plist_->isParameter("absolute error tolerance"))
     plist_->set("absolute error tolerance", .01 * 55000.); // h * nl
 
-  PK_Physical_DefaultBDF_Default::parseParameterList();
+  PK_PhysicalBDF_Default::parseParameterList();
 
   // source terms
   is_source_term_ = plist_->get<bool>("source term", true);
@@ -64,7 +64,7 @@ SurfaceBalanceBase::parseParameterList()
 void
 SurfaceBalanceBase::Setup()
 {
-  PK_Physical_DefaultBDF_Default::Setup();
+  PK_PhysicalBDF_Default::Setup();
 
   // requirements: primary variable
   //  NOTE: no need to require evaluator here, either at the old or new
@@ -125,7 +125,7 @@ void
 SurfaceBalanceBase::CommitStep(double t_old, double t_new, const Tag& tag_next)
 {
   // saves primary variable
-  PK_Physical_DefaultBDF_Default::CommitStep(t_old, t_new, tag_next);
+  PK_PhysicalBDF_Default::CommitStep(t_old, t_new, tag_next);
 
   AMANZI_ASSERT(tag_next == tag_next_ || tag_next == Tags::NEXT);
   Tag tag_current = tag_next == tag_next_ ? tag_current_ : Tags::CURRENT;

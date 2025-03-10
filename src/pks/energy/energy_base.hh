@@ -170,7 +170,7 @@ class BoundaryFunction;
 
 namespace Energy {
 
-class EnergyBase : public PK_Physical_DefaultBDF_Default {
+class EnergyBase : public PK_PhysicalBDF_Default {
  public:
   EnergyBase(Teuchos::ParameterList& FElist,
              const Teuchos::RCP<Teuchos::ParameterList>& plist,

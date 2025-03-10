@@ -44,7 +44,7 @@ MPCCoupledDualMediaWater::Setup(const Teuchos::Ptr<State>& S)
   StrongMPC<PK_BDF_Default>::Setup(S);
 
   // cast the PKs
-  integrated_flow_pk_ = Teuchos::rcp_dynamic_cast<StrongMPC<PK_Physical_DefaultBDF_Default>>(sub_pks_[0]);
+  integrated_flow_pk_ = Teuchos::rcp_dynamic_cast<StrongMPC<PK_PhysicalBDF_Default>>(sub_pks_[0]);
   AMANZI_ASSERT(integrated_flow_pk_ != Teuchos::null);
 
   macro_flow_pk_ = sub_pks_[1];

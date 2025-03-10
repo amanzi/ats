@@ -93,7 +93,7 @@ void
 AdvectionDiffusion::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h)
 {
   AMANZI_ASSERT(std::abs(S_next_->time() - t) <= 1.e-4 * t);
-  PK_Physical_DefaultBDF_Default::Solution_to_State(*up, S_next_);
+  PK_PhysicalBDF_Default::Solution_to_State(*up, S_next_);
 
   // update boundary conditions
   bc_temperature_->Compute(S_next_->time());

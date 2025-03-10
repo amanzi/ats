@@ -39,7 +39,7 @@ SnowDistribution::SnowDistribution(Teuchos::ParameterList& pk_tree,
                                    const Teuchos::RCP<State>& S,
                                    const Teuchos::RCP<TreeVector>& solution)
   : PK(pk_tree, plist, S, solution),
-    PK_Physical_DefaultBDF_Default(pk_tree, plist, S, solution),
+    PK_PhysicalBDF_Default(pk_tree, plist, S, solution),
     my_next_time_(-9.e80)
 {
   // set a default absolute tolerance
@@ -70,7 +70,7 @@ SnowDistribution::SnowDistribution(Teuchos::ParameterList& pk_tree,
 void
 SnowDistribution::Setup()
 {
-  PK_Physical_DefaultBDF_Default::Setup();
+  PK_PhysicalBDF_Default::Setup();
   SetupSnowDistribution_();
   SetupPhysicalEvaluators_();
 }
@@ -206,7 +206,7 @@ void
 SnowDistribution::Initialize()
 {
   // Initialize BDF stuff and physical domain stuff.
-  PK_Physical_DefaultBDF_Default::Initialize();
+  PK_PhysicalBDF_Default::Initialize();
 
   // Set extra fields as initialized -- these don't currently have evaluators.
   S_->GetW<CompositeVector>(uw_cond_key_, tag_next_, name_).PutScalar(1.0);

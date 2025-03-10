@@ -20,7 +20,7 @@ PKPhysicalBase and BDF methods of PK_BDF_Default.
 namespace Amanzi {
 
 void
-PK_Physical_DefaultBDF_Default::parseParameterList()
+PK_PhysicalBDF_Default::parseParameterList()
 {
   PK_Physical_Default::parseParameterList();
 
@@ -41,7 +41,7 @@ PK_Physical_DefaultBDF_Default::parseParameterList()
 // Setup
 // -----------------------------------------------------------------------------
 void
-PK_Physical_DefaultBDF_Default::Setup()
+PK_PhysicalBDF_Default::Setup()
 {
   // call the meat of the base constructurs via Setup methods
   PK_Physical_Default::Setup();
@@ -71,7 +71,7 @@ PK_Physical_DefaultBDF_Default::Setup()
 // methods, so we need a unique overrider.
 // -----------------------------------------------------------------------------
 void
-PK_Physical_DefaultBDF_Default::Initialize()
+PK_PhysicalBDF_Default::Initialize()
 {
   // Just calls both subclass's initialize.  NOTE - order is important here --
   // PhysicalBase grabs the primary variable and stuffs it into the solution,
@@ -82,7 +82,7 @@ PK_Physical_DefaultBDF_Default::Initialize()
 
 
 int
-PK_Physical_DefaultBDF_Default::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
+PK_PhysicalBDF_Default::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
                                             Teuchos::RCP<TreeVector> Pu)
 {
   *Pu = *u;
@@ -94,7 +94,7 @@ PK_Physical_DefaultBDF_Default::ApplyPreconditioner(Teuchos::RCP<const TreeVecto
 // Default enorm that uses an abs and rel tolerance to monitor convergence.
 // -----------------------------------------------------------------------------
 double
-PK_Physical_DefaultBDF_Default::ErrorNorm(Teuchos::RCP<const TreeVector> u,
+PK_PhysicalBDF_Default::ErrorNorm(Teuchos::RCP<const TreeVector> u,
                                   Teuchos::RCP<const TreeVector> res)
 {
   // Abs tol based on old conserved quantity -- we know these have been vetted
@@ -200,7 +200,7 @@ PK_Physical_DefaultBDF_Default::ErrorNorm(Teuchos::RCP<const TreeVector> u,
 // Ensures the step size is smaller than max_valid_change
 // -----------------------------------------------------------------------------
 bool
-PK_Physical_DefaultBDF_Default::IsValid(const Teuchos::RCP<const TreeVector>& up)
+PK_PhysicalBDF_Default::IsValid(const Teuchos::RCP<const TreeVector>& up)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "Validating timestep." << std::endl;
@@ -224,7 +224,7 @@ PK_Physical_DefaultBDF_Default::IsValid(const Teuchos::RCP<const TreeVector>& up
 
 
 void
-PK_Physical_DefaultBDF_Default::CommitStep(double t_old, double t_new, const Tag& tag_next)
+PK_PhysicalBDF_Default::CommitStep(double t_old, double t_new, const Tag& tag_next)
 {
   PK_BDF_Default::CommitStep(t_old, t_new, tag_next);
   PK_Physical_Default::CommitStep(t_old, t_new, tag_next);
@@ -239,7 +239,7 @@ PK_Physical_DefaultBDF_Default::CommitStep(double t_old, double t_new, const Tag
 
 
 void
-PK_Physical_DefaultBDF_Default::FailStep(double t_old, double t_new, const Tag& tag)
+PK_PhysicalBDF_Default::FailStep(double t_old, double t_new, const Tag& tag)
 {
   PK_Physical_Default::FailStep(t_old, t_new, tag);
 }
@@ -250,7 +250,7 @@ PK_Physical_DefaultBDF_Default::FailStep(double t_old, double t_new, const Tag& 
 // value of the solution in state.
 // -----------------------------------------------------------------------------
 void
-PK_Physical_DefaultBDF_Default::ChangedSolution(const Tag& tag)
+PK_PhysicalBDF_Default::ChangedSolution(const Tag& tag)
 {
   Teuchos::RCP<Evaluator> fm = S_->GetEvaluatorPtr(key_, tag);
   Teuchos::RCP<EvaluatorPrimaryCV> solution_evaluator =

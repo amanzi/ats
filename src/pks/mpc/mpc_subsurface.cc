@@ -41,7 +41,7 @@ MPCSubsurface::MPCSubsurface(Teuchos::ParameterList& pk_tree_list,
                              const Teuchos::RCP<State>& S,
                              const Teuchos::RCP<TreeVector>& soln)
   : PK(pk_tree_list, global_list, S, soln),
-    StrongMPC<PK_Physical_DefaultBDF_Default>(pk_tree_list, global_list, S, soln),
+    StrongMPC<PK_PhysicalBDF_Default>(pk_tree_list, global_list, S, soln),
     update_pcs_(0)
 {}
 
@@ -49,7 +49,7 @@ MPCSubsurface::MPCSubsurface(Teuchos::ParameterList& pk_tree_list,
 void
 MPCSubsurface::parseParameterList()
 {
-  StrongMPC<PK_Physical_DefaultBDF_Default>::parseParameterList();
+  StrongMPC<PK_PhysicalBDF_Default>::parseParameterList();
 
   // set up keys
   dump_ = plist_->get<bool>("dump preconditioner", false);
@@ -101,7 +101,7 @@ MPCSubsurface::Setup()
   }
 
   // set up the sub-pks
-  StrongMPC<PK_Physical_DefaultBDF_Default>::Setup();
+  StrongMPC<PK_PhysicalBDF_Default>::Setup();
   mesh_ = S_->GetMesh(domain_name_);
 
   // set up debugger
@@ -416,7 +416,7 @@ MPCSubsurface::Setup()
 void
 MPCSubsurface::Initialize()
 {
-  StrongMPC<PK_Physical_DefaultBDF_Default>::Initialize();
+  StrongMPC<PK_PhysicalBDF_Default>::Initialize();
   if (ewc_ != Teuchos::null) ewc_->initialize();
 
   // initialize offdiagonal operators
@@ -490,7 +490,7 @@ MPCSubsurface::Initialize()
 void
 MPCSubsurface::set_tags(const Tag& tag_current, const Tag& tag_next)
 {
-  StrongMPC<PK_Physical_DefaultBDF_Default>::set_tags(tag_current, tag_next);
+  StrongMPC<PK_PhysicalBDF_Default>::set_tags(tag_current, tag_next);
   if (ewc_ != Teuchos::null) ewc_->set_tags(tag_current, tag_next);
 }
 
@@ -501,7 +501,7 @@ MPCSubsurface::CommitStep(double t_old, double t_new, const Tag& tag)
   if (ewc_ != Teuchos::null) { ewc_->commit_state(); }
 
   update_pcs_ = 0;
-  StrongMPC<PK_Physical_DefaultBDF_Default>::CommitStep(t_old, t_new, tag);
+  StrongMPC<PK_PhysicalBDF_Default>::CommitStep(t_old, t_new, tag);
 }
 
 
@@ -518,7 +518,7 @@ MPCSubsurface::ModifyPredictor(double h,
   }
 
   // potentially update faces
-  modified |= StrongMPC<PK_Physical_DefaultBDF_Default>::ModifyPredictor(h, up0, up);
+  modified |= StrongMPC<PK_PhysicalBDF_Default>::ModifyPredictor(h, up0, up);
   return modified;
 }
 

@@ -145,7 +145,7 @@ class OverlandConductivityModel;
 class HeightModel;
 
 //class OverlandPressureFlow : public PKPhysicalBDFBase {
-class OverlandPressureFlow : public PK_Physical_DefaultBDF_Default {
+class OverlandPressureFlow : public PK_PhysicalBDF_Default {
  public:
   OverlandPressureFlow(Teuchos::ParameterList& pk_tree,
                        const Teuchos::RCP<Teuchos::ParameterList>& global_list,

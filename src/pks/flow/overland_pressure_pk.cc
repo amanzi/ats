@@ -38,7 +38,7 @@ OverlandPressureFlow::OverlandPressureFlow(Teuchos::ParameterList& pk_tree,
                                            const Teuchos::RCP<State>& S,
                                            const Teuchos::RCP<TreeVector>& solution)
   : PK(pk_tree, plist, S, solution),
-    PK_Physical_DefaultBDF_Default(pk_tree, plist, S, solution),
+    PK_PhysicalBDF_Default(pk_tree, plist, S, solution),
     standalone_mode_(false),
     is_source_term_(false),
     is_source_term_differentiable_(false),
@@ -67,7 +67,7 @@ OverlandPressureFlow::parseParameterList()
   if (!plist_->isParameter("conserved quantity key suffix"))
     plist_->set<std::string>("conserved quantity key suffix", "water_content");
 
-  PK_Physical_DefaultBDF_Default::parseParameterList();
+  PK_PhysicalBDF_Default::parseParameterList();
 
   // get keys
   potential_key_ = Keys::readKey(*plist_, domain_, "potential", "pres_elev");
@@ -130,7 +130,7 @@ OverlandPressureFlow::parseParameterList()
 void
 OverlandPressureFlow::Setup()
 {
-  PK_Physical_DefaultBDF_Default::Setup();
+  PK_PhysicalBDF_Default::Setup();
 
   // -- water content, and evaluator, and derivative for PC
   requireEvaluatorAtNext(conserved_key_, tag_next_, *S_)
@@ -440,7 +440,7 @@ OverlandPressureFlow::Initialize()
   }
 
   // Initialize BDF stuff and physical domain stuff.
-  PK_Physical_DefaultBDF_Default::Initialize();
+  PK_PhysicalBDF_Default::Initialize();
 
   if (!S_->GetRecord(key_, tag_next_).initialized()) {
     // TODO: can this be deprecated?  Shouldn't this get handled by the MPC?
@@ -547,7 +547,7 @@ void
 OverlandPressureFlow::CommitStep(double t_old, double t_new, const Tag& tag_next)
 {
   // saves primary variable
-  PK_Physical_DefaultBDF_Default::CommitStep(t_old, t_new, tag_next);
+  PK_PhysicalBDF_Default::CommitStep(t_old, t_new, tag_next);
 
   AMANZI_ASSERT(tag_next == tag_next_ || tag_next == Tags::NEXT);
   Tag tag_current = tag_next == tag_next_ ? tag_current_ : Tags::CURRENT;

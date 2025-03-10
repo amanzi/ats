@@ -770,7 +770,7 @@ MPCPermafrost::ModifyCorrection(double h,
 
   // apply PK modifications
   AmanziSolvers::FnBaseDefs::ModifyCorrectionResult pk_modified =
-    StrongMPC<PK_Physical_DefaultBDF_Default>::ModifyCorrection(h, r, u, du);
+    StrongMPC<PK_PhysicalBDF_Default>::ModifyCorrection(h, r, u, du);
   if (pk_modified) {
     CopySurfaceToSubsurface(*du->SubVector(2)->Data(), *du->SubVector(0)->Data());
     CopySurfaceToSubsurface(*du->SubVector(3)->Data(), *du->SubVector(1)->Data());

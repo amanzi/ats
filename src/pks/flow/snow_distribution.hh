@@ -64,7 +64,7 @@ daily (which all defaults are set for).
 namespace Amanzi {
 namespace Flow {
 
-class SnowDistribution : public PK_Physical_DefaultBDF_Default {
+class SnowDistribution : public PK_PhysicalBDF_Default {
  public:
   SnowDistribution(Teuchos::ParameterList& pk_tree,
                    const Teuchos::RCP<Teuchos::ParameterList>& plist,

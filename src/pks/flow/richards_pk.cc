@@ -44,7 +44,7 @@ Richards::Richards(Teuchos::ParameterList& pk_tree,
                    const Teuchos::RCP<State>& S,
                    const Teuchos::RCP<TreeVector>& solution)
   : PK(pk_tree, glist, S, solution),
-    PK_Physical_DefaultBDF_Default(pk_tree, glist, S, solution),
+    PK_PhysicalBDF_Default(pk_tree, glist, S, solution),
     coupled_to_surface_via_head_(false),
     coupled_to_surface_via_flux_(false),
     infiltrate_only_if_unfrozen_(false),
@@ -139,7 +139,7 @@ Richards::parseParameterList()
   requireEvaluatorAtCurrent(sat_key_, tag_current_, *S_, name_);
 
   // parse inherited lists
-  PK_Physical_DefaultBDF_Default::parseParameterList();
+  PK_PhysicalBDF_Default::parseParameterList();
 }
 
 
@@ -149,7 +149,7 @@ Richards::parseParameterList()
 void
 Richards::Setup()
 {
-  PK_Physical_DefaultBDF_Default::Setup();
+  PK_PhysicalBDF_Default::Setup();
   SetupRichardsFlow_();
   SetupPhysicalEvaluators_();
 };
@@ -532,7 +532,7 @@ Richards::Initialize()
   if (!S_->GetRecordW(key_, tag_next_, name_).initialized()) InitializeHydrostatic_(tag_next_);
 
   // Initialize in the standard ways
-  PK_Physical_DefaultBDF_Default::Initialize();
+  PK_PhysicalBDF_Default::Initialize();
 
   // Set extra fields as initialized -- these don't currently have evaluators,
   // and will be initialized in the call to commit_state()
@@ -695,7 +695,7 @@ void
 Richards::CommitStep(double t_old, double t_new, const Tag& tag_next)
 {
   // saves primary variable
-  PK_Physical_DefaultBDF_Default::CommitStep(t_old, t_new, tag_next);
+  PK_PhysicalBDF_Default::CommitStep(t_old, t_new, tag_next);
 
   AMANZI_ASSERT(tag_next == tag_next_ || tag_next == Tags::NEXT);
   Tag tag_current = tag_next == tag_next_ ? tag_current_ : Tags::CURRENT;
@@ -750,7 +750,7 @@ Richards::IsValid(const Teuchos::RCP<const TreeVector>& u)
       return false;
     }
   }
-  return PK_Physical_DefaultBDF_Default::IsValid(u);
+  return PK_PhysicalBDF_Default::IsValid(u);
 }
 
 

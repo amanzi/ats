@@ -39,7 +39,7 @@ EnergyBase::EnergyBase(Teuchos::ParameterList& FElist,
                        const Teuchos::RCP<State>& S,
                        const Teuchos::RCP<TreeVector>& solution)
   : PK(FElist, plist, S, solution),
-    PK_Physical_DefaultBDF_Default(FElist, plist, S, solution),
+    PK_PhysicalBDF_Default(FElist, plist, S, solution),
     modify_predictor_with_consistent_faces_(false),
     modify_predictor_for_freezing_(false),
     coupled_to_subsurface_via_temp_(false),
@@ -77,7 +77,7 @@ EnergyBase::parseParameterList()
     enth_list.set<std::string>("evaluator type", "enthalpy");
   }
 
-  PK_Physical_DefaultBDF_Default::parseParameterList();
+  PK_PhysicalBDF_Default::parseParameterList();
 
   // set a default error tolerance
   if (domain_.find("surface") != std::string::npos) {
@@ -121,7 +121,7 @@ EnergyBase::parseParameterList()
 void
 EnergyBase::Setup()
 {
-  PK_Physical_DefaultBDF_Default::Setup();
+  PK_PhysicalBDF_Default::Setup();
   SetupEnergy_();
   SetupPhysicalEvaluators_();
 };
@@ -438,7 +438,7 @@ void
 EnergyBase::Initialize()
 {
   // initialize BDF stuff and physical domain stuff
-  PK_Physical_DefaultBDF_Default::Initialize();
+  PK_PhysicalBDF_Default::Initialize();
 
   // initialize energy fluxes
   S_->GetW<CompositeVector>(energy_flux_key_, tag_next_, name()).PutScalar(0.0);
@@ -473,7 +473,7 @@ void
 EnergyBase::CommitStep(double t_old, double t_new, const Tag& tag_next)
 {
   // saves primary variable
-  PK_Physical_DefaultBDF_Default::CommitStep(t_old, t_new, tag_next);
+  PK_PhysicalBDF_Default::CommitStep(t_old, t_new, tag_next);
 
   AMANZI_ASSERT(tag_next == tag_next_ || tag_next == Tags::NEXT);
   Tag tag_current = tag_next == tag_next_ ? tag_current_ : Tags::CURRENT;
