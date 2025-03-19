@@ -18,11 +18,9 @@ See additional documentation in the base class src/pks/mpc/MPC.hh
 ------------------------------------------------------------------------- */
 
 #include "mpc_subcycled.hh"
-#include "mpc_flow_transport.hh"
 
 namespace Amanzi {
 
 RegisteredPKFactory<MPCSubcycled> MPCSubcycled::reg_("subcycling MPC");
-RegisteredPKFactory<MPCFlowTransport> MPCFlowTransport::reg_("coupled flow and transport");
 
 } // namespace Amanzi

@@ -7,8 +7,7 @@
   Authors: Ethan Coon (ecoon@ornl.gov)
 */
 
-#include "energy_bc_factory.hh"
-#include "advection_factory.hh"
+#include "Reductions.hh"
 
 #include "PDE_DiffusionFactory.hh"
 #include "PDE_Diffusion.hh"
@@ -17,6 +16,8 @@
 #include "upwind_cell_centered.hh"
 #include "upwind_arithmetic_mean.hh"
 #include "upwind_total_flux.hh"
+#include "energy_bc_factory.hh"
+#include "advection_factory.hh"
 
 #include "enthalpy_evaluator.hh"
 
@@ -66,6 +67,8 @@ EnergyBase::parseParameterList()
   }
 
   // set some defaults for inherited PKs
+  if (!plist_->isParameter("primary variable key suffix"))
+    plist_->set<std::string>("primary variable key suffix", "temperature");
   if (!plist_->isParameter("conserved quantity key suffix"))
     plist_->set<std::string>("conserved quantity key suffix", "energy");
 
@@ -666,91 +669,30 @@ EnergyBase::IsAdmissible(Teuchos::RCP<const TreeVector> up)
   // For some reason, wandering PKs break most frequently with an unreasonable
   // temperature.  This simply tries to catch that before it happens.
   Teuchos::RCP<const CompositeVector> temp = up->Data();
-  double minT, maxT;
 
   const Epetra_MultiVector& temp_c = *temp->ViewComponent("cell", false);
-  double minT_c(1.e6), maxT_c(-1.e6);
-  int min_c(-1), max_c(-1);
-  for (int c = 0; c != temp_c.MyLength(); ++c) {
-    if (temp_c[0][c] < minT_c) {
-      minT_c = temp_c[0][c];
-      min_c = c;
-    }
-    if (temp_c[0][c] > maxT_c) {
-      maxT_c = temp_c[0][c];
-      max_c = c;
-    }
-  }
+  Reductions::MinMaxLoc minmaxT_c = Reductions::reduceAllMinMaxLoc(*temp_c(0));
+  Reductions::MinMaxLoc minmaxT_f = Reductions::createEmptyMinMaxLoc();
 
-  double minT_f(1.e6), maxT_f(-1.e6);
-  int min_f(-1), max_f(-1);
   if (temp->HasComponent("face")) {
     const Epetra_MultiVector& temp_f = *temp->ViewComponent("face", false);
-    for (int f = 0; f != temp_f.MyLength(); ++f) {
-      if (temp_f[0][f] < minT_f) {
-        minT_f = temp_f[0][f];
-        min_f = f;
-      }
-      if (temp_f[0][f] > maxT_f) {
-        maxT_f = temp_f[0][f];
-        max_f = f;
-      }
-    }
-    minT = std::min(minT_c, minT_f);
-    maxT = std::max(maxT_c, maxT_f);
-
-  } else {
-    minT = minT_c;
-    maxT = maxT_c;
+    minmaxT_f = Reductions::reduceAllMinMaxLoc(*temp_f(0));
   }
-
-  double minT_l = minT;
-  double maxT_l = maxT;
-  mesh_->getComm()->MaxAll(&maxT_l, &maxT, 1);
-  mesh_->getComm()->MinAll(&minT_l, &minT, 1);
+  double minT = std::min(minmaxT_c[0].value, minmaxT_f[0].value);
+  double maxT = std::max(minmaxT_c[1].value, minmaxT_f[1].value);
 
   if (vo_->os_OK(Teuchos::VERB_HIGH)) {
     *vo_->os() << "    Admissible T? (min/max): " << minT << ",  " << maxT << std::endl;
   }
 
-  Teuchos::RCP<const Comm_type> comm_p = mesh_->getComm();
-  Teuchos::RCP<const MpiComm_type> mpi_comm_p =
-    Teuchos::rcp_dynamic_cast<const MpiComm_type>(comm_p);
-  const MPI_Comm& comm = mpi_comm_p->Comm();
-
   if (minT < 200.0 || maxT > 330.0) {
     if (vo_->os_OK(Teuchos::VERB_MEDIUM)) {
       *vo_->os() << " is not admissible, as it is not within bounds of constitutive models:"
                  << std::endl;
-      ENorm_t global_minT_c, local_minT_c;
-      ENorm_t global_maxT_c, local_maxT_c;
-
-      local_minT_c.value = minT_c;
-      local_minT_c.gid = temp_c.Map().GID(min_c);
-      local_maxT_c.value = maxT_c;
-      local_maxT_c.gid = temp_c.Map().GID(max_c);
-
-      MPI_Allreduce(&local_minT_c, &global_minT_c, 1, MPI_DOUBLE_INT, MPI_MINLOC, comm);
-      MPI_Allreduce(&local_maxT_c, &global_maxT_c, 1, MPI_DOUBLE_INT, MPI_MAXLOC, comm);
-
-      *vo_->os() << "   cells (min/max): [" << global_minT_c.gid << "] " << global_minT_c.value
-                 << ", [" << global_maxT_c.gid << "] " << global_maxT_c.value << std::endl;
+      *vo_->os() << "   cells (min/max): " << minmaxT_c << std::endl;
 
       if (temp->HasComponent("face")) {
-        const Epetra_MultiVector& temp_f = *temp->ViewComponent("face", false);
-        ENorm_t global_minT_f, local_minT_f;
-        ENorm_t global_maxT_f, local_maxT_f;
-
-        local_minT_f.value = minT_f;
-        local_minT_f.gid = temp_f.Map().GID(min_f);
-        local_maxT_f.value = maxT_f;
-        local_maxT_f.gid = temp_f.Map().GID(max_f);
-
-
-        MPI_Allreduce(&local_minT_f, &global_minT_f, 1, MPI_DOUBLE_INT, MPI_MINLOC, comm);
-        MPI_Allreduce(&local_maxT_f, &global_maxT_f, 1, MPI_DOUBLE_INT, MPI_MAXLOC, comm);
-        *vo_->os() << "   cells (min/max): [" << global_minT_f.gid << "] " << global_minT_f.value
-                   << ", [" << global_maxT_f.gid << "] " << global_maxT_f.value << std::endl;
+        *vo_->os() << "   faces (min/max): " << minmaxT_f << std::endl;
       }
     }
     return false;

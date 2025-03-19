@@ -11,6 +11,7 @@
 
 #include "flow_bc_factory.hh"
 
+#include "Reductions.hh"
 #include "Point.hh"
 
 #include "upwind_cell_centered.hh"
@@ -71,6 +72,8 @@ void
 Richards::parseParameterList()
 {
   // set some defaults for inherited PKs
+  if (!plist_->isParameter("primary variable key suffix"))
+    plist_->set<std::string>("primary variable key suffix", "pressure");
   if (!plist_->isParameter("conserved quantity key suffix"))
     plist_->set<std::string>("conserved quantity key suffix", "water_content");
 
@@ -722,7 +725,7 @@ Richards::IsValid(const Teuchos::RCP<const TreeVector>& u)
       *S_->GetPtr<CompositeVector>(sat_key_, tag_current_)->ViewComponent("cell", false);
     Epetra_MultiVector dsl(sl_new);
     dsl.Update(-1., sl_old, 1.);
-    auto change = maxValLoc(*dsl(0));
+    auto change = Reductions::reduceAllMaxLoc(*dsl(0));
 
     if (change.value > sat_change_limit_) {
       if (vo_->os_OK(Teuchos::VERB_LOW))
@@ -740,7 +743,7 @@ Richards::IsValid(const Teuchos::RCP<const TreeVector>& u)
       *S_->GetPtr<CompositeVector>(sat_ice_key_, tag_current_)->ViewComponent("cell", false);
     Epetra_MultiVector dsi(si_new);
     dsi.Update(-1., si_old, 1.);
-    auto change = maxValLoc(*dsi(0));
+    auto change = Reductions::reduceAllMaxLoc(*dsi(0));
 
     if (change.value > sat_ice_change_limit_) {
       if (vo_->os_OK(Teuchos::VERB_LOW))
@@ -1476,90 +1479,30 @@ Richards::IsAdmissible(Teuchos::RCP<const TreeVector> up)
   // For some reason, wandering PKs break most frequently with an unreasonable
   // pressure.  This simply tries to catch that before it happens.
   Teuchos::RCP<const CompositeVector> pres = up->Data();
-  double minT, maxT;
 
   const Epetra_MultiVector& pres_c = *pres->ViewComponent("cell", false);
-  double minT_c(1.e15), maxT_c(-1.e15);
-  int min_c(-1), max_c(-1);
-  for (int c = 0; c != pres_c.MyLength(); ++c) {
-    if (pres_c[0][c] < minT_c) {
-      minT_c = pres_c[0][c];
-      min_c = c;
-    }
-    if (pres_c[0][c] > maxT_c) {
-      maxT_c = pres_c[0][c];
-      max_c = c;
-    }
-  }
+  Reductions::MinMaxLoc minmaxp_c = Reductions::reduceAllMinMaxLoc(*pres_c(0));
+  Reductions::MinMaxLoc minmaxp_f = Reductions::createEmptyMinMaxLoc();
 
-  double minT_f(1.e15), maxT_f(-1.e15);
-  int min_f(-1), max_f(-1);
   if (pres->HasComponent("face")) {
     const Epetra_MultiVector& pres_f = *pres->ViewComponent("face", false);
-    for (int f = 0; f != pres_f.MyLength(); ++f) {
-      if (pres_f[0][f] < minT_f) {
-        minT_f = pres_f[0][f];
-        min_f = f;
-      }
-      if (pres_f[0][f] > maxT_f) {
-        maxT_f = pres_f[0][f];
-        max_f = f;
-      }
-    }
-    minT = std::min(minT_c, minT_f);
-    maxT = std::max(maxT_c, maxT_f);
-
-  } else {
-    minT = minT_c;
-    maxT = maxT_c;
+    minmaxp_f = Reductions::reduceAllMinMaxLoc(*pres_f(0));
   }
-
-  double minT_l = minT;
-  double maxT_l = maxT;
-  mesh_->getComm()->MaxAll(&maxT_l, &maxT, 1);
-  mesh_->getComm()->MinAll(&minT_l, &minT, 1);
+  double minp = std::min(minmaxp_c[0].value, minmaxp_f[0].value);
+  double maxp = std::max(minmaxp_c[1].value, minmaxp_f[1].value);
 
   if (vo_->os_OK(Teuchos::VERB_HIGH)) {
-    *vo_->os() << "    Admissible p? (min/max): " << minT << ",  " << maxT << std::endl;
+    *vo_->os() << "    Admissible p? (min/max): " << minp << ",  " << maxp << std::endl;
   }
 
-  if (minT < -1.e9 || maxT > 1.e8) {
+  if (minp < -1.e9 || maxp > 1.e8) {
     if (vo_->os_OK(Teuchos::VERB_MEDIUM)) {
       *vo_->os() << " is not admissible, as it is not within bounds of constitutive models:"
                  << std::endl;
-
-      Teuchos::RCP<const Comm_type> comm_p = mesh_->getComm();
-      Teuchos::RCP<const MpiComm_type> mpi_comm_p =
-        Teuchos::rcp_dynamic_cast<const MpiComm_type>(comm_p);
-      const MPI_Comm& comm = mpi_comm_p->Comm();
-
-      ENorm_t global_minT_c, local_minT_c;
-      ENorm_t global_maxT_c, local_maxT_c;
-
-      local_minT_c.value = minT_c;
-      local_minT_c.gid = pres_c.Map().GID(min_c);
-      local_maxT_c.value = maxT_c;
-      local_maxT_c.gid = pres_c.Map().GID(max_c);
-
-      MPI_Allreduce(&local_minT_c, &global_minT_c, 1, MPI_DOUBLE_INT, MPI_MINLOC, comm);
-      MPI_Allreduce(&local_maxT_c, &global_maxT_c, 1, MPI_DOUBLE_INT, MPI_MAXLOC, comm);
-      *vo_->os() << "   cells (min/max): [" << global_minT_c.gid << "] " << global_minT_c.value
-                 << ", [" << global_maxT_c.gid << "] " << global_maxT_c.value << std::endl;
+      *vo_->os() << "   cells (min/max): " << minmaxp_c << std::endl;
 
       if (pres->HasComponent("face")) {
-        const Epetra_MultiVector& pres_f = *pres->ViewComponent("face", false);
-        ENorm_t global_minT_f, local_minT_f;
-        ENorm_t global_maxT_f, local_maxT_f;
-
-        local_minT_f.value = minT_f;
-        local_minT_f.gid = pres_f.Map().GID(min_f);
-        local_maxT_f.value = maxT_f;
-        local_maxT_f.gid = pres_f.Map().GID(max_f);
-
-        MPI_Allreduce(&local_minT_f, &global_minT_f, 1, MPI_DOUBLE_INT, MPI_MINLOC, comm);
-        MPI_Allreduce(&local_maxT_f, &global_maxT_f, 1, MPI_DOUBLE_INT, MPI_MAXLOC, comm);
-        *vo_->os() << "   faces (min/max): [" << global_minT_f.gid << "] " << global_minT_f.value
-                   << ", [" << global_maxT_f.gid << "] " << global_maxT_f.value << std::endl;
+        *vo_->os() << "   faces (min/max): " << minmaxp_f << std::endl;
       }
     }
     return false;

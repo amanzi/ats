@@ -64,6 +64,8 @@ OverlandPressureFlow::parseParameterList()
     plist_->set("absolute error tolerance", 0.01 * 55000.0); // h * nl
 
   // set some defaults for inherited PKs
+  if (!plist_->isParameter("primary variable key suffix"))
+    plist_->set<std::string>("primary variable key suffix", "pressure");
   if (!plist_->isParameter("conserved quantity key suffix"))
     plist_->set<std::string>("conserved quantity key suffix", "water_content");
 
