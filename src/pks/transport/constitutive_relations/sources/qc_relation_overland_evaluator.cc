@@ -28,6 +28,7 @@ QCRelationOverlandEvaluator::QCRelationOverlandEvaluator(Teuchos::ParameterList&
   dependencies_.insert(KeyTag{ cv_key_, tag });
   molar_density_key_ =
     Keys::readKey(plist, domain_, "molar density liquid", "molar_density_liquid");
+  tcc_key_ = Keys::readKey(plist, domain_, "concentration", "total_component_concentration");
   dependencies_.insert(KeyTag{ molar_density_key_, tag });
   field_src_key_ = Keys::readKey(plist, domain_, "overland source", "water_flux");
 
