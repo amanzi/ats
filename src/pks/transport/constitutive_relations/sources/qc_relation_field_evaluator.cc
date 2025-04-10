@@ -72,7 +72,7 @@ QCRelationFieldEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
     tcc_current = tcc[0][c];
 
     // transport source (concentration g/m3) as a function of discharge from a field (e.g. tile, groundwater)
-    source_mass = (*QC_curve_)(std::vector<double>{field_flow});
+    source_mass = (*QC_curve_)(std::vector<double>{std::abs(field_flow)});
     
     // temporarily assume molar mass is 1.0
     // TODO: read molar mass from the xml file
