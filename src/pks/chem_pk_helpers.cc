@@ -7,8 +7,12 @@
   Authors: Ethan Coon (ecoon@ornl.gov)
 */
 
+#include "Epetra_MultiVector.h"
+
+#include "Key.hh"
+#include "State.hh"
+#include "PK_Helpers.hh"
 #include "chem_pk_helpers.hh"
-#include "Chemistry_PK.hh"
 
 namespace Amanzi {
 
@@ -16,44 +20,45 @@ namespace Amanzi {
 // Helper functions for working with Amanzi's Chemistry PK
 // -----------------------------------------------------------------------------
 void
-convertConcentrationToAmanzi(const Epetra_MultiVector& mol_dens,
-                             const Epetra_MultiVector& tcc_ats,
-                             Epetra_MultiVector& tcc_amanzi)
+convertConcentrationToMolFrac(State& S,
+        const KeyTag& tcc,
+        const KeyTag& mol_frac,
+        const KeyTag& mol_dens,
+        const std::string& passwd)
 {
+  const Epetra_MultiVector& tcc_c =
+    *S.Get<CompositeVector>(tcc.first, tcc.second).ViewComponent("cell", true);
+  Epetra_MultiVector& mol_frac_c =
+    *S.GetW<CompositeVector>(mol_frac.first, mol_frac.second, passwd).ViewComponent("cell", true);
+
+  S.GetEvaluator(mol_dens.first, mol_dens.second).Update(S, passwd);
+  const Epetra_MultiVector& mol_dens_c =
+    *S.Get<CompositeVector>(mol_dens.first, mol_dens.second).ViewComponent("cell", true);
+
   // convert from mole fraction [mol C / mol H20] to [mol C / L]
-  tcc_amanzi.Multiply(1.e-3, mol_dens, tcc_ats, 0.);
+  mol_frac_c.ReciprocalMultiply(1.e3, mol_dens_c, tcc_c, 0.);
+  changedEvaluatorPrimary(mol_frac.first, mol_frac.second, S);
 }
 
 void
-convertConcentrationToATS(const Epetra_MultiVector& mol_dens,
-                          const Epetra_MultiVector& tcc_amanzi,
-                          Epetra_MultiVector& tcc_ats)
+convertMolFracToConcentration(State& S,
+        const KeyTag& mol_frac,
+        const KeyTag& tcc,
+        const KeyTag& mol_dens,
+        const std::string& passwd)
 {
-  // convert from [mol C / L] to mol fraction [mol C / mol H20]
-  tcc_ats.ReciprocalMultiply(1.e3, mol_dens, tcc_amanzi, 0.);
+  const Epetra_MultiVector& mol_frac_c =
+    *S.Get<CompositeVector>(mol_frac.first, mol_frac.second).ViewComponent("cell", true);
+  Epetra_MultiVector& tcc_c =
+    *S.GetW<CompositeVector>(tcc.first, tcc.second, passwd).ViewComponent("cell", true);
+
+  S.GetEvaluator(mol_dens.first, mol_dens.second).Update(S, passwd);
+  const Epetra_MultiVector& mol_dens_c =
+    *S.Get<CompositeVector>(mol_dens.first, mol_dens.second).ViewComponent("cell", true);
+
+  tcc_c.Multiply(1.e-3, mol_dens_c, mol_frac_c, 0.);
+
+  changedEvaluatorPrimary(tcc.first, tcc.second, S);
 }
-
-
-bool
-advanceChemistry(AmanziChemistry::Chemistry_PK& chem_pk,
-                 double t_old,
-                 double t_new,
-                 bool reinit,
-                 const Epetra_MultiVector& mol_dens,
-                 Epetra_MultiVector& tcc,
-                 Teuchos::Time& timer)
-{
-  bool fail = false;
-  convertConcentrationToAmanzi(mol_dens, tcc, tcc);
-  {
-    auto monitor = Teuchos::rcp(new Teuchos::TimeMonitor(timer));
-    fail = chem_pk.AdvanceStep(t_old, t_new, reinit);
-  }
-  if (fail) return fail;
-
-  convertConcentrationToATS(mol_dens, tcc, tcc);
-  return fail;
-}
-
 
 } //  namespace Amanzi

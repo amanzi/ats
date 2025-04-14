@@ -34,7 +34,7 @@ The advection-diffusion equation for component *i* in the surface may be written
 .. _transport-spec:
 .. admonition:: transport-spec
 
-   * `"PK type`" ``[string]`` **"transport ats"**
+   * `"PK type`" ``[string]`` **"transport ATS"**
 
    * `"domain name`" ``[string]`` **domain** specifies mesh name that defines
      the domain of this PK.

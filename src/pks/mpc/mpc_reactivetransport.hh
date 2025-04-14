@@ -8,9 +8,23 @@
 */
 
 /*
-  This is the mpc_pk component of the Amanzi code.
 
-  Process kernel for coupling of Transport_PK and Chemistry_PK.
+MPC coupling of transport and chemistry.
+
+This performs operatoring splitting between transport and chemistry.  Note that
+transport's primary variable is "molar_fraction", which is in units of [mol-C
+mol-H2O^-1].  Chemistry is in "total_component_concentration", which is in
+units of [mol-C L^-1].  Therefore, between steps, we convert between the two.
+
+.. _mpc-reactivetransport-spec:
+.. admonition:: mpc-reactivetransport-spec
+
+   * `"PK type`" ``[string]`` **"reactive transport"**
+
+   KEYS:
+   - `"molar density liquid`"
+
+
 */
 
 
@@ -33,9 +47,6 @@ class MPCReactiveTransport : public WeakMPC {
                        const Teuchos::RCP<State>& S,
                        const Teuchos::RCP<TreeVector>& soln);
 
-  // PK methods
-  virtual double get_dt() override;
-
   virtual void parseParameterList() override;
 
   virtual void Setup() override;
@@ -46,11 +57,9 @@ class MPCReactiveTransport : public WeakMPC {
   virtual void cast_sub_pks_();
 
  protected:
-  bool chem_step_succeeded_;
-  bool trans_step_succeeded_;
-
   Key domain_;
   Key tcc_key_;
+  Key mol_frac_key_;
   Key mol_dens_key_;
 
   Teuchos::RCP<Teuchos::Time> alquimia_timer_;

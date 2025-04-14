@@ -10,35 +10,29 @@
 //! A set of helper functions for doing common things in PKs.
 #pragma once
 
-#include "Teuchos_TimeMonitor.hpp"
-#include "Epetra_MultiVector.h"
+#include <string>
+#include "Key.hh"
 
 namespace Amanzi {
 
-namespace AmanziChemistry {
-class Chemistry_PK;
-}
+class State;
 
 // -----------------------------------------------------------------------------
 // Helper functions for working with Amanzi's Chemistry PK
 // -----------------------------------------------------------------------------
 void
-convertConcentrationToAmanzi(const Epetra_MultiVector& mol_den,
-                             const Epetra_MultiVector& tcc_ats,
-                             Epetra_MultiVector& tcc_amanzi);
+convertConcentrationToMolFrac(State& S,
+        const KeyTag& tcc,
+        const KeyTag& mol_frac,
+        const KeyTag& mol_dens,
+        const std::string& passwd);
+
 
 void
-convertConcentrationToATS(const Epetra_MultiVector& mol_den,
-                          const Epetra_MultiVector& tcc_ats,
-                          Epetra_MultiVector& tcc_amanzi);
-
-bool
-advanceChemistry(AmanziChemistry::Chemistry_PK& chem_pk,
-                 double t_old,
-                 double t_new,
-                 bool reinit,
-                 const Epetra_MultiVector& mol_dens,
-                 Epetra_MultiVector& tcc,
-                 Teuchos::Time& timer);
+convertMolFracToConcentration(State& S,
+        const KeyTag& mol_frac,
+        const KeyTag& tcc,
+        const KeyTag& mol_dens,
+        const std::string& passwd);
 
 } // namespace Amanzi
