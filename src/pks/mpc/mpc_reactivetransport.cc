@@ -37,6 +37,8 @@ MPCReactiveTransport::MPCReactiveTransport(Teuchos::ParameterList& pk_tree,
 void
 MPCReactiveTransport::parseParameterList()
 {
+  cast_sub_pks_();
+
   Teuchos::Array<std::string> names = plist_->get<Teuchos::Array<std::string>>("PKs order");
   domain_ = getSubPKPlist_(1)->get<std::string>("domain name", "domain");
 
@@ -69,6 +71,8 @@ MPCReactiveTransport::parseParameterList()
   // both pks need access to the primary variable
   getSubPKPlist_(0)->set<std::string>("primary variable password", name_);
   getSubPKPlist_(1)->set<std::string>("primary variable password", name_);
+
+  WeakMPC::parseParameterList();
 }
 
 
@@ -89,12 +93,13 @@ void
 MPCReactiveTransport::cast_sub_pks_()
 {
   // cast and call parse on chemistry
-  chemistry_pk_ = Teuchos::rcp_dynamic_cast<AmanziChemistry::Chemistry_PK>(sub_pks_[0]);
+  chemistry_pk_ = Teuchos::rcp_dynamic_cast<AmanziChemistry::Alquimia_PK>(sub_pks_[0]);
   AMANZI_ASSERT(chemistry_pk_ != Teuchos::null);
 
   // now chem engine is set and we can hand it to transport
   transport_pk_ = Teuchos::rcp_dynamic_cast<Transport::Transport_ATS>(sub_pks_[1]);
   AMANZI_ASSERT(transport_pk_ != Teuchos::null);
+  transport_pk_->setChemEngine(chemistry_pk_);
 }
 
 // -----------------------------------------------------------------------------

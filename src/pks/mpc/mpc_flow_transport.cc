@@ -7,7 +7,7 @@
   Authors: Ethan Coon
 */
 
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 #include "mpc_flow_transport.hh"
 
 namespace Amanzi {
@@ -152,13 +152,13 @@ MPCFlowTransport::parseParameterList()
         lwc_list_next.set<std::string>("next tag", flow_next_tag.get());
       }
 
-      // porosity used with velocity to compute particle velocity when dispersion is on
-      Teuchos::ParameterList& poro_list_next = S_->GetEvaluatorList(Keys::getKey("surface-porosity", transport_next_tag));
-      if (!poro_list_next.isParameter("evaluator type")) {
-        poro_list_next.set<std::string>("evaluator type", "temporal interpolation");
-        poro_list_next.set<std::string>("current tag", flow_current_tag.get());
-        poro_list_next.set<std::string>("next tag", flow_next_tag.get());
-      }
+      // // porosity used with velocity to compute particle velocity when dispersion is on
+      // Teuchos::ParameterList& poro_list_next = S_->GetEvaluatorList(Keys::getKey("surface-porosity", transport_next_tag));
+      // if (!poro_list_next.isParameter("evaluator type")) {
+      //   poro_list_next.set<std::string>("evaluator type", "temporal interpolation");
+      //   poro_list_next.set<std::string>("current tag", flow_current_tag.get());
+      //   poro_list_next.set<std::string>("next tag", flow_next_tag.get());
+      // }
 
       // chemistry uses (independently) density, saturation, and porosity at the current tag
       if (chemistry) {
@@ -176,12 +176,12 @@ MPCFlowTransport::parseParameterList()
           sat_list_current.set<std::string>("next tag", flow_next_tag.get());
         }
 
-        Teuchos::ParameterList& poro_list_current = S_->GetEvaluatorList(Keys::getKey("surface-porosity", transport_current_tag));
-        if (!poro_list_current.isParameter("evaluator type")) {
-          poro_list_current.set<std::string>("evaluator type", "temporal interpolation");
-          poro_list_current.set<std::string>("current tag", flow_current_tag.get());
-          poro_list_current.set<std::string>("next tag", flow_next_tag.get());
-        }
+        // Teuchos::ParameterList& poro_list_current = S_->GetEvaluatorList(Keys::getKey("surface-porosity", transport_current_tag));
+        // if (!poro_list_current.isParameter("evaluator type")) {
+        //   poro_list_current.set<std::string>("evaluator type", "temporal interpolation");
+        //   poro_list_current.set<std::string>("current tag", flow_current_tag.get());
+        //   poro_list_current.set<std::string>("next tag", flow_next_tag.get());
+        // }
       }
 
     }
@@ -193,20 +193,20 @@ MPCFlowTransport::parseParameterList()
     // for interpolated evaluators, we must first require key@NEXT -- otherwise
     // it will get called to be an alias key@TRANSPORT_NEXT, which is an
     // interpolator that depends upon this.
-    requireAtNext(sub_lwc_key, Tags::NEXT, *S_);
-    requireAtNext("porosity", Tags::NEXT, *S_);
+    requireEvaluatorAtNext(sub_lwc_key, Tags::NEXT, *S_);
+    requireEvaluatorAtNext("porosity", Tags::NEXT, *S_);
     if (chemistry) {
-      requireAtNext("mass_density_liquid", Tags::NEXT, *S_);
-      requireAtNext("saturation_liquid", Tags::NEXT, *S_);
+      requireEvaluatorAtNext("mass_density_liquid", Tags::NEXT, *S_);
+      requireEvaluatorAtNext("saturation_liquid", Tags::NEXT, *S_);
     }
 
     // now require key@transport_next, which will be the interpolant
-    requireAtNext(sub_lwc_key, transport_next_tag, *S_);
-    requireAtNext("porosity", transport_next_tag, *S_);
+    requireEvaluatorAtNext(sub_lwc_key, transport_next_tag, *S_);
+    requireEvaluatorAtNext("porosity", transport_next_tag, *S_);
     if (chemistry) {
-      requireAtCurrent("mass_density_liquid", transport_current_tag, *S_);
-      requireAtCurrent("saturation_liquid", transport_current_tag, *S_);
-      requireAtCurrent("porosity", transport_current_tag, *S_);
+      requireEvaluatorAtCurrent("mass_density_liquid", transport_current_tag, *S_);
+      requireEvaluatorAtCurrent("saturation_liquid", transport_current_tag, *S_);
+      requireEvaluatorAtCurrent("porosity", transport_current_tag, *S_);
     }
   }
 
@@ -214,20 +214,20 @@ MPCFlowTransport::parseParameterList()
     // for interpolated evaluators, we must first require key@NEXT -- otherwise
     // it will get called to be an alias key@TRANSPORT_NEXT, which is an
     // interpolator that depends upon this.
-    requireAtNext(surf_lwc_key, Tags::NEXT, *S_);
-    requireAtNext("surface-porosity", Tags::NEXT, *S_);
+    requireEvaluatorAtNext(surf_lwc_key, Tags::NEXT, *S_);
+    // requireEvaluatorAtNext("surface-porosity", Tags::NEXT, *S_);
     if (chemistry) {
-      requireAtNext("surface-mass_density_liquid", Tags::NEXT, *S_);
-      requireAtNext("surface-ponded_depth", Tags::NEXT, *S_);
+      requireEvaluatorAtNext("surface-mass_density_liquid", Tags::NEXT, *S_);
+      requireEvaluatorAtNext("surface-ponded_depth", Tags::NEXT, *S_);
     }
 
     // now require key@transport_next, which will be the interpolant
-    requireAtNext(surf_lwc_key, transport_next_tag, *S_);
-    requireAtNext("surface-porosity", transport_next_tag, *S_);
+    requireEvaluatorAtNext(surf_lwc_key, transport_next_tag, *S_);
+    // requireEvaluatorAtNext("surface-porosity", transport_next_tag, *S_);
     if (chemistry) {
-      requireAtCurrent("surface-mass_density_liquid", transport_current_tag, *S_);
-      requireAtCurrent("surface-ponded_depth", transport_current_tag, *S_);
-      requireAtCurrent("surface-porosity", transport_current_tag, *S_);
+      requireEvaluatorAtCurrent("surface-mass_density_liquid", transport_current_tag, *S_);
+      requireEvaluatorAtCurrent("surface-ponded_depth", transport_current_tag, *S_);
+      requireEvaluatorAtCurrent("surface-porosity", transport_current_tag, *S_);
     }
   }
 }

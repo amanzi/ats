@@ -72,10 +72,8 @@ MPCCoupledReactiveTransport::parseParameterList()
 
   // communicate chemistry engine to transport.
 #ifdef ALQUIMIA_ENABLED
-  transport_pk_->SetupAlquimia(Teuchos::rcp_static_cast<AmanziChemistry::Alquimia_PK>(chemistry_pk_),
-          chemistry_pk_->chem_engine());
-  transport_pk_surf_->SetupAlquimia(Teuchos::rcp_static_cast<AmanziChemistry::Alquimia_PK>(chemistry_pk_surf_),
-          chemistry_pk_surf_->chem_engine());
+  transport_pk_->setChemEngine(Teuchos::rcp_static_cast<AmanziChemistry::Alquimia_PK>(chemistry_pk_));
+  transport_pk_surf_->setChemEngine(Teuchos::rcp_static_cast<AmanziChemistry::Alquimia_PK>(chemistry_pk_surf_));
 #endif
 
   coupled_transport_pk_->parseParameterList();
@@ -93,30 +91,10 @@ MPCCoupledReactiveTransport::Setup()
   coupled_transport_pk_->Setup();
   coupled_chemistry_pk_->Setup();
 
-  S_->Require<CompositeVector, CompositeVectorSpace>(tcc_key_, tag_next_, name())
-    .SetMesh(S_->GetMesh(domain_))
-    ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, chemistry_pk_->num_aqueous_components());
-  S_->RequireEvaluator(tcc_key_, tag_next_);
-
-  S_->Require<CompositeVector, CompositeVectorSpace>(tcc_surf_key_, tag_next_, name())
-    .SetMesh(S_->GetMesh(domain_surf_))
-    ->SetGhosted()
-    ->AddComponent(
-      "cell", AmanziMesh::Entity_kind::CELL, chemistry_pk_surf_->num_aqueous_components());
-  S_->RequireEvaluator(tcc_surf_key_, tag_next_);
-
-  S_->Require<CompositeVector, CompositeVectorSpace>(mol_dens_key_, tag_next_)
-    .SetMesh(S_->GetMesh(domain_))
-    ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  S_->RequireEvaluator(mol_dens_key_, tag_next_);
-
-  S_->Require<CompositeVector, CompositeVectorSpace>(mol_dens_surf_key_, tag_next_)
-    .SetMesh(S_->GetMesh(domain_surf_))
-    ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  S_->RequireEvaluator(mol_dens_surf_key_, tag_next_);
+  requireEvaluatorAtNext(tcc_key_, tag_next_, *S_);
+  requireEvaluatorAtNext(tcc_surf_key_, tag_next_, *S_);
+  requireEvaluatorAtNext(mol_dens_key_, tag_next_, *S_);
+  requireEvaluatorAtNext(mol_dens_surf_key_, tag_next_, *S_);
 }
 
 

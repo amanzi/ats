@@ -311,8 +311,9 @@ Coordinator::initialize()
   //  - get the time prior to initializing anything else
   if (restart_) {
     double t_restart = Amanzi::ReadCheckpointInitialTime(comm_, restart_filename_);
-    S_->set_time(Amanzi::Tags::CURRENT, t_restart);
-    S_->set_time(Amanzi::Tags::NEXT, t_restart);
+    for (const auto& record : S_->GetRecordSet("time")) {
+      S_->set_time(record.first, t_restart);
+    }
     t0_ = t_restart;
   }
 

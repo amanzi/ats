@@ -102,7 +102,7 @@ Transport_ATS::parseParameterList()
 
   // -- liquid water content - need at new time, copy at current time
   lwc_key_ = Keys::readKey(*plist_, domain_, "liquid water content", "water_content");
-  requireAtCurrent(lwc_key_, tag_current_, *S_, name_);
+  requireEvaluatorAtCurrent(lwc_key_, tag_current_, *S_, name_);
 
   water_src_key_ = Keys::readKey(*plist_, domain_, "water source", "water_source");
   cv_key_ = Keys::readKey(*plist_, domain_, "cell volume", "cell_volume");
@@ -110,7 +110,7 @@ Transport_ATS::parseParameterList()
   // workspace, no evaluator
   conserve_qty_key_ =
     Keys::readKey(*plist_, domain_, "conserved quantity", "total_component_quantity");
-  requireAtNext(conserve_qty_key_, tag_next_, *S_, name_);
+  requireEvaluatorAtNext(conserve_qty_key_, tag_next_, *S_, name_);
 
   solid_residue_mass_key_ = Keys::readKey(*plist_, domain_, "solid residue", "solid_residue_quantity");
 
@@ -367,7 +367,7 @@ Transport_ATS::SetupTransport_()
     if (sources_list->isSublist("geochemical")) {
       // note these are computed at the flow PK's NEXT tag, which assumes all
       // sources are dealt with implicitly (backward Euler).  This could be relaxed --ETC
-      requireEvaluatorAtNext(water_src_key_, flow_tag_, *S_)
+      requireEvaluatorAtNext(water_src_key_, tag_next_, *S_)
         .SetMesh(mesh_)
         ->SetGhosted(true)
         ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
@@ -387,7 +387,7 @@ Transport_ATS::SetupTransport_()
         wc_eval.set<Teuchos::Array<std::string>>("dependencies", dep);
         wc_eval.set<std::string>("reciprocal", dep[1]);
       }
-      requireEvaluatorAtNext(geochem_src_factor_key_, Tags::NEXT, *S_)
+      requireEvaluatorAtNext(geochem_src_factor_key_, tag_next_, *S_)
         .SetMesh(mesh_)
         ->SetGhosted(true)
         ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
@@ -501,7 +501,7 @@ Transport_ATS::SetupPhysicalEvaluators_()
   S_->GetRecordSetW(key_).set_subfieldnames(component_names_);
 
   // -- water flux
-  requireEvaluatorAtNext(flux_key_, Tags::NEXT, *S_)
+  requireEvaluatorAtNext(flux_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);
@@ -888,7 +888,7 @@ Transport_ATS ::AdvanceDispersionDiffusion_(double t_old, double t_new)
       (*D_)[c] *= (lwc[0][c] / cv[0][c]);
     }
   } else {
-    D_->Zero();
+    D_->PutScalar(0.);
   }
 
   // we track only the difference in molecular diffusion from component to

@@ -57,7 +57,7 @@ class MPCReactiveTransport : public WeakMPC {
 
   // storage for the component concentration intermediate values
   Teuchos::RCP<Transport::Transport_ATS> transport_pk_;
-  Teuchos::RCP<AmanziChemistry::Chemistry_PK> chemistry_pk_;
+  Teuchos::RCP<AmanziChemistry::Alquimia_PK> chemistry_pk_;
 
   // factory registration
   static RegisteredPKFactory<MPCReactiveTransport> reg_;
