@@ -43,9 +43,9 @@ MPCCoupledReactiveTransport::parseParameterList()
   domain_surf_ = pks_list_->sublist(transport_names[1]).get<std::string>("domain name", "surface");
 
   mol_frac_key_ = Keys::readKey(pks_list_->sublist(transport_names[0]), domain_,
-                           "primary variable", "molar_fraction");
+                           "primary variable", "molar_mixing_ratio");
   mol_frac_surf_key_ = Keys::readKey(pks_list_->sublist(transport_names[1]), domain_surf_,
-                           "primary variable", "molar_fraction");
+                           "primary variable", "molar_mixing_ratio");
 
   tcc_key_ = Keys::readKey(pks_list_->sublist(chem_names[0]), domain_,
                            "primary variable", "total_component_concentration");
@@ -55,6 +55,19 @@ MPCCoupledReactiveTransport::parseParameterList()
   mol_dens_key_ = Keys::readKey(*plist_, domain_, "molar density liquid", "molar_density_liquid");
   mol_dens_surf_key_ =
     Keys::readKey(*plist_, domain_surf_, "surface molar density liquid", "molar_density_liquid");
+
+  if (tcc_key_ == mol_frac_key_) {
+    Errors::Message msg;
+    msg << "Chemistry and Transport may not be given the same primary variable name (\"" << tcc_key_
+        << "\") -- rename one or the other.";
+    Exceptions::amanzi_throw(msg);
+  }
+  if (tcc_surf_key_ == mol_frac_surf_key_) {
+    Errors::Message msg;
+    msg << "Chemistry and Transport may not be given the same primary variable name (\"" << tcc_surf_key_
+        << "\") -- rename one or the other.";
+    Exceptions::amanzi_throw(msg);
+  }
 
   // this MPC accesses chemistry and transport primary variables
   pks_list_->sublist(chem_names[0]).set<std::string>("primary variable password", name_);

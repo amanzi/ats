@@ -355,7 +355,6 @@ Coordinator::initialize()
   }
 
   // Final checks.
-  //S_->CheckNotEvaluatedFieldsInitialized();
   S_->InitializeEvaluators();
   S_->InitializeFieldCopies();
   S_->CheckAllFieldsInitialized();

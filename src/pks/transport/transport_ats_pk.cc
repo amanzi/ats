@@ -72,12 +72,18 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
 void
 Transport_ATS::parseParameterList()
 {
+  if (!plist_->isParameter("primary variable key suffix")) {
+    plist_->set<std::string>("primary variable key suffix", "molar_mixing_ratio");
+  }
   PK_Physical_Default::parseParameterList();
 
   // protect user from old naming convention
   if (Keys::getVarName(key_) == "total_component_concentration") {
     Errors::Message msg;
-    msg << "Transport_ATS PK \"" << name() << "\": primary variable can no longer be called \"total_component_concentration\", but should instead be left blank (to use \"molar_fraction\") or provided something else.  ATS transport units are [mol-C mol-H2O^-1], not [mol L^-1], and therefore should not be called concentration.";
+    msg << "Transport_ATS PK \"" << name() << "\": primary variable can no longer be called "
+        << "\"total_component_concentration\", but should instead be left blank (to use "
+        << "\"molar_fraction\") or provided something else.  Transport units are "
+        << "[mol-C mol-H2O^-1], not [mol L^-1], and therefore should not be called concentration.";
     Exceptions::amanzi_throw(msg);
   }
 

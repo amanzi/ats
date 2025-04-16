@@ -40,6 +40,7 @@ import configparser
 _aliases = {'surface-water_flux':['surface-mass_flux','surface-mass_flux_next'],
             'water_flux':['mass_flux','mass_flux_next'],
             'saturation_liquid':['prev_saturation_liquid'],
+            'free_ion_species':['primary_free_ion_concentration',],
             }
 
 
@@ -362,17 +363,14 @@ class RegressionTest(object):
                 message = self._txtwrap.fill(
                     "FAIL : {name} : {execute} return an error "
                     "code ({status}) indicating the simulation may have "
-                    "failed. Please check '{name}.stdout' "
-                    "for error messages (included below).".format(
-                        execute=self._executable, name=test_name, status=ierr_status))
+                    "failed. Please check '{stdout}' "
+                    "for error messages.".format(
+                        execute=self._executable,
+                        name=test_name,
+                        status=ierr_status,
+                        stdout=os.path.join(test_directory, f'{test_name}.stdout')))
 
                 print("".join(['\n', message, '\n']), file=testlog)
-                print("~~~~~ {0}.stdout ~~~~~".format(test_name), file=testlog)
-                try:
-                    with open("{0}.stdout".format(test_name), 'r') as tempfile:
-                        shutil.copyfileobj(tempfile, testlog)
-                except Exception as e:
-                    print("   Error opening file: {0}.stdout\n    {1}".format(test_name, e))
                 print("~~~~~~~~~~", file=testlog)
 
         os.chdir(test_directory)
@@ -1061,7 +1059,7 @@ class RegressionTestManager(object):
 
             test.run(dry_run, status, testlog)
 
-            if not dry_run and status.skipped == 0:
+            if not (status.fail or dry_run or status.skipped):
                 test.check(status, testlog)
 
             self._add_to_file_status(status)

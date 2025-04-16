@@ -249,6 +249,7 @@ def plotColumnData(directories,
        data_filename_format='ats_vis_{}_data.h5',
        mesh_filename_format='ats_vis_{}_mesh.h5',
        time_unit='d',
+       fig=None,
        figsize=[5,3]):
     """Plots the column data given directories and a layout."""
 
@@ -265,7 +266,8 @@ def plotColumnData(directories,
         color_list = [color_map,]*len(directories)
         
 
-    fig = plt.figure(figsize=figsize)
+    if fig is None:
+        fig = plt.figure(figsize=figsize)
     axs = fig.subplots(len(layout), len(layout[0]), squeeze=False)
 
     domains = set([domain_var(v)[0] for v in layout_flattener(layout)])
