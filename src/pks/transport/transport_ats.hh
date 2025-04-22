@@ -352,8 +352,8 @@ class Transport_ATS : public PK_Physical_Default {
   // -- setup/initialize helper functions
   void InitializeFields_();
 
-  void SetupTransport_();
-  void SetupPhysicalEvaluators_();
+  virtual void SetupTransport_ ();
+  virtual void SetupPhysicalEvaluators_();
 
   // -- advance members -- portions of the operator
   void AdvanceAdvectionSources_RK1_(double t_old, double t_new, int spatial_order);
@@ -379,7 +379,7 @@ class Transport_ATS : public PK_Physical_Default {
           Epetra_Vector& f,
           int component);
 
-  void AddSourceTerms_(double t_old,
+  virtual void AddSourceTerms_(double t_old,
                        double t_new,
                        Epetra_MultiVector& conserve_qty,
                        int n0,

@@ -22,13 +22,18 @@ set(ats_transport_src_files
   #transport_ats_henrylaw.cc
   #transport_ats_vandv.cc
   transport_ats_pk.cc
-  # sediment_transport_pk.cc
+  sediment_transport_pk.cc
+  erosion_evaluator.cc
+  settlement_evaluator.cc
+  trapping_evaluator.cc
+  organic_matter_evaluator.cc
+  biomass_evaluator.cc
  )
 
 
 set(ats_transport_inc_files
   transport_ats.hh
-  # sediment_transport_pk.hh
+  sediment_transport_pk.hh
   )
 
 
@@ -67,11 +72,36 @@ register_evaluator_with_factory(
   LISTNAME   ATS_TRANSPORT_REG
   )
 
-# register_evaluator_with_factory(
-#   HEADERFILE sediment_transport_reg.hh
-#   LISTNAME   ATS_TRANSPORT_REG
-#   )
+register_evaluator_with_factory(
+   HEADERFILE sediment_transport_reg.hh
+   LISTNAME   ATS_TRANSPORT_REG
+  )
+
+register_evaluator_with_factory(
+  HEADERFILE erosion_evaluator_reg.hh
+  LISTNAME ATS_TRANSPORT_REG
+  )
   
+register_evaluator_with_factory(
+  HEADERFILE settlement_evaluator_reg.hh
+  LISTNAME ATS_TRANSPORT_REG
+  )
+  
+register_evaluator_with_factory(
+  HEADERFILE trapping_evaluator_reg.hh
+  LISTNAME ATS_TRANSPORT_REG
+  )
+  
+register_evaluator_with_factory(
+  HEADERFILE organic_matter_evaluator_reg.hh
+  LISTNAME ATS_TRANSPORT_REG
+  )
+
+register_evaluator_with_factory(
+  HEADERFILE biomass_evaluator_reg.hh
+  LISTNAME ATS_TRANSPORT_REG
+  )
+
 generate_evaluators_registration_header(
   HEADERFILE ats_transport_registration.hh
   LISTNAME   ATS_TRANSPORT_REG
