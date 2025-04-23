@@ -317,6 +317,7 @@ Transport_ATS::SetupTransport_()
             }
             src->set_state(S_);
             srcs_.push_back(src);
+
           } else if (src_type == "field") {
             Teuchos::RCP<TransportDomainFunction> src =
               factory.Create(*src_list, "field", AmanziMesh::Entity_kind::CELL, Teuchos::null, tag_current_);
@@ -341,8 +342,8 @@ Transport_ATS::SetupTransport_()
                 for (int fid = 1; fid != (num_fields + 1); ++fid) {
                   std::stringstream sublist_name;
                   sublist_name << "field " << fid << " info";
-                  auto field_key = flist.sublist(sublist_name.str()).get<std::string>("field key");
-                  auto field_tag = Keys::readTag(flist.sublist(sublist_name.str()), "tag");
+                  Key field_key = Keys::readKey(flist.sublist(sublist_name.str()), domain_, "field");
+                  Tag field_tag = Keys::readTag(flist.sublist(sublist_name.str()));
                   requireEvaluatorAtNext(field_key, field_tag, *S_)
                     .SetMesh(mesh_)
                     ->SetGhosted(true)
@@ -350,8 +351,8 @@ Transport_ATS::SetupTransport_()
                 }
               }
             } else { // if only one field
-              auto field_key = src_list->sublist("field").get<std::string>("field key");
-              auto field_tag = Keys::readTag(src_list->sublist("field"), "tag");
+              Key field_key = Keys::readKey(src_list->sublist("field"), domain_, "field");
+              Tag field_tag = Keys::readTag(src_list->sublist("field"), "field");
               requireEvaluatorAtNext(field_key, field_tag, *S_)
                 .SetMesh(mesh_)
                 ->SetGhosted(true)
@@ -414,7 +415,7 @@ Transport_ATS::SetupTransport_()
     // -- try tracer-type conditions
     PK_DomainFunctionFactory<TransportDomainFunction> factory(mesh_, S_);
     auto bcs_list = Teuchos::sublist(plist_, "boundary conditions");
-    auto conc_bcs_list = Teuchos::sublist(bcs_list, "concentration");
+    auto conc_bcs_list = Teuchos::sublist(bcs_list, "molar mixing ratio");
 
     for (const auto& it : *conc_bcs_list) {
       std::string name = it.first;
@@ -440,10 +441,10 @@ Transport_ATS::SetupTransport_()
           std::size_t last_of = domain_.find_last_of(":");
           AMANZI_ASSERT(last_of != std::string::npos);
           int gid = std::stoi(domain_.substr(last_of + 1, domain_.size()));
-          bc_list.set("entity_gid_out", gid);
+          bc_list.set("entity GID", gid);
 
           Teuchos::RCP<TransportDomainFunction> bc = factory.Create(
-            bc_list, "boundary concentration", AmanziMesh::Entity_kind::FACE, Teuchos::null, tag_current_);
+            bc_list, "boundary molar mixing ratio", AmanziMesh::Entity_kind::FACE, Teuchos::null, tag_current_);
 
           for (int i = 0; i < num_components_; i++) {
             bc->tcc_names().push_back(component_names_[i]);
@@ -455,7 +456,7 @@ Transport_ATS::SetupTransport_()
         } else {
           Teuchos::RCP<TransportDomainFunction> bc =
             factory.Create(bc_list,
-                           "boundary concentration function",
+                           "boundary molar mixing ratio function",
                            AmanziMesh::Entity_kind::FACE,
                            Teuchos::null,
                            tag_current_);
@@ -1048,7 +1049,7 @@ Transport_ATS::AdvanceAdvectionSources_RK1_(double t_old,
     .ViewComponent("cell", false);
 
   InvertTccNew_(conserve_qty, tcc_new, &solid_qty, true);
-  db_->WriteCellVector("mol_f new", tcc_new);
+  db_->WriteCellVector("mol_f (pre-diff)", tcc_new);
 }
 
 

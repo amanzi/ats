@@ -360,6 +360,7 @@ Transport_ATS::AddSourceTerms_(double t0,
           int imap = i;
           double value = mesh_->getCellVolume(c) * values[k];
           conserve_qty[imap][c] += (t1 - t0) * value;
+          if (c == 0) std::cout << "  src: " << value << " cons_qty = " << conserve_qty[imap][c] << std::endl;
         }
       }
     }

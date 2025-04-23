@@ -117,6 +117,8 @@ OverlandPressureFlow::parseParameterList()
   patm_limit_ =
     plist_->get<double>("limit correction when crossing atmospheric pressure [Pa]", -1.);
   patm_hard_limit_ = plist_->get<bool>("allow no negative ponded depths", false);
+
+  // see amanzi/ats#32 -- this seems way too high
   min_vel_ponded_depth_ = plist_->get<double>("min ponded depth for velocity calculation", 1e-2);
   min_tidal_bc_ponded_depth_ = plist_->get<double>("min ponded depth for tidal bc", 0.02);
 

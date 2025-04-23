@@ -41,6 +41,13 @@ _aliases = {'surface-water_flux':['surface-mass_flux','surface-mass_flux_next'],
             'water_flux':['mass_flux','mass_flux_next'],
             'saturation_liquid':['prev_saturation_liquid'],
             'free_ion_species':['primary_free_ion_concentration',],
+            'surface-molar_mixing_ratio':['surface-total_component_concentration',],
+            'subgrid:9-molar_mixing_ratio':['subgrid:9-total_component_concentration',],
+            'subgrid:0-molar_mixing_ratio':['subgrid:0-total_component_concentration',],
+            'subgrid_1:9-molar_mixing_ratio':['subgrid_1:9-total_component_concentration',],
+            'subgrid_1:0-molar_mixing_ratio':['subgrid_1:0-total_component_concentration',],
+            'subgrid_2:9-molar_mixing_ratio':['subgrid_2:9-total_component_concentration',],
+            'subgrid_2:0-molar_mixing_ratio':['subgrid_2:0-total_component_concentration',],
             }
 
 
