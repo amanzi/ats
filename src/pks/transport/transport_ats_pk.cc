@@ -73,7 +73,7 @@ void
 Transport_ATS::parseParameterList()
 {
   if (!plist_->isParameter("primary variable key suffix")) {
-    plist_->set<std::string>("primary variable key suffix", "molar_mixing_ratio");
+    plist_->set<std::string>("primary variable key suffix", "molar_ratio");
   }
   PK_Physical_Default::parseParameterList();
 

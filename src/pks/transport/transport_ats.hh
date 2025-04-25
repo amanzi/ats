@@ -87,7 +87,7 @@ solve reactive transport.
      advection schemes.
 
    KEYS
-   - `"primary variable`" **molar_mixing_ratio**
+   - `"primary variable`" **molar_ratio**
 
    - `"saturation liquid`" This variable is a multiplier in in the
       accumulation term. For subsurface transport, this will typically be the
