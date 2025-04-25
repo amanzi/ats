@@ -42,9 +42,9 @@ class EOSConstantMolarMass : public EOS {
     return DMassDensityDp(params) / M_;
   }
 
-  virtual double DMolarDensityDC(std::vector<double>& params)
+  virtual double DMolarDensityDMolarRatio(std::vector<double>& params)
   {
-    return DMassDensityDC(params) / M_;
+    return DMassDensityDMolarRatio(params) / M_;
   }
 
   virtual double MassDensity(std::vector<double>& params) { return MolarDensity(params) * M_; }
@@ -59,9 +59,9 @@ class EOSConstantMolarMass : public EOS {
     return DMolarDensityDp(params) * M_;
   }
 
-  virtual double DMassDensityDC(std::vector<double>& params)
+  virtual double DMassDensityDMolarRatio(std::vector<double>& params)
   {
-    return DMolarDensityDC(params) * M_;
+    return DMolarDensityDMolarRatio(params) * M_;
   }
 
   virtual bool IsConstantMolarMass() { return true; }

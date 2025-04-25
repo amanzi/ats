@@ -29,12 +29,12 @@ class EOS {
   virtual double MassDensity(std::vector<double>& params) = 0;
   virtual double DMassDensityDT(std::vector<double>& params) { return 0.; }
   virtual double DMassDensityDp(std::vector<double>& params) { return 0.; }
-  virtual double DMassDensityDC(std::vector<double>& params) { return 0.; }
+  virtual double DMassDensityDMolarRatio(std::vector<double>& params) { return 0.; }
 
   virtual double MolarDensity(std::vector<double>& params) = 0;
   virtual double DMolarDensityDT(std::vector<double>& params) { return 0.; }
   virtual double DMolarDensityDp(std::vector<double>& params) { return 0.; }
-  virtual double DMolarDensityDC(std::vector<double>& params) { return 0.; }
+  virtual double DMolarDensityDMolarRatio(std::vector<double>& params) { return 0.; }
 
   // If molar mass is constant, we can take some shortcuts if we need both
   // molar and mass densities.  MolarMass() is undefined if
@@ -43,7 +43,7 @@ class EOS {
   virtual double MolarMass() = 0;
   virtual bool IsTemperature() = 0;
   virtual bool IsPressure() = 0;
-  virtual bool IsConcentration() = 0;
+  virtual bool IsMolarRatio() = 0;
 };
 
 } // namespace Relations

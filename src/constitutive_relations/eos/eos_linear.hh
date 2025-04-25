@@ -41,11 +41,11 @@ class EOSLinear : public EOSConstantMolarMass {
     return params[0] > 101325. ? rho_ * beta_ : 0.;
   }
   virtual double DMassDensityDT(std::vector<double>& params) override { return 0.; }
-  virtual double DMassDensityDC(std::vector<double>& params) override { return 0.; }
+  virtual double DMassDensityDMolarRatio(std::vector<double>& params) override { return 0.; }
 
   virtual bool IsTemperature() override { return false; }
   virtual bool IsPressure() override { return true; }
-  virtual bool IsConcentration() override { return false; }
+  virtual bool IsMolarRatio() override { return false; }
 
  private:
   virtual void InitializeFromPlist_();
