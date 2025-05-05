@@ -62,12 +62,10 @@ Morphology_PK::Setup()
   Amanzi::MPCSubcycled::Setup();
 
   mesh_ = S_->GetDeformableMesh(domain_);
-  vertex_coord_key_ = Keys::getKey(domain_, "vertex_coordinate");
   if (domain_ == "surface") {
     domain_3d_ = "surface_3d";
     domain_ss_ = "domain";
-    vertex_coord_key_3d_ = Keys::getKey(domain_3d_, "vertex_coordinate");
-    vertex_coord_key_ss_ = Keys::getKey(domain_ss_, "vertex_coordinate");
+
     mesh_3d_ = S_->GetDeformableMesh(domain_ + "_3d");
     mesh_ss_ = S_->GetDeformableMesh(domain_ss_);
   }
@@ -84,46 +82,6 @@ Morphology_PK::Setup()
   num_dofs[0] = dim;
   name[0] = "node";
   
-  //requireAtNext(vertex_coord_key_, Tags::NEXT, *S_)
-  S_->Require<CompositeVector, CompositeVectorSpace>(vertex_coord_key_, Tags::NEXT, "state")
-    .SetMesh(mesh_)
-    ->SetGhosted()
-    ->SetComponents(name, location, num_dofs);
-
-  if (S_->HasMesh(domain_3d_)) {
-    int dim = mesh_3d_->getSpaceDimension();
-    location[0] = AmanziMesh::NODE;
-    num_dofs[0] = dim;
-    name[0] = "node";
-
-    S_->Require<CompositeVector, CompositeVectorSpace>(vertex_coord_key_3d_, Tags::NEXT, "state")
-      .SetMesh(mesh_3d_)
-      ->SetGhosted()
-      ->AddComponents(name, location, num_dofs);
-    
-    // S->Require<CompositeVector, CompositeVectorSpace>(vertex_coord_key_3d_, Tags::NEXT, "state")
-    //   .SetMesh(mesh_3d_)
-    //   ->SetGhosted()
-    //   ->SetComponents(name, location, num_dofs);
-  }
-
-  if (S_->HasMesh(domain_ss_)) {
-    int dim = mesh_ss_->getSpaceDimension();
-    location[0] = AmanziMesh::NODE;
-    num_dofs[0] = dim;
-    name[0] = "node";
-
-    S_->Require<CompositeVector, CompositeVectorSpace>(vertex_coord_key_ss_, Tags::NEXT, "state")
-    .SetMesh(mesh_ss_)
-    ->SetGhosted()
-    ->AddComponents(name, location, num_dofs);
-    
-    // S->Require<CompositeVector, CompositeVectorSpace>(vertex_coord_key_ss_, Tags::NEXT, "state")
-    //   .SetMesh(mesh_ss_)
-    //   ->SetGhosted()
-    //   ->SetComponents(name, location, num_dofs);
-  }
-
   elevation_increase_key_ = Keys::getKey(domain_, "deformation");
   S_->Require<CompositeVector, CompositeVectorSpace>(elevation_increase_key_, Tags::NEXT, elevation_increase_key_)
     .SetMesh(mesh_)
@@ -131,9 +89,10 @@ Morphology_PK::Setup()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
 
   requireEvaluatorAssign( elevation_increase_key_, Tags::NEXT, *S_);
-  //Teuchos::ParameterList deform_plist;  
+
+  // Teuchos::ParameterList deform_plist;  
   // deform_plist.set("evaluator name", elevation_increase_key_);
-  //deform_eval_ = Teuchos::rcp(new EvaluatorPrimaryCV(deform_plist));
+  // deform_eval_ = Teuchos::rcp(new EvaluatorPrimaryCV(deform_plist));
   // S_->SetEvaluator(elevation_increase_key_, Tags::NEXT, deform_eval_);
   // }
 
@@ -154,9 +113,11 @@ Morphology_PK::Setup()
     .SetMesh(mesh_)
     ->SetGhosted()
     ->SetComponents(name, location, num_dofs);
-  S_->RequireEvaluator(biomass_key, Tags::NEXT);
 
-  // S_->Require<double>("msl", Amanzi::Tags::DEFAULT, "msl");
+  requireEvaluatorAssign(biomass_key, Tags::NEXT, *S_);
+  //S_->RequireEvaluator(biomass_key, Tags::NEXT);
+
+  S_->Require<double>("msl", Amanzi::Tags::DEFAULT, "msl");
 
 }
 
@@ -167,13 +128,9 @@ Morphology_PK::Setup()
 
   // initialize the vertex coordinate of existing meshes
 
-  if (S_->HasRecord(vertex_coord_key_, Tags::NEXT)) Initialize_MeshVertices_(S_.ptr(), mesh_, vertex_coord_key_, Tags::NEXT);
-
-  if (S_->HasRecord(vertex_coord_key_3d_, Tags::NEXT))
-    Initialize_MeshVertices_(S_.ptr(), mesh_3d_, vertex_coord_key_3d_, Tags::NEXT);
-
-  if (S_->HasRecord(vertex_coord_key_ss_, Tags::NEXT))
-    Initialize_MeshVertices_(S_.ptr(), mesh_ss_, vertex_coord_key_ss_, Tags::NEXT);
+  // if (S_->HasRecord(vertex_coord_key_, Tags::NEXT)) Initialize_MeshVertices_(S_.ptr(), mesh_, vertex_coord_key_, Tags::NEXT);
+  // if (S_->HasRecord(vertex_coord_key_3d_, Tags::NEXT)) Initialize_MeshVertices_(S_.ptr(), mesh_3d_, vertex_coord_key_3d_, Tags::NEXT);
+  // if (S_->HasRecord(vertex_coord_key_ss_, Tags::NEXT)) Initialize_MeshVertices_(S_.ptr(), mesh_ss_, vertex_coord_key_ss_, Tags::NEXT);
 
   if (S_->HasRecord(elevation_increase_key_, Tags::NEXT)) {
     S_->GetW<CompositeVector>(elevation_increase_key_, Tags::NEXT, elevation_increase_key_).PutScalar(0.);
@@ -247,67 +204,7 @@ Morphology_PK::AdvanceStep(double t_old, double t_new, bool reinit)
   Epetra_MultiVector& dz =
     *S_->GetW<CompositeVector>(elevation_increase_key_, Tags::NEXT, elevation_increase_key_).ViewComponent("cell", false);
   dz.PutScalar(0.);
-
-//   flow_pk_->ResetTimeStepper(t_old);
-
-//   S_inter_->set_intermediate_time(t_old);
-//   S_next_->set_intermediate_time(t_old);
-//   double dt_done = 0;
-//   double dt_next = flow_pk_->get_dt();
-//   double t_DNS_end = t_old + dt_step / MSF_; // end of direct numerical simulation
-
-//   bool done = false;
-//   int ncycles = 0;
-
-//   while (!done) {
-//     dt_next = flow_pk_->get_dt();
-//     if (t_old + dt_done + dt_next > t_DNS_end) { dt_next = t_DNS_end - t_old - dt_done; }
-
-//     fail = true;
-//     while (fail) {
-//       S_next_->set_time(t_old + dt_done + dt_next);
-//       S_inter_->set_time(t_old + dt_done);
-//       fail = flow_pk_->AdvanceStep(t_old + dt_done, t_old + dt_done + dt_next, reinit);
-//       fail |= !flow_pk_->ValidStep();
-
-//       if (fail) {
-//         if (vo_->getVerbLevel() >= Teuchos::VERB_HIGH) *vo_->os() << "Master step is failed\n";
-//         dt_next = flow_pk_->get_dt();
-//       }
-//     }
-
-//     master_dt_ = dt_next;
-
-//     flow_pk_->CalculateDiagnostics(S_next_);
-//     flow_pk_->CommitStep(t_old + dt_done, t_old + dt_done + dt_next, S_next_);
-
-//     //S_next_->WriteStatistics(vo_);
-//     slave_dt_ = sed_transport_pk_->get_dt();
-//     if (slave_dt_ > master_dt_) slave_dt_ = master_dt_;
-//     if (vo_->getVerbLevel() >= Teuchos::VERB_HIGH)
-//       *vo_->os() << "Slave dt=" << slave_dt_ << " Master dt=" << master_dt_ << "\n";
-
-//     fail = sed_transport_pk_->AdvanceStep(t_old + dt_done, t_old + dt_done + dt_next, reinit);
-
-//     if (fail) {
-//       dt_next /= 2;
-//     } else {
-//       S_inter_->set_intermediate_time(t_old + dt_done + dt_next);
-//       sed_transport_pk_->CommitStep(t_old + dt_done, t_old + dt_done + dt_next, S_next_);
-//       dt_done += dt_next;
-
-//       // we're done with this time step, copy the state
-//       *S_inter_ = *S_next_;
-//     }
-//     ncycles++;
-
-
-//     // check for done condition
-//     done = (std::abs(t_old + dt_done - t_DNS_end) / (t_DNS_end - t_old) <
-//             0.1 * min_dt_) ||   // finished the step
-//            (dt_next < min_dt_); // failed
-//   }
-
+  
   fail = Amanzi::MPCSubcycled::AdvanceStep(t_old, t_new, reinit);
     
   if (!fail) {

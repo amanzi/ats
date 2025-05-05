@@ -24,7 +24,7 @@ ErosionRateEvaluator ::ErosionRateEvaluator(Teuchos::ParameterList& plist)
   Key domain_name = Keys::getDomain(my_keys_.front().first);
 
   velocity_key_ = plist_.get<std::string>("velocity key", Keys::getKey(domain_name, "velocity"));
-
+  
   tau_e_ = plist_.get<double>("critical shear stress");
   Qe_0_ = plist_.get<double>("empirical coefficient");
   gamma_ = plist_.get<double>("specific weight of water");
@@ -36,7 +36,7 @@ ErosionRateEvaluator ::ErosionRateEvaluator(Teuchos::ParameterList& plist)
 
   lambda_ = 8. / (3 * pi) * (umax_ / (xi_ * xi_));
 
-  dependencies_.insert(KeyTag{ "surface-pressure", tag });
+  dependencies_.insert(KeyTag{ velocity_key_, Tags::NEXT });
 }
 
 

@@ -26,7 +26,7 @@ TrappingRateEvaluator ::TrappingRateEvaluator(Teuchos::ParameterList& plist)
 
   // note, this is a proxy for velocity, which does not have an eval yet
   Key pres_key = Keys::readKey(plist_, domain_name, "pressure", "pressure");
-  dependencies_.insert(KeyTag{ pres_key, tag });
+  dependencies_.insert(KeyTag{ pres_key, Tags::NEXT });
 
   sediment_key_ = Keys::readKey(plist_, domain_name, "sediment", "sediment");
   dependencies_.insert(KeyTag{ sediment_key_, tag });
