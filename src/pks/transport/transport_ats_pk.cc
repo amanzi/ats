@@ -75,6 +75,10 @@ Transport_ATS::parseParameterList()
   if (!plist_->isParameter("primary variable key suffix")) {
     plist_->set<std::string>("primary variable key suffix", "molar_ratio");
   }
+
+  // with subfield names, the header width is often insufficient
+  if (!plist_->sublist("verbose object").isParameter("debug cell header width"))
+    plist_->sublist("verbose object").set("debug cell header width", 34);
   PK_Physical_Default::parseParameterList();
 
   // protect user from old naming convention
@@ -813,7 +817,10 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
     S_->GetPtr<CompositeVector>(lwc_key_, tag_next_).ptr(),
   };
   db_->WriteVectors(vnames, vecs);
-  db_->WriteVector("mol_f (old)", S_->GetPtr<CompositeVector>(key_, tag_current_).ptr());
+  db_->WriteVector("mol_ratio_old",
+                   S_->GetPtr<CompositeVector>(key_, tag_current_).ptr(),
+                   true,
+                   S_->GetRecordSet(key_).subfieldnames());
 
   // update geochemical condition conversions
 #ifdef ALQUIMIA_ENABLED
@@ -868,7 +875,10 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   const Epetra_MultiVector& tcc_new = *S_->Get<CompositeVector>(key_, tag_next_)
     .ViewComponent("cell");
   ChangedSolutionPK(tag_next_);
-  db_->WriteVector("mol_f (new)", S_->GetPtr<CompositeVector>(key_, tag_next_).ptr());
+  db_->WriteVector("mol_ratio_new",
+                   S_->GetPtr<CompositeVector>(key_, tag_next_).ptr(),
+                   true,
+                   S_->GetRecordSet(key_).subfieldnames());
   return failed;
 }
 
@@ -1023,7 +1033,8 @@ Transport_ATS::AdvanceAdvectionSources_RK1_(double t_old,
   }
   conserve_qty(num_aqueous_)->PutScalar(0.);
   conserve_qty(num_aqueous_ + 1)->PutScalar(0.);
-  db_->WriteCellVector("qnty (start)", conserve_qty);
+  db_->WriteCellVector("qnty (old)", conserve_qty,
+                       S_->GetRecordSet(conserve_qty_key_).subfieldnames());
 
   // advection: M <-- M + dt * div q * C0
   if (spatial_order == 1) {
@@ -1031,11 +1042,13 @@ Transport_ATS::AdvanceAdvectionSources_RK1_(double t_old,
   } else if (spatial_order == 2) {
     AddAdvection_SecondOrderUpwind_(t_old, t_new, tcc_old, conserve_qty);
   }
-  db_->WriteCellVector("qnty (adv)", conserve_qty);
+  db_->WriteCellVector("qnty (adv)", conserve_qty,
+                       S_->GetRecordSet(conserve_qty_key_).subfieldnames());
 
   // process external sources: M <-- M + dt * Q
   AddSourceTerms_(t_old, t_new, conserve_qty, 0, num_aqueous_ - 1);
-  db_->WriteCellVector("qnty (src)", conserve_qty);
+  db_->WriteCellVector("qnty (src)", conserve_qty,
+                       S_->GetRecordSet(conserve_qty_key_).subfieldnames());
 
   // invert for C1: C1 <-- M / WC1, also deals with dissolution/precipitation
   // tcc_new, the new solution
@@ -1049,7 +1062,8 @@ Transport_ATS::AdvanceAdvectionSources_RK1_(double t_old,
     .ViewComponent("cell", false);
 
   InvertTccNew_(conserve_qty, tcc_new, &solid_qty, true);
-  db_->WriteCellVector("mol_f (pre-diff)", tcc_new);
+  db_->WriteCellVector("mol_ratio (pre-diff)", tcc_new,
+                       S_->GetRecordSet(key_).subfieldnames());
 }
 
 
@@ -1087,7 +1101,8 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(double t_old,
   }
   conserve_qty(num_aqueous_)->PutScalar(0.);
   conserve_qty(num_aqueous_ + 1)->PutScalar(0.);
-  db_->WriteCellVector("qnty (start)", conserve_qty);
+  db_->WriteCellVector("qnty (start)", conserve_qty,
+                       S_->GetRecordSet(conserve_qty_key_).subfieldnames());
 
   // Predictor Step:
   // -- advection: M <-- M + dt * div q * C0
@@ -1096,11 +1111,13 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(double t_old,
   } else if (spatial_order == 2) {
     AddAdvection_SecondOrderUpwind_(t_old, t_new, tcc_old, conserve_qty);
   }
-  db_->WriteCellVector("qnty (pred adv)", conserve_qty);
+  db_->WriteCellVector("qnty (pred adv)", conserve_qty,
+                       S_->GetRecordSet(conserve_qty_key_).subfieldnames());
 
   // -- process external sources: M <-- M + dt * Q(t0)
   AddSourceTerms_(t_old, t_new, conserve_qty, 0, num_aqueous_ - 1);
-  db_->WriteCellVector("qnty (pred src)", conserve_qty);
+  db_->WriteCellVector("qnty (pred src)", conserve_qty,
+                       S_->GetRecordSet(conserve_qty_key_).subfieldnames());
 
   // -- invert for C': C' <-- M / WC1, note no dissolution/precip
   {
@@ -1108,7 +1125,8 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(double t_old,
       .ViewComponent("cell", false);
 
     InvertTccNew_(conserve_qty, tcc_new, nullptr, false);
-    db_->WriteCellVector("mol_f (pred new)", tcc_new);
+    db_->WriteCellVector("mol_ratio (pred)", tcc_new,
+                       S_->GetRecordSet(key_).subfieldnames());
   }
 
   // Corrector Step:
@@ -1119,7 +1137,8 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(double t_old,
   }
   conserve_qty(num_aqueous_)->PutScalar(0.);
   conserve_qty(num_aqueous_ + 1)->PutScalar(0.);
-  db_->WriteCellVector("qnty (corr start)", conserve_qty);
+  db_->WriteCellVector("qnty (corr start)", conserve_qty,
+                       S_->GetRecordSet(conserve_qty_key_).subfieldnames());
 
   // -- advect the predicted C'
   {
@@ -1134,7 +1153,9 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(double t_old,
     } else if (spatial_order == 2) {
       AddAdvection_SecondOrderUpwind_(t_old + dt/2., t_new, tcc_new, conserve_qty);
     }
-    db_->WriteCellVector("qnty (corr adv)", conserve_qty);
+    db_->WriteCellVector("qnty (corr adv)", conserve_qty,
+                         S_->GetRecordSet(conserve_qty_key_).subfieldnames());
+
   }
 
   // -- add sources at the new time, predicted C'
@@ -1142,7 +1163,9 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(double t_old,
   //     <-- (C0 W0 + dt div q C0 + dt Q(t0)) / 2 + W0 C0 / 2 + dt div q C' / 2 + dt Q(t1) / 2
   //     <-- C0 W0 + dt * (div q C0 + div q C') / 2 + dt (Q(t0) + Q(t1)) / 2
   AddSourceTerms_(t_old + dt/2., t_new, conserve_qty, 0, num_aqueous_ - 1);
-  db_->WriteCellVector("qnty (corr src)", conserve_qty);
+  db_->WriteCellVector("qnty (corr src)", conserve_qty,
+                       S_->GetRecordSet(conserve_qty_key_).subfieldnames());
+
 
   // -- Invert to get C1, this time with dissolution/solidification
   {
@@ -1156,7 +1179,8 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(double t_old,
       .ViewComponent("cell", true);
 
     InvertTccNew_(conserve_qty, tcc_new, &solid_qty, true);
-    db_->WriteCellVector("mol_f (final)", tcc_new);
+    db_->WriteCellVector("mol_ratio_new", tcc_new,
+                         S_->GetRecordSet(key_).subfieldnames());
   }
 }
 
