@@ -556,9 +556,6 @@ Richards::Initialize()
   S_->GetW<CompositeVector>(velocity_key_, Tags::NEXT, name()).PutScalar(0.0);
   S_->GetRecordW(velocity_key_, Tags::NEXT, name()).set_initialized();
 
-  // absolute perm
-  // SetAbsolutePermeabilityTensor_(tag_next_);
-
   // operators
   const AmanziGeometry::Point& g = S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
   matrix_diff_->SetGravity(g);

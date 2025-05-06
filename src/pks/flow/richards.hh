@@ -309,7 +309,6 @@ class Richards : public PK_PhysicalBDF_Default {
   virtual void UpdateBoundaryConditions_(const Tag& tag, bool kr = true);
 
   // -- builds tensor K, along with faced-based Krel if needed by the rel-perm method
-  // virtual void SetAbsolutePermeabilityTensor_(const Tag& tag);
   virtual bool UpdatePermeabilityData_(const Tag& tag);
   virtual bool UpdatePermeabilityDerivativeData_(const Tag& tag);
 
