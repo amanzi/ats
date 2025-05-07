@@ -9,7 +9,7 @@
 
 #include "mpc_coupled_water_split_flux.hh"
 #include "mpc_surface_subsurface_helpers.hh"
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 
 namespace Amanzi {
 
@@ -93,27 +93,24 @@ MPCCoupledWaterSplitFlux::Setup()
       for (const auto& domain : *domain_set) {
         auto p_key = Keys::getKey(domain, p_lateral_flow_source_suffix_);
         Tag ds_tag_next = get_ds_tag_next_(domain);
-        S_->Require<CompositeVector, CompositeVectorSpace>(p_key, ds_tag_next, p_key)
+        requireEvaluatorAtNext(p_key, ds_tag_next, *S_, name_)
           .SetMesh(S_->GetMesh(domain))
           ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-        requireEvaluatorPrimary(p_key, ds_tag_next, *S_);
       }
     } else {
-      S_->Require<CompositeVector, CompositeVectorSpace>(
-          p_lateral_flow_source_, tags_[1].second, p_lateral_flow_source_)
+      requireEvaluatorAtNext(p_lateral_flow_source_, tags_[1].second, *S_, name_)
         .SetMesh(S_->GetMesh(Keys::getDomain(p_lateral_flow_source_)))
         ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-      requireEvaluatorPrimary(p_lateral_flow_source_, tags_[1].second, *S_);
     }
 
     // also need conserved quantities at old and new times
-    S_->Require<CompositeVector, CompositeVectorSpace>(p_conserved_variable_star_, tags_[0].second)
+    requireEvaluatorAtNext(p_conserved_variable_star_, tags_[0].second, *S_)
       .SetMesh(S_->GetMesh(domain_star_))
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+
     S_->Require<CompositeVector, CompositeVectorSpace>(p_conserved_variable_star_, tags_[0].first)
       .SetMesh(S_->GetMesh(domain_star_))
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-    S_->RequireEvaluator(p_conserved_variable_star_, tags_[0].second);
     //S_->RequireEvaluator(p_conserved_variable_star_, tags_[0].first);
   }
 }
@@ -155,7 +152,7 @@ MPCCoupledWaterSplitFlux::Initialize()
         S_->GetRecordW(pkey, ds_tag_next, p_owner).set_initialized();
       }
     } else {
-      S_->GetRecordW(p_lateral_flow_source_, tags_[1].second, p_lateral_flow_source_)
+      S_->GetRecordW(p_lateral_flow_source_, tags_[1].second, name_)
         .set_initialized();
     }
   }
@@ -300,7 +297,7 @@ MPCCoupledWaterSplitFlux::CopyStarToPrimary_Standard_Pressure_()
   auto& p = *S_->GetW<CompositeVector>(p_primary_variable_, tags_[1].first, p_owner)
                .ViewComponent("cell", false);
   auto& WC =
-    *S_->GetW<CompositeVector>(p_conserved_variable_, tags_[1].first, p_conserved_variable_)
+    *S_->GetW<CompositeVector>(p_conserved_variable_, tags_[1].first, name_)
        .ViewComponent("cell", false);
 
   double p_atm_plus_eps = 101325. + 1.e-7;
@@ -337,7 +334,7 @@ MPCCoupledWaterSplitFlux::CopyStarToPrimary_Standard_Flux_()
   // mass
   // -- grab the data, difference
   auto& q_div =
-    *S_->GetW<CompositeVector>(p_lateral_flow_source_, tags_[1].second, p_lateral_flow_source_)
+    *S_->GetW<CompositeVector>(p_lateral_flow_source_, tags_[1].second, name_)
        .ViewComponent("cell", false);
   q_div.Update(1.0 / dt,
                *S_->Get<CompositeVector>(p_conserved_variable_star_, tags_[0].second)
@@ -370,7 +367,7 @@ MPCCoupledWaterSplitFlux::CopyStarToPrimary_Standard_Hybrid_()
   // mass
   // -- grab the data, difference
   auto& q_div =
-    *S_->GetW<CompositeVector>(p_lateral_flow_source_, tags_[1].second, p_lateral_flow_source_)
+    *S_->GetW<CompositeVector>(p_lateral_flow_source_, tags_[1].second, name_)
        .ViewComponent("cell", false);
   q_div.Update(1.0 / dt,
                *S_->Get<CompositeVector>(p_conserved_variable_star_, tags_[0].second)
@@ -560,7 +557,7 @@ MPCCoupledWaterSplitFlux::CopyStarToPrimary_DomainSet_Hybrid_()
 
       // set the lateral flux to 0
       Key p_lf_key = Keys::getKey(*ds_iter, p_lateral_flow_source_suffix_);
-      (*S_->GetW<CompositeVector>(p_lf_key, ds_tag_next, p_lf_key)
+      (*S_->GetW<CompositeVector>(p_lf_key, ds_tag_next, name_)
           .ViewComponent("cell", false))[0][0] = 0.;
       changedEvaluatorPrimary(p_lf_key, ds_tag_next, *S_);
 

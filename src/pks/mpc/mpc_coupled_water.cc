@@ -11,7 +11,7 @@
 #include "Teuchos_XMLParameterListHelpers.hpp"
 #include "EpetraExt_RowMatrixOut.h"
 
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 #include "mpc_surface_subsurface_helpers.hh"
 #include "mpc_coupled_water.hh"
 
@@ -64,10 +64,9 @@ MPCCoupledWater::Setup()
   StrongMPC<PK_PhysicalBDF_Default>::Setup();
 
   // require the coupling fields, claim ownership
-  S_->Require<CompositeVector, CompositeVectorSpace>(exfilt_key_, tag_next_, exfilt_key_)
+  requireEvaluatorAtNext(exfilt_key_, tag_next_, *S_, name_)
     .SetMesh(surf_mesh_)
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  requireEvaluatorPrimary(exfilt_key_, tag_next_, *S_);
 
   // Create the preconditioner.
   // -- collect the preconditioners
@@ -129,8 +128,8 @@ void
 MPCCoupledWater::Initialize()
 {
   // initialize coupling terms
-  S_->GetPtrW<CompositeVector>(exfilt_key_, tag_next_, exfilt_key_)->PutScalar(0.);
-  S_->GetRecordW(exfilt_key_, tag_next_, exfilt_key_).set_initialized();
+  S_->GetPtrW<CompositeVector>(exfilt_key_, tag_next_, name_)->PutScalar(0.);
+  S_->GetRecordW(exfilt_key_, tag_next_, name_).set_initialized();
   changedEvaluatorPrimary(exfilt_key_, tag_next_, *S_);
 
   // Initialize all sub PKs.
@@ -166,7 +165,7 @@ MPCCoupledWater::FunctionalResidual(double t_old,
   // The residual of the surface flow equation provides the water flux from
   // subsurface to surface.
   Epetra_MultiVector& source =
-    *S_->GetW<CompositeVector>(exfilt_key_, tag_next_, exfilt_key_).ViewComponent("cell", false);
+    *S_->GetW<CompositeVector>(exfilt_key_, tag_next_, name_).ViewComponent("cell", false);
   source = *g->SubVector(1)->Data()->ViewComponent("cell", false);
   changedEvaluatorPrimary(exfilt_key_, tag_next_, *S_);
 

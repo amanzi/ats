@@ -115,8 +115,8 @@ values from the old time.
 
 #include "PK.hh"
 #include "PK_Factory.hh"
-#include "pk_physical_default.hh"
-#include "pk_helpers.hh"
+#include "PK_Physical_Default.hh"
+#include "PK_Helpers.hh"
 //#include "MatrixVolumetricDeformation.hh"
 
 namespace Amanzi {

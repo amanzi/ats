@@ -33,11 +33,11 @@ class EOSIdealGas : public EOSConstantMolarMass {
   virtual double MolarDensity(std::vector<double>& params) override;
   virtual double DMolarDensityDT(std::vector<double>& params) override;
   virtual double DMolarDensityDp(std::vector<double>& params) override;
-  virtual double DMolarDensityDC(std::vector<double>& params) override { return 0.; }
+  virtual double DMolarDensityDMolarRatio(std::vector<double>& params) override { return 0.; }
 
   virtual bool IsTemperature() override { return true; }
   virtual bool IsPressure() override { return true; }
-  virtual bool IsConcentration() override { return false; }
+  virtual bool IsMolarRatio() override { return false; }
 
  protected:
   virtual void InitializeFromPlist_();

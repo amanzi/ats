@@ -22,7 +22,7 @@ porous media.
 .. _thermal-conductivity-twophase-evaluator-spec:
 .. admonition:: thermal-conductivity-twophase-evaluator-spec
 
-   * `"thermal conductivity parameters`" ``[thermal-conductivity-twophase-typedinline-spec-list]``
+   * `"thermal conductivity parameters`" ``[thermal-conductivity-twophase-typed-spec-list]``
 
    KEYS:
 

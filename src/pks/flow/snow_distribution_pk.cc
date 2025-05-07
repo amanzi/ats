@@ -24,7 +24,7 @@
 
 #include "snow_distribution.hh"
 
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 
 namespace Amanzi {
 namespace Flow {
@@ -85,13 +85,13 @@ SnowDistribution::SetupSnowDistribution_()
   precip_func_ = Teuchos::rcp(fac.Create(precip_func));
 
   // -- get conserved variable (snow-precip) and evaluator and derivative for PC
-  requireAtNext(conserved_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(conserved_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   //    and at the current time, where it is a copy evaluator
-  requireAtCurrent(conserved_key_, tag_current_, *S_, name_);
+  requireEvaluatorAtCurrent(conserved_key_, tag_current_, *S_, name_);
 
   // -- cell volume and evaluator
   S_->Require<CompositeVector, CompositeVectorSpace>(cv_key_, tag_next_)
@@ -183,13 +183,13 @@ void
 SnowDistribution::SetupPhysicalEvaluators_()
 {
   // -- evaluator for potential field, h + z
-  requireAtNext(potential_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(potential_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   // -- snow_conductivity evaluator
-  requireAtNext(cond_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(cond_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);

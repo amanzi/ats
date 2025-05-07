@@ -20,7 +20,7 @@
    ------------------------------------------------------------------------- */
 
 #include "MeshPartition.hh"
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 #include "bgc_simple_funcs.hh"
 
 #include "bgc_simple.hh"
@@ -150,23 +150,20 @@ BGCSimple::Setup()
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_pools_);
 
   // requirements: other primary variables
-  S_->Require<CompositeVector, CompositeVectorSpace>(trans_key_, tag_next_, name_)
+  requireEvaluatorAtNext(trans_key_, tag_next_, *S_, name_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  requireEvaluatorPrimary(trans_key_, tag_next_, *S_);
 
-  S_->Require<CompositeVector, CompositeVectorSpace>(shaded_sw_key_, tag_next_, name_)
+  requireEvaluatorAtNext(shaded_sw_key_, tag_next_, *S_, name_)
     .SetMesh(mesh_surf_)
     ->SetGhosted()
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  requireEvaluatorPrimary(shaded_sw_key_, tag_next_, *S_);
 
-  S_->Require<CompositeVector, CompositeVectorSpace>(total_lai_key_, tag_next_, name_)
+  requireEvaluatorAtNext(total_lai_key_, tag_next_, *S_, name_)
     .SetMesh(mesh_surf_)
     ->SetGhosted()
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  requireEvaluatorPrimary(total_lai_key_, tag_next_, *S_);
 
   // requirement: diagnostics
   S_->Require<CompositeVector, CompositeVectorSpace>("co2_decomposition", tag_next_, name_)

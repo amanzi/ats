@@ -7,12 +7,22 @@
   Authors: Ethan Coon
 */
 
-/* -------------------------------------------------------------------------
+/*
 
-   ATS
+Two-phase thermal conductivity models are used to compute the bulk thermal
+conductivity from the constitutive parts -- gas, liquid, ice, and background
+material.
 
-   Self-registering factory for EOS implementations.
-   ------------------------------------------------------------------------- */
+.. _thermal-conductivity-twophase-typed-spec:
+.. admonition:: thermal-conductivity-twophase-typed-spec
+
+   * `"region`" ``[string]`` Region on which the model is valid.
+   * `"thermal conductivity type`" ``[string]`` Name of the model, see below for options.
+   * `"_thermal_conductivity_type_ parameters`"
+     ``[_thermal_conductivity_type_-spec]`` See below for the required
+     parameter spec for each type.
+
+*/
 
 #ifndef PK_ENERGY_RELATIONS_TC_TWOPHASE_FACTORY_HH_
 #define PK_ENERGY_RELATIONS_TC_TWOPHASE_FACTORY_HH_

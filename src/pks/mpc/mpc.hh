@@ -143,7 +143,8 @@ template <class PK_t>
 void
 MPC<PK_t>::Initialize()
 {
-  for (auto& pk : sub_pks_) pk->Initialize();
+  for (auto& pk : sub_pks_)
+    pk->Initialize();
 };
 
 

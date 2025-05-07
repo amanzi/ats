@@ -34,7 +34,7 @@
 #include "PK_DomainFunctionFactory.hh"
 #include "PK_Utils.hh"
 
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 
 #include "sediment_transport_pk.hh"
 #include "TransportDomainFunction.hh"
@@ -101,7 +101,7 @@ SedimentTransport_PK::parseParameterList()
 
   // -- liquid water content - need at new time, copy at current time
   lwc_key_ = Keys::readKey(*plist_, domain_, "liquid water content", "water_content");
-  requireAtCurrent(lwc_key_, tag_current_, *S_, name_);
+  requireEvaluatorAtCurrent(lwc_key_, tag_current_, *S_, name_);
 
   water_src_key_ = Keys::readKey(*plist_, domain_, "water source", "water_source");
   cv_key_ = Keys::readKey(*plist_, domain_, "cell volume", "cell_volume");
@@ -109,7 +109,7 @@ SedimentTransport_PK::parseParameterList()
   // workspace, no evaluator
   conserve_qty_key_ =
     Keys::readKey(*plist_, domain_, "conserved quantity", "total_component_quantity");
-  requireAtNext(conserve_qty_key_, tag_next_, *S_, name_);
+  requireEvaluatorAtNext(conserve_qty_key_, tag_next_, *S_, name_);
 
   solid_residue_mass_key_ = Keys::readKey(*plist_, domain_, "solid residue", "solid_residue_quantity");
   
@@ -235,54 +235,54 @@ SedimentTransport_PK::SetupTransport_()
 
   // setup sources
 
-  requireAtNext(sd_organic_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(sd_organic_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  requireAtNext(sd_trapping_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(sd_trapping_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  requireAtNext(sd_settling_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(sd_settling_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  requireAtNext(sd_erosion_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(sd_erosion_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  requireAtNext(biomass_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(biomass_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  requireAtNext(plant_area_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(plant_area_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  requireAtNext(stem_diameter_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(stem_diameter_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  requireAtNext(stem_height_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(stem_height_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  requireAtNext(stem_density_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(stem_density_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::CELL, 1);
 
   S_->Require<double>("MSL", tag_next_);
    
-  requireAtNext(porosity_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(porosity_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::CELL, 1);

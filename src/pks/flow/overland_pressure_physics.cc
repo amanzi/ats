@@ -7,7 +7,7 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 #include "overland_pressure.hh"
 
 namespace Amanzi {

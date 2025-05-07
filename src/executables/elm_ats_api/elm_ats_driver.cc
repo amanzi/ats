@@ -21,7 +21,7 @@
 #include "CompositeVector.hh"
 #include "IO.hh"
 #include "UnstructuredObservations.hh"
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 #include "elm_ats_driver.hh"
 
 namespace ATS {
@@ -146,80 +146,80 @@ void
 ELM_ATSDriver::setup()
 {
   // potential fluxes (ELM -> ATS)
-  requireAtNext(pot_infilt_key_, Amanzi::Tags::NEXT, *S_, pot_infilt_key_)
+  requireEvaluatorAtNext(pot_infilt_key_, Amanzi::Tags::NEXT, *S_, pot_infilt_key_)
     .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  requireAtNext(pot_evap_key_, Amanzi::Tags::NEXT, *S_, pot_evap_key_)
+  requireEvaluatorAtNext(pot_evap_key_, Amanzi::Tags::NEXT, *S_, pot_evap_key_)
     .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  requireAtNext(pot_trans_key_, Amanzi::Tags::NEXT, *S_, pot_trans_key_)
+  requireEvaluatorAtNext(pot_trans_key_, Amanzi::Tags::NEXT, *S_, pot_trans_key_)
     .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
   // subsurface properties
-  requireAtNext(base_poro_key_, Amanzi::Tags::NEXT, *S_, base_poro_key_)
+  requireEvaluatorAtNext(base_poro_key_, Amanzi::Tags::NEXT, *S_, base_poro_key_)
     .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  requireAtNext(perm_key_, Amanzi::Tags::NEXT, *S_, perm_key_)
+  requireEvaluatorAtNext(perm_key_, Amanzi::Tags::NEXT, *S_, perm_key_)
     .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
   // dynamic subsurface properties
-  requireAtNext(root_frac_key_, Amanzi::Tags::NEXT, *S_, root_frac_key_)
+  requireEvaluatorAtNext(root_frac_key_, Amanzi::Tags::NEXT, *S_, root_frac_key_)
     .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  requireAtNext(poro_key_, Amanzi::Tags::NEXT, *S_) // use base_porosity from elm and ATS model for compressibility
+  requireEvaluatorAtNext(poro_key_, Amanzi::Tags::NEXT, *S_) // use base_porosity from elm and ATS model for compressibility
     .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
   // Clapp and Hornberger water retention params (ELM -> ATS)
-  requireAtNext(ch_b_key_, Amanzi::Tags::NEXT, *S_, ch_b_key_)
+  requireEvaluatorAtNext(ch_b_key_, Amanzi::Tags::NEXT, *S_, ch_b_key_)
     .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  requireAtNext(ch_smpsat_key_, Amanzi::Tags::NEXT, *S_, ch_smpsat_key_)
+  requireEvaluatorAtNext(ch_smpsat_key_, Amanzi::Tags::NEXT, *S_, ch_smpsat_key_)
     .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  requireAtNext(ch_sr_key_, Amanzi::Tags::NEXT, *S_, ch_sr_key_)
+  requireEvaluatorAtNext(ch_sr_key_, Amanzi::Tags::NEXT, *S_, ch_sr_key_)
     .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
   // per-column ATS water state (ATS -> ELM)
-  requireAtNext(pd_key_, Amanzi::Tags::NEXT, *S_)
+  requireEvaluatorAtNext(pd_key_, Amanzi::Tags::NEXT, *S_)
     .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  requireAtNext(wtd_key_, Amanzi::Tags::NEXT, *S_)
+  requireEvaluatorAtNext(wtd_key_, Amanzi::Tags::NEXT, *S_)
     .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
   // per cell ATS water state
-  requireAtNext(pc_key_, Amanzi::Tags::NEXT, *S_)
+  requireEvaluatorAtNext(pc_key_, Amanzi::Tags::NEXT, *S_)
     .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  requireAtNext(sat_key_, Amanzi::Tags::NEXT, *S_)
+  requireEvaluatorAtNext(sat_key_, Amanzi::Tags::NEXT, *S_)
     .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
   // mesh data
-  //  requireAtNext(lat_key_, Amanzi::Tags::NEXT, *S_)
+  //  requireEvaluatorAtNext(lat_key_, Amanzi::Tags::NEXT, *S_)
   //    .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  //  requireAtNext(lon_key_, Amanzi::Tags::NEXT, *S_)
+  //  requireEvaluatorAtNext(lon_key_, Amanzi::Tags::NEXT, *S_)
   //    .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  //  requireAtNext(elev_key_, Amanzi::Tags::NEXT, *S_)
+  //  requireEvaluatorAtNext(elev_key_, Amanzi::Tags::NEXT, *S_)
   //    .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  requireAtNext(surf_cv_key_, Amanzi::Tags::NEXT, *S_)
+  requireEvaluatorAtNext(surf_cv_key_, Amanzi::Tags::NEXT, *S_)
     .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  requireAtNext(cv_key_, Amanzi::Tags::NEXT, *S_)
+  requireEvaluatorAtNext(cv_key_, Amanzi::Tags::NEXT, *S_)
     .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
   // may not be necessary? any PK that utilizes this should already have density
-  requireAtNext(surf_mol_dens_key_, Amanzi::Tags::NEXT, *S_)
+  requireEvaluatorAtNext(surf_mol_dens_key_, Amanzi::Tags::NEXT, *S_)
     .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  requireAtNext(surf_mass_dens_key_, Amanzi::Tags::NEXT, *S_)
+  requireEvaluatorAtNext(surf_mass_dens_key_, Amanzi::Tags::NEXT, *S_)
     .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  requireAtNext(subsurf_mol_dens_key_, Amanzi::Tags::NEXT, *S_)
+  requireEvaluatorAtNext(subsurf_mol_dens_key_, Amanzi::Tags::NEXT, *S_)
     .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  requireAtNext(subsurf_mass_dens_key_, Amanzi::Tags::NEXT, *S_)
-    .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-
-  requireAtNext(total_trans_key_, Amanzi::Tags::NEXT, *S_)
-    .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  requireAtNext(wc_key_, Amanzi::Tags::NEXT, *S_)
+  requireEvaluatorAtNext(subsurf_mass_dens_key_, Amanzi::Tags::NEXT, *S_)
     .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  requireAtNext(evap_key_, Amanzi::Tags::NEXT, *S_)
+  requireEvaluatorAtNext(total_trans_key_, Amanzi::Tags::NEXT, *S_)
+    .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
+  requireEvaluatorAtNext(wc_key_, Amanzi::Tags::NEXT, *S_)
+    .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
+
+  requireEvaluatorAtNext(evap_key_, Amanzi::Tags::NEXT, *S_)
    .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  requireAtNext(trans_key_, Amanzi::Tags::NEXT, *S_)
+  requireEvaluatorAtNext(trans_key_, Amanzi::Tags::NEXT, *S_)
    .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  requireAtNext(infilt_key_, Amanzi::Tags::NEXT, *S_)
+  requireEvaluatorAtNext(infilt_key_, Amanzi::Tags::NEXT, *S_)
     .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  requireAtNext(pres_key_, Amanzi::Tags::NEXT, *S_, "flow")
+  requireEvaluatorAtNext(pres_key_, Amanzi::Tags::NEXT, *S_, "flow")
     .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
   Coordinator::setup();

@@ -17,7 +17,7 @@ CarbonSimple::CarbonSimple(Teuchos::ParameterList& pk_tree,
                            const Teuchos::RCP<State>& S,
                            const Teuchos::RCP<TreeVector>& solution)
   : Amanzi::PK(pk_tree, glist, S, solution),
-    Amanzi::PK_Physical_Explicit_Default(pk_tree, glist, S, solution),
+    Amanzi::PK_Physical_Default_Explicit_Default(pk_tree, glist, S, solution),
     is_diffusion_(false),
     is_source_(false),
     is_decomp_(false),
@@ -42,7 +42,7 @@ CarbonSimple::CarbonSimple(Teuchos::ParameterList& pk_tree,
 void
 CarbonSimple::Setup()
 {
-  PK_Physical_Explicit_Default::Setup();
+  PK_Physical_Default_Explicit_Default::Setup();
 
   // number of carbon pools
   npools_ = plist_->get<int>("number of carbon pools");

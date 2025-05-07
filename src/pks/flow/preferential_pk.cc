@@ -28,7 +28,7 @@
 #include "richards_water_content_evaluator.hh"
 #include "OperatorDefs.hh"
 #include "BoundaryFlux.hh"
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 
 #include "preferential.hh"
 
@@ -95,7 +95,7 @@ Preferential::SetupPhysicalEvaluators_()
   Richards::SetupPhysicalEvaluators_();
 
   // -- rel perm for gravity term
-  requireAtNext(coef_grav_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(coef_grav_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1)

@@ -11,7 +11,7 @@
 #define PK_FATES_HH_
 
 #include "PK_Factory.hh"
-#include "pk_physical_default.hh"
+#include "PK_Physical_Default.hh"
 #include "ISO_Fortran_binding.h"
 
 #include "Teuchos_ParameterList.hpp"

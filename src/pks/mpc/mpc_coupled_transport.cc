@@ -54,14 +54,14 @@ MPCCoupledTransport::parseParameterList()
     Keys::readKey(pks_list_->sublist(name_surf_), domain_surf, "water flux", "water_flux");
 
   Key ss_tcc_key = Keys::readKey(
-    pks_list_->sublist(name_ss_), domain_ss, "concentration", "total_component_concentration");
+    pks_list_->sublist(name_ss_), domain_ss, "primary variable", "molar_ratio");
   Key surf_tcc_key = Keys::readKey(
-    pks_list_->sublist(name_surf_), domain_surf, "concentration", "total_component_concentration");
+    pks_list_->sublist(name_surf_), domain_surf, "primary variable", "molar_ratio");
   Key surf_tcq_key = Keys::readKey(
     pks_list_->sublist(name_surf_), domain_surf, "conserved quantity", "total_component_quantity");
 
   auto& bc_list =
-    pks_list_->sublist(name_ss_).sublist("boundary conditions").sublist("concentration");
+    pks_list_->sublist(name_ss_).sublist("boundary conditions").sublist("molar mixing ratio");
   if (!bc_list.isSublist("BC coupling")) {
     Teuchos::ParameterList& bc_coupling = bc_list.sublist("BC coupling");
     bc_coupling.set<std::string>("spatial distribution method", "domain coupling");

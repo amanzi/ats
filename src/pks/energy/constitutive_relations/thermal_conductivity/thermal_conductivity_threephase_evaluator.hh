@@ -17,7 +17,7 @@ porous media.
 .. _thermal-conductivity-threephase-evaluator-spec:
 .. admonition:: thermal-conductivity-threephase-evaluator-spec
 
-   * `"thermal conductivity parameters`" ``[thermal-conductivity-threephase-typedinline-spec-list]``
+   * `"thermal conductivity parameters`" ``[thermal-conductivity-threephase-typed-spec-list]``
 
    KEYS:
 

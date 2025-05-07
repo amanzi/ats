@@ -41,7 +41,7 @@
 //#include "TransportDomainFunction.hh"
 //#include "SedimentTransportDefs.hh"
 #include "transport_ats.hh"
-#include "pk_physical_default.hh"
+//#include "pk_physical_default.hh"
 
 /* ******************************************************************
 The transport PK receives a reduced (optional) copy of a physical
@@ -54,8 +54,9 @@ pointers to the original variables.
 namespace Amanzi {
 namespace Transport {
 
+
 class SedimentTransport_PK : public Transport_ATS {
- public:
+public:
   SedimentTransport_PK(Teuchos::ParameterList& pk_tree,
                        const Teuchos::RCP<Teuchos::ParameterList>& glist,
                        const Teuchos::RCP<State>& S,

@@ -23,7 +23,7 @@ Process kernel for energy equation for overland flow.
 #include "EvaluatorPrimary.hh"
 #include "Op.hh"
 
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 #include "energy_surface_ice.hh"
 
 namespace Amanzi {
@@ -79,13 +79,13 @@ EnergySurfaceIce::SetupPhysicalEvaluators_()
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
     // -- ensure enthalpy exists at the new time
-    requireAtNext(enthalpy_key_, tag_next_, *S_)
+    requireEvaluatorAtNext(enthalpy_key_, tag_next_, *S_)
       .SetMesh(mesh_)
       ->SetGhosted()
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
     // -- and on the subsurface
-    requireAtNext(Keys::getKey(domain_ss_, "enthalpy"), tag_next_, *S_)
+    requireEvaluatorAtNext(Keys::getKey(domain_ss_, "enthalpy"), tag_next_, *S_)
       .SetMesh(S_->GetMesh(domain_ss_))
       ->SetGhosted()
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);

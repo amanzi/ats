@@ -145,25 +145,7 @@ Transport_ATS::CalculateAxiSymmetryDirection_()
   int ncells_owned =
     mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
-  axi_symmetry_.resize(ncells_owned, -1);
-  if (S_->HasRecord(permeability_key_, tag_next_)) {
-    const Epetra_MultiVector& perm =
-      *S_->Get<CompositeVector>(permeability_key_, tag_next_).ViewComponent("cell");
-
-    if (perm.NumVectors() == 3) {
-      for (int c = 0; c < ncells_owned; ++c) {
-        int k;
-        if (perm[0][c] != perm[1][c] && perm[1][c] == perm[2][c]) {
-          k = 0;
-        } else if (perm[1][c] != perm[2][c] && perm[2][c] == perm[0][c]) {
-          k = 1;
-        } else if (perm[2][c] != perm[0][c] && perm[0][c] == perm[1][c]) {
-          k = 2;
-        }
-        axi_symmetry_[c] = k;
-      }
-    }
-  }
+  axi_symmetry_.resize(ncells_owned, mesh_->getSpaceDimension()-1);
 }
 
 } // namespace Transport

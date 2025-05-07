@@ -13,6 +13,6 @@
 namespace Amanzi {
 
 RegisteredPKFactory<MPCCoupledReactiveTransport>
-  MPCCoupledReactiveTransport::reg_("coupled reactive transport");
+  MPCCoupledReactiveTransport::reg_("surface subsurface reactive transport");
 
 } // namespace Amanzi

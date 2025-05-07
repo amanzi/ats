@@ -39,11 +39,11 @@ class EOSConstant : public EOSConstantMolarMass {
 
   virtual double DMolarDensityDp(std::vector<double>& params) override { return 0.; }
 
-  virtual double DMolarDensityDC(std::vector<double>& params) override { return 0.; }
+  virtual double DMolarDensityDMolarRatio(std::vector<double>& params) override { return 0.; }
 
   virtual bool IsTemperature() override { return false; }
   virtual bool IsPressure() override { return false; }
-  virtual bool IsConcentration() override { return false; }
+  virtual bool IsMolarRatio() override { return false; }
 
  private:
   virtual void InitializeFromPlist_();

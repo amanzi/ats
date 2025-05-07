@@ -113,7 +113,7 @@ EOSEvaluator::ParsePlistConc_()
 
   // -- concentration
   conc_key_ =
-    Keys::readKeyTag(plist_, domain_name, "concentration", "total_component_concentration", tag);
+    Keys::readKeyTag(plist_, domain_name, "molar mixing ratio", "molar_ratio", tag);
   dependencies_.insert(conc_key_);
 }
 
@@ -126,7 +126,7 @@ EOSEvaluator::EOSEvaluator(Teuchos::ParameterList& plist) : EvaluatorSecondaryMo
   EOSFactory eos_fac;
   eos_ = eos_fac.createEOS(plist_.sublist("EOS parameters"));
 
-  if (eos_->IsConcentration()) ParsePlistConc_();
+  if (eos_->IsMolarRatio()) ParsePlistConc_();
   if (eos_->IsTemperature()) ParsePlistTemp_();
   if (eos_->IsPressure()) ParsePlistPres_();
 
@@ -157,7 +157,7 @@ EOSEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& res
 
   // Pull dependencies out of state.
   auto tag = my_keys_.front().second;
-  if (eos_->IsConcentration())
+  if (eos_->IsMolarRatio())
     dep_cv.emplace_back(S.GetPtr<CompositeVector>(conc_key_.first, conc_key_.second).get());
   if (eos_->IsTemperature())
     dep_cv.emplace_back(S.GetPtr<CompositeVector>(temp_key_.first, temp_key_.second).get());
@@ -249,7 +249,7 @@ EOSEvaluator::EvaluatePartialDerivative_(const State& S,
 
   // Pull dependencies out of state.
   auto tag = my_keys_.front().second;
-  if (eos_->IsConcentration())
+  if (eos_->IsMolarRatio())
     dep_cv.emplace_back(S.GetPtr<CompositeVector>(conc_key_.first, conc_key_.second).get());
   if (eos_->IsTemperature())
     dep_cv.emplace_back(S.GetPtr<CompositeVector>(temp_key_.first, temp_key_.second).get());
@@ -281,7 +281,7 @@ EOSEvaluator::EvaluatePartialDerivative_(const State& S,
       if (wrt == conc_key_) {
         for (int id = 0; id != count; ++id) {
           for (int k = 0; k < num_dep; k++) { eos_params[k] = (*dep_vec[k])[0][id]; }
-          dens_v[0][id] = eos_->DMolarDensityDC(eos_params);
+          dens_v[0][id] = eos_->DMolarDensityDMolarRatio(eos_params);
         }
       } else if (wrt == pres_key_) {
         for (int id = 0; id != count; ++id) {
@@ -320,7 +320,7 @@ EOSEvaluator::EvaluatePartialDerivative_(const State& S,
         if (wrt == conc_key_) {
           for (int id = 0; id != count; ++id) {
             for (int k = 0; k < num_dep; k++) eos_params[k] = (*dep_vec[k])[0][id];
-            dens_v[0][id] = eos_->DMassDensityDC(eos_params);
+            dens_v[0][id] = eos_->DMassDensityDMolarRatio(eos_params);
           }
         } else if (wrt == pres_key_) {
           for (int id = 0; id != count; ++id) {

@@ -13,7 +13,7 @@
 */
 
 #include "mpc_morphology_pk.hh"
-#include "pk_helpers.hh" 
+#include "PK_Helpers.hh" 
 #include "Mesh.hh"
 
 namespace Amanzi {
@@ -88,7 +88,7 @@ Morphology_PK::Setup()
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  requireEvaluatorAssign( elevation_increase_key_, Tags::NEXT, *S_);
+  requireEvaluatorAssign( elevation_increase_key_, Tags::NEXT, *S_, name_);
 
   // Teuchos::ParameterList deform_plist;  
   // deform_plist.set("evaluator name", elevation_increase_key_);
@@ -114,7 +114,7 @@ Morphology_PK::Setup()
     ->SetGhosted()
     ->SetComponents(name, location, num_dofs);
 
-  requireEvaluatorAssign(biomass_key, Tags::NEXT, *S_);
+  requireEvaluatorAssign(biomass_key, Tags::NEXT, *S_, name_);
   //S_->RequireEvaluator(biomass_key, Tags::NEXT);
 
   S_->Require<double>("msl", Amanzi::Tags::DEFAULT, "msl");

@@ -20,15 +20,15 @@ domains/meshes of PKPhysicalBase and Explicit methods of PKExplicitBase.
 #include "errors.hh"
 #include "PK.hh"
 #include "pk_explicit_default.hh"
-#include "pk_physical_default.hh"
+#include "PK_Physical_Default.hh"
 
 
 namespace Amanzi {
 
 
-class PK_Physical_Explicit_Default : public PK_Explicit_Default, public PK_Physical_Default {
+class PK_Physical_Default_Explicit_Default : public PK_Explicit_Default, public PK_Physical_Default {
  public:
-  PK_Physical_Explicit_Default(Teuchos::ParameterList& pk_tree,
+  PK_Physical_Default_Explicit_Default(Teuchos::ParameterList& pk_tree,
                                const Teuchos::RCP<Teuchos::ParameterList>& glist,
                                const Teuchos::RCP<State>& S,
                                const Teuchos::RCP<TreeVector>& solution)
