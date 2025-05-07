@@ -97,6 +97,9 @@ SurfGateEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>
 
   // Calculate the flow rate from gate (from reach into detention pond) 
   double Q;
+  double avg_pe_storage = computeAreaWeightedAverage(mesh, storage_id_list, cv, pe);
+
+
   if (is_ponded_depth_function_){
     double avg_pd_inlet = computeAreaWeightedAverage(mesh, gate_intake_id_list, cv, pd);
     // test that for zero ponded depth, the function returns zero flow
@@ -111,7 +114,12 @@ SurfGateEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>
     AMANZI_ASSERT(Q0 == 0);
     Q = (*Q_gate_)(std::vector<double>{avg_pe_inlet}); 
   }
-  
+
+// to overcome "bang-bang" behavior, we use a smooth transition
+  double delta_ = 0.01; // should we make it available to the user?
+
+  double alpha = 0.5*(1.0 - std::tanh((avg_pe_storage - stage_close_)/delta_));
+  Q = alpha * Q;
  
   // Sink to the reach cells
   double sum_wc_l = 0;
