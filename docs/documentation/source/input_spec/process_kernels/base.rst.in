@@ -11,7 +11,7 @@ PK base class
 
 PK: Physical
 ------------
-{ pk_physical_default }
+{ PK_Physical_Default }
 
 
 PK: BDF

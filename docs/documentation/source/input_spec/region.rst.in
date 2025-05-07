@@ -1,6 +1,6 @@
 Region
 ######
-{ Region }
+{ RegionFactory }
 
 .. contents:: **Region Types**
    :local:
@@ -10,46 +10,60 @@ All
 ===
 { RegionAll }
 
-Box
-===
-{ RegionBox }
-
-Plane
-=====
-{ RegionPlane }
-
-Labeled Set
-===========
-{ RegionLabeledSet }
-
-Function Color
-==============
-{ RegionFunctionColor }
+Boundary
+========
+{ RegionBoundary }
 
 Point
 =====
 { RegionPoint }
 
-Logical
-=======
-{ RegionLogical }
+Line Segment
+============
+{ RegionLineSegment }
+
+Plane
+=====
+{ RegionPlane }
 
 Polygon
 =======
 { RegionPolygon}
 
-Enumerated
-==========
-{ RegionEnumerated }
-
-Boundary
-========
-{ RegionBoundary }
+Box
+===
+{ RegionBox }
 
 Box Volume Fractions
 ====================
 { RegionBoxVolumeFractions }
 
-Line Segment
-============
-{ RegionLineSegment }
+Cylinder
+========
+{ RegionCylinder }
+
+Half Space
+========
+{ RegionHalfSpace }
+
+Labeled Set
+===========
+{ RegionLabeledSet }
+
+Enumerated
+==========
+{ RegionEnumerated }
+
+Color Function
+==============
+{ RegionFunctionColor }
+
+Level Set
+=======
+{ RegionLevelSet }
+
+Logical
+=======
+{ RegionLogical }
+
+

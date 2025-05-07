@@ -13,3 +13,11 @@ WeakMPC
 StrongMPC
 ----------
 { strong_mpc }
+
+Subcycing
+---------
+{ mpc_subcycled }
+
+Weakly Coupled Subdomains
+-------------------------
+{ mpc_weak_subdomain }

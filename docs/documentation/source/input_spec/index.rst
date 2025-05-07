@@ -16,10 +16,16 @@ input spec is what it is, making this documentation critical.
 
 The input spec changes slightly from version to version, but an input
 file should never stop working due to commits within the same ATS
-release version.  Furthermore, whenever possible, we try to include
-python scripts for taking an input file that worked in one version and
-updating it to the next newer version.  These are available at
+release branch, nor for patch-level releases with the same minor
+version number. Furthermore, whenever possible, we try to include
+python scripts for taking an input file that worked in one minor
+version and updating it to the next newer minor version.  These are
+available at
 `<https://github.com/amanzi/ats/tree/master/tools/input_converters>`_
+
+Following Amanzi's release history, ATS has only incremented its major
+version once; this will only be done for major fundamental changes in
+how Amanzi and ATS work.
 
 .. toctree::
    :maxdepth: 1

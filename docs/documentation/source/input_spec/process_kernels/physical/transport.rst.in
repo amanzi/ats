@@ -10,5 +10,16 @@ the volume of water. In the subsurface, the volume of water is set by the
 porosity and saturation of the porous medium, while in the surface it is set 
 by the ponded depth.
 
-{transport_ats}
+{ transport_ats }
+
+
+Chemistry PK
+------------
+
+Reactive transport is done by coupling the Transport_PK_ with
+chemistry using some variation on a Reactive_Transport_MPC_.
+Currently, the only supported chemistry PK is through Alquimia, which
+calls out to either PFloTran or Crunch for its reaction support.
+
+{ Alquimia_PK }
 

@@ -1,0 +1,28 @@
+Tightly Coupled MPCs
+====================
+
+Coupling is an art, and often requires special off-diagonal work for
+globally implicit coupling on a single domain.  For instance, phase
+change results in tight coupling of flow and energy equations;
+off-block-diagonal entries in the preconditioner are entered through a
+special-purpose coupler.
+
+Coupled Cells MPC
+-----------------
+{ mpc_coupled_cells }
+
+Subsurface MPC
+--------------
+{ mpc_subsurface }
+
+Surface MPC
+--------------
+{ mpc_surface }
+
+Reactive Transport
+------------------
+{ mpc_reactivetransport }
+
+Flow & Transport
+----------------
+{ mpc_flow_transport }
