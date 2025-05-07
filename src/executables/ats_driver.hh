@@ -22,13 +22,13 @@ called `"main`".  That list contains the following required elements:
 .. admonition:: main-spec
 
     * `"cycle driver`" ``[coordinator-spec]``  See below.
-    * `"mesh`" ``[mesh-typed-spec-list]`` A list of Mesh_ objects.
-    * `"regions`" ``[region-typedinline-spec-list]`` A list of Region_ objects.
-    * `"visualization`" ``[visualization-spec-list]`` A list of Visualization_ objects.
-    * `"observations`" ``[observation-spec-list]`` An list of Observation_ objects.
-    * `"checkpoint`" ``[checkpoint-spec]`` A Checkpoint_ spec.
-    * `"PKs`" ``[pk-typedinline-spec-list]`` A list of `Process Kernels`_.
-    * `"state`" ``[state-spec]`` A State_ spec.
+    * `"mesh`" ``[mesh-typed-spec-list]`` A list of :doc:`mesh` objects.
+    * `"regions`" ``[region-typedinline-spec-list]`` A list of :doc:`region` objects.
+    * `"visualization`" ``[visualization-spec-list]`` A list of :doc:`/input_spec/io/visualization` objects.
+    * `"observations`" ``[observation-spec-list]`` An list of :doc:`/input_spec/io/observations` objects.
+    * `"checkpoint`" ``[checkpoint-spec]`` A :doc:`/input_spec/io/checkpoint` spec.
+    * `"PKs`" ``[pk-typedinline-spec-list]`` A list of :doc:`Process Kernels </input_spec/process_kernels/index>`.
+    * `"state`" ``[state-spec]`` A :doc:`/input_spec/state/index` spec.
 
 
 Coordinator

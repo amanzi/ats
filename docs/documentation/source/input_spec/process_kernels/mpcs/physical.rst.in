@@ -1,5 +1,5 @@
-Physical MPCs
-===============
+Special purpose MPCs
+====================
 
 Coupling is an art, and often requires special off-diagonal work for
 globally implicit coupling, and fancy games can be played with domains

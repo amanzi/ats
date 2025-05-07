@@ -174,11 +174,11 @@ Specified by `"mesh type`" of `"surface`".
 
    ONE OF
 
-   * `"surface sideset name`" ``[string]`` The Region_ name containing all surface faces.
+   * `"surface sideset name`" ``[string]`` The :doc:`region` name containing all surface faces.
 
    OR
 
-   * `"surface sideset names`" ``[Array(string)]`` A list of Region_ names containing the surface faces.
+   * `"surface sideset names`" ``[Array(string)]`` A list of :doc:`region` names containing the surface faces.
 
    END
 
@@ -291,7 +291,7 @@ Indexed domain set meshes are specified by `"mesh type`" of `"domain set indexed
      surface.
 
 Note, additionally, there must be a sublist of the name of the domain set,
-which itself is a `"mesh-typed-spec`"_, but may be missing some info
+which itself is a :doc:`mesh-typed-spec <mesh>`, but may be missing some info
 (e.g. `"entity LID`") that is filled in by this index.
 
 Example:
@@ -330,7 +330,7 @@ Region-based domain set meshes are specified by `"mesh type`" of `"domain set re
      surface.
 
 Note, additionally, there must be a sublist of the name of the domain set,
-which itself is a `"mesh-typed-spec`"_, but may be missing some info
+which itself is a :doc:`mesh-typed-spec <mesh>`, but may be missing some info
 (e.g. `"region`") that is filled in by this domain set.
 
 Example: the below example shows how to extract two subdomains, making them
