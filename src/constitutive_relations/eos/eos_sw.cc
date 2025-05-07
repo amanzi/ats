@@ -30,27 +30,29 @@ EOS_SW::EOS_SW(Teuchos::ParameterList& eos_plist) : eos_plist_(eos_plist)
 double
 EOS_SW::MassDensity(std::vector<double>& params) // liquid
 {
+  // [kg liquid / m^3]
   double mol_ratio = params[0];
-  return rho_f_ + E_ * mol_ratio;
+  return rho_f_ + E_ * M_salt_ * mol_ratio * MolarDensity(params);
 };
 
 double
 EOS_SW::DMassDensityDMolarRatio(std::vector<double>& params)
 {
-  return E_;
+  AMANZI_ASSERT(0);
 };
 
 double
-EOS_SW::MolarDensity(std::vector<double>& params) // H2O
+EOS_SW::MolarDensity(std::vector<double>& params)
 {
-  //return MassDensity(params) / (M_water_ * (1 - C) + M_salt_ * C);
-  return n_l_;
+  // [mol H2O / m^3]
+  double mol_ratio = params[0];
+  return rho_f_ / (M_water_ + (1 - E_) * mol_ratio * M_salt_);
 };
 
 double
 EOS_SW::DMolarDensityDMolarRatio(std::vector<double>& params)
 {
-  return 0.;
+  AMANZI_ASSERT(0);
 };
 
 
@@ -72,20 +74,13 @@ EOS_SW::InitializeFromPlist_()
     M_water = eos_plist_.get<double>("water molar mass [g mol^-1]", 18.0153) * 1e-3;
   }
 
-  // mass density of H2O
-  rho_f_ = eos_plist_.get<double>("fresh water mass density [kg m^-3]", 1000.0);
-
-  // molar density of H2O
-  n_l_ = rho_f_ / M_water;
+  // mass density of pure H2O
+  rho_f_ = eos_plist_.get<double>("freshwater mass density [kg m^-3]", 1000.0);
 
   // reference rho and C of saltwater
-  double rho_max = eos_plist_.get<double>("reference saltwater mass density [kg m^-3]", 1025);
-  double C_max = eos_plist_.get<double>("reference salinity [kg salt m^-3]", 35.);
-
-  // convert to mole ratio
-  double C_max_mol_m3 = C_max / M_salt; // [mol NaCl m^-3]
-  double mol_ratio_max = C_max_mol_m3 * n_l_; // [mol NaCl (mol H2O)^-1]
-  E_ = (rho_max - rho_f_) / mol_ratio_max; // [kg m^-3 mol H2O (mol NaCl)^-1]
+  double rho_ref = eos_plist_.get<double>("reference saltwater mass density [kg m^-3]", 1025);
+  double C_ref = eos_plist_.get<double>("reference saltwater concentration [kg m^-3]", 35.);
+  E_ = (rho_ref - rho_f_) / C_ref;
 };
 
 } // namespace Relations
