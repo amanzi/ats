@@ -1,0 +1,18 @@
+
+Deformation
+-------------
+
+The unstructured mesh framework we use provides the opportunity to
+include deformation of the mesh.  This deformation can be done in two
+ways -- either node coordinate changes are provided, or volumetric
+changes are provided, and the code attempts to iterate toward a global
+coordinate change that satisfies these volumetric changes.  The latter
+can be somewhat fragile for large deformation, but it does allow
+simple deformation such as small, somewhat uniform subsidence.  The
+volumetric deformation PK below does this based on a volumetric change
+given by loss of bulk ice.
+
+Volumetric Deformation
+^^^^^^^^^^^^^^^^^^^^^^
+{ volumetric_deformation }
+
