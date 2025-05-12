@@ -6,20 +6,18 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-
-//! An advection-diffusion equation for energy in three phases.
 /*!
 
-This is simply a subsurface energy equation that places a few more requirements
-on the base class.  It could probably go away if we refactor to remove
-hard-coded evaluators.
+Modifies the energy equation to provide three-phase energy (water + ice + vapor/air).
 
-.. _energy-three-phase-pk-spec:
-.. admonition:: energy-three-phase-pk-spec
+`"PK type`" = `"three-phase energy`"
 
-    INCLUDES:
+.. _pk-three-phase-energy-spec:
+.. admonition:: pk-three-phase-energy-spec
 
-    - ``[energy-two-phase-pk-spec]`` See  `Two-Phase subsurface Energy PK`_
+   INCLUDES:
+
+   - ``[pk-two-phase-energy-spec]`` See  :ref:`Two-Phase Energy PK`
 
 */
 

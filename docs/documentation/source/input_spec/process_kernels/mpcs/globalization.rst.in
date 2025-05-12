@@ -17,7 +17,7 @@ them are always welcome contributions.
 
 Coupled Water Globalization Delegate
 ------------------------------------
-{ mpc_delegate_water }
+{ mpc_delegate_water_decl }
 
 EWC Globalization Delegate
 --------------------------

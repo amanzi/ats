@@ -13,10 +13,10 @@
 .. math::
   \Theta = n s \phi V
 
-Specified with evaluator type: `"richards water content`"
+`"evaluator type`" = `"richards water content`"
 
-.. _field-evaluator-type-richards-water-content-spec:
-.. admonition:: field-evaluator-type-richards-water-content-spec
+.. _evaluator-richards-water-content-spec:
+.. admonition:: evaluator-type-richards-water-content-spec
 
    DEPENDENCIES:
 

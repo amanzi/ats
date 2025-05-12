@@ -15,16 +15,18 @@ constitutive relations -- the WRM changes to provide three saturations,
 while the water content changes to account for water in ice phase.  As these
 are now drop-in field evaluators, there is very little to change in the PK.
 
-In the future, this should not even need a different PK.
+In the future, this will not need a different PK.
 
-.. _permafrost-spec:
-.. admonition:: permafrost-spec
+`"PK type`" = `"permafrost flow`"
+
+.. _pk-permafrost-flow-spec:
+.. admonition:: pk-permafrost-flow-spec
 
     * `"saturation ice key`" ``[string]`` **"DOMAIN-saturation_ice"** volume fraction of the ice phase (only when relevant) ``[-]`` Typically the default is correct.
 
     INCLUDES:
 
-    - ``[richards-spec]`` See `Richards PK`_
+    - ``[pk-richards-flow-spec]`` See `Richards PK`_
 */
 
 #ifndef PK_FLOW_PERMAFROST_HH_

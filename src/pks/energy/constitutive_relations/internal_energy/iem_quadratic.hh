@@ -18,24 +18,27 @@ Quadratic internal energy model -- function of Cv and temperature
 
 `"IEM type`" = `"quadratic`"
 
-.. _IEM-model-quadratic-spec:
-.. admonition:: IEM-model-quadratic-spec
+.. _iem-quadratic-spec:
+.. admonition:: iem-quadratic-spec
 
-    * `"reference temperature [K]`" ``[double]`` **273.15** The phase transition point, T_ref above.
+   * `"reference temperature [K]`" ``[double]`` **273.15** The phase transition
+     point, :math:`T_{ref}` above.
 
-    ONE OF
+   ONE OF
 
-    * `"latent heat [J kg^-1]`" ``[double]`` Latent heat of fusion, L_f above
-    * `"heat capacity [J kg^-1 K^-1]`" ``[double]`` C_v above
-    * `"quadratic b [J kg^-1 K^-2]`" ``[double]`` b above
+   * `"latent heat [J kg^-1]`" ``[double]`` Latent heat of fusion, :math:`L_f`
+     above
+   * `"heat capacity [J kg^-1 K^-1]`" ``[double]`` :math:`C_v` above
+   * `"quadratic b [J kg^-1 K^-2]`" ``[double]`` :math:`b` above
 
-    OR
+   OR
 
-    * `"latent heat [J mol^-1]`" ``[double]`` Latent heat of fusion, L_f above.
-    * `"heat capacity [J mol^-1 K^-1]`" ``[double]`` C_v above
-    * `"quadratic b [J mol^-1 K^-2]`" ``[double]`` b above
+   * `"latent heat [J mol^-1]`" ``[double]`` Latent heat of fusion, :math:`L_f`
+     above.
+   * `"heat capacity [J mol^-1 K^-1]`" ``[double]`` :math:`C_v` above
+   * `"quadratic b [J mol^-1 K^-2]`" ``[double]`` :math:`b` above
 
-    END
+   END
 
 */
 

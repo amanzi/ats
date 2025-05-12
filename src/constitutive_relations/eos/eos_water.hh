@@ -6,14 +6,25 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+/*!
 
-/*
-  ATS
+A molar and mass density of liquid water, empirically fit to data as a function
+of both pressure and temperature.
 
-  EOS for liquid water.  See the permafrost physical properties notes for
-  references and documentation of this EOS at:
+`"EOS type`" = `"liquid water`"
 
-  http://software.lanl.gov/ats/trac
+.. _eos-liquid-water-spec:
+.. admonition:: eos-liquid-water-spec
+
+   ONE OF
+
+   * `"molar mass [kg mol^-1]`" ``[double]`` **0.0180153**
+
+   OR
+
+   * `"molar mass [g mol^-1]`" ``[double]`` **18.0153**
+
+   END
 
 */
 

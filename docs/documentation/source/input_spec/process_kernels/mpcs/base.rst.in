@@ -6,16 +6,16 @@ MPC
 { mpc }
 
 
-WeakMPC
--------
-{ weak_mpc }
-
-StrongMPC
+Strong MPC
 ----------
 { strong_mpc }
 
-Subcycing
----------
+Weak MPC
+--------
+{ weak_mpc }
+
+Subcycling MPC
+--------------
 { mpc_subcycled }
 
 Weakly Coupled Subdomains

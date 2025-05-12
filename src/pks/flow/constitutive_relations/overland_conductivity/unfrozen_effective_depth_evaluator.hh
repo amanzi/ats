@@ -6,29 +6,29 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-
-//! Evaluates the unfrozen mobile depth.
 /*!
 
 In freezing conditions, water is only mobile if it is unfrozen.  This evaluator
 determines how much water is allowed to flow given that it is partially frozen.
+It is an empirical model.
 
-.. math:
+.. math::
 
-   \delta_{mobile} = \delta \chi^{\alpha}
+   \delta_{mobile} = h \eta^{\alpha}
 
 Given a ponded depth, an unfrozen fraction, and an optional power-law exponent,
 which we call the ice retardation exponent.
 
-.. _unfrozen-effective-depth-evaluator-spec:
-.. admonition:: unfrozen-effective-depth-evaluator-spec
+.. _evaluator-unfrozen-effective-depth-spec:
+.. admonition:: evaluator-unfrozen-effective-depth-spec
 
-  * `"ice retardation exponent [-]`" ``[double]`` **1.0** exponent alpha
-    controlling how quickly ice turns off flow.
+   * `"ice retardation exponent [-]`" ``[double]`` **1.0** exponent alpha
+     controlling how quickly ice turns off flow.
 
-  DEPENDENCIES:
-  - `"depth`" **DOMAIN-depth**
-  - `"unfrozen fraction`" **DOMAIN-unfrozen_fraction**
+   DEPENDENCIES:
+
+   - `"depth`"
+   - `"unfrozen fraction`"
 
 */
 

@@ -11,12 +11,12 @@ Coupled Cells MPC
 -----------------
 { mpc_coupled_cells }
 
-Subsurface MPC
---------------
+Subsurface Flow & Energy
+------------------------
 { mpc_subsurface }
 
-Surface MPC
---------------
+Surface Flow & Energy
+---------------------
 { mpc_surface }
 
 Reactive Transport

@@ -9,3 +9,5 @@ Physical PKs are the physical capability implemented within ATS.
    transport
    energy
    seb
+   bgc
+   deformation

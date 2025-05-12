@@ -10,7 +10,7 @@ all secondary evaluators provide at least one "Key," which is the
 variable(s) computed, and at least one "Dependency."
 
 If the evaluator computes one and only one key, that key is provided
-by the name of the parameter list in the `"evalutors`" list of State_.
+by the name of the parameter list in the `"evalutors`" list of :ref:`State`.
 If more than one Key is computed, then the second must either be
 guessed by the code (for instance if the provided key is
 "saturation_liquid", it is likely that the other key is
@@ -42,3 +42,23 @@ detail all of its names via something like:
       <!-- OR EQUIVALENTLY -->
       <Parameter name="pressure key" type="string" value="domain:1-pressure" />
     </ParameterList>
+
+
+.. toctree::
+   :caption: Secondary Evaluators
+   :maxdepth: 1
+
+   conserved
+   subsurface_flow
+   surface_flow
+   transport
+   thermo
+   eos
+   seb
+   snow
+   canopy
+   bgc
+   multiscale
+   geometric
+   generic
+    

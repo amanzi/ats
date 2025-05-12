@@ -7,22 +7,6 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-//! A collection of WRMs along with a Mesh Partition.
-/*!
-
-A WRM partition is a list of (region, WRM) pairs, where the regions partition
-the mesh.
-
-.. _wrm-partition-typedinline-spec:
-.. admonition:: wrm-partition-typedinline-spec
-
-   * `"region`" ``[string]`` Region on which the WRM is valid.
-   * `"WRM type`" ``[string]`` Name of the WRM type.
-   * `"_WRM_type_ parameters`" ``[_WRM_type_-spec]`` See below for the required
-     parameter spec for each type.
-
-*/
-
 #ifndef AMANZI_FLOW_RELATIONS_WRM_PARTITION_
 #define AMANZI_FLOW_RELATIONS_WRM_PARTITION_
 

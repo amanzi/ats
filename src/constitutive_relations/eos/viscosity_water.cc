@@ -7,16 +7,6 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-/*
-  ATS
-
-  EOS for liquid water.  See the permafrost physical properties notes for
-  references and documentation of this EOS at:
-
-  http://software.lanl.gov/ats/trac
-
-*/
-
 #include "errors.hh"
 #include "viscosity_water.hh"
 
@@ -53,6 +43,7 @@ ViscosityWater::Viscosity(double T)
   }
   return visc;
 };
+
 
 double
 ViscosityWater::DViscosityDT(double T)

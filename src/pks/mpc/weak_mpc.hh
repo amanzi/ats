@@ -7,18 +7,19 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-//! Multi process coupler for sequential coupling.
 /*!
 
 Noniterative sequential coupling simply calls each PK's AdvanceStep() method in
 order.
 
-.. _weak-mpc-spec:
-.. admonition:: weak-mpc-spec
+`"PK type`" = `"weak MPC`"
 
-    INCLUDES:
+.. _pk-weak-mpc-spec:
+.. admonition:: pk-weak-mpc-spec
 
-    - ``[mpc-spec]`` *Is a* MPC_.
+   INCLUDES:
+
+   - ``[mpc-spec]`` *Is a* :ref:`MPC`.
 
 */
 

@@ -6,10 +6,63 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+/*!
 
-/*
-  This WRM model evaluates the saturation of ice, water, and gas.
+A Water Retention Model for permafrost requires the computation of saturations
+of gas, liquid, and ice.  Multiple models for this are available, based on the
+work of `(Painter & Karra 2014) <https://doi.org/10.2136/vzj2013.04.0071>`_
 
+`"evaluator type`" = `"water retention model with ice`"
+
+.. _evaluator-water-retention-model-with-ice-spec:
+.. admonition:: evaluator-water-retention-model-with-ice-spec
+
+   ONE OF                
+                
+   * `"model parameters`" ``[string]`` **"WRM parameters"** Copies this list from
+     :ref:`State`'s `"model parameters`" list.
+
+   OR
+
+   * `"model parameters`" ``[wrm-partition-typedinline-spec-list]``
+
+   END
+
+   ONE OF
+          
+   * `"permafrost model parameters`" ``[string]`` Copies this list from
+     :ref:`State`'s `"model parameters`" list.
+
+   OR
+
+   * `"permafrost model parameters`" ``[permafrost-wrm-partition-typedinline-spec]``
+
+   END
+
+     
+   KEYS:
+
+   - `"liquid saturation`"
+   - `"gas saturation`"
+   - `"ice saturation`"
+
+   DEPENDENCIES:
+
+   - `"gas-liquid capillary pressure`" **capillary_pressure_gas_liq**
+   - `"liquid-ice capillary pressure`" **capillary_pressure_liq_ice**
+
+
+Like the WRM partition, the permafrost WRM partition provides (region, model)
+pairs:
+
+.. _permafrost-wrm-partition-typedinline-spec:
+.. admonition:: permafrost-wrm-partition-typedinline-spec
+
+   * `"region`" ``[string]`` region name
+   * `"permafrost wrm type`" ``[string]`` name of the model
+   * `"_PERMAFROST_WRM_type_ parameters`" ``[_PERMAFROST_WRM_type_-spec]`` See
+     below for each type's spec.
+     
 */
 
 #ifndef AMANZI_FLOW_RELATIONS_WRM_PERMAFROST_EVALUATOR_

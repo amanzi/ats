@@ -7,7 +7,7 @@
   Authors: Ethan Coon
 */
 
-/*
+/*!
 
 An MPC that coordinates the coupling of flow and transport, or of integrated
 flow an integrated transport.
@@ -37,10 +37,11 @@ Note this always assumes that Flow is the _first_ PK in the `"PKs order`" list.
 
 `"PK type`" = `"coupled flow and transport`"
 
-.. _mpc-flow-transport-spec:
-.. admonition:: mpc-flow-transport-spec
+.. _pk-coupled-flow-and-transport-spec:
+.. admonition:: pk-coupled-flow-and-transport-spec
 
   INCLUDES:
+
   - ``[mpc-subcycled-spec]``
 
 */

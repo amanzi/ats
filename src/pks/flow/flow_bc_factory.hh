@@ -18,7 +18,7 @@
 /*!
 
 Flow boundary conditions must follow the general format shown in
-BoundaryConditions_.  Specific conditions implemented include:
+`Boundary Conditions`_.  Specific conditions implemented include:
 
 Dirichlet (pressure) boundary conditions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

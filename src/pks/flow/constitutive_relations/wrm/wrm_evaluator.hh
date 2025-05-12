@@ -6,8 +6,6 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-
-//! Evaluates saturation through water retention models.
 /*!
 
 Water Retention Models (WRMs) determine the saturation as a function of
@@ -16,12 +14,12 @@ commonly used in practice is the van Genuchten model, but others are available d
 
 `"evaluator type`" = `"wrm`"
 
-.. _wrm-evaluator-spec:
-.. admonition:: wrm-evaluator-spec
+.. _evaluator-wrm-spec:
+.. admonition:: evaluator-wrm-spec
 
-   * `"model parameters`" ``[string]``
-     List (by region) of WRM specs. This will copy `"WRM parameters`" given in `"model parameters`"
-     under state here to evaluate WRM.
+   * `"model parameters`" ``[string]`` **"WRM parameters"** This will
+     copy `"WRM parameters`" given in `"model parameters`" under state here to
+     evaluate WRM.
 
    KEYS:
 
@@ -31,9 +29,27 @@ commonly used in practice is the van Genuchten model, but others are available d
    - `"other saturation`"  **determined from evaluator name**
      The name of the other saturation, usually gas -- typically this is determined
      from the evaluator name and need not be set.
+
+   DEPENDENCIES:
+   
    - `"capillary pressure`"` **DOMAIN-capillary_pressure_gas_liq**
      The name of the capillary pressure.
 
+The resulting `"model parameters`" are expected to be a WRM partition.  A WRM
+partition is a list of (region, WRM) pairs, where the regions partition the
+mesh.
+
+.. _wrm-partition-typedinline-spec:
+.. admonition:: wrm-partition-typedinline-spec
+
+   * `"region`" ``[string]`` Region on which the WRM is valid.
+   * `"WRM type`" ``[string]`` Name of the WRM type.
+   * `"_WRM_type_ parameters`" ``[_WRM_type_-spec]`` See below for the required
+     parameter spec for each type.
+
+*/
+
+     
 Example:
 
 .. code-block:: xml

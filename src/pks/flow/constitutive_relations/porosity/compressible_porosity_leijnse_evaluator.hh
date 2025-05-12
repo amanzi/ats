@@ -16,8 +16,8 @@ converge.  After Leijnse thesis, 1992.
 
 `"evaluator type`" = `"compressible porosity leijnse`"
 
-.. _compressible-porosity-leijnse-evaluator-spec
-.. admonition:: compressible-porosity-leijnse-evaluator-spec
+.. _evaluator-compressible-porosity-leijnse-spec
+.. admonition:: evaluator-compressible-porosity-leijnse-spec
 
    * `"compressible porosity model parameters`" ``[compressible-porosity-leijnse-model-spec]``
 

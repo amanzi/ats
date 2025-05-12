@@ -26,7 +26,7 @@ namespace Relations {
 ManningCoefficientLitterEvaluator::ManningCoefficientLitterEvaluator(Teuchos::ParameterList& plist)
   : EvaluatorSecondaryMonotypeCV(plist)
 {
-  Teuchos::ParameterList& sublist = plist_.sublist("manning coefficient parameters");
+  Teuchos::ParameterList& sublist = plist_.sublist("Manning coefficient parameters");
   models_ = createManningCoefPartition(sublist);
   InitializeFromPlist_();
 }
@@ -209,7 +209,7 @@ createManningCoefPartition(Teuchos::ParameterList& plist)
       Teuchos::ParameterList sublist = plist.sublist(name);
       region_list.push_back(sublist.get<std::string>("region"));
 
-      std::string coef_type = sublist.get<std::string>("manning coefficient model type");
+      std::string coef_type = sublist.get<std::string>("Manning coefficient model type");
       if (coef_type == "constant") {
         models.push_back(Teuchos::rcp(new ManningCoefficientLitterConstantModel(sublist)));
       } else if (coef_type == "variable") {

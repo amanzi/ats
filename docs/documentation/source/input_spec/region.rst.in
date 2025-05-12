@@ -2,10 +2,6 @@ Region
 ######
 { RegionFactory }
 
-.. contents:: **Region Types**
-   :local:
-
-
 All
 ===
 { RegionAll }
@@ -43,24 +39,24 @@ Cylinder
 { RegionCylinder }
 
 Half Space
-========
+==========
 { RegionHalfSpace }
+
+Level Set
+=========
+{ RegionLevelSet }
 
 Labeled Set
 ===========
 { RegionLabeledSet }
 
-Enumerated
-==========
+Enumerated Set
+==============
 { RegionEnumerated }
 
 Color Function
 ==============
 { RegionFunctionColor }
-
-Level Set
-=======
-{ RegionLevelSet }
 
 Logical
 =======

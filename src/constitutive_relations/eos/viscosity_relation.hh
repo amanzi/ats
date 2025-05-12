@@ -8,7 +8,7 @@
 */
 
 /*
-  Basic interface of a Viscosity.
+  Basic interface of a Viscosity Relation.
 
 */
 

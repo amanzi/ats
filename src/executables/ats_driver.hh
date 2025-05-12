@@ -21,14 +21,14 @@ called `"main`".  That list contains the following required elements:
 .. _main-spec:
 .. admonition:: main-spec
 
-    * `"cycle driver`" ``[coordinator-spec]``  See below.
-    * `"mesh`" ``[mesh-typed-spec-list]`` A list of :doc:`mesh` objects.
-    * `"regions`" ``[region-typedinline-spec-list]`` A list of :doc:`region` objects.
-    * `"visualization`" ``[visualization-spec-list]`` A list of :doc:`/input_spec/io/visualization` objects.
-    * `"observations`" ``[observation-spec-list]`` An list of :doc:`/input_spec/io/observations` objects.
-    * `"checkpoint`" ``[checkpoint-spec]`` A :doc:`/input_spec/io/checkpoint` spec.
-    * `"PKs`" ``[pk-typedinline-spec-list]`` A list of :doc:`Process Kernels </input_spec/process_kernels/index>`.
-    * `"state`" ``[state-spec]`` A :doc:`/input_spec/state/index` spec.
+   * `"cycle driver`" ``[coordinator-spec]``  See below.
+   * `"mesh`" ``[mesh-typed-spec-list]`` A list of :doc:`mesh` objects.
+   * `"regions`" ``[region-typedinline-spec-list]`` A list of :doc:`region` objects.
+   * `"visualization`" ``[visualization-spec-list]`` A list of :ref:`Visualization` objects.
+   * `"observations`" ``[observation-spec-list]`` An list of :ref:`Observations` objects.
+   * `"checkpoint`" ``[checkpoint-spec]`` A :ref:`Checkpoint` spec.
+   * `"PKs`" ``[pk-typedinline-spec-list]`` A list of :ref:`Process Kernels`.
+   * `"state`" ``[state-spec]`` A :ref:`State` spec.
 
 
 Coordinator
@@ -40,40 +40,41 @@ simulation, including starting and ending times and restart options.
 .. _coordinator-spec:
 .. admonition:: coordinator-spec
 
-    * `"start time`" ``[double]`` **0.** Specifies the start of time in model time.
-    * `"start time units`" ``[string]`` **"s"** One of "s", "d", or "yr"
+   * `"start time`" ``[double]`` **0.** Specifies the start of time in model time.
+   * `"start time units`" ``[string]`` **"s"** One of "s", "d", or "yr"
 
-    ONE OF
+   ONE OF
 
-    * `"end time`" ``[double]`` Specifies the end of the simulation in model time.
-    * `"end time units`" ``[string]`` **"s"** One of `"s`", `"d`", or `"yr`"
+   * `"end time`" ``[double]`` Specifies the end of the simulation in model time.
+   * `"end time units`" ``[string]`` **"s"** One of `"s`", `"d`", or `"yr`"
 
-    OR
+   OR
 
-    * `"end cycle`" ``[int]`` **optional** If provided, specifies the end of the
-      simulation in timestep cycles.
+   * `"end cycle`" ``[int]`` **optional** If provided, specifies the end of the
+     simulation in timestep cycles.
 
-      END
+   END
 
-    * `"subcycled timestep`" ``[bool]`` **false**  If true, this coordinator creates
-      a third State object to store intermediate solutions, allowing for failed
-      steps.
-    * `"restart from checkpoint file`" ``[string]`` **optional** If provided,
-      specifies a path to the checkpoint file to continue a stopped simulation.
-    * `"wallclock duration [hrs]`" ``[double]`` **optional** After this time, the
-      simulation will checkpoint and end.
-    * `"required times`" ``[io-event-spec]`` **optional** An IOEvent_ spec that
-      sets a collection of times/cycles at which the simulation is guaranteed to
-      hit exactly.  This is useful for situations such as where data is provided at
-      a regular interval, and interpolation error related to that data is to be
-      minimized.
-    * `"PK tree`" ``[pk-typed-spec-list]`` List of length one, the top level
-      PK_ spec.
+   * `"subcycled timestep`" ``[bool]`` **false**  If true, this coordinator creates
+     a third State object to store intermediate solutions, allowing for failed
+     steps.
+   * `"restart from checkpoint file`" ``[string]`` **optional** If provided,
+     specifies a path to the checkpoint file to continue a stopped simulation.
+   * `"wallclock duration [hrs]`" ``[double]`` **optional** After this time, the
+     simulation will checkpoint and end.
+
+   * `"required times`" ``[io-event-spec]`` **optional** An
+     :doc:`/input_spec/io/ioevent` spec that sets a collection of times/cycles
+     at which the simulation is guaranteed to hit exactly.  This is useful for
+     situations such as where data is provided at a regular interval, and
+     interpolation error related to that data is to be minimized.
+   * `"PK tree`" ``[pk-typed-spec-list]`` List of length one, the top level
+     :doc:`/input_spec/process_kernels/index` spec.
 
 Note: Either `"end cycle`" or `"end time`" are required, and if
 both are present, the simulation will stop with whichever arrives
 first.  An `"end cycle`" is commonly used to ensure that, in the case
-of a timestep crash, we do not continue on forever spewing output.
+of a timestep crash, we do not continue the simulation indefinitely.
 
 Example:
 

@@ -6,22 +6,16 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-
-/*
-  The IEM Evaluator simply calls the IEM with the correct arguments.
-
-*/
-
 /*!
 
 Computes (specific) internal energy of as a function of temperature.
 
 `"evaluator type`" = `"iem`"
 
-.. _iem-evaluator-spec:
-.. admonition:: iem-evaluator-spec
+.. _evaluator-iem-spec:
+.. admonition:: evaluator-iem-spec
 
-   * `"IEM parameters`" ``[IEM-model-typedinline-spec-list]``
+   * `"IEM parameters`" ``[iem-typedinline-spec-list]``
 
    KEYS:
 

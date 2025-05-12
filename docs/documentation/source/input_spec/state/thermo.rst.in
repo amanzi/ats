@@ -25,7 +25,7 @@ Enthalpy
 ~~~~~~~~
 { enthalpy_evaluator }
 
-Thermal Conductivity, two phases
+Thermal Conductivity, Two Phases
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 { thermal_conductivity_twophase_evaluator }
 
@@ -37,7 +37,7 @@ Peters-Lidard Model
 ~~~~~~~~~~~~~~~~~~~
 { thermal_conductivity_twophase_peterslidard }
 
-Thermal Conductivity, three phases
+Thermal Conductivity, Three Phases
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 { thermal_conductivity_threephase_evaluator }
 

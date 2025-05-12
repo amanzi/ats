@@ -6,14 +6,45 @@
 
   Authors: Ethan Coon
 */
+/*!
 
-/* -------------------------------------------------------------------------
-ATS
+This MPC provides terms for an approximate Jacobian for coupling the two-phase
+diffusion wave equation (the :ref:`Overland Flow with Ice`) to the two-phase
+surface energy equation (the :ref:`Overland Energy with Ice`).
 
-Interface for the derived MPC for coupling energy and water in the subsurface,
-with freezing.
+`"PK type`" = `"icy surface`"
 
-------------------------------------------------------------------------- */
+.. _pk-icy-surface-spec:
+.. admonition:: pk-icy-surface-spec
+
+   * `"domain name`" ``[string]`` Domain of simulation
+
+   * `"preconditioner type`" ``[string]`` **picard** See the above for detailed
+     descriptions of the choices.  One of: `"none`", `"block diagonal`", `"no
+     flow coupling`", `"picard`", `"ewc`", and `"smart ewc`".  Note that the
+     `"ewc`" preconditioners are rarely helpful in integrated problems, but may
+     be helpful in surface-only problems.
+
+   * `"supress Jacobian terms: d div surface q / dT`" ``[bool]`` **false** Turn
+     off the Jacobian term associated with the derivative of overland
+     conductivity with respect to temperature.
+
+   * `"surface ewc delegate`" ``[mpc-delegate-ewc-spec]`` A :ref:`EWC Globalization
+     Delegate` spec.
+
+   KEYS
+
+   - `"temperature`"
+   - `"pressure`"
+   - `"energy`"
+   - `"water content`"
+   - `"overland conductivity`"
+   - `"upwind overland conductivity`"
+   - `"potential`"
+   - `"ponded depth, negative`"
+   - `"water flux`"
+
+*/
 
 #ifndef MPC_SURFACE_HH_
 #define MPC_SURFACE_HH_

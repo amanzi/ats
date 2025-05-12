@@ -6,12 +6,18 @@
 
   Authors: Ethan Coon
 */
-
-/*
+/*!
 
 Painter's permafrost model with freezing point depression.
 
- */
+`"permafrost wrm type`" = `"fpd permafrost model`"
+
+.. _permafrost-wrm-fpd-permafrost-model-spec:
+.. admonition:: permafrost-wrm-fpd-permafrost-model-spec
+
+    * `"empty`" ``[double]`` **-1** No parameters are required for this model
+
+*/
 
 #ifndef AMANZI_FLOWRELATIONS_WRM_FPD_PERMAFROST_MODEL_
 #define AMANZI_FLOWRELATIONS_WRM_FPD_PERMAFROST_MODEL_

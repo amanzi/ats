@@ -1,9 +1,10 @@
 IO
 ###
 
-ATS IO includes three types: Visualization_, Observation_, and
-Checkpoint_.  The latter is mostly an internal format that supports
-checkpoint/restart capabilities to allow runs to be continued.
+ATS IO includes three output file types: visualization files,
+observation files, and checkpoint files.  The latter is mostly an
+internal format that supports checkpoint/restart capabilities to allow
+runs to be continued and is used in regression testing.
 
 The first two are both ways that the user interacts with simulation
 results.  Visualization is *dense in space but sparse in time*.  It
@@ -14,9 +15,6 @@ of) cells, but can be saved much more frequently (even every
 timestep).  Therefore, they are complementary, and care should be
 taken to use the right one to adress a given goal.
 
-Control of how frequently to write IO is shared across all three --
-each include an IOEvent_ as a part of their spec.
-
 .. toctree::
    :maxdepth: 1
 
@@ -24,4 +22,5 @@ each include an IOEvent_ as a part of their spec.
    visualization
    observations
    checkpoint
+   logfile
 

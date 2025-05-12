@@ -16,26 +16,40 @@
 
 /*!
 
-The advection-dispersion equation for component *i* in partially saturated
-porous media or surface water may be written as
-
-.. math::
-  \frac{\partial (\Theta C_i)}{\partial t} = - \boldsymbol{\nabla} \cdot (\boldsymbol{q} C_i)
-  + \boldsymbol{\nabla} \cdot (\Theta \, (\boldsymbol{D^*}_l + \tau \boldsymbol{D}_i) \boldsymbol{\nabla} C_i) + Q_s,
-
 This PK solves for transport of chemical species in water.  It may optionally
 be paired with a PK for reactions, typically in an operator-split form, to
 solve reactive transport.
 
+The advection-dispersion equation for component *i* may be written as:
+
+.. math::
+  \frac{\partial (\Theta \xi_i)}{\partial t} = - \boldsymbol{\nabla} \cdot (\boldsymbol{q} \xi_i)
+  + \boldsymbol{\nabla} \cdot (\Theta \, (\boldsymbol{D^*}_l + \tau \boldsymbol{D}_i) \boldsymbol{\nabla} \xi_i) + Q_s,
+
+The primary variable for this PK is :math:`\xi_i`, the **mole ratio** of a
+specie :math:`i` in the aqueous phase, with units of [mol i / mol H2O].
+
+This seems a bit odd to most people who are used to reactive transport codes
+where the primary variable is total component concentration :math:`C`, in units of [mol i
+/ L].  The reason for this differences is to better enable variable-density
+problems.  Note that the two are related:
+
+.. math::
+   C_i = n_l \xi_i
+
+for molar density of liquid water :math:`n_l`.
+
+For reactive transport problems, both concentration and mole ratio are output
+in the visualization file.  For transport-only problems, concentration may be
+output by adding a total component concentration evaluator that multiplies the
+two quantities using an `"evaluator type`" = `"multiplicative evaluator`".
+
 `"PK type`" = `"transport ATS`"
 
+.. _pk-transport-ats-spec:
+.. admonition:: pk-transport-ats-spec
 
-.. _transport-spec:
-.. admonition:: transport-spec
-
-   * `"PK type`" ``[string]`` **"transport ATS"**
-
-   * `"domain name`" ``[string]`` **domain** specifies mesh name that defines
+   * `"domain name`" ``[string]`` **"domain"** specifies mesh name that defines
      the domain of this PK.
 
    * `"component names`" ``[Array(string)]`` **optional** No default. Provides
@@ -46,76 +60,76 @@ solve reactive transport.
    * `"number of aqueous components`" ``[int]`` **-1** The total number of
      aqueous components.  Default value is the length of `"component names`"
 
-   * `"number of gaseous components`" ``[int]`` **0** The total number of
-     gaseous components.
-
    * `"boundary conditions`" ``[transport-bc-spec]`` Boundary conditions for
      transport are dependent on the boundary conditions for flow. See
-     `Transport-specific Boundary Conditions`_
+     :ref:`Transport-specific Boundary Conditions`
 
-   * `"molecular diffusivity [m^2 s^-1]`" ``[molecular-diffusivity-spec]``
+   * `"molecular diffusivity [m^2 s^-1]`" ``[molecular-diffusivity-spec]`` See
+     below.
 
-   * `"tortuosity [-]`" ``[tortuosity-spec]``
+   * `"tortuosity [-]`" ``[tortuosity-spec]`` See below.
 
    * `"source terms`" ``[transport-source-spec-list]`` Provides solute source.
 
    Math and solver algorithm options:
 
-   * `"diffusion`" ``[pde-diffusion-spec]`` Diffusion drives the distribution.
-     Typically we use finite volume here, but mimetic schemes may be used.  See
-     PDE_Diffusion_
+   * `"diffusion`" ``[pde-diffusion-typedinline-spec]`` Diffusion drives the
+     distribution.  Typically we use finite volume here, but mimetic schemes
+     may be used.  See :ref:`Diffusion`
 
-   * `"diffusion preconditioner`" ``[pde-diffusion-spec]`` Inverse of the
-     above.  Likely only Jacobian term options are needed here, as the others
-     default to the same as the `"diffusion`" list.  See PDE_Diffusion_.
+   * `"diffusion preconditioner`" ``[pde-diffusion-typedinline-spec]`` Inverse
+     of the above.  Likely only Jacobian term options are needed here, as the
+     others default to the same as the `"diffusion`" list.  See
+     :ref:`Diffusion`.
 
-   * `"inverse`" ``[inverse-typed-spec]`` Inverse_ method for the
-     diffusion-dispersion solve.
+   * `"inverse`" ``[inverse-typed-spec]`` :ref:`Inverse` method for the
+     diffusion-dispersion solve.  See :ref:`Inverse`.
 
-   * `"cfl`" [double] Timestep size limiter, a number less than 1. Default value is 1.
+   * `"cfl`" ``[double]`` **1.0** Courant-Friedrichs-Lewy condition, a limiter
+     on the timestep size relative to spatial size.  Must be <= 1.
 
-   * `"advection spatial discretization order`" [int] defines accuracy of the
-     spatial discretization in the advection term.  It permits values 1
-     or 2. Default value is 1 (donor upwind) but 2 (a limiter scheme) is much
-     less numerically diffusive, and recommended for most cases.
+   * `"advection spatial discretization order`" ``[int]`` **1** Defines
+     accuracy of the spatial discretization in the advection term.  It permits
+     values 1 or 2. Default value is 1 (donor upwind) but 2 (a limiter scheme)
+     is much less numerically diffusive, and recommended for most cases.
 
-   * `"temporal discretization order`" [int] defines accuracy of temporal discretization.
-     It permits values 1 (forward Euler) and 2 (a Runga-Kutta scheme).
+   * `"temporal discretization order`" ``[int]`` **1** Defines accuracy of
+     temporal discretization.  It permits values 1 (forward Euler) and 2 (a
+     Runga-Kutta scheme).
 
-   * `"reconstruction`" [reconstruction-spec] collects reconstruction
+   * `"reconstruction`" ``[reconstruction-spec]`` collects reconstruction
      parameters for use in reconstructing the velocity field for 2nd order
-     advection schemes.
+     advection schemes.  See :ref:`Reconstructions`.
 
    KEYS
-   - `"primary variable`" **molar_ratio**
 
-   - `"saturation liquid`" This variable is a multiplier in in the
-      accumulation term. For subsurface transport, this will typically be the
-      saturation (`"saturation_liquid`"). For surface transport, this will
-      typically be the ponded depth (`"ponded_depth`").
-
-   - `"molar density liquid`"  Transport is solved
-      for concentrations in units of mol fractions. Molar density is needed for conversion.
-
+   - `"primary variable`" **"molar_ratio"** [mol C mol H2O^-1]
+   - `"liquid water content`" **"water_content"** This variable is a multiplier
+     in in the accumulation term. This is often just `"water_content`", but
+     not in frozen cases, where it must be defined by the user (typically as
+     :math:`\phi s n_l |V|` in the subsurface, or :math:`h n_l |V|` on the
+     surface.
+   - `"molar density liquid`" [mol H2O m^-3]
    - `"water flux`" The face-based water flux in [mol H2O s^-1].
-
    - `"water source`" Defines the water injection rate [mol H2O m^-2 s^-1] in
-      surface and [mol H2O m^-3 s^-1] in subsurface) which applies to
-      concentrations specified by the `"geochemical conditions`".  Note that if
-      this PK is coupled to a surface flow PK, the unit of the water source
-      there *must* be in [mol m^-2 s^-1], *not* in [m s^-1] as is an option for
-      that PK (e.g. `"water source in meters`" must be set to `"false`" in the
-      overland flow PK).
-
-      The injection rate of a solute [molC s^-1], when given as the product of
-      a concentration and a water source, is evaluated as:
-
-      Concentration [mol C L^-1] *
-        1000 [L m^-3] of water *
-        water source [mol H2O m^-3 s^-1] *
-        volume of injection domain [m^3] /
+     surface and [mol H2O m^-3 s^-1] in subsurface) which applies to
+     concentrations specified by the `"geochemical conditions`".  Note that if
+     this PK is coupled to a surface flow PK, the unit of the water source
+     there *must* be in [mol m^-2 s^-1], *not* in [m s^-1] as is an option for
+     that PK (e.g. `"water source in meters`" must be set to `"false`" in the
+     overland flow PK).
+      
+     The injection rate of a solute [molC s^-1], when given as the product of a
+     concentration and a water source, is evaluated as:
+      
+        Concentration [mol C L^-1] :math:`\times`
+        1000 [L m^-3] of water :math:`\times`
+        water source [mol H2O m^-3 s^-1] :math:`\times`
+        volume of injection domain [m^3] :math:`/`
         molar density of water [mol H2O m^-3]
 
+
+Note, this is not dispersion, but strictly isotropic diffusion.        
 
 .. _molecular-diffusivity-spec:
 .. admonition:: molecular-diffusivity-spec
@@ -132,7 +146,7 @@ solve reactive transport.
      diffusivity of liquid solutes, [-].
 
    * `"gaseous`" ``[double]`` Defines tortuosity for calculating
-     diffusivity of gas solutes, [-].
+     diffusivity of gas solutes, [-].  Not currently implemented!
 
 
 .. _transport-source-spec:
@@ -325,7 +339,7 @@ class Transport_ATS : public PK_Physical_Default {
 
   // component information
   std::vector<std::string> component_names_; // details of components
-  int num_components_, num_solid_, num_aqueous_, num_gaseous_;
+  int num_components_, num_aqueous_;
 
   // parameters
   ParameterMap molar_masses_; // molar mass [kg / mol C] by component

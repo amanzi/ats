@@ -6,115 +6,105 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-
-//! Overland flow using the diffusion wave equation.
 /*!
 
-Solves the diffusion wave equation for overland flow with pressure as a primary variable:
+The overland flow PK solves the diffusion wave equation for overland flow with
+pressure as a primary variable:
 
 .. math::
   \frac{\partial \Theta}{\partial t} - \nabla n_l k \nabla h(p) = Q_w
 
+`"PK type`" = `"overland flow, pressure basis`"
 
-.. _overland-pressure-spec:
-.. admonition:: overland-pressure-spec
+.. _pk-overland-flow-pressure-basis-spec:
+.. admonition:: pk-overland-flow-pressure-basis-spec
 
-    Keys name variables:
+   * `"domain`" ``[string]`` **"surface"**  Defaults to the extracted surface mesh.
 
-    * `"domain`" ``[string]`` **"surface"**  Defaults to the extracted surface mesh.
+   * `"primary variable`" ``[string]`` **DOMAIN-pressure** The primary
+     variable associated with this PK.
 
-    * `"primary variable`" ``[string]`` The primary variable associated with
-      this PK, typically `"DOMAIN-pressure`" Note there is no default -- this
-      must be provided by the user.
+   * `"boundary conditions`" ``[list]`` Defaults to Neuman, 0 normal flux.
+     See :ref:`Flow-specific Boundary Conditions`
 
-    * `"boundary conditions`" ``[list]`` Defaults to Neuman, 0 normal flux.
+   IF
 
-    * `"overland conductivity evaluator`" ``[list]``
-      See `Overland Conductivity Evaluator`_.
+   * `"source term`" ``[bool]`` **false** Is there a source term?
 
-    IF
+   THEN
 
-    * `"source term`" ``[bool]`` **false** Is there a source term?
+   * `"source key`" ``[string]`` **DOMAIN-water_source** Typically
+     not set, as the default is good. ``[m s^-1]`` or ``[mol s^-1]``
+   * `"water source in meters`" ``[bool]`` **true** Is the source term in ``[m s^-1]``?
 
-    THEN
+   END
 
-    * `"source key`" ``[string]`` **DOMAIN-water_source** Typically
-      not set, as the default is good. ``[m s^-1]`` or ``[mol s^-1]``
-    * `"water source in meters`" ``[bool]`` **true** Is the source term in ``[m s^-1]``?
+   Math and solver algorithm options:
 
-    END
+   * `"absolute error tolerance`" ``[double]`` **550.** Defaults to 1 cm of
+     water (in mols).  A small, but significant, amount of water.
 
-    Math and solver algorithm options:
+   * `"inverse`" ``[inverse-spec]`` **optional** The inverse used for
+     preconditioning in a non-globally coupled problem.  See :ref:`Inverse`.
 
-    * `"diffusion`" ``[pde-diffusion-spec]`` The (forward) diffusion operator,
-      see PDE_Diffusion_.
+   * `"diffusion`" ``[pde-diffusion-typedinline-spec]`` The (forward) diffusion
+     operator, see :ref:`Diffusion`.
 
-    * `"diffusion preconditioner`" ``[pde-diffusion-spec]`` **optional** The
-      inverse of the diffusion operator.  See PDE_Diffusion_.  Typically this
-      is only needed to set Jacobian options, as all others probably should
-      match those in `"diffusion`", and default to those values.
+   * `"diffusion preconditioner`" ``[pde-diffusion-typedinline-spec]``
+     **optional** The inverse of the diffusion operator.  See :ref:`Diffusion`.
+     Typically this is only needed to set Jacobian options, as all others
+     probably should match those in `"diffusion`", and default to those values.
 
-    * `"absolute error tolerance`" ``[double]`` **550.** Defaults to 1 cm of
-      water.  A small, but significant, amount of water.
+   * `"accumulation preconditioner`" ``[pde-accumulation-spec]`` **optional**
+     The inverse of the accumulation operator.  See :ref:`Accumulation`.
+     Typically not provided by users, as defaults are sufficient.
 
-    * `"limit correction to pressure change [Pa]`" ``[double]`` **-1** If > 0,
-      this limits an iterate's max pressure change to this value.  Not usually
-      helpful.
+   Globalization:
+     
+   * `"limit correction to pressure change [Pa]`" ``[double]`` **-1** If > 0,
+     this limits an iterate's max pressure change to this value.  Not usually
+     helpful.
 
-    * `"limit correction to pressure change when crossing atmospheric [Pa]`" ``[double]`` **-1**
-      If > 0, this limits an iterate's max pressure change
-      to this value when they cross atmospheric pressure.  Not usually helpful.
+   * `"limit correction to pressure change when crossing atmospheric [Pa]`"
+     ``[double]`` **-1** If > 0, this limits an iterate's max pressure change
+     to this value when they cross atmospheric pressure.  Not usually helpful.
 
-    * `"allow no negative ponded depths`" ``[bool]`` **false** Modifies all
-      correction updates to ensure only positive ponded depth is allowed.
+   * `"allow no negative ponded depths`" ``[bool]`` **false** Modifies all
+     correction updates to ensure only positive ponded depth is allowed.
 
-    * `"min ponded depth for velocity calculation`" ``[double]`` **1.e-2** For
-      ponded depth below this height, declare the velocity 0.
+   * `"min ponded depth for velocity calculation`" ``[double]`` **1.e-2** For
+     ponded depth below this height, declare the velocity 0.
 
-    * `"min ponded depth for tidal bc`" ``[double]`` **0.02** Control on the
-      tidal boundary condition.  TODO: This should live in the BC spec?
+   * `"min ponded depth for tidal bc`" ``[double]`` **0.02** Control on the
+     tidal boundary condition.  TODO: This should live in the BC spec?
 
-    INCLUDES:
+   Algorithmic physics control:
+     
+   * `"coupled to subsurface via flux`" ``[bool]`` **false** Set by MPC.
+   * `"coupled to subsurface via head`" ``[bool]`` **false** Set by MPC.
 
-    - ``[pk-physical-bdf-default-spec]`` A `PK: Physical and BDF`_ spec.
+   INCLUDES:
 
-    Everything below this point is usually not provided by the user, but are
-    documented here for completeness.
+   - ``[pk-physical-bdf-default-spec]`` A :ref:`PK: Physical and BDF` spec.
 
-    Keys name variables:
+   KEYS:
 
-    * `"conserved quantity key`" ``[string]`` **DOMAIN-water_content** Typically
-      not set, as the default is good. ``[mol]``
-    * `"elevation key`" ``[string]`` **DOMAIN-elevation** Typically
-      not set, as the default is good. ``[mol]``
-    * `"slope magnitude key`" ``[string]`` **DOMAIN-slope_magnitude** Typically
-      not set, as the default is good. ``[mol]``
+   - `"conserved quantity`" **DOMAIN-water_content** ``[mol]``
+   - `"elevation`" **DOMAIN-elevation** ``[m]``
+   - `"slope magnitude`" **DOMAIN-slope_magnitude** ``[-]``
 
-    Algorithmic parameters:
+   EVALUATORS:
 
-    * `"coupled to subsurface via flux`" ``[bool]`` **false** Set by MPC.
-    * `"coupled to subsurface via head`" ``[bool]`` **false** Set by MPC.
-
-    * `"accumulation preconditioner`" ``[pde-accumulation-spec]`` **optional**
-      The inverse of the accumulation operator.  See PDE_Accumulation_.
-      Typically not provided by users, as defaults are correct.
-
-    EVALUATORS:
-
-    - `"conserved quantity`"
-    - `"water content`"
-    - `"cell volume`"
-    - `"surface_subsurface_flux`"
-    - `"elevation`"
-    - `"slope magnitude`"
-    - `"overland_conductivity`"
-    - `"ponded_depth`"
-    - `"pres_elev`"
-    - `"source`"
-
-
-.. todo:
-    Nearly all variable name roots are hard-coded here, this should get updated.
+   - `"conserved quantity`"
+   - `"water content`"
+   - `"cell volume`"
+   - `"surface_subsurface_flux`"
+   - `"elevation`"
+   - `"slope magnitude`"
+   - `"overland_conductivity`"
+   - `"ponded_depth`"
+   - `"pres_elev`"
+   - `"source`"
 
 */
 

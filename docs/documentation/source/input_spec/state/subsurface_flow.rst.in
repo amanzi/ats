@@ -1,4 +1,4 @@
-Subsurface flow evaluators
+Subsurface Flow Evaluators
 --------------------------
 
 Assorted evaluators used for subsurface flow processes,
@@ -16,59 +16,91 @@ Capillary pressure
 Capillary pressure of liquid on ice
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 { pc_ice_evaluator }
+{ pc_ice_water }
 
-Water Retention Model and Relative Permeability
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Water Retention and Relative Permeability Models
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+WRM Evaluator
+~~~~~~~~~~~~~
+
 { wrm_evaluator }
-{ wrm_partition }
+
+Relative Permeability Evaluator
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 { rel_perm_evaluator }
+
+**WRM and Relative Permeability Models**
 
 Van Genuchten Model
 ~~~~~~~~~~~~~~~~~~~
+
 { wrm_van_genuchten }
+
+Brooks-Corey Model
+~~~~~~~~~~~~~~~~~~~
+
+{ wrm_brooks_corey }
 
 Linear  Model
 ~~~~~~~~~~~~~~~~~~~
+
 { wrm_linear_system }
 
-Water Retention Model for Freeze-Thaw
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Water Retention and Relative Permeability Models for Freeze-Thaw
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+WRM Permafrost Evaluator
+~~~~~~~~~~~~~~~~~~~~~~~~
 { wrm_permafrost_evaluator }
 
-Original Implicit model
-~~~~~~~~~~~~~~~~~~~~~~~
+**WRM Permafrost Models**
+
+Original Implicit WRM
+~~~~~~~~~~~~~~~~~~~~~
 { wrm_implicit_permafrost_model }
 
-Freezing point depression model
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Freezing Point Depression WRM
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 { wrm_fpd_permafrost_model }
 
-Freezing point depression, smoothed model
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Freezing Point Depression, Smoothed WRM
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 { wrm_fpd_smoothed_permafrost_model }
 
-Interfrost model
-~~~~~~~~~~~~~~~~
+Interfrost WRM
+~~~~~~~~~~~~~~
 { wrm_interfrost_permafrost_model }
 
-Sutra-ICE model
-~~~~~~~~~~~~~~~
+Sutra-ICE WRM
+~~~~~~~~~~~~~
 { wrm_sutra_permafrost_model }
 
-Compressible porosity
-^^^^^^^^^^^^^^^^^^^^^
-{ compressible_porosity_evaluator }
+Relative Permeability, Freezing Brooks-Corey Evaluator
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{ rel_perm_frzBC_evaluator }
 
-Standard model
+Relative Permeability, Sutra-ICE Evaluator
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{ rel_perm_sutraice_evaluator }
+
+
+Compressible Porosity
+^^^^^^^^^^^^^^^^^^^^^
+
+Standard Model
 ~~~~~~~~~~~~~~
+{ compressible_porosity_evaluator }
 { compressible_porosity_model }
 
-Exponential model
+Exponential Model
 ~~~~~~~~~~~~~~~~~
+{ compressible_porosity_leijnse_evaluator }
 { compressible_porosity_leijnse_model }
 
 
-Viscosity of water
+Viscosity of Water
 ^^^^^^^^^^^^^^^^^^
 
 Two main viscosity models are commonly used -- a constant and one

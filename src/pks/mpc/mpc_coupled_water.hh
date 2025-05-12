@@ -5,35 +5,59 @@
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
-*/
 
-//! A coupler which integrates surface and subsurface flow implicitly.
+     \frac{\partial \Theta_s(p_s^*)}{\partial t} &= \nabla k_s \cdot \nabla (z+h(p_s^*)) + Q_{ext} + q_{ss} \\
+     \frac{\partial \Theta(p)}{\partial t} &= \nabla \cdot k K (\nabla p + \rho g \hat{z}) \\
+     & -k K (\nabla p + \rho g \hat{z}) \cdot \hat{n} |_{\Gamma} = q_{ss} \\
+     & p|_{\Gamma} = p_s
+*/
 /*!
 
-Couples Richards equation to surface water through continuity of both pressure
-and fluxes.  This leverages subsurface discretizations that include face-based
-unknowns, and notes that those face unknowns that correspond to surface faces
-are co-located with the surface cell pressure, and therefore are equivalent.
-In this approach (described in detail in a paper that is in review), the
-surface equations are directly assembled into the subsurface discrete operator.
+This MPC couples Richards equation (subsurface flow) to the diffusion wave
+equation (surface flow) through continuity of both pressure and fluxes.  In its
+standard form, it couples pressure at a the surface of the domain,
+:math:`\Gamma`, by solving:
 
-.. _mpc-coupled-water-spec:
-.. admonition:: mpc-coupled-water-spec
+.. math::
 
-   * `"PKs order`" ``[Array(string)]`` The use supplies the names of the
-     coupled PKs.  The order must be {subsurface_flow_pk, surface_flow_pk}
-     (subsurface first).
+   \frac{\partial \Theta_s(p_s^*)}{\partial t} &= \nabla k_s \cdot \nabla (z+h(p_s^*)) + Q_{ext} + q_{ss} \\
+   \frac{\partial \Theta(p)}{\partial t} &= \nabla \cdot k K (\nabla p + \rho g \hat{z}) \\
+   -k K (\nabla p + \rho g \hat{z}) \cdot \hat{n} |_{\Gamma} &= q_{ss} \\
+   p|_{\Gamma} &= p_s
+   
+:math:`q_{ss}`, the "exfiltration" of water from subsurface to surface, is
+eliminated discretely (enforcing flux continuity) and the pressure equality
+condition (the last equation) is enforced by elimintating the surface unknowns
+discretely.
+
+This leverages subsurface discretizations that include face-based unknowns, and
+notes that those face unknowns that correspond to surface faces are co-located
+with the surface cell pressure, and therefore are equivalent.  In this approach
+(see `Coon et al WRR 2020 <https://doi.org/10.1016/j.advwatres.2020.103701>`_),
+the surface equations are directly assembled into the subsurface discrete
+operator.
+     
+As a result, this requires a subsurface discretization that uses face-based
+unknowns, e.g. any of the `"mfd: *`" class of methods.
+
+`"PK type`" = `"coupled water`"
+
+.. _pk-coupled-water-spec:
+.. admonition:: pk-coupled-water-spec
+
+   * `"PKs order`" ``[Array(string)]`` Order must be {subsurface_flow_pk,
+     surface_flow_pk}.
 
    * `"subsurface domain name`" ``[string]`` **domain**
 
    * `"surface domain name`" ``[string]`` **surface**
 
-   * `"water delegate`" ``[mpc-delegate-water-spec]`` A `Coupled Water
-     Globalization Delegate`_ spec.
+   * `"water delegate`" ``[mpc-delegate-water-spec]`` A :ref:`Coupled Water
+     Globalization Delegate` spec.
 
    INCLUDES:
 
-   - ``[strong-mpc-spec]`` *Is a* StrongMPC_
+   - ``[strong-mpc-spec]`` *Is a* :ref:`Strong MPC`.
 
 */
 

@@ -6,19 +6,24 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-
-//! Painter's permafrost model with freezing point depression, smoothed.
 /*!
 
-.. _wrm-fpd-smoothed-permafrost-spec:
-.. admonition:: wrm-fpd-smoothed-permafrost-spec
+Painter's permafrost model with freezing point depression, smoothed.
 
-    * `"reference temperature [K]`" ``[double]`` **273.15** The phase transition point
-    * `"interfacial tension ice-water [mN m^-1]`" ``[double]`` **33.1**
-    * `"interfacial tension air-water [mN m^-1]`" ``[double]`` **72.7**
-    * `"smoothing width [K]`" ``[double]`` **1.** Smoothing out the freeze curve allows this to be slightly easier to solve.
-    * `"latent heat [J kg^-1]`" ``[double]`` **3.34e5** Latent heat of fusion
-    * `"water density [kg m^-3]`" ``[double]`` **998.87** Density of water.  Note this probably should use the calculated value.
+`"permafrost wrm type`" = `"fpd smoothed permafrost model`"
+
+.. _permafrost-wrm-fpd-smoothed-permafrost-model-spec:
+.. admonition:: permafrost-wrm-fpd-smoothed-permafrost-model-spec
+
+   * `"reference temperature [K]`" ``[double]`` **273.15** The phase transition
+     point
+   * `"interfacial tension ice-water [mN m^-1]`" ``[double]`` **33.1**
+   * `"interfacial tension air-water [mN m^-1]`" ``[double]`` **72.7**
+   * `"smoothing width [K]`" ``[double]`` **1.** Smoothing out the freeze curve
+     allows this to be slightly easier to solve.
+   * `"latent heat [J kg^-1]`" ``[double]`` **3.34e5** Latent heat of fusion
+   * `"water density [kg m^-3]`" ``[double]`` **998.87** Density of water.
+     Note this probably should use the calculated value.
 
  */
 

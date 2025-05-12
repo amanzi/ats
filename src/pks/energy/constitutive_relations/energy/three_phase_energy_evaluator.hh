@@ -15,15 +15,15 @@ Calculates energy, in [KJ], via the equation:
 .. math::
   E = V * ( \phi (u_l s_l n_l + u_i s_i n_i + u_g s_g n_g)  + (1-\phi_0) u_r \rho_r )
 
-Specified with evaluator type: `"three phase energy`"
+`"evaluator type`" = `"three phase energy`"
 
 Note this equation assumes that porosity is compressible, but is based on the
 uncompressed rock grain density (not bulk density).  This means that porosity
 is the base, uncompressible value when used with the energy in the grain, but
 the larger, compressible value when used with the energy in the water.
 
-.. _field-evaluator-type-three-phase-energy-spec:
-.. admonition:: field-evaluator-type-three-phase-energy-spec
+.. _evaluator-three-phase-energy-spec:
+.. admonition:: evaluator-three-phase-energy-spec
 
    DEPENDENCIES:
 

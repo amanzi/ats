@@ -10,13 +10,17 @@ Integrated Hydrology
 --------------------
 { mpc_coupled_water }
 
-Integrated Hydrology with a vertical-only Subsurface
-----------------------------------------------------
+Operator Split Integrated Hydrology
+-----------------------------------
 { mpc_coupled_water_split_flux }
 
 Integrated Thermal Hydrology
 ----------------------------
 { mpc_permafrost }
+
+Operator Split Integrated Thermal Hydrology
+-------------------------------------------
+{ mpc_permafrost_split_flux }
 
 Integrated Hydrology with Dual Media
 ------------------------------------

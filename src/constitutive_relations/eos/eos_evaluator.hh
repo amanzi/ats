@@ -6,8 +6,32 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+/*!
 
-//! EOSEvaluator is the interface between state/data and the model, an EOS.
+This evaluates an EOS as a function of temperature, pressure, and/or mole
+ratio/concentration.
+
+.. _evaluator-eos-spec:
+.. admonition:: evaluator-eos-spec
+
+   * `"EOS parameters`" ``[eos-typedinline-spec]``
+
+   KEYS:
+
+   - `"molar density`" Note that molar density is [mol H2O m^-3].  This is a
+     _component_ quantity.
+   - `"mass density`" Note that mass density is [kg m^-3].  This is a _phase_
+     quantity.
+
+   DEPENDENCIES:
+
+   - `"temperature`"
+   - `"pressure`"
+   - `"molar ratio`"
+
+*/
+
+
 #ifndef AMANZI_RELATIONS_EOS_EVALUATOR_HH_
 #define AMANZI_RELATIONS_EOS_EVALUATOR_HH_
 

@@ -8,11 +8,40 @@
 */
 
 /*
-  ATS
 
-  Simple EOS for compressibility with pressure.
+A molar and mass density of water that are linear in pressure.
 
-  http://software.lanl.gov/ats/trac
+.. math::
+
+   n &= n_0 + \beta (p - p_{atm})
+   \rho &= M n
+
+`"EOS type`" = `"linear`"
+
+.. _eos-linear-spec:
+.. admonition:: eos-linear-spec
+
+   ONE OF
+
+   * `"molar mass [kg mol^-1]`" ``[double]`` **0.0180153** :math:`M` above
+
+   OR
+
+   * `"molar mass [g mol^-1]`" ``[double]`` **18.0153**
+
+   END
+
+   ONE OF
+
+   * `"density [mol m^-3]`" ``[double]`` molar density of water, :math:`n_0` above
+
+   OR
+
+   * `"density [kg m^-3]`" ``[double]`` mass density of water
+
+   END
+
+   * `"compressibility [Pa^-1]`" ``[double]`` :math:`\beta` above.
 
 */
 

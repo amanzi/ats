@@ -6,12 +6,22 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+/*!
 
-/*
-  Evaluates the conductivity of surface flow as a function of ponded
-  depth and surface slope using Manning's model.
+.. _overland-conductivity-manning-spec:
+.. admonition:: overland-conductivity-manning-spec
 
-*/
+   * `"Manning exponent`" ``[double]`` **2/3**
+   * `"slope regularization epsilon`" ``[double]`` **1.e-8** In ATS's
+     implementation of the diffusion wave equation, it is expected that |S| >
+     0.  This may be arbitrarily small, but it keeps slope from being exactly
+     0, which crashes the code.
+   * `"maximum ponded depth [m]`" ``[double]`` **1.e8** Arbitrarily large
+     ponded depth creates arbitrarily large flowing velocities -- sometimes we
+     wish to use this model (even though it is incorrect) for larger rivers.
+     This limits the velocity from being unbounded.
+
+ */
 
 #ifndef AMANZI_FLOWRELATIONS_MANNING_CONDUCTIVITY_MODEL_
 #define AMANZI_FLOWRELATIONS_MANNING_CONDUCTIVITY_MODEL_

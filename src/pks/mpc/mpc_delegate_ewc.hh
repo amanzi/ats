@@ -6,8 +6,6 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-
-//! Globalization for nonlinearity associated with phase change and latent heat.
 /*!
 
 The EWC delegate works to deal with strong nonlinearities associated with
@@ -33,49 +31,53 @@ provides the initial guess to the nonlinear solve.
 .. _mpc-delegate-ewc-spec:
 .. admonition:: mpc-delegate-ewc-spec
 
-    * `"verbose object`" ``[verbose-object-spec]`` See `Verbose Object`_.
+   * `"verbose object`" ``[verbose-object-spec]`` See :ref:`Verbose Object`.
 
-    * `"PK name`" ``[string]`` Name of the owning PK -- simply for logging and
-      debugging.
-    * `"domain name`" ``[string]`` **"domain"** The mesh.
+   * `"PK name`" ``[string]`` **optional** Name of the owning PK -- simply for
+     logging and debugging.  Typically set by the owning PK, not by the user.
 
-    * `"preconditioner type`" ``[string]`` When to use EWC on the nonlinear
-      iterate's correction.  One of:
+   * `"domain name`" ``[string]`` **"domain"** The mesh.
 
-      - `"none`" Never do EWC
-      - `"ewc`" Always do EWC
-      - `"smart ewc`" Attempt EWC when it seems likely it will be useful and
-        take the EWC correction if it is smaller than the standard correction.
+   * `"preconditioner type`" ``[string]`` When to use EWC on the nonlinear
+     iterate's correction.  One of:
 
-    * `"predictor type`" ``[string]`` When to use EWC on the predictor.  One
-      of:
+     - `"none`" Never do EWC
+     - `"ewc`" Always do EWC
+     - `"smart ewc`" Attempt EWC when it seems likely it will be useful and
+       take the EWC correction if it is smaller than the standard correction.
 
-      - `"none`" Never do EWC
-      - `"ewc`" Always do EWC
-      - `"smart ewc`" Attempt EWC when it seems likely it will be useful and
-        take the EWC correction if it is smaller than the standard correction.
+   * `"predictor type`" ``[string]`` When to use EWC on the predictor.  One
+     of:
 
-    * `"freeze-thaw cusp width [K]`" ``[double]`` Controls a width over which
-      to assume we are close to the latent heat cliff, and begins applying the
-      EWC algorithm in `"ewc smarter`".
+     - `"none`" Never do EWC
+     - `"ewc`" Always do EWC
+     - `"smart ewc`" Attempt EWC when it seems likely it will be useful and
+       take the EWC correction if it is smaller than the standard correction.
 
-    * `"freeze-thaw cusp width (freezing) [K]`" ``[double]`` Controls a width
-      over which to assume we are close to the latent heat cliff as we get
-      colder, and begins applying the EWC algorithm in `"ewc smarter`".
+   * `"freeze-thaw cusp width [K]`" ``[double]`` **optional** Controls a width
+     over which to assume we are close to the latent heat cliff, and begins
+     applying the EWC algorithm in `"ewc smarter`".  Note that this overrides
+     the following two parameters with this value.
 
-    * `"freeze-thaw cusp width (thawing) [K]`" ``[double]`` Controls a width
-      over which to assume we are close to the latent heat cliff as we get
-      warmer, and begins applying the EWC algorithm in `"ewc smarter`".
+   * `"freeze-thaw cusp width (freezing) [K]`" ``[double]`` **0.** Controls a width
+     over which to assume we are close to the latent heat cliff as we get
+     colder, and begins applying the EWC algorithm in `"ewc smarter`".
 
-    * `"pressure key`" ``[string]`` **DOMAIN-pressure**
-    * `"temperature key`" ``[string]`` **DOMAIN-temperature**
-    * `"water content key`" ``[string]`` **DOMAIN-water_content**
-    * `"energy key`" ``[string]`` **DOMAIN-energy**
-    * `"cell volume key`" ``[string]`` **DOMAIN-cell_volume**
+   * `"freeze-thaw cusp width (thawing) [K]`" ``[double]`` **0.** Controls a width
+     over which to assume we are close to the latent heat cliff as we get
+     warmer, and begins applying the EWC algorithm in `"ewc smarter`".
 
-    INCLUDES
+   KEYS
+   
+   - `"pressure`"
+   - `"temperature`"
+   - `"water content`"
+   - `"energy`"
+   - `"cell volume`"
 
-    - ``[debugger-spec]`` Uses a Debugger_
+   INCLUDES
+
+   - ``[debugger-spec]`` Uses a :ref:`Debugger`
 
 */
 

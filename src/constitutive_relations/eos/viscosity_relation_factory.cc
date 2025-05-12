@@ -7,13 +7,6 @@
   Authors: Ethan Coon
 */
 
-/* -------------------------------------------------------------------------
-
-   ATS
-
-   Self-registering factory for Viscosity implementations.
-   ------------------------------------------------------------------------- */
-
 #include <string>
 #include "viscosity_relation_factory.hh"
 
@@ -24,7 +17,7 @@ namespace Relations {
 Teuchos::RCP<ViscosityRelation>
 ViscosityRelationFactory::createViscosity(Teuchos::ParameterList& plist)
 {
-  std::string visc_typename = plist.get<std::string>("viscosity relation type");
+  std::string visc_typename = plist.get<std::string>("viscosity type");
   return Teuchos::rcp(CreateInstance(visc_typename, plist));
 };
 
