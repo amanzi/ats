@@ -6,11 +6,21 @@
 
   Authors: Daniil Svyatskiy
 */
+/*!
 
-/*
-  This is the mpc_pk component of the Amanzi code.
+This MPC couples surface and subsurface transport.  It is implemented as
+described in `Molins et al WRR 2022 <https://doi.org/10.1029/2022WR032074>`_,
+and deals with the conservation of advected fluxes as they are transported
+laterally, infiltrate, etc, including wetting and drying of surface cells.
 
-  PK for coupling of surface and subsurface transport PKs
+`"PK type`" = `"surface subsurface transport`"
+
+.. _pk-surface-subsurface-transport-spec:
+.. admonition:: pk-surface-subsurface-transport-spec
+
+   * `"PKs order`" ``[Array(string)]`` Order must be {subsurface transport,
+     surface transport}.
+
 */
 
 #pragma once

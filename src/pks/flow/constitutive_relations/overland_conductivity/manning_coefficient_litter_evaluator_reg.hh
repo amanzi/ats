@@ -14,7 +14,7 @@ namespace Flow {
 namespace Relations {
 
 Utils::RegisteredFactory<Evaluator, ManningCoefficientLitterEvaluator>
-  ManningCoefficientLitterEvaluator::reg_("manning coefficient with litter");
+  ManningCoefficientLitterEvaluator::reg_("Manning coefficient, litter");
 
 } // namespace Relations
 } // namespace Flow

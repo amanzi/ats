@@ -10,7 +10,7 @@
 /*!
 
 Energy boundary conditions must follow the general format shown in
-BoundaryConditions_.  Energy-specific conditions implemented include:
+`Boundary Conditions`_.  Energy-specific conditions implemented include:
 
 Dirichlet (temperature) boundary conditions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

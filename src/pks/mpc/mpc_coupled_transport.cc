@@ -7,11 +7,6 @@
   Authors:
 */
 
-/*
-  This is the mpc_pk component of the Amanzi code.
-
-*/
-
 #include "mpc_coupled_transport.hh"
 
 namespace Amanzi {
@@ -40,8 +35,10 @@ MPCCoupledTransport::parseParameterList()
       if (order != 1) {
         if (vo_->os_OK(Teuchos::VERB_LOW))
           *vo_->os() << vo_->color("yellow")
-                     << "Transport PK \"" << name << "\" prescribes \"temporal discretization order\" "
-                     << order << ", but this is not valid for integrated transport.  Using \"temporal discretization order\" 1 instead."
+                     << "Transport PK \"" << name
+                     << "\" prescribes \"temporal discretization order\" "
+                     << order << ", but this is not valid for integrated transport.  "
+                     << "Using \"temporal discretization order\" 1 instead."
                      << vo_->reset() << std::endl;
       }
       pks_list_->sublist(name).set<int>("temporal discretization order", 1);
@@ -71,9 +68,9 @@ MPCCoupledTransport::parseParameterList()
     bc_coupling.set<Teuchos::Array<std::string>>("regions", regs);
     Teuchos::ParameterList& tmp = bc_coupling.sublist("fields");
     tmp.set<std::string>("conserved quantity key", surf_tcq_key);
-    tmp.set<std::string>("conserved quantity copy key", tag_next_.get());
+    tmp.set<std::string>("conserved quantity tag", tag_next_.get());
     tmp.set<std::string>("external field key", surf_tcc_key);
-    tmp.set<std::string>("external field copy key", tag_next_.get());
+    tmp.set<std::string>("external field tag", tag_next_.get());
   }
 
   auto& src_list =
@@ -89,11 +86,11 @@ MPCCoupledTransport::parseParameterList()
     tmp.set<std::string>("flux key", ss_flux_key);
     // NOTE: FIXME --ETC amanzi/amanzi#646 Currently flux field is hard-coded
     // as NEXT both here and as transport PK's flow_tag
-    tmp.set<std::string>("flux copy key", Tags::NEXT.get());
+    tmp.set<std::string>("flux tag", Tags::NEXT.get());
     tmp.set<std::string>("conserved quantity key", surf_tcc_key);
-    tmp.set<std::string>("conserved quantity copy key", tag_next_.get());
+    tmp.set<std::string>("conserved quantity tag", tag_next_.get());
     tmp.set<std::string>("external field key", ss_tcc_key);
-    tmp.set<std::string>("external field copy key", tag_next_.get());
+    tmp.set<std::string>("external field tag", tag_next_.get());
   }
 
   WeakMPC::parseParameterList();

@@ -18,8 +18,8 @@ sinusoidal curve from 0 to 1 over a given transition in temperature.
 
 `"evaluator type`" = `"unfrozen fraction`"
 
-.. _unfrozen-fraction-evaluator-spec:
-.. admonition:: unfrozen-fraction-evaluator-spec
+.. _evaluator-unfrozen-fraction-spec:
+.. admonition:: evaluator-unfrozen-fraction-spec
 
    * `"unfrozen fraction model`" ``[unfrozen-fraction-model-spec]``
 

@@ -7,15 +7,23 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-//! Capillary pressure for gas on a liquid.
 /*!
 
-.. _pc-liquid-evaluator-spec:
-.. admonition:: pc-liquid-evaluator-spec
+Capillary pressure for gas on a liquid.
 
-   KEYS:
+.. math::
+
+   p_{c}^{gas-liq} = p - p_{atm}
+
+`"evaluator type`" = `"capillary pressure, atmospheric gas over liquid`"
+
+.. _evaluator-capillary-pressure-atmospheric-gas-over-liquid-spec:
+.. admonition:: evaluator-capillary-pressure-atmospheric-gas-over-liquid-spec
+
+   DEPENDENCIES:
 
    - `"pressure`" **DOMAIN-pressure**
+   - `"atmospheric pressure`"
 
 */
 

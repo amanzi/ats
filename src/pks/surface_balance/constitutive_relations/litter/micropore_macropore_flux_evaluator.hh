@@ -26,8 +26,8 @@ pressures, 'n_l' is molar density liquid
 Note that the expected domain for this is the micropore domain, but may be
 changed on the input line.
 
-.. _micropore-macropore-flux-evaluator-spec:
-.. admonition:: micropore-macropore-flux-evaluator-spec
+.. _evaluator-micropore-macropore-flux-spec:
+.. admonition:: evaluator-micropore-macropore-flux-spec
 
    * `"micropore domain`" ``[string]`` **DOMAIN** Defaults to the domain of the flux's
      variable name.

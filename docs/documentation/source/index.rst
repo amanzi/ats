@@ -3,12 +3,11 @@ $$$$$$$$$$$$$
 
 .. image:: _static/images/coweeta.png
 
-Amanzi-ATS is a code for solving ecosystem-based, integrated, distributed hydrology.
+The Advanced Terrestrial Simulator (ATS) is a code for solving watershed-to-river basin scale problems on integrated, distributed ecohydrology, including the built environment.
 
-Capabilities are largely based on solving various forms of Richards equation, coupled to a surface flow equation, along with the needed sources and sinks for ecosystem and climate models. This can (but need not) include thermal processes (especially ice for frozen soils), evapotranspiration, surface energy balances, snow, biogeochemistry, plant dynamics, deformation, transport, and much more.
+Capabilities are largely based on solving various forms of Richards equation coupled to a surface flow equation, along with the needed sources and sinks.  This can (but need not) include thermal processes (especially ice for frozen soils), evapo-transpiration, surface energy exchange with the atmosphere, snow, deformation, gray and green infrastructure, and much more.  In addition, we solve problems of reactive transport in both the subsurface and surface, leveraging external geochemical engines through the Alquimia interface.
 
-ATS is a suite of physics processes built for Amanzi.  As such documentation is split between process documentation here and framework documentation in Amanzi.  Links across the related projects attempt to build a uniform interface for the user.
-
+ATS is a suite of physics processes built for Amanzi.  Amanzi includes the underlying mesh, data structure, multi-physics APIs, and math libraries for defining and solving the physics implemented in ATS.
 
 Join the Community
 %%%%%%%%%%%%%%%%%%
@@ -26,7 +25,6 @@ License and Copyright
 %%%%%%%%%%%%%%%%%%%%%
 
 Please see the `LICENSE <https://github.com/amanzi/ats/blob/master/LICENSE>`_ and `COPYRIGHT <https://github.com/amanzi/ats/blob/master/COPYRIGHT>`_ files included in the top level directory of your ATS download.
-
 
 
 Citation

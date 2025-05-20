@@ -6,21 +6,19 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-
-//! A coupler which solves flow and energy in the subsurface.
 /*!
 
 This MPC provides most nearly all terms for an approximate Jacobian for
-coupling three-phase Richards equation (the `Permafrost Flow PK`_) to the
-three-phase Energy equation (the `Three-Phase subsurface Energy PK`_).
+coupling three-phase Richards equation (the :ref:`Permafrost Flow PK`) to the
+three-phase Energy equation (the :ref:`Three-Phase Energy PK`).
 
 Many options are provided for turning on and off various aspects of this
 Jacobian, so it is useful to mathematically write out these terms.  The
 equations are:
 
 .. math::
-    \frac{\partial \Theta}{\partial t} - \nabla \frac{k_r n_l}{\mu} K ( \nabla p + \rho g \cdot \hat{z} ) = Q_w \\
-    \frac{\partial E}{\partial t} - \nabla \cdot \kappa \nabla T + \nabla \cdot \mathbf{q} e(T) = Q_w e(T) + Q_e
+    \frac{\partial \Theta}{\partial t} - \nabla \frac{k_r n_l}{\mu} K ( \nabla p + \rho g \cdot \hat{z} ) &= Q_w \\
+    \frac{\partial E}{\partial t} - \nabla \cdot \kappa \nabla T + \nabla \cdot \mathbf{q} e(T) &= Q_w e(T) + Q_e
 
 Note that all of the following are dependent on :math:`p` and/or :math:`T`:
 
@@ -58,7 +56,8 @@ Differentiating these two equations in their two unknowns gives the following fo
   result in large changes to thermal conductivity.  This is referred to as the
   "div K grad T / dp" term.
 
-:math:`\frac{\partial F_2}{\partial T}`: this is the energy equation diagonal block, and is controlled inside that PK.
+:math:`\frac{\partial F_2}{\partial T}`: this is the energy equation diagonal
+block, and is controlled inside that PK.
 
 Also, at this level, where we know more about the flux used in the energy
 equation (it is the Darcy flux), we can do a better approximation of the
@@ -80,28 +79,28 @@ except in expert cases or for comparison's sake, but the options are:
 
 - `"none`" No preconditioner never works.
 
-- `"block diagonal`" This is what one would get from the default StrongMPC_.  This probably never works.
+- `"block diagonal`" This is what one would get from the default StrongMPC_.
+  This probably never works.
 
 - `"no flow coupling`" This keeps the accumulation terms, but turns off all the
   non-local blocks.  This is equivalent to `Coupled Cells MPC`_.
 
-- `"ewc`" **CURRENTLY DEPRECATED/BROKEN/DISABLED** In addition to the
-  `"picard`" coupling, this also *always* does a change of variables, whereby
-  we first invert to calculate primary variable corrections, then do a change
-  of variables to calculate the linearized corrections in energy and water
-  content space.  We then apply those corrections, and invert to find the
-  primary variable changes that would have made those corrections.  This is
-  called the "energy and water content" algorithm, and is related to similar
-  variable changing approaches by Krabbenhoft (for flow) and Knoll (for
-  energy), but in the multivariate approach.  This is somewhat bad, becuase
-  while it fixes some corrections, it breaks others.
+- `"ewc`" **CURRENTLY DISABLED** In addition to the `"picard`" coupling, this
+  also *always* does a change of variables, whereby we first invert to
+  calculate primary variable corrections, then do a change of variables to
+  calculate the linearized corrections in energy and water content space.  We
+  then apply those corrections, and invert to find the primary variable changes
+  that would have made those corrections.  This is called the "energy and water
+  content" algorithm, and is related to similar variable changing approaches by
+  Krabbenhoft (for flow) and Knoll (for energy), but in the multivariate
+  approach.  This is somewhat bad, becuase while it fixes some corrections, it
+  breaks others.
 
-- `"smart ewc`" **CURRENTLY DEPRECATED/BROKEN/DISABLED** Does the `"ewc`"
-  algorithm above, but tries to be smart about when to do it.  This algorithm
-  helps when we are about to fall off of the latent heat cliff.  If we can
-  guess when to do it, we have a better chance of not breaking things.  This
-  seems like it ought to be helpful, but often doesn't do as much as one might
-  hope.
+- `"smart ewc`" **CURRENTLY DISABLED** Does the `"ewc`" algorithm above, but
+  tries to be smart about when to do it.  This algorithm helps when we are
+  about to fall off of the latent heat cliff.  If we can guess when to do it,
+  we have a better chance of not breaking things.  This seems like it ought to
+  be helpful, but often doesn't do as much as one might hope.
 
 
 Note this "ewc" algorithm is just as valid, and more useful, in the predictor
@@ -109,26 +108,32 @@ Note this "ewc" algorithm is just as valid, and more useful, in the predictor
 pressure and temperature, but often do better to extrapolate in water content
 and energy space, then invert (locally) for pressure and temperature
 corrections that meet that extrapolation.  Both of these globalization
-algorithms are supported by the `EWC Globalization Delegate`_ object.
+algorithms are supported by the :ref:`EWC Globalization Delegate` object.
 
-.. _mpc-subsurface-spec:
-.. admonition:: mpc-subsurface-spec
+`"PK type`" = `"subsurface permafrost`"
 
-    * `"domain name`" ``[string]`` Domain of simulation
+.. _pk-subsurface-permafrost-spec:
+.. admonition:: pk-subsurface-permafrost-spec
 
-    * `"preconditioner type`" ``[string]`` **picard** See the above for
-      detailed descriptions of the choices.  One of: `"none`", `"block
-      diagonal`", `"no flow coupling`", `"picard`", `"ewc`", and `"smart ewc`".
+   * `"domain name`" ``[string]`` Domain of simulation
 
-    * `"supress Jacobian terms: div hq / dp,T`" ``[bool]`` **false** If using picard or ewc, do not include this block in the preconditioner.
-    * `"supress Jacobian terms: d div q / dT`" ``[bool]`` **false** If using picard or ewc, do not include this block in the preconditioner.
-    * `"supress Jacobian terms: d div K grad T / dp`" ``[bool]`` **false** If using picard or ewc, do not include this block in the preconditioner.
+   * `"preconditioner type`" ``[string]`` **picard** See the above for detailed
+     descriptions of the choices.  One of: `"none`", `"block diagonal`", `"no
+     flow coupling`", `"picard`", `"ewc`", and `"smart ewc`".
 
-    * `"ewc delegate`" ``[mpc-delegate-ewc-spec]`` A `EWC Globalization Delegate`_ spec.
+   * `"supress Jacobian terms: div hq / dp,T`" ``[bool]`` **false** If using
+     picard or ewc, do not include this block in the preconditioner.
+   * `"supress Jacobian terms: d div q / dT`" ``[bool]`` **false** If using
+     picard or ewc, do not include this block in the preconditioner.
+   * `"supress Jacobian terms: d div K grad T / dp`" ``[bool]`` **false** If
+     using picard or ewc, do not include this block in the preconditioner.
 
-    INCLUDES:
+   * `"ewc delegate`" ``[mpc-delegate-ewc-spec]`` A :ref:`EWC Globalization
+     Delegate` spec.
 
-    - ``[strong-mpc-spec]`` *Is a* StrongMPC_.
+   INCLUDES:
+
+   - ``[strong-mpc-spec]`` *Is a* :ref:`Strong MPC`.
 
  */
 

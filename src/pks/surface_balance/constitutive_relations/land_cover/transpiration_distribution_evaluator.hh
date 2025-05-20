@@ -49,19 +49,13 @@ long.  Good choices for those models depend upon the local climate, but may be
 something like Julian day 101 for leaf on and Julian day 254 for leaf off (PRMS
 defaults for US temperate forests).
 
-Note that `"leaf on doy`" and `"leaf off doy`" are relative to the simulation's
-zero time, not the start time.  Typically these are Julian day of the year, but
-this assumes that the 0 time of the simulation (not the "start time", but time
-0!) is Jan 1.  This leaf on/off cycle is modulo the `"year duration`"
-(typically 1 noleap).  Note if `"leaf off doy`" < `"leaf on time`" is ok too --
-this is the case if simulation time zero is mid-summer.  These parameters come
-from the LandCover type.
+`"evaluator type`" = `"transpiration distribution, rooting depth`"
 
-.. _transpiration-distribution-evaluator-spec:
-.. admonition:: transpiration-distribution-evaluator-spec
+.. _evaluator-transpiration-distribution-rooting-depth-spec:
+.. admonition:: evaluator-transpiration-distribution-rooting-depth-spec
+
    * `"year duration`" ``[double]`` **1**
    * `"year duration units`" ``[string]`` **noleap**
-
    * `"water limiter function`" ``[function-spec]`` **optional** If provided,
      limit the total water sink as a function of the integral of the water
      potential * rooting fraction.
@@ -74,6 +68,16 @@ from the LandCover type.
    - `"cell volume`" **DOMAIN-cell_volume**
    - `"surface cell volume`" **DOMAIN_SURF-cell_volume**
 
+
+.. note::
+
+   This evaluator also uses the :ref:`Land Cover` types.  From that struct, it
+   requires the value of the following parameters:
+
+   - `"leaf on time [doy]`"
+   - `"leaf off time [doy]`"
+     
+     
 */
 
 #pragma once

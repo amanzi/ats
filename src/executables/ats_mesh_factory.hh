@@ -70,7 +70,7 @@ Generated mesh are by definition structured, with uniform dx, dy, and dz.
 Such a mesh is specified by a bounding box high and low coordinate, and a list
 of number of cells in each direction.
 
-Specified by `"mesh type`" of `"generate mesh`".
+`"mesh type`" = `"generate mesh`".
 
 .. _mesh-generate-mesh-spec:
 .. admonition:: mesh-generate-mesh-spec
@@ -108,7 +108,7 @@ generated with a Nemesis tool and named as filename.par.N.r where N is the
 number of processors and r is the rank.  When running in parallel and the
 suffix is .exo, the code will partition automatically the serial file.
 
-Specified by `"mesh type`" of `"read mesh file`".
+`"mesh type`" = `"read mesh file`".
 
 .. _mesh-read-mesh-file-spec:
 .. admonition:: mesh-read-mesh-file-spec
@@ -143,7 +143,7 @@ unstructured mesh.
 This is an active research and development area, and is used most
 frequently for river networks, root networks, and crack networks.
 
-Specified by `"mesh type`" of `"logical`".
+`"mesh type`" = `"logical`".
 
 .. todo::
    WIP: add spec!
@@ -165,7 +165,7 @@ projected in the z-direction.  No checks for holes are performed.  Surface
 meshes may similarly be audited to make sure they are reasonable for
 computation.
 
-Specified by `"mesh type`" of `"surface`".
+`"mesh type`" = `"surface`".
 
 .. _mesh-surface-spec:
 .. admonition:: mesh-surface-spec
@@ -174,11 +174,11 @@ Specified by `"mesh type`" of `"surface`".
 
    ONE OF
 
-   * `"surface sideset name`" ``[string]`` The Region_ name containing all surface faces.
+   * `"surface sideset name`" ``[string]`` The :doc:`region` name containing all surface faces.
 
    OR
 
-   * `"surface sideset names`" ``[Array(string)]`` A list of Region_ names containing the surface faces.
+   * `"surface sideset names`" ``[Array(string)]`` A list of :doc:`region` names containing the surface faces.
 
    END
 
@@ -220,7 +220,7 @@ is preserved, so all local entities in this mesh have parents whose entities
 are local on the parent mesh, so that no communication is ever done when
 passing info between an parent mesh and an extracted mesh.
 
-Specified by `"mesh type`" of `"extracted`".
+`"mesh type`" = `"extracted`".
 
 .. _mesh-extracted-spec:
 .. admonition:: mesh-extracted-spec
@@ -255,7 +255,7 @@ instance, one might find it useful to define both a "surface water" and a
 "surface" domain would point to the "surface" mesh, and the "snow" domain would
 be an "aliased" domain whose target is the "surface" mesh.
 
-Specified by `"mesh type`" of `"aliased`".
+`"mesh type`" = `"aliased`".
 
 .. _mesh-aliased-spec:
 .. admonition:: mesh-aliased-spec
@@ -276,7 +276,7 @@ local ID of an entity (in the case of `"domain set indexed`") or a region name
 (in the case of `"domain set regions`").
 
 
-Indexed domain set meshes are specified by `"mesh type`" of `"domain set indexed`".
+`"mesh type`" = `"domain set indexed`".
 
 .. _mesh-domain-set-indexed-spec:
 .. admonition:: mesh-domain-set-indexed-spec
@@ -291,7 +291,7 @@ Indexed domain set meshes are specified by `"mesh type`" of `"domain set indexed
      surface.
 
 Note, additionally, there must be a sublist of the name of the domain set,
-which itself is a `"mesh-typed-spec`"_, but may be missing some info
+which itself is a :doc:`mesh-typed-spec <mesh>`, but may be missing some info
 (e.g. `"entity LID`") that is filled in by this index.
 
 Example:
@@ -315,7 +315,7 @@ Example:
     </ParameterList>
 
 
-Region-based domain set meshes are specified by `"mesh type`" of `"domain set regions`".
+`"mesh type`" = `"domain set regions`".
 
 .. _mesh-domain-set-regions-spec:
 .. admonition:: mesh-domain-set-regions-spec
@@ -330,7 +330,7 @@ Region-based domain set meshes are specified by `"mesh type`" of `"domain set re
      surface.
 
 Note, additionally, there must be a sublist of the name of the domain set,
-which itself is a `"mesh-typed-spec`"_, but may be missing some info
+which itself is a :doc:`mesh-typed-spec <mesh>`, but may be missing some info
 (e.g. `"region`") that is filled in by this domain set.
 
 Example: the below example shows how to extract two subdomains, making them
@@ -365,7 +365,7 @@ Column Meshes
    `Domain Set Meshes`_, which generate a column mesh spec for every face
    of a set.
 
-Specified by `"mesh type`" of `"column`".
+`"mesh type`" = `"column`".
 
 .. _mesh-column-spec:
 .. admonition:: mesh-column-spec
@@ -405,7 +405,7 @@ Column Surface Meshes
    `Domain Set Meshes`_, which generate a column surface mesh spec for every face
    of a set.
 
-Specified by `"mesh type`" of `"column surface`".
+`"mesh type`" = `"column surface`".
 
 .. _mesh-column-surface-spec:
 .. admonition:: mesh-column-surface-spec

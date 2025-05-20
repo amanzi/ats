@@ -1,4 +1,4 @@
-Surface energy balance evaluators
+Surface Energy Balance Evaluators
 ---------------------------------
 
 Evaluators used to solve the fluxes to and from the atmosphere and
@@ -62,9 +62,17 @@ Plant Wilting Point
 ~~~~~~~~~~~~~~~~~~~
 { plant_wilting_factor_evaluator }
 
-Soil Resistance
-^^^^^^^^^^^^^^^
+Evaporation Downregulation
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 { evaporation_downregulation_evaluator }
+
+Soil Resistance, Sakagucki & Zeng
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{ soil_resistance_sakagucki_zeng_evaluator }
+
+Soil Resistance, Sellers
+~~~~~~~~~~~~~~~~~~~~~~~~
+{ soil_resistance_sellers_evaluator }
 
 
 Radiation Balance Terms
@@ -85,14 +93,12 @@ Canopy Radiation Balance
 ~~~~~~~~~~~~~~~~~~~~~~~~
 { canopy_radiation_evaluator }
 
-Surface Albedo
-~~~~~~~~~~~~~~
-
-Note that albedo is also a multiple subgrid component model, like
-surface balance.
-
+Surface Albedo, Two Components
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 { albedo_twocomponent_evaluator }
 
+Surface Albedo, Two Components
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 { albedo_threecomponent_evaluator }
 
 Incident Shortwave Radiation

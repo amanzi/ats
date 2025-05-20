@@ -6,15 +6,14 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-
-//! Evaluates the conductivity of surface flow.
 /*!
 
-This implements the conductivity of overland flow, which is the nonlinear
+This implements the conductivity term in overland flow, which is the nonlinear
 coefficient in the diffusion wave equation.  The term is given by:
 
-.. math:
-   k = \frac{\delta^{coef}}{n_{mann} \sqrt(| \nabla z |)}
+.. math::
+
+   k = \delta \frac{\delta^{\alpha}}{n_{mann} \sqrt(| \nabla z |)}
 
 Optionally, this may include a density factor, typically a molar density, which
 converts the flow law to water flux rather than volumetric flux.
@@ -24,23 +23,25 @@ some extra factors (timestep size) to ensure the correct flow law in that case.
 
 `"evaluator type`" = `"overland conductivity`"
 
-.. _overland-conductivity-evaluator-spec:
-.. admonition:: overland-conductivity-evaluator-spec
+.. _evaluator-overland-conductivity-spec:
+.. admonition:: evaluator-overland-conductivity-spec
 
    * `"include density`" ``[bool]`` **true** Include the density prefactor,
      converting the flux from volumetric flux to water flux.
    * `"dt factor [s]`" ``[double]`` **-1** The artificial timestep size used in calculating
-      snow redistribution, only used in that case.
-   * `"swe density factor [-]`" ``[double]`` **10** Ratio of water to snow density.
+     snow redistribution, only used in that case.
+   * `"swe density factor [-]`" ``[double]`` **10** Ratio of water to snow
+     density.  Also only used in the snow distribution case.
+   * `"overland conductivity model`" ``[overland-conductivity-manning-spec]``
 
    DEPENDENCIES:
 
-   - `"mobile depth`" **DOMAIN-mobile_depth** Depth of the mobile water; delta
+   - `"mobile depth`" **DOMAIN-mobile_depth** Depth of the mobile water; :math:`\delta`
      in the above equation.
    - `"slope`" **DOMAIN-slope_magnitude** Magnitude of the bed surface driving
-     flow; | \nabla z | above.
+     flow; :math:`| \nabla z |` above.
    - `"coefficient`" **DOMAIN-manning_coefficient** Surface roughness/shape
-     coefficient; n_{mann} above.
+     coefficient; :math:`n_{mann}` above.
    - `"molar density liquid`" **DOMAIN-molar_density_liquid** If `"include
      density`" is true, the density.
 

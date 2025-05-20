@@ -6,45 +6,110 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-
-//! An operator-split coupled_water coupler, splitting overland flow from subsurface.
 /*!
-solve:
 
-(dTheta_s / dt)^* = div k_s grad (z+h)
+This MPC implements an operator-split coupled water, which splits the lateral
+overland fluxes from surface sources and subsurface flow.
 
-then solve:
+To advance the coupled flow problem from :math:`t^n` to :math:`t^{n + 1}`, we
+perform two steps.  First, solve the diffusion wave equation:
 
-dTheta_s / dt = (dTheta_s / dt)^* + Q_ext + q_ss
-dTheta / dt = div k (grad p + rho*g*\hat{z})
-k  (grad p + rho*g*\hat{z}) |_s = q_ss
+.. math::
+   
+   \frac{\partial \Theta_s(p_s^*)}{\partial t} = \nabla k_s \cdot \nabla (z+h(p_s^*))
 
-This effectively does an operator splitting on the surface flow equation,
-passing some combination of pressure and divergence of fluxes to the
-subsurface.
+for surface pressure :math:`p_s^*`.  This is colloquially called the "star"
+system.  Then, one of three algorithms is performed for the "primary" system,
+which is a variation on :ref:`Integrated Hydrology` without lateral surface
+fluxes and with extra coupling to the star system.
 
-Note that this can be used with either a 3D subsurface solve, by setting the
-2nd sub-PK to be a 3D permafrost MPC, or a bunch of columns, but setting the
-2nd sub-PK to be a DomainSetMPC.
+**Pressure Coupling**
+
+`"pressure`" coupling is a standard operator splitting.  :math:`p_s^*` becomes
+the initial value for the coupled surface sources and subsurface equations:
+
+.. math::
+
+   \frac{\partial \Theta_s(p_s)}{\partial t} &= Q_ext + q_{ss} \\
+   \frac{\partial \Theta(p)}{\partial t} &= \nabla \cdot k K (\nabla p + \rho g \hat{z}) \\
+   -k K (\nabla p + \rho g \hat{z}) \cdot \hat{n} |_\Gamma &= q_{ss} \\
+   p|_\Gamma &= p_s \\
+   p_s(t^n) &= p_s^*
+
+Note the lack of a lateral flow term in the overland equation (relative to the
+standard diffusion wave equation shown in `Integrated Hydrology`_).  This
+system is coupled and solved in the same discrete way as `Integrated
+Hydrology`_.
+
+**Flux Coupling**
+
+`"flux`" coupling, rather than setting the initial pressure from the
+:math:`p_s^*`, instead provides the divergence of fluxes in the lateral flow
+system as a source to the surface system:
+
+.. math::
+
+   \frac{\partial \Theta_s(p_s)}{\partial t} &= \frac{\partial \Theta_s(p_s^*)}{\partial t} + Q_ext + q_{ss} \\
+   \frac{\partial \Theta(p)}{\partial t} &= \nabla \cdot k K (\nabla p + \rho g \hat{z}) \\
+   -k K (\nabla p + \rho g \hat{z}) \cdot \hat{n} |_\Gamma &= q_{ss} \\
+   p|_\Gamma &= p_s
+
+The advantage of this approach is that it more stably handles the case of
+wetting up -- when a dry surface cell first gets overland flow into that cell,
+it requires that :math:`p_s > p_{atm}`.  But if the subsurface below it is
+unsaturated, this can create a large gradient in pressure that will immediately
+be eliminated in the subsurface solve once "run-on" infiltrates.  This jump
+between a :math:`p_s^* > p_atm` and :math:`p_s < p_atm` is unstable, and hard
+on the nonlinear solver.
+
+Imposing the run-on as a source of water rather than as a initial pressure is
+much more stable for run-on.
+
+   
+**Hybrid Coupling**
+
+While the `"flux`" approach is more stable than `'pressure`" in cells
+experiencing run-on, it is not necessary, and potentially problematic in the
+case of run-off.  In those cases the `"pressure`" case is more stable.
+Therefore, a `"hybrid`" coupling approach is used most frequently; this uses
+the `"pressure`' algorithm where the divergence of lateral surface fluxes is
+negative (e.g. run-off) and the `"flux`" algorithm elsewhere.
+
+All three algorithms should result in the same (converged) solution.  The
+`"hybrid`" algorithm is the most robust for numerical performance.
 
 
-.. _mpc-permafrost-split-flux-spec
-.. admonition:: mpc-permafrost-split-flux-spec
+Additionally, the subsurface domain may be treated as either a 3D domain
+(solving 3D Richards equations) or as a domain-set of many 1D, vertical
+columns.  In this case, the second system of equations is implemented on each
+subsurface column individually -- there is nothing coupling these columns in
+the second system.  Lateral subsurface flow is ignored in this case.  This
+allows subcycling of individual columns, and a much more efficient solve.  This
+is most appropriate at larger or "intermediate" scales, where lateral flow in
+the subsurface is small.
 
-   * `"domain name`" ``[string]`` The subsurface domain, e.g. "domain" (for a
-     3D subsurface ) or "column:*" (for the intermediate scale model.
+`"PK type`" = `"operator split coupled water`"
+
+.. _pk-operator-split-coupled-water-spec:
+.. admonition:: pk-operator-split-coupled-water-spec
+
+   * `"PKs order`" ``[Array(string)]`` Order is {star_system, primary_system}.
+     Note that the sub-PKs are likely a :ref:`Overland Flow PK` for the "star"
+     system and a :ref:`Integrated Hydrology` MPC for the "primary" system.
+
+   * `"domain name`" ``[string]`` The subsurface domain, e.g. `"domain`" (for a
+     3D subsurface) or `"column:*`" (for the intermediate scale, columnar model).
 
    * `"star domain name`" ``[string]`` The surface domain, typically
      `"surface_star`" by convention.
 
-   * `"coupling type`" ``[string]`` **hybrid** One of: `"pressure`" (pass the
-     pressure field when coupling flow in the operator splitting), `"flux`"
-     (pass the divergence of fluxes as a source), or `"hybrid`" a mixture of
-     the two that seems the most robust.
+   * `"coupling type`" ``[string]`` **"hybrid"** One of: `"pressure`", `"flux`",
+     or `"hybrid`" (see above).
 
    INCLUDES:
-   - ``[mpc-spec]`` *Is an* MPC_.
-   - ``[mpc-subcycled-spec]`` *Is a* MPCSubcycled_
+
+   - ``[mpc-spec]`` *Is an* :ref:`MPC`.
+   - ``[mpc-subcycled-spec]`` *Is a* :ref:`Subcycling MPC`.
 
 */
 

@@ -1,0 +1,25 @@
+Transport evaluators
+--------------------
+
+Only dispersivity requires an evaluator unique to transport.
+
+Mechanical Dispersion Model Evaluator
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+{ EvaluatorMDM }
+
+Isotropic Dispersion
+~~~~~~~~~~~~~~~~~~~~~~
+{ MDM_Isotropic }
+
+Bear's Dispersion Model
+~~~~~~~~~~~~~~~~~~~~~~~
+{ MDM_Bear }
+
+Burnett-Frind Dispersion Model
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{ MDM_BurnettFrind }
+
+Lichtner-Kelkar-Robinson Dispersion Model
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{ MDM_LichtnerKelkarRobinson }

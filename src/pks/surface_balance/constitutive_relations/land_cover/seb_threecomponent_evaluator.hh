@@ -22,10 +22,10 @@ approach for water.  All snow is assumed to first cover water (likely ice),
 then cover land, as both water and snow prefer low-lying depressions due to
 gravity- and wind-driven redistributions, respectively.
 
-`"evaluator type`" = `"surface energy balance, two components`"
+`"evaluator type`" = `"surface energy balance, three components`"
 
-.. _seb-threecomponent-evaluator-spec:
-.. admonition:: seb-threecomponent-evaluator-spec
+.. _evaluator-seb-threecomponent-spec:
+.. admonition:: evaluator-seb-threecomponent-spec
 
    * `"wind speed reference height [m]`" ``[double]`` **2.0** Reference height at which
      wind speed is measured.

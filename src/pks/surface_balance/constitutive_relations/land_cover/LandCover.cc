@@ -91,7 +91,7 @@ LandCover::LandCover(Teuchos::ParameterList& plist)
 
 
 LandCoverMap
-getLandCover(Teuchos::ParameterList& plist, const std::vector<std::string>& required_pars)
+getLandCover(Teuchos::ParameterList plist, const std::vector<std::string>& required_pars)
 {
   LandCoverMap lcm = Impl::getLandCover(plist);
   for (const auto& lc : lcm) {

@@ -7,19 +7,18 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-//! An advection-diffusion equation for energy in two phases.
 /*!
 
-This is simply a subsurface energy equation that places a few more requirements
-on the base class.  It could probably go away if we refactor to remove
-hard-coded evaluators.
+Modifies the energy equation to provide two-phase energy (water + vapor/air).
 
-.. _energy-two-phase-pk-spec:
-.. admonition:: energy-two-phase-pk-spec
+`"PK type`" = `"two-phase energy`"
 
-    INCLUDES:
+.. _pk-two-phase-energy-spec:
+.. admonition:: pk-two-phase-energy-spec
 
-    - ``[energy-pk-spec]``  See `Energy Base PK`_
+   INCLUDES:
+
+   - ``[energy-pk-spec]``  See `Energy Base PK`_
 
 */
 

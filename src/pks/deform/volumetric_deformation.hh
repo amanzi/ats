@@ -8,16 +8,15 @@
            Markus Berndt
            Daniil Svyatskiy
 */
-
-//! Subsidence through bulk ice loss and cell volumetric change.
 /*!
 
-This process kernel provides for going from a cell volumetric change to an
+This PK implements vertical subsidence through bulk ice loss and cell
+volumetric change.  It implements going from a cell volumetric change to an
 updated unstructured mesh, and can be coupled sequentially with flow to solve
 problems of flow in a subsiding porous media.
 
 Note that this PK is slaved to the flow PK.  This PK must be advanced first,
-and be weakly coupled to the flow PK (or an MPC that advances the flow PK), and
+and must be weakly coupled to the flow PK (or an MPC that advances the flow PK), and
 the timestep of this PK must match that of the flow PK (e.g. do not try to
 subcyle one or the other).  This uses a rather hacky, unconventional use of
 time tags, where we use saturations and porosities at the NEXT time, but ASSUME
@@ -25,8 +24,8 @@ they are actually the values of the CURRENT time.  This saves having to stash a
 copy of these variables at the CURRENT time, which would otherwise not be used.
 
 Note that all deformation here is vertical, and we assume that the subsurface
-mesh is **perfectly columnar** and that the "build columns" parameter has been
-given to the subsurface mesh.  See the Mesh_ spec for more.
+mesh is **columnar** and that the "build columns" parameter has been
+given to the subsurface mesh.  See the :ref:`Mesh` spec for more.
 
 The process here is governed through two options, the "deformation mode" and
 the "deformation strategy."
@@ -34,7 +33,8 @@ the "deformation strategy."
 The deformation mode describes how the cell volume change is calculated.  There
 are three options here:
 
-- "prescribed" uses a function to precribe the volume changes as a function of (t,x,y,z).
+- "prescribed" uses a function to precribe the volume changes as a function of
+  (t,x,y,z).
 
 - "structural" decreases the cell volume if the porosity is above a prescribed
   "structurally connected matrix" porosity.  Think of this as bulk ice
@@ -45,8 +45,6 @@ are three options here:
 - "saturation" is a heuristic that considers the liquid saturation directly,
   and tries to relax the liquid saturation back toward a value that is
   consistent with what the thawed soil should be.
-
-.. todo: Move this into an evaluator!
 
 The deformation strategy describes how the cell volume change is turned into
 node coordinate changes.  Three options are available:
@@ -73,36 +71,38 @@ node coordinate changes.  Three options are available:
 NOTE: all deformation options are treated EXPLICITLY, and depend only upon
 values from the old time.
 
-.. _volumetric-deformation-pk-spec:
-.. admonition:: volumetric-deformation-pk-spec
+`"PK type`" = `"volumetric deformation`"
 
-    * `"max timestep [s]`" ``[double]`` **inf** Sets a maximum timestep size.
+.. _pk-volumetric-deformation-spec:
+.. admonition:: pk-volumetric-deformation-spec
 
-    * `"deformation mode`" ``[string]`` **prescribed** See above for
-      descriptions.  One of: `"prescribed`", `"structural`", or `"saturation`".
+   * `"max timestep [s]`" ``[double]`` **inf** Sets a maximum timestep size.
 
-    * `"deformation strategy`" ``[string]`` **global optimization** See above
-      for descriptions.  One of `"average`", `"global optimization`", or `"mstk
-      implementation`"
+   * `"deformation mode`" ``[string]`` **prescribed** See above for
+     descriptions.  One of: `"prescribed`", `"structural`", or `"saturation`".
 
-    * `"domain name`" ``[string]`` **domain**  The mesh to deform.
+   * `"deformation strategy`" ``[string]`` **global optimization** See above
+     for descriptions.  One of `"average`", `"global optimization`", or `"mstk
+     implementation`"
 
-    * `"surface domain name`" ``[string]`` **surface** The surface mesh.
+   * `"domain name`" ``[string]`` **domain**  The mesh to deform.
 
-    * `"deformation function`" ``[function-spec]`` **optional** Only used if
-      "deformation mode" == "prescribed"
+   * `"surface domain name`" ``[string]`` **surface** The surface mesh.
 
-    EVALUATORS:
+   * `"deformation function`" ``[function-spec]`` **optional** Only used if
+     "deformation mode" == "prescribed"
 
-    - `"saturation_ice`" **DOMAIN-saturation_ice**
-    - `"saturation_liquid`" **DOMAIN-saturation_liquid**
-    - `"saturation_gas`" **DOMAIN-saturation_gas**
-    - `"porosity`" **DOMAIN-porosity**
-    - `"cell volume`" **DOMAIN-cell_volume**
+   EVALUATORS:
 
-    INCLUDES:
+   - `"saturation_ice`" **DOMAIN-saturation_ice**
+   - `"saturation_liquid`" **DOMAIN-saturation_liquid**
+   - `"saturation_gas`" **DOMAIN-saturation_gas**
+   - `"porosity`" **DOMAIN-porosity**
+   - `"cell volume`" **DOMAIN-cell_volume**
 
-    - ``[pk-physical-default-spec]``
+   INCLUDES:
+
+   - ``[pk-physical-default-spec]``
 
 */
 

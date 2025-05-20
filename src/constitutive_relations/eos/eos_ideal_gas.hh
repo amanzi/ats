@@ -6,11 +6,28 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+/*!
 
-/*
-  ATS
+Implements the ideal gas EOS, which computes n as a function of p and T.
+Default properties are that of air.
 
-  EOS for an ideal gas.
+`"EOS type`" = `"ideal gas`"
+
+.. _eos-ideal-gas-spec:
+.. admonition:: eos-ideal-gas-spec
+
+   * `"ideal gas constant [J mol^-1 K^-1]`" ``[double]`` **8.3144621**
+
+   ONE OF
+
+   * `"molar mass of gas [kg mol^-1]`" ``[double]`` **0.028956**
+
+   OR
+
+   * `"molar mass of gas [g mol^-1]`" ``[double]`` **28.956**
+
+   END
+
 
 */
 

@@ -10,8 +10,8 @@
 //! A generic evaluator for multiplying a collection of fields.
 /*!
 
-.. _multiplicative-evaluator-spec:
-.. admonition:: multiplicative-evaluator-spec
+.. _evaluator-multiplicative-spec:
+.. admonition:: evaluator-multiplicative-spec
    * `"coefficient`" ``[double]`` **1** A constant prefix to the product.
 
    * `"enforce positivity`" ``[bool]`` **false** If true, max the result with 0.

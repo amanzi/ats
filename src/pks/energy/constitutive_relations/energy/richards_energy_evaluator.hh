@@ -15,7 +15,7 @@ Energy associated with a soil and pore-water system, in [KJ]
 .. math::
   E = V * ( \phi u_l s_l n_l + (1-\phi_0) u_r \rho_r )
 
-Specified with evaluator type: `"richards energy`"
+`"evaluator type`" = `"richards energy`"
 
 Note this equation assumes that porosity is compressible, but is based on the
 uncompressed rock grain density (not bulk density).  This means that porosity
@@ -24,8 +24,8 @@ the larger, compressible value when used with the energy in the water.
 
 Note that this ignores energy in the gas phase.
 
-.. _field-evaluator-type-richards-energy-spec:
-.. admonition:: field-evaluator-type-richards-energy-spec
+.. _evaluator-richards-energy-spec:
+.. admonition:: evaluator-richards-energy-spec
 
    DEPENDENCIES:
 

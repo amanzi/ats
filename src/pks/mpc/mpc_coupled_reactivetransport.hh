@@ -22,13 +22,20 @@ in units of [mol-C mol-H2O^-1].  Chemistry is in
 "total_component_concentration", which is in units of [mol-C L^-1].  Therefore,
 between steps, we convert between the two.
 
-.. _mpc-coupled-reactivetransport-spec:
-.. admonition:: mpc-coupled-reactivetransport-spec
+`"PK type`" = `"surface subsurface reactive transport`"
 
-   * `"PK type`" ``[string]`` **"integrated reactive transport"**
+.. _pk-surface-subsurface-reactive-transport-spec:
+.. admonition:: pk-surface-subsurface-reactive-transport-spec
 
+   * `"PKs order`" ``[Array(string)]`` Order must be {chemistry_mpc,
+     transport_mpc}.  The chemistry MPC is likely just a :ref:`Weak MPC`
+     coupling to chemistry PKs, while the transport MPC is likely a
+     :ref:`Integrated Transport` MPC.
+     
    KEYS:
+
    - `"molar density liquid`"
+   - `"surface molar density liquid`"
 
 
 */

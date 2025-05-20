@@ -6,26 +6,33 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-
-//! Capillary pressure of ice on water.
 /*!
+
+Note that the choice of molar vs mass density above must match the units of
+latent heat chosen below.
+
 .. _pc-ice-water-spec
 .. admonition:: pc-ice-water-spec
 
-    * `"reference temperature [K]`" ``[double]`` **273.15** The phase transition point, T_ref above
-    * `"interfacial tension ice-water [mN m^-1]`" ``[double]`` **33.1**
-    * `"interfacial tension air-water [mN m^-1]`" ``[double]`` **72.7**
-    * `"smoothing width [K]`" ``[double]`` **0.** Smoothing out the freeze curve allows this to be slightly easier to solve.
+   * `"reference temperature [K]`" ``[double]`` **273.15** The phase transition
+     point, :math:`T_0` above
+   * `"interfacial tension ice-water [mN m^-1]`" ``[double]`` **33.1**
+     :math:`\sigma_{liq}^{ice} above.  Note units need only match that below.
+   * `"interfacial tension air-water [mN m^-1]`" ``[double]`` **72.7**
+     :math:`\sigma_{gas}^{liq} above.  Note units need only match that above.
+   * `"smoothing width [K]`" ``[double]`` **0.** Smoothing out the freeze
+     curve allows this to be slightly easier to solve.
 
-    ONE OF
+   ONE OF
 
-    * `"latent heat [J kg^-1]`" ``[double]`` **3.34e5** Latent heat of fusion
+   * `"latent heat [J kg^-1]`" ``[double]`` **3.34e5** Latent heat of fusion,
+     :math:`L_f` above.
 
-    OR
+   OR
 
-    * `"latent heat [J mol^-1]`" ``[double]`` Latent heat of fusion
+   * `"latent heat [J mol^-1]`" ``[double]`` Latent heat of fusion
 
-    END
+   END
 
 */
 

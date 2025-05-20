@@ -6,9 +6,27 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+/*!
 
-/*
-  Evaluator for determining height( rho, head )
+Computes ponded depth from surface water pressure and an unfrozen fraction.
+
+.. math::
+
+   h = \frac{p - p_{atm}}{[\eta \rho_l + (1 - \eta) \rho_i] g}
+
+`"evaluator type`" = `"icy ponded depth`"
+
+.. _evaluator-icy-ponded-depth-spec:
+.. admonition:: evaluator-icy-ponded-depth-spec
+
+   KEYS:
+
+   - `"pressure`"
+   - `"unfrozen fraction`"
+   - `"mass density liquid`"
+   - `"mass density ice`"
+   - `"atmospheric pressure`"
+   - `"gravity`"
 
 */
 

@@ -6,14 +6,18 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+/*!
 
-/*
-  ATS
+A molar and mass density of gas including water vapor.  This wraps another EOS
+for providing molar density, but removes mass density functions as they are not
+valid for this use case.  Typically this wraps the ideal gas law EOS.
 
-  EOS for a combination of air and vapor pressure.  Mass density is not
-  available, not because it can't be calculated, but because it depends upon
-  omega.  It's not really needed, and if it were, would not fit the EOS
-  interface without serious work.
+`"EOS type`" = `"vapor in gas`"
+
+.. _eos-vapor-in-gas-spec:
+.. admonition:: eos-vapor-in-gas-spec
+
+   * `"gas EOS parameters`" ``[eos-typedinline-spec]``
 
 */
 

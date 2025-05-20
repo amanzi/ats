@@ -6,32 +6,36 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-
-//! An advection-diffusion equation for surface energy in two phases.
 /*!
 
-This is simply a surface energy equation that places a few more requirements
-on the base class.  It could probably go away if we refactor to remove
-hard-coded evaluators.
+Modifies the energy equation to implement overland energy transport,
+particularly dealing with coupling terms to the subsurface energy equation.
 
-.. _energy-surface-ice-pk-spec:
-.. admonition:: energy-surface-ice-pk-spec
+Note that this does not, but default, include all terms for a surface energy
+balance.  Those would typically be included on a snow surface energy balance
+PK, which would also compute a skin energy flux that would become a source term
+for this PK.
 
-    These are typically not set by the user:
+`"PK type`" = `"suface energy`"
 
-    * `"coupled to subsurface via temperature`" ``[bool]`` **false** A coupling
-      scheme, provided by MPC.
+.. _pk-surface-energy-spec:
+.. admonition:: pk-surface-energy-spec
 
-    * `"coupled to subsurface via flux`" ``[bool]`` **false** A coupling
-      scheme, provided by MPC.
+   These are typically not set by the user:
 
-    * `"subsurface domain name`" ``[string]`` **optional** If one of the above
-      coupling schemes is turned on, we need to know the subsurface mesh.
-      Provided by MPC.
+   * `"coupled to subsurface via temperature`" ``[bool]`` **false** A coupling
+     scheme, provided by MPC.
 
-    INCLUDES:
+   * `"coupled to subsurface via flux`" ``[bool]`` **false** A coupling
+     scheme, provided by MPC.
 
-    - ``[energy-pk-spec]``  See `Energy Base PK`_
+   * `"subsurface domain name`" ``[string]`` **optional** If one of the above
+     coupling schemes is turned on, we need to know the subsurface mesh.
+     Provided by MPC.
+
+   INCLUDES:
+
+   - ``[pk-energy-base-spec]``  See :ref:`Energy Base PK`
 
 */
 

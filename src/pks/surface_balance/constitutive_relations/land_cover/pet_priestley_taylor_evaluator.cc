@@ -227,7 +227,7 @@ PETPriestleyTaylorEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
   if (!compatible_) {
     land_cover_ =
-      getLandCover(S.ICList().sublist("land cover types"), { "pt_alpha_" + evap_type_ });
+      getLandCover(S.GetModelParameters("land cover types"), { "pt_alpha_" + evap_type_ });
 
     Tag tag = my_keys_.front().second;
     for (auto& dep : dependencies_) {

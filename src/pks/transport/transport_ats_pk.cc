@@ -99,8 +99,6 @@ Transport_ATS::parseParameterList()
 
   // NOTE: names MUST be aqueous, solid, gaseous
   num_aqueous_ = plist_->get<int>("number of aqueous components", component_names_.size());
-  num_solid_ = plist_->get<int>("number of solid components", 0);
-  num_gaseous_ = plist_->get<int>("number of gaseous components", 0);
 
   // parameters
   molar_masses_ = readParameterMapByComponent(plist_->sublist("component molar masses [kg / mol C]"), 1.0);
@@ -652,14 +650,6 @@ Transport_ATS::Initialize()
     *vo_->os() << "Number of components: " << num_components_ << std::endl
                << "  aqueous: " << num_aqueous_ << std::endl << "    ";
     for (int i = 0; i != num_aqueous_; ++i) *vo_->os() << component_names_[i] << ", ";
-
-    *vo_->os() << std::endl
-               << "  solid: " << num_solid_ << std::endl << "    ";
-    for (int i = 0; i != num_solid_; ++i) *vo_->os() << component_names_[i+num_aqueous_] << ", ";
-
-    *vo_->os() << std::endl
-               << "  gaseous: " << num_gaseous_ << std::endl << "    ";
-    for (int i = 0; i != num_gaseous_; ++i) *vo_->os() << component_names_[i+num_solid_+num_aqueous_] << ", ";
 
     *vo_->os() << "cfl=" << cfl_ << " spatial/temporal discretization: " << adv_spatial_disc_order_
                << " " << temporal_disc_order_ << std::endl << std::endl;

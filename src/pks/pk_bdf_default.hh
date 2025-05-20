@@ -6,33 +6,35 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-
-//! A base class with default implementations of methods for a PK that can be implicitly integrated in time.
 /*!
 
-`PKBDFBase` is a base class from which PKs that want to use the `BDF`
-series of implicit time integrators must derive.  It specifies both the
-`BDFFnBase` interface and implements some basic functionality for `BDF`
-PKs.
+A BDF or Backward Difference Formula a process kernel that is integrated in
+time using an "implicit" or "backwards difference" method.  Both Physical PKs
+and MPCs may be BDF PKs -- when an MPC is integrated using a BDF method we say
+it is coupled through a "globally implicit" method (as opposed to sequential or
+operator split method).
 
 .. _pk-bdf-default-spec:
 .. admonition:: pk-bdf-default-spec
 
-    * `"initial timestep [s]`" ``[double]`` **1.** Initial timestep size [s]
+   * `"initial timestep [s]`" ``[double]`` **1.** Initial timestep size used
+     for the first timestep.  After this, the `"timestep controller`" may
+     change the step size.
 
-    * `"assemble preconditioner`" ``[bool]`` **true** A flag, typically not set
-      by user but by an MPC.
+   * `"time integrator`" ``[bdf1-ti-spec]`` **optional**
+     A TimeIntegrator_.  Note that this is only required if this PK is not
+     strongly coupled to other PKs.
 
-    * `"time integrator`" ``[bdf1-ti-spec]`` **optional**
-      A TimeIntegrator_.  Note that this is only required if this PK is not
-      strongly coupled to other PKs.
+   * `"assemble preconditioner`" ``[bool]`` **true** A flag, typically not set
+     by user but by an MPC.
 
-    * `"inverse`" ``[inverse-typed-spec]`` **optional** A Preconditioner_.
-      Note that this is only used if this PK is not strongly coupled to other PKs.
+   * `"inverse`" ``[inverse-typed-spec]`` **optional** A :ref:`Linear Solver`
+     or :ref:`Preconditioner` provided as an :ref:`Inverse`.  Note that this is
+     only used if this PK is not strongly coupled to other PKs.
 
-    INCLUDES:
+   INCLUDES:
 
-    - ``[pk-spec]`` This *is a* PK_.
+   - ``[pk-spec]`` This *is a* PK_.
 
 
 */

@@ -7,12 +7,33 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-//! Weak MPC for subdomain model MPCs.
 /*!
 
-  A weak MPC that couples the same PK across many subdomains.  Note that this
-  means that the number of PKs is not known a priori -- it depends on a domain
-  set.
+A weak MPC that couples the same PK across many subdomains.  Note that this
+means that the number of PKs is not known a priori -- it depends on a domain
+set.  It may also subcycle all or none of its child PKs.
+
+`"PK type`" = `"domain set weak MPC`"
+
+.. _pk-domain-set-weak-mpc-spec:
+.. admonition:: pk-domain-set-weak-mpc-spec
+
+   IF
+                
+   * `"subcycle`" ``[bool]`` **false** Subcycle the sub PKs or not.
+
+   THEN
+   
+   * `"subcycling target timestep [s]`" ``[double]`` timestep over which to
+     syncronize the sub PKs.
+
+   END
+
+   INCLUDES
+
+   - ``[mpc-spec]`` *Is a* MPC_.
+
+
 
  */
 

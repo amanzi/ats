@@ -7,7 +7,6 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-//! Evaluates relative permeability using water retention models.
 /*!
 
 Uses a list of regions and water retention models on those regions to evaluate
@@ -20,10 +19,10 @@ flow PKs.
 
 Some additional parameters are available.
 
-`"evaluator type`" = `"relative permeability, van Genuchten`"
+`"evaluator type`" = `"relative permeability, water retention model`"
 
-.. _rel-perm-evaluator-spec:
-.. admonition:: rel-perm-evaluator-spec
+.. _evaluator-relative-permeability-water-retention-model-spec:
+.. admonition:: evaluator-relative-permeability-water-retention-model-spec
 
    * `"use density on viscosity in rel perm`" ``[bool]`` **true**
 
@@ -40,27 +39,31 @@ Some additional parameters are available.
 
    * `"minimum rel perm cutoff`" ``[double]`` **0.** Provides a lower bound on rel perm.
 
-   * `"permeability rescaling`" ``[double]`` Typically rho * kr / mu is very big
-     and K_sat is very small.  To avoid roundoff propagation issues, rescaling
-     this quantity by offsetting and equal values is encourage.  Typically 10^7 or so is good.
-
-   * `"model parameters`" ``[string]``  **WRM parameters** ``[WRM-typedinline-spec-list]``
-     List (by region) of WRM specs. This will copy `"WRM parameters`" given in `"model parameters`"
-     under state here to evaluate relative permeability. If use `"WRM parameters`", both WRM and
-     relative permeability evaluators use the same set of `"WRM parameters`", which can be van Genuchten
-     or Brooks-Corey. If use a customed name, e.g., `"relative permeability parameters`", and declare
-     `"relative permeability parameters`" in `"model parameters`" under state, this allows to use
-     different models for WRM (by default through `"WRM parameters`") and relative permeability.
+   * `"model parameters`" ``[string]`` **"WRM parameters"** This will copy the
+     named set of parameters, which must be in :ref:`State`'s `"model
+     parameters`" list, into this list to evaluate relative
+     permeability. Usually this shares a common set of parameters (usually
+     called `"WRM parameters`"), with the :ref:`WRM Evaluator`.  Some models
+     may use a customed name, e.g., `"relative permeability parameters`", and
+     declare `"relative permeability parameters`" in `"model parameters`" under
+     state, which allows one to use different models for the WRM and relative
+     permeability.
 
    KEYS:
 
-   - `"rel perm`"
+   - `"relative permeability`"
+
+   DEPENDENCIES:
+
    - `"saturation_liquid`"
    - `"density`" (if `"use density on viscosity in rel perm`" == true)
    - `"viscosity`" (if `"use density on viscosity in rel perm`" == true)
    - `"surface relative permeability`" (if `"boundary rel perm strategy`" == `"surface rel perm`")
 
-Example 1:
+
+
+**Example 1:**
+
 Using the same set of van Genuchten model paramters for WRM and relative permeability
 
 .. code-block:: xml
@@ -104,7 +107,9 @@ Using the same set of van Genuchten model paramters for WRM and relative permeab
     ...
   </ParameterList>
 
-Example 2:
+
+**Example 2:**
+
 Using different set of model/paramters for WRM and relative permeability,
 van Genuchten for WRM and Brooks-Corey for relative permeability. Note that
 in this case, van Genuchten parameters and Brooks-Corey parameters need to
@@ -144,7 +149,7 @@ parameters to Brooks-Corey parameters.
           <Parameter name="region" type="string" value="domain" />
           <Parameter name="wrm type" type="string" value="Brooks-Corey" />
           <Parameter name="Brooks-Corey lambda [-]" type="double" value="0.49" />
-          <Parameter name="Brooks-Corey saturted matric suction [Pa]" type="double" value="32439.03" />
+          <Parameter name="Brooks-Corey saturated matric suction [Pa]" type="double" value="32439.03" />
           <Parameter name="residual saturation [-]" type="double" value="0.2" />
           <Parameter name="smoothing interval width [saturation]" type="double" value="0.05" />
         </ParameterList>

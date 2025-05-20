@@ -7,17 +7,17 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-//! Evaluates incoming longwave radiation from vapor pressure and air temperature.
 /*!
 
-.. _longwave_evaluator-spec:
-.. admonition:: longwave_evaluator-spec
+Estimates incoming longwave radiation from vapor pressure and air temperature.
 
+.. _evaluator-incoming-longwave-radiation-spec:
+.. admonition:: evaluator-incoming-longwave-radiation-spec
 
-    DEPENDENCIES:
+   DEPENDENCIES:
 
-    * `"air temperature key`" ``[string]`` **DOMAIN-air_temperature**
-    * `"vapor pressure air key`" ``[string]`` **DOMAIN-vapor_pressure_air**
+   * `"air temperature key`"
+   * `"vapor pressure air key`"
 
 */
 

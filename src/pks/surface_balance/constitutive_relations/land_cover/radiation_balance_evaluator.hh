@@ -6,9 +6,9 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-
-//! Evaluates a net radiation balance for ground and canopy.
 /*!
+
+This evaluates a net radiation balance for ground and canopy.
 
 Here the net radiation is positive for energy inputs to the layer.  Note that
 ground is based on the two-channel (land + snow) while canopy is assumed to be
@@ -16,8 +16,6 @@ a simple, single layer.
 
 This evaluator requires that the surface temperature, snow temperature, and
 canopy temperature are known, or at least being solved for.
-
-Requires the use of LandCover types, for albedo and Beer's law coefficients.
 
 This is combination of CLM v4.5 Tech Note and Beer's law for attenuation of
 radiation absorption.  In particular, long-wave is exactly as Figure 4.1c in CLM
@@ -47,15 +45,19 @@ Computes:
    bounces (e.g. reflected atmosphere->canopy->cloud->back to canopy, or
    transmitted by the canopy, reflected by snow/surface.
 
-Requires the use of LandCover types, for canopy albedo and Beer's law
-coefficients.
-
 `"evaluator type`" = `"radiation balance, surface and canopy`"
 
-.. _radiation-balance-evaluator-spec:
-.. admonition:: radiation-balance-evaluator-spec
+.. _evaluator-radiation-balance-spec:
+.. admonition:: evaluator-radiation-balance-spec
 
    KEYS:
+
+   - `"surface radiation balance`"
+   - `"snow radiation balance`"
+   - `"canopy radiation balance`"
+
+   DEPENDENCIES:
+     
    - `"surface albedos`" **SURFACE_DOMAIN-albedos**
    - `"surface emissivities`" **SURFACE_DOMAIN-emissivities**
    - `"incoming shortwave radiation`" **SURFACE_DOMAIN-incoming_shortwave_radiation**
@@ -66,7 +68,18 @@ coefficients.
    - `"leaf area index`" **CANOPY_DOMAIN-leaf_area_index**
    - `"area fractions`" **SURFACE_DOMAIN-area_fractions**
 
-Note that this is a superset of the physics in the "canopy radiation
+
+.. note::
+
+   This evaluator also uses the :ref:`Land Cover` types.  From that struct, it
+   requires the value of the following parameters:
+
+   - `"Beer's law extinction coefficient, shortwave [-]`"
+   - `"Beer's law extinction coefficient, longwave [-]`"
+   - `"albedo of canopy [-]`"
+
+     
+Note that this is a *superset* of the physics in the "canopy radiation
 evaluator," and is therefore mutually exclusive with that model.
 
 */

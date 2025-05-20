@@ -7,11 +7,6 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-/*
-  Evaluator for determining height( rho, head )
-
-*/
-
 #include "icy_height_model.hh"
 #include "icy_height_evaluator.hh"
 
