@@ -1,230 +1,145 @@
-Transport PK
-------------
+Geochemical Transport
+---------------------
 
-The Transport PK describes the conservation of mass of components transported
-with water as it flows. The transport PK is based on the advection-diffusion 
-equation, applies to one or more components that are dissolved in the aqueous 
-phase, and is currently used in both surface and subsurface compartments. 
-The key difference between surface and subsurface transport is in capturing 
-the volume of water. In the subsurface, the volume of water is set by the 
-porosity and saturation of the porous medium, while in the surface it is set 
-by the ponded depth.
+Geochemical transport capabilities are implemented in a few different PKs.
+
+Transport
+^^^^^^^^^
+
+`src/physics/ats/src/pks/transport/transport_ats.hh <https://github.com/amanzi/ats/blob/master/src/pks/transport/transport_ats.hh>`_
 
 
+This PK solves for transport of chemical species in water.  It may optionally
+be paired with a PK for reactions, typically in an operator-split form, to
+solve reactive transport.
 
-The advection-diffusion equation for component *i* in partially saturated porous media may be written as
-
-.. math::
-  \frac{\partial (\phi s_l C_i)}{\partial t}
-  =
-  - \boldsymbol{\nabla} \cdot (\boldsymbol{q} C_i)
-  + \boldsymbol{\nabla} \cdot (\phi s_l\, (\boldsymbol{D^*}_l + \tau \boldsymbol{D}_i) \boldsymbol{\nabla} C_i) + Q_s,
-
-The advection-diffusion equation for component *i* in the surface may be written as
+The advection-dispersion equation for component *i* may be written as:
 
 .. math::
-  \frac{\partial (C_i)}{\partial t}
-  =
-  - \boldsymbol{\nabla} \cdot (\boldsymbol{q_s} C_i)
-  + \boldsymbol{\nabla} \cdot ( (\boldsymbol{D^*}_l + \tau \boldsymbol{D}_i) \boldsymbol{\nabla} C_i) + Q_s,
+  \frac{\partial (\Theta \xi_i)}{\partial t} = - \boldsymbol{\nabla} \cdot (\boldsymbol{q} \xi_i)
+  + \boldsymbol{\nabla} \cdot (\Theta \, (\boldsymbol{D^*}_l + \tau \boldsymbol{D}_i) \boldsymbol{\nabla} \xi_i) + Q_s,
 
-.. _transport-spec:
-.. admonition:: transport-spec
+The primary variable for this PK is :math:`\xi_i`, the **mole ratio** of a
+specie :math:`i` in the aqueous phase, with units of [mol i / mol H2O].
 
-   * `"PK type`" ``[string]`` **"transport ats"**
+This seems a bit odd to most people who are used to reactive transport codes
+where the primary variable is total component concentration :math:`C`, in units of [mol i
+/ L].  The reason for this differences is to better enable variable-density
+problems.  Note that the two are related:
 
-   * `"domain name`" ``[string]`` **domain** specifies mesh name that defines
+.. math::
+   C_i = n_l \xi_i
+
+for molar density of liquid water :math:`n_l`.
+
+For reactive transport problems, both concentration and mole ratio are output
+in the visualization file.  For transport-only problems, concentration may be
+output by adding a total component concentration evaluator that multiplies the
+two quantities using an `"evaluator type`" = `"multiplicative evaluator`".
+
+`"PK type`" = `"transport ATS`"
+
+.. _pk-transport-ats-spec:
+.. admonition:: pk-transport-ats-spec
+
+   * `"domain name`" ``[string]`` **"domain"** specifies mesh name that defines
      the domain of this PK.
 
-   * `"component names`" ``[Array(string)]`` No default. Provides the names of the
-     components that will be transported. Must be in the order: aqueous, gaseous, solid.
+   * `"component names`" ``[Array(string)]`` **optional** No default. Provides
+     the names of the components that will be transported.  Note that these
+     must be provided by the user if transport is used alone, or are provided
+     by the geochemical engine if reactions are to be used.
 
    * `"number of aqueous components`" ``[int]`` **-1** The total number of
      aqueous components.  Default value is the length of `"component names`"
 
-   * `"number of gaseous components`" ``[int]`` **0** The total number of
-     gaseous components.
-
    * `"boundary conditions`" ``[transport-bc-spec]`` Boundary conditions for
      transport are dependent on the boundary conditions for flow. See
-     `Flow-specific Boundary Conditions`_ and `Transport-specific Boundary Conditions`_
+     :ref:`Transport-specific Boundary Conditions`
 
-   * `"component molar masses`" ``[Array(double)]`` No default. Molar mass of
-     each component.
+   * `"molecular diffusivity [m^2 s^-1]`" ``[molecular-diffusivity-spec]`` See
+     below.
 
-   * `"molecular diffusion`" ``[molecular-diffusion-spec]`` defines names of
-     solutes in aqueous and gaseous phases and related diffusivity values.
-
-   * "material properties" ``[material-properties-spec-list]`` Defines material
-     properties see below).
-
-   Source terms:
+   * `"tortuosity [-]`" ``[tortuosity-spec]`` See below.
 
    * `"source terms`" ``[transport-source-spec-list]`` Provides solute source.
 
-   Physical model and assumptions:
-
-   * `"physical models and assumptions`" [material-properties-spec] Defines material properties.
-
-   * `"effective transport porosity`" ``[bool]`` **false** If *true*, effective transport porosity
-     will be used by dispersive-diffusive fluxes instead of total porosity.
-
    Math and solver algorithm options:
 
-   * `"diffusion`" ``[pde-diffusion-spec]`` Diffusion drives the distribution.
-     Typically we use finite volume here.  See PDE_Diffusion_
+   * `"diffusion`" ``[pde-diffusion-typedinline-spec]`` Diffusion drives the
+     distribution.  Typically we use finite volume here, but mimetic schemes
+     may be used.  See :ref:`Diffusion`
 
-   * `"diffusion preconditioner`" ``[pde-diffusion-spec]`` Inverse of the
-     above.  Likely only Jacobian term options are needed here, as the others
-     default to the same as the `"diffusion`" list.  See PDE_Diffusion_.
+   * `"diffusion preconditioner`" ``[pde-diffusion-typedinline-spec]`` Inverse
+     of the above.  Likely only Jacobian term options are needed here, as the
+     others default to the same as the `"diffusion`" list.  See
+     :ref:`Diffusion`.
 
-   * `"inverse`" ``[inverse-typed-spec]`` Inverse_ method for the solve.
+   * `"inverse`" ``[inverse-typed-spec]`` :ref:`Inverse` method for the
+     diffusion-dispersion solve.  See :ref:`Inverse`.
 
-   * `"cfl`" [double] Time step limiter, a number less than 1. Default value is 1.
+   * `"cfl`" ``[double]`` **1.0** Courant-Friedrichs-Lewy condition, a limiter
+     on the timestep size relative to spatial size.  Must be <= 1.
 
-   * `"spatial discretization order`" [int] defines accuracy of spatial discretization.
-     It permits values 1 or 2. Default value is 1.
+   * `"advection spatial discretization order`" ``[int]`` **1** Defines
+     accuracy of the spatial discretization in the advection term.  It permits
+     values 1 or 2. Default value is 1 (donor upwind) but 2 (a limiter scheme)
+     is much less numerically diffusive, and recommended for most cases.
 
-   * `"temporal discretization order`" [int] defines accuracy of temporal discretization.
-     It permits values 1 or 2 and values 3 or 4 when expert parameter
-     `"generic RK implementation`" is set to true. Note that RK3 is not monotone.
-     Default value is 1.
+   * `"temporal discretization order`" ``[int]`` **1** Defines accuracy of
+     temporal discretization.  It permits values 1 (forward Euler) and 2 (a
+     Runga-Kutta scheme).
 
-   * `"reconstruction`" [list] collects reconstruction parameters. The available options are
-      describe in the separate section below.
-
-   * `"transport subcycling`" ``[bool]`` **true** The code will default to
-      subcycling for transport within the master PK if there is one.
-
-
-   Developer parameters:
-
-   * `"enable internal tests`" [bool] turns on various internal tests during
-      run time. Default value is `"false`".
-
-   * `"generic RK implementation`" [bool] leads to generic implementation of
-      all Runge-Kutta methods. Default value is `"false`".
-
-   * `"internal tests tolerance`" [double] tolerance for internal tests such as the
-      divergence-free condition. The default value is 1e-6.
-
-   * `"runtime diagnostics: solute names`" [Array(string)] defines solutes that will be
-      tracked closely each time step if verbosity `"high`". Default value is the first
-      solute in the global list of `"aqueous names`" and the first gas in the global list
-      of `"gaseous names`".
-
-   * `"runtime diagnostics: regions`" [Array(string)] defines a boundary region for
-      tracking solutes. Default value is a seepage face boundary, see Flow PK.
+   * `"reconstruction`" ``[reconstruction-spec]`` collects reconstruction
+     parameters for use in reconstructing the velocity field for 2nd order
+     advection schemes.  See :ref:`Reconstructions`.
 
    KEYS
 
-   - `"saturation liquid`" This variable is a multiplier in in the
-      accumulation term. For subsurface transport, this will typically be the
-      saturation (`"saturation_liquid`"). For surface transport, this will
-      typically be the ponded depth (`"ponded_depth`").
-
-   - `"previous saturation liquid`"
-
-   - `"molar density liquid`"  Transport is solved
-      for concentrations in units of mol fractions. Molar density is needed for conversion.
-
-   - `"water flux`"
-
+   - `"primary variable`" **"molar_ratio"** [mol C mol H2O^-1]
+   - `"liquid water content`" **"water_content"** This variable is a multiplier
+     in in the accumulation term. This is often just `"water_content`", but
+     not in frozen cases, where it must be defined by the user (typically as
+     :math:`\phi s n_l |V|` in the subsurface, or :math:`h n_l |V|` on the
+     surface.
+   - `"molar density liquid`" [mol H2O m^-3]
+   - `"water flux`" The face-based water flux in [mol H2O s^-1].
    - `"water source`" Defines the water injection rate [mol H2O m^-2 s^-1] in
-      surface and [mol H2O m^-3 s^-1] in subsurface) which applies to
-      concentrations specified by the `"geochemical conditions`".  Note that if
-      this PK is coupled to a surface flow PK, the unit of the water source
-      there *must* be in [mol m^-2 s^-1], *not* in [m s^-1] as is an option for
-      that PK (e.g. `"water source in meters`" must be set to `"false`" in the
-      overland flow PK).
-
-      The injection rate of a solute [molC s^-1], when given as the product of
-      a concentration and a water source, is evaluated as:
-
-      Concentration [mol C L^-1] *
-        1000 [L m^-3] of water *
-        water source [mol H2O m^-3 s^-1] *
-        volume of injection domain [m^3] /
+     surface and [mol H2O m^-3 s^-1] in subsurface) which applies to
+     concentrations specified by the `"geochemical conditions`".  Note that if
+     this PK is coupled to a surface flow PK, the unit of the water source
+     there *must* be in [mol m^-2 s^-1], *not* in [m s^-1] as is an option for
+     that PK (e.g. `"water source in meters`" must be set to `"false`" in the
+     overland flow PK).
+      
+     The injection rate of a solute [molC s^-1], when given as the product of a
+     concentration and a water source, is evaluated as:
+      
+        Concentration [mol C L^-1] :math:`\times`
+        1000 [L m^-3] of water :math:`\times`
+        water source [mol H2O m^-3 s^-1] :math:`\times`
+        volume of injection domain [m^3] :math:`/`
         molar density of water [mol H2O m^-3]
 
 
-.. _molecular-diffusion-spec:
-.. admonition:: molecular-diffusion-spec
+Note, this is not dispersion, but strictly isotropic diffusion.        
 
-   * `"aqueous names`" ``[Array(string)]`` List of aqueous component names to
-     be diffused.
-   * `"aqueous values`" ``[Array(string)]`` Diffusivities of each component.
+.. _molecular-diffusivity-spec:
+.. admonition:: molecular-diffusivity-spec
 
+   For each aqueous component, a single value is provided for molecular diffusivity, e.g.
 
-.. code-block:: xml
-
-   <ParameterList name="molecular diffusion">
-     <Parameter name="aqueous names" type=Array(string)" value="{CO2(l),Tc-99}"/>
-     <Parameter name="aqueous values" type=Array(double)" value="{1e-8,1e-9}"/>
-   </ParameterList>
+   `"COMPONENT_NAME`" ``[double]`` value [m^2 s^-1]
 
 
-.. _material-properties-spec:
-.. admonition:: material-properties-spec
+.. _tortuosity-spec:
+.. admonition:: tortuosity-spec
 
-   * `"region`" ``[Array(string)]`` Defines geometric regions for material SOIL.
-
-   * `"model`" ``[string]`` **scalar** Defines dispersivity model.  One of:
-
-     - `"scalar`" : scalar dispersivity
-     - `"Bear`" : dispersion split into along- and across- velocity
-     - `"Burnett-Frind`"
-     - `"Lichtner-Kelkar-Robinson`"
-
-   * `"parameters for MODEL`" ``[list]`` where `"MODEL`" is the model name.
-
-   IF model == scalar
-
-   ONE OF
-
-   * `"alpha`" ``[double]`` defines dispersivity in all directions, [m].
-
-   OR
-
-   * `"dispersion coefficient`" ``[double]`` defines dispersion coefficient [m^2 s^-1].
-
-   END
-
-   ELSE IF model == Bear
-
-   * `"alpha_l`" ``[double]`` defines dispersion in the direction of Darcy velocity, [m].
-   * `"alpha_t`" ``[double]`` defines dispersion in the orthogonal direction, [m].
-
-   ELSE IF model == Burnett-Frind
-
-   * `"alphaL`" ``[double]`` defines the longitudinal dispersion in the direction
-     of Darcy velocity, [m].
-   * `"alpha_th`" ``[double]`` Defines the transverse dispersion in the horizonal
-     direction orthogonal directions, [m].
-   * `"alpha_tv`" ``[double]`` Defines dispersion in the orthogonal directions,
-     [m].  When `"alpha_th`" equals to `"alpha_tv`", we obtain dispersion in
-     the direction of the Darcy velocity.
-
-   ELSE IF model == Lichtner-Kelker-Robinson
-
-   * `"alpha_lh`" ``[double]`` defines the longitudinal dispersion in the
-     horizontal direction, [m].
-   * `"alpha_lv`" ``[double]`` Defines the longitudinal dispersion in the vertical
-     direction, [m].  When `"alpha_lh`" equals to `"alpha_lv`", we obtain
-     dispersion in the direction of the Darcy velocity.
-   * `"alpha_th`" ``[double]`` Defines the transverse dispersion in the horizontal
-     direction orthogonal directions, [m].
-   * `"alpha_tv" ``[double]`` Defines dispersion in the orthogonal directions.
-     When `"alpha_th`" equals to `"alpha_tv`", we obtain dispersion in the
-     direction of the Darcy velocity.
-
-   END
-
-   * `"aqueous tortuosity`" ``[double]`` Defines tortuosity for calculating
+   * `"aqueous`" ``[double]`` Defines tortuosity for calculating
      diffusivity of liquid solutes, [-].
 
-   * `"gaseous tortuosity`" ``[double]`` Defines tortuosity for calculating
-     diffusivity of gas solutes, [-].
+   * `"gaseous`" ``[double]`` Defines tortuosity for calculating
+     diffusivity of gas solutes, [-].  Not currently implemented!
 
 
 .. _transport-source-spec:
@@ -241,6 +156,109 @@ The advection-diffusion equation for component *i* in the surface may be written
        rate given by the water source.  Currently, this option is only available for Alquimia provided geochemical conditions.
 
        - `"geochemical conditions`" ``[Array(string)]`` List of geochemical constraints providing concentration for solute injection.
+
+
+
+
+
+Chemistry
+^^^^^^^^^
+
+Reactive transport is done by coupling a :ref:`Transport` PK with
+chemistry using some variation on a :ref:`Reactive Transport` MPC.
+Currently, ATS only implements chemistry through `Alquimia
+<https://doi.org/10.11578/dc.20210416.49>`_, which calls out to either
+`PFloTran <https://pflotran.org>`_ or `Crunch
+<https://crunch.lbl.gov>`_ for reaction support.
+
+`src/pks/chemistry/Alquimia_PK.hh <https://github.com/amanzi/amanzi/blob/master/src/pks/chemistry/Alquimia_PK.hh>`_
+
+
+The Alquimia PK leverages the Alquimia interface to implement chemical
+reactions by calling out to a chemical engine.
+
+This PK, when not coupled, solves the following set of ODEs:
+
+.. math::
+   \frac{\partial C_ij}{\partial t} = \sum_{k=1..nreactions} R_ik(C_{i=1..ncomponents,j})
+
+for :math:`k` indexing reactions, :math:`i` indexing components, and :math:`j`
+indexing grid cells.  The total component concentrations :math:`C` are in `[kg L^-1]`.
+
+The details of how to parameterize and specify a reaction network are specific
+to each geochemical engine, of which currently only PFloTran and Crunch are
+supported.  Corresponding input files for these engines must be provided.
+Examples are available in Amanzi's user guide tests and ATS's regression tests.
+
+`"PK type`" = `"chemistry alquimia`"
+
+.. _pk-chemistry-alquimia-spec
+.. admonition:: pk-chemistry-alquimia-spec
+
+   * `"timestep controller`" ``[timestep-controller-typed-spec]`` Timestep control parameters.
+
+   * `"engine`" ``[string]`` One of:
+
+     - `"CrunchFlow`"
+     - `"PfloTran`"
+
+   * `"engine input file`" ``[string]`` Path to the engine's input file.
+
+   KEYS:
+
+   - `"total component concentration`"
+   - `"mass density liquid`"
+   - `"porosity`"
+   - `"saturation liquid`"
+   - `"temperature`"
+   - `"mineral volume fractions`"
+   - `"mineral specific surface area`"
+   - `"mineral rate constant`"
+   - `"surface site density`"
+   - `"total_sorbed`"
+   - `"isotherm kd`"
+   - `"isotherm freundlich n`"
+   - `"isotherm langmuir b`"
+   - `"first order decay ratae constant`"
+   - `"cation exchange capacity`"
+   - `"aux data`"
+   - `"pH`"
+
+
+See the Alquimia documentation for the needed input spec for a given engine.    
+
+ .. code-block:: xml
+
+   <ParameterList>  <!-- parent list -->
+   <ParameterList name="alquimia PK">
+     <Parameter name="engine" type="string" value="PFloTran"/>
+     <Parameter name="engine input file" type="string" value="tritium.in"/>
+     <ParameterList name="timestep controller">
+     <Parameter name="timestep control type" type="string" value="fixed"/>
+     <ParameterList name="fixed parameters">
+       <Parameter name="timestep [s]" type="double" value="1.0e-02"/>
+     </ParameterList>
+   </ParameterList>
+
+
+
+
+Salinity Transport
+^^^^^^^^^^^^^^^^^^
+
+Salinity transport is not itself a PK, but may be implemented as a
+variation on Transport_ by supplying equations of state that are a
+function of the concentration of salt.  Examples of this are provided
+in the regression tests and demos.
+
+
+Sediment Transport
+^^^^^^^^^^^^^^^^^^
+
+`src/physics/ats/src/pks/transport/sediment_transport_pk.hh <https://github.com/amanzi/ats/blob/master/src/pks/transport/sediment_transport_pk.hh>`_
+
+
+Document me @dasvyat
 
 
 

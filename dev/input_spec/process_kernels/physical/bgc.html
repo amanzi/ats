@@ -1,0 +1,592 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Biogeochemistry &#8212; Amanzi-ATS</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/custom_theme.css?v=a03f4c85" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../../_static/documentation_options.js?v=3ce10a4d"></script>
+    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'input_spec/process_kernels/physical/bgc';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
+    <script src="../../../_static/main.js?v=b10558fa"></script>
+    <link rel="icon" href="../../../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="Deformation" href="deformation.html" />
+    <link rel="prev" title="Surface Energy Balance PKs" href="seb.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="dev" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../_static/logo_full.png" class="logo__image only-light" alt="Amanzi-ATS documentation -- Home"/>
+    <img src="../../../_static/logo_full.png" class="logo__image only-dark pst-js-only" alt="Amanzi-ATS documentation -- Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../demos.html">
+    ATS Demo Problems
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../index.html">
+    ATS Input Specification
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../demos.html">
+    ATS Demo Problems
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../index.html">
+    ATS Input Specification
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item"><!-- This will display the version of the docs -->
+Version dev</div>
+        <div class="sidebar-primary-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../introduction.html">About the Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main.html">Main</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="../../mesh.html">Mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../region.html">Region</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../io/index.html">IO</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../io/ioevent.html">IOEvent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../io/visualization.html">Visualization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../io/observations.html">Observations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../io/checkpoint.html">Checkpoint</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../io/logfile.html">Logfile Control</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html">Process Kernels</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../base.html">Base PKs</a></li>
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="index.html">Physical PKs</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="flow.html">Flow PKs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="transport.html">Geochemical Transport</a></li>
+<li class="toctree-l3"><a class="reference internal" href="energy.html">Energy PKs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seb.html">Surface Energy Balance PKs</a></li>
+<li class="toctree-l3 current active"><a class="current reference internal" href="#">Biogeochemistry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="deformation.html">Deformation</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../mpcs/index.html">MPC</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../mpcs/base.html">Base MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../mpcs/tightly_coupled.html">Tightly Coupled MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../mpcs/multiple_domain.html">Multiple Domain MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../mpcs/globalization.html">Globalization Delegates</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../state/index.html">State</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../state/primary.html">Primary Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../state/independent.html">Independent Variables</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../state/secondary.html">Secondary Variables</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../state/conserved.html">Conserved quantities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/subsurface_flow.html">Subsurface Flow Evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/surface_flow.html">Surface Flow Evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/transport.html">Transport evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/thermo.html">Thermodynamic evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/eos.html">Equations of State</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/seb.html">Surface Energy Balance Evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/snow.html">Snow evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/canopy.html">Canopy evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/bgc.html">Carbon and Biogeochemistry Models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/multiscale.html">Multiscale Models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/geometric.html">Geometric evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/generic.html">Generic evaluators</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../math/index.html">Time integrators, solvers, and other mathematical specs</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../math/time_integrators.html">Time Integrators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math/nonlinear_solvers.html">Nonlinear Solver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math/linear_solvers.html">Linear Solvers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math/preconditioners.html">Preconditioners</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math/operators.html">Operators</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../common.html">Shared Specs</a></li>
+</ul>
+</div>
+</nav></div>
+        <div class="sidebar-primary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#biogeochemistry-monolithic-version">Biogeochemistry – Monolithic Version</a></li>
+</ul>
+  </nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">ATS Input Specification</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Process Kernels</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Physical PKs</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Biogeochemistry</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="biogeochemistry">
+<h1>Biogeochemistry<a class="headerlink" href="#biogeochemistry" title="Link to this heading">#</a></h1>
+<p>To accurately predict watershed ecohydrology, a carbon cycle model is
+needed to predict transpiration.  By simulating a carbon cycle, we are
+able to predict the rate of photosynthesis as a function of space and
+time, and photosynthesis governs root water uptake.  Currently only
+one big-leaf model is available, but ongoing work is wrapping a
+generalized Common/Colorado Land Model based on that developed within
+the ParFlow team, and another ongoing project is working on wrapping
+kernels from E3SM’s Land Model.</p>
+<section id="biogeochemistry-monolithic-version">
+<h2>Biogeochemistry – Monolithic Version<a class="headerlink" href="#biogeochemistry-monolithic-version" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/biogeochemistry/bgc_simple/bgc_simple.hh">src/physics/ats/src/pks/biogeochemistry/bgc_simple/bgc_simple.hh</a></p>
+<p>This PK solves for both above and belowground carbon cycle. It is a multi-leaf
+layer, big-leaf vegetation model coupled to a Century model for belowground
+carbon decomposition.</p>
+<p>It leverages a PFT-based structure which allows multiple height-sorted PFTs to
+coexist on the same grid cells, with the shorter PFTs getting whatever light is
+left in the understory.  The implementation is based on a standalone code by
+Chonggang Xu, and adapted for ATS.  Outputs of this include transpiration, a
+critical sink for hydrology, as it solves photosynthesis based on water
+availability.</p>
+<p>Note this is an “explicit PK,” or effectively a forward Euler timestep
+that is not written in ODE form.</p>
+<p>Note this works on both the surface (vegetation) and subsurface (decomposition)
+meshes.  <strong>It is required</strong> that the subsurface mesh is a “columnar” mesh, and
+that build_columns in the subsurface <a class="reference internal" href="../../mesh.html#mesh"><span class="std std-ref">Mesh</span></a> spec has been supplied.</p>
+<p><cite>“PK type</cite>” = <cite>“BGC simple</cite>”</p>
+<div class="admonition-pk-bgc-simple-spec admonition" id="pk-bgc-simple-spec">
+<p class="admonition-title">pk-bgc-simple-spec</p>
+<ul class="simple">
+<li><p><cite>“initial timestep</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.0</strong> Initial timestep size <cite>[s]</cite></p></li>
+<li><p><cite>“number of carbon pools</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>7</strong> Unclear whether this can actually change?</p></li>
+<li><p><cite>“soil carbon parameters</cite>” <code class="docutils literal notranslate"><span class="pre">[soil-carbon-spec-list]</span></code> List of soil carbon
+parameters by soil mesh partition region name.</p></li>
+<li><p><cite>“pft parameters</cite>” <code class="docutils literal notranslate"><span class="pre">[pft-spec-list]</span></code> List of PFT parameters by PFT name.</p></li>
+<li><p><cite>“latitude [degrees]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>60</strong> Latitude of the simulation in
+degrees.  Used in radiation balance.</p></li>
+<li><p><cite>“wind speed reference height [m]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>2.0</strong> Reference height
+of the wind speed dataset.</p></li>
+<li><p><cite>“cryoturbation mixing coefficient [cm^2/yr]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>5.0</strong>
+Controls diffusion of carbon into the subsurface via cryoturbation.</p></li>
+<li><p><cite>“leaf biomass initial condition</cite>” <code class="docutils literal notranslate"><span class="pre">[initial-conditions-spec]</span></code> Sets the
+leaf biomass IC.</p></li>
+<li><p><cite>“domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>domain</strong></p></li>
+<li><p><cite>“surface domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>surface</strong></p></li>
+<li><p><cite>“transpiration key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-transpiration</strong> The
+distributed transpiration flux <cite>[mol s^-1]</cite></p></li>
+<li><p><cite>“shaded shortwave radiation key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code>
+<strong>SURFACE_DOMAIN-shaded_shortwave_radiation</strong> Shortwave radiation that
+gets past the canopy and teo the bare ground for soil evaporation.
+[W m^-2]</p></li>
+<li><p><cite>“total leaf area index key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code>
+<strong>SURFACE_DOMAIN-total_leaf_area_index</strong> Total LAI across all PFTs.</p></li>
+</ul>
+<p>EVALUATORS:</p>
+<ul class="simple">
+<li><p><cite>“temperature</cite>” The soil temperature <cite>[K]</cite></p></li>
+<li><p><cite>“pressure</cite>” soil mafic potential <cite>[Pa]</cite></p></li>
+<li><p><cite>“surface-cell_volume</cite>” <cite>[m^2]</cite></p></li>
+<li><p><cite>“surface-incoming shortwave radiation</cite>” <cite>[W m^-2]</cite></p></li>
+<li><p><cite>“surface-air_temperature</cite>” <cite>[K]</cite></p></li>
+<li><p><cite>“surface-vapor_pressure_air</cite>” <cite>[Pa]</cite></p></li>
+<li><p><cite>“surface-wind_speed</cite>” <cite>[m s^-1]</cite></p></li>
+<li><p><cite>“surface-co2_concentration</cite>” <cite>[ppm]</cite></p></li>
+</ul>
+</div>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="seb.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Surface Energy Balance PKs</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="deformation.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Deformation</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 202X, jointly shared by contributor institutions.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

@@ -5,20 +5,11 @@ The density of water can be specified in many ways, depending upon
 phase and problem of interest.  Options are available from the
 simplest (constant value) to functions of just temperature,
 temperature and pressure, and temperature/pressure/concentration
-(e.g. salinity).
+(e.g. salinity).  We call these Equations of State (EOS).
 
 Note that density includes both molar and mass-based values.  Most
 density evaluators can provide either, or do provide both, the
 difference being simply a factor of the molecular mass of water.
-
-Finally, nearly all (except the constant value) equations of state use
-a common set of models which accept all of temperature, pressure, and
-concentration.  Many of these models ignore one or the other, so it
-should be preferred (but is not necessary) to choose the right model
-for a given evaluator.  Choosing a model that uses fewer of
-these than the evaluator provides is valid, but it is inefficient.
-Choosing a model that uses more than the evaluator provides will
-result in an error.
 
 Constant Value
 ^^^^^^^^^^^^^^
@@ -36,36 +27,183 @@ point it is not a secondary variable but an independent variable.
 
 Standard Equation of State
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
- EOSEvaluator is the interface between state/data and the model, an EOS.
+`src/physics/ats/src/constitutive_relations/eos/eos_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/constitutive_relations/eos/eos_evaluator.hh>`_
+
+
+This evaluates an EOS as a function of temperature, pressure, and/or mole
+ratio/concentration.
+
+.. _evaluator-eos-spec:
+.. admonition:: evaluator-eos-spec
+
+   * `"EOS parameters`" ``[eos-typedinline-spec]``
+
+   KEYS:
+
+   - `"molar density`" Note that molar density is [mol H2O m^-3].  This is a
+     _component_ quantity.
+   - `"mass density`" Note that mass density is [kg m^-3].  This is a _phase_
+     quantity.
+
+   DEPENDENCIES:
+
+   - `"temperature`"
+   - `"pressure`"
+   - `"molar ratio`"
+
+
+
 
 Models
 ^^^^^^
 
 Constant EOS
 ~~~~~~~~~~~~
+`src/physics/ats/src/constitutive_relations/eos/eos_constant.hh <https://github.com/amanzi/ats/blob/master/src/constitutive_relations/eos/eos_constant.hh>`_
+
+
+A constant molar and mass density of water, independent of temperature or
+concentration, but related to each other by a molar mass of water.
+
+Note, users should prefer to use `"independent variable constant`" to this.
+
+`"EOS type`" = `"constant`"
+
+.. _eos-constant-spec:
+.. admonition:: eos-constant-spec
+
+   ONE OF
+
+   * `"molar mass [kg mol^-1]`" ``[double]`` **0.0180153**
+
+   OR
+
+   * `"molar mass [g mol^-1]`" ``[double]`` **18.0153**
+
+   END
+
+   ONE OF
+
+   * `"density [mol m^-3]`" ``[double]`` molar density of water
+
+   OR
+
+   * `"density [kg m^-3]`" ``[double]`` mass density of water
+
+   END
+
+
+
+
 
 
 Linear EOS
 ~~~~~~~~~~
+`src/physics/ats/src/constitutive_relations/eos/eos_linear.hh <https://github.com/amanzi/ats/blob/master/src/constitutive_relations/eos/eos_linear.hh>`_
 
 
 Ideal Gas
 ~~~~~~~~~
+`src/physics/ats/src/constitutive_relations/eos/eos_ideal_gas.hh <https://github.com/amanzi/ats/blob/master/src/constitutive_relations/eos/eos_ideal_gas.hh>`_
+
+
+Implements the ideal gas EOS, which computes n as a function of p and T.
+Default properties are that of air.
+
+`"EOS type`" = `"ideal gas`"
+
+.. _eos-ideal-gas-spec:
+.. admonition:: eos-ideal-gas-spec
+
+   * `"ideal gas constant [J mol^-1 K^-1]`" ``[double]`` **8.3144621**
+
+   ONE OF
+
+   * `"molar mass of gas [kg mol^-1]`" ``[double]`` **0.028956**
+
+   OR
+
+   * `"molar mass of gas [g mol^-1]`" ``[double]`` **28.956**
+
+   END
+
+
+
 
 
 EOS of Water
 ~~~~~~~~~~~~
+`src/physics/ats/src/constitutive_relations/eos/eos_water.hh <https://github.com/amanzi/ats/blob/master/src/constitutive_relations/eos/eos_water.hh>`_
+
+
+A molar and mass density of liquid water, empirically fit to data as a function
+of both pressure and temperature.
+
+`"EOS type`" = `"liquid water`"
+
+.. _eos-liquid-water-spec:
+.. admonition:: eos-liquid-water-spec
+
+   ONE OF
+
+   * `"molar mass [kg mol^-1]`" ``[double]`` **0.0180153**
+
+   OR
+
+   * `"molar mass [g mol^-1]`" ``[double]`` **18.0153**
+
+   END
+
+
 
 
 EOS of Ice
 ~~~~~~~~~~
+`src/physics/ats/src/constitutive_relations/eos/eos_ice.hh <https://github.com/amanzi/ats/blob/master/src/constitutive_relations/eos/eos_ice.hh>`_
+
+
+A molar and mass density of solid water, empirically fit to data as a function
+of both pressure and temperature.
+
+`"EOS type`" = `"ice`"
+
+.. _eos-ice-spec:
+.. admonition:: eos-ice-spec
+
+   ONE OF
+
+   * `"molar mass [kg mol^-1]`" ``[double]`` **0.0180153** :math:`M` above
+
+   OR
+
+   * `"molar mass [g mol^-1]`" ``[double]`` **18.0153**
+
+   END
+
+
 
 
 EOS of Vapor in Air
 ~~~~~~~~~~~~~~~~~~~
+`src/physics/ats/src/constitutive_relations/eos/eos_vapor_in_gas.hh <https://github.com/amanzi/ats/blob/master/src/constitutive_relations/eos/eos_vapor_in_gas.hh>`_
+
+
+A molar and mass density of gas including water vapor.  This wraps another EOS
+for providing molar density, but removes mass density functions as they are not
+valid for this use case.  Typically this wraps the ideal gas law EOS.
+
+`"EOS type`" = `"vapor in gas`"
+
+.. _eos-vapor-in-gas-spec:
+.. admonition:: eos-vapor-in-gas-spec
+
+   * `"gas EOS parameters`" ``[eos-typedinline-spec]``
+
+
 
 
 EOS of Saltwater
 ~~~~~~~~~~~~~~~~
+`src/physics/ats/src/constitutive_relations/eos/eos_sw.hh <https://github.com/amanzi/ats/blob/master/src/constitutive_relations/eos/eos_sw.hh>`_
 
 

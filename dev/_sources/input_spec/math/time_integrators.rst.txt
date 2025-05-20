@@ -7,7 +7,9 @@ and BDF1, or Backward Euler.
 
 Explicit Time Integration
 -------------------------
- Explicit time integration methods in a generalized form.
+`src/time_integration/Explicit_TI_RK.hh <https://github.com/amanzi/amanzi/blob/master/src/time_integration/Explicit_TI_RK.hh>`_
+
+Explicit time integration methods in a generalized form.
 
 This class implements several explicit Runge Kutta methods:
 
@@ -67,7 +69,9 @@ The implemented general Runge Kutta scheme of order s based on this tableau arra
 
 Backward Euler
 --------------
- Solves globally implicit systems using backward Euler
+`src/time_integration/BDF1_TI.hh <https://github.com/amanzi/amanzi/blob/master/src/time_integration/BDF1_TI.hh>`_
+
+Solves globally implicit systems using backward Euler
 
 Backward Euler is the simplest of the implicit methods.  It solves time
 integration schemes by evaluating all time derivatives at the new time.  This
@@ -109,7 +113,7 @@ via the time discretization scheme:
     * `"restart tolerance relaxation factor`" ``[double]`` **1** Changes the
       nonlinear tolerance on restart. The time integrator is usually restarted
       when a boundary condition changes drastically. It may be beneficial to
-      loosen the nonlinear tolerance on the first several time steps after the
+      loosen the nonlinear tolerance on the first several timesteps after the
       time integrator restart. The default value is 1, while a reasonable value
       may be as large as 1000.
 
@@ -117,7 +121,7 @@ via the time discretization scheme:
       Controls how fast the loosened nonlinear tolerance will revert back to
       the one specified in `"nonlinear tolerance`". If the nonlinear tolerance
       is "tol", the relaxation factor is "factor", and the damping is "d", and
-      the time step count is "n" then the actual nonlinear tolerance is "tol *
+      the timestep count is "n" then the actual nonlinear tolerance is "tol *
       max(1.0, factor * d ** n)". Reasonable values are between 0 and 1.
 
     INCLUDES
@@ -156,11 +160,14 @@ Note this also accepts an object that provides the `BDF1 Solver Interface`_.
 
 BDF1 Solver Interface
 ^^^^^^^^^^^^^^^^^^^^^
+`src/time_integration/BDF1_SolverFnBase.hh <https://github.com/amanzi/amanzi/blob/master/src/time_integration/BDF1_SolverFnBase.hh>`_
 
 
 Timestep Controller
 -------------------
- Factory for creating TimestepController objects
+`src/time_integration/TimestepControllerFactory.hh <https://github.com/amanzi/amanzi/blob/master/src/time_integration/TimestepControllerFactory.hh>`_
+
+Factory for creating TimestepController objects
 
 A TimestepController object sets what size timestep to take.  This can be a
 variety of things, from fixed timestep size, to adaptive based upon error
@@ -172,7 +179,7 @@ Available types include:
 - `Timestep Controller Standard`_ (type `'standard`"), an adaptive timestep based upon nonlinear iterations
 - `Timestep Controller Smarter`_ (type `'smarter`"), an adaptive timestep based upon nonlinear iterations with more control
 - `Timestep Controller Adaptive`_ (type `"adaptive`"), an adaptive timestep based upon error control.
-- `Timestep Controller From File`_ (type `"from file`"), uses a timestep history loaded from an HDF5 file.  (Usually only used for regression testing.)
+- `Timestep Controller From File`_ (type `"from file`"), uses a timestep history loaded from a file.  (Usually only used for regression testing.)
 
 
 .. _timestep-controller-typed-spec:
@@ -186,20 +193,26 @@ Available types include:
 
 Timestep Controller Fixed
 ^^^^^^^^^^^^^^^^^^^^^^^^^
- Timestep controller providing constant timestep size.
+`src/time_integration/TimestepControllerFixed.hh <https://github.com/amanzi/amanzi/blob/master/src/time_integration/TimestepControllerFixed.hh>`_
 
-``TimestepControllerFixed`` is a simple timestep control mechanism which sets
-a constant timestep size.  Note that the actual timestep size is given by the
-minimum of PK's initial timestep sizes.
 
-No parameters are required.
+A fixed timestep controller simply sets a constant timestep size.
+
+`"timestep controller type`" = `"fixed`"
+
+.. _timestep-controller-fixed-spec:
+.. admonition:: timestep-controller-fixed-spec
+
+   * `"initial timestep [s]`" ``[double]`` The fixed timestep size.
 
 
 
 
 Timestep Controller Standard
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
- Simple timestep control based upon previous iteration count.
+`src/time_integration/TimestepControllerStandard.hh <https://github.com/amanzi/amanzi/blob/master/src/time_integration/TimestepControllerStandard.hh>`_
+
+Simple timestep control based upon previous iteration count.
 
 This is a simple timestep control mechanism
 which sets the next timestep based upon the previous timestep and how many
@@ -217,12 +230,14 @@ nonlinear iterations required to solve step :math:`k`:.
 .. _timestep-controller-standard-spec:
 .. admonition:: timestep-controller-standard-spec
 
-    * `"max iterations`" ``[int]`` :math:`N^{max}`, decrease the timestep if the previous step took more than this.
-    * `"min iterations`" ``[int]`` :math:`N^{min}`, increase the timestep if the previous step took less than this.
-    * `"time step reduction factor`" ``[double]`` :math:`f_{reduction}`, reduce the previous timestep by this multiple.
-    * `"time step increase factor`" ``[double]`` :math:`f_{increase}`, increase the previous timestep by this multiple.
-    * `"max time step`" ``[double]`` The max timestep size allowed.
-    * `"min time step`" ``[double]`` The min timestep size allowed.  If the step has failed and the new step is below this cutoff, the simulation fails.
+   * `"max iterations`" ``[int]`` :math:`N^{max}`, decrease the timestep if the previous step took more than this.
+   * `"min iterations`" ``[int]`` :math:`N^{min}`, increase the timestep if the previous step took less than this.
+   * `"timestep reduction factor`" ``[double]`` :math:`f_{reduction}`, reduce the previous timestep by this multiple.
+   * `"timestep increase factor`" ``[double]`` :math:`f_{increase}`, increase the previous timestep by this multiple.
+
+   INCLUDES:
+
+   - ``[timestep-controller-recoverable-spec]``
 
 .. code-block:: xml
 
@@ -231,25 +246,28 @@ nonlinear iterations required to solve step :math:`k`:.
     <ParameterList name="timestep controller standard parameters">
       <Parameter name="min iterations" type="int" value="10"/>
       <Parameter name="max iterations" type="int" value="15"/>
-      <Parameter name="time step increase factor" type="double" value="1.2"/>
-      <Parameter name="time step reduction factor" type="double" value="0.5"/>
-      <Parameter name="max time step" type="double" value="1e+9"/>
-      <Parameter name="min time step" type="double" value="0.0"/>
+      <Parameter name="timestep increase factor" type="double" value="1.2"/>
+      <Parameter name="timestep reduction factor" type="double" value="0.5"/>
+      <Parameter name="max timestep [s]" type="double" value="1e+9"/>
+      <Parameter name="min timestep [s]" type="double" value="0.0"/>
+      <Parameter name="initial timestep [s]" type="double" value="86400"/>
     </ParameterList>
   </ParameterList>
 
-In this example, the time step is increased by factor 1.2 when the nonlinear
+In this example, the timestep is increased by factor 1.2 when the nonlinear
 solver converges in 10 or less iterations.
-The time step is not changed when the number of nonlinear iterations is
+The timestep is not changed when the number of nonlinear iterations is
 between 11 and 15.
-The time step will be cut twice if the number of nonlinear iterations exceeds 15.
+The timestep will be cut twice if the number of nonlinear iterations exceeds 15.
 
 
 
 
 Timestep Controller Smarter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
- Slightly smarter timestep controller based upon a history of previous timesteps.
+`src/time_integration/TimestepControllerSmarter.hh <https://github.com/amanzi/amanzi/blob/master/src/time_integration/TimestepControllerSmarter.hh>`_
+
+Slightly smarter timestep controller based upon a history of previous timesteps.
 
 This is based on `Timestep Controller Standard`_, but also tries to be a bit
 smarter to avoid repeated increase/decrease loops where the step size
@@ -260,13 +278,21 @@ nonlinearities.
 .. _timestep-controller-smarter-spec:
 .. admonition:: timestep-controller-smarter-spec
 
-    * `"max iterations`" ``[int]`` :math:`N^{max}`, decrease the timestep if the previous step took more than this.
-    * `"min iterations`" ``[int]`` :math:`N^{min}`, increase the timestep if the previous step took less than this.
-    * `"time step reduction factor`" ``[double]`` :math:`f_{reduction}`, reduce the previous timestep by this multiple.
-    * `"time step increase factor`" ``[double]`` :math:`f_{increase}`, increase the previous timestep by this multiple.  Note that this can be modified geometrically in the case of repeated successful steps.
-    * `"max time step increase factor`" ``[double]`` **10.** The max :math:`f_{increase}` will ever get.
-    * `"growth wait after fail`" ``[int]`` Wait at least this many timesteps before attempting to grow the timestep after a failed timestep.
-    * `"count before increasing increase factor`" ``[int]`` Require this many successive increasions before multiplying :math:`f_{increase}` by itself.
+   * `"max iterations`" ``[int]`` :math:`N^{max}`, decrease the timestep if the
+      previous step took more than this.
+   * `"min iterations`" ``[int]`` :math:`N^{min}`, increase the timestep if the
+      previous step took less than this.
+   * `"timestep reduction factor`" ``[double]`` :math:`f_{reduction}`, reduce
+     the previous timestep by this multiple.
+   * `"timestep increase factor`" ``[double]`` :math:`f_{increase}`, increase
+     the previous timestep by this multiple.  Note that this can be modified
+     geometrically in the case of repeated successful steps.
+   * `"max timestep increase factor`" ``[double]`` **10.** The max
+     :math:`f_{increase}` will ever get.
+   * `"growth wait after fail`" ``[int]`` Wait at least this many timesteps
+     before attempting to grow the timestep after a failed timestep.
+   * `"count before increasing increase factor`" ``[int]`` Require this many
+     successive increasions before multiplying :math:`f_{increase}` by itself.
 
 
 
@@ -274,7 +300,9 @@ nonlinearities.
 
 Timestep Controller Adaptive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
- Adaptive timestep control based upon previous iteration count.
+`src/time_integration/TimestepControllerAdaptive.hh <https://github.com/amanzi/amanzi/blob/master/src/time_integration/TimestepControllerAdaptive.hh>`_
+
+Adaptive timestep control based upon previous iteration count.
 
 This is under development and is based on a posteriori error estimates.
 
@@ -283,7 +311,9 @@ This is under development and is based on a posteriori error estimates.
 
 Timestep Controller From File
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
- Timestep controller which loads a timestep history from file.
+`src/time_integration/TimestepControllerFromFile.hh <https://github.com/amanzi/amanzi/blob/master/src/time_integration/TimestepControllerFromFile.hh>`_
+
+Timestep controller which loads a timestep history from file.
 
 This loads a timestep history from a file, then advances the step size with
 those values.  This is mostly used for testing purposes, where we need to force

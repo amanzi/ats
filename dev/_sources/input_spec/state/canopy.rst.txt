@@ -3,7 +3,9 @@ Canopy evaluators
 
 Interception
 ^^^^^^^^^^^^
- Partitions water between interception and throughfall, combining throughfall with drainage.
+`src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/interception_fraction_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/interception_fraction_evaluator.hh>`_
+
+Partitions water between interception and throughfall, combining throughfall with drainage.
 
 Based on CLM 4.5 and Lawrence et al 2007, interception is given by:
 
@@ -24,8 +26,8 @@ all snow).  This evaluator partitions the drainage and sums it with throughfall
 to compute the total source, in each phase, to the layer below the canopy (snow
 and/or ground surface).
 
-.. _interception-fraction-evaluator-spec:
-.. admonition:: interception-fraction-evaluator-spec
+.. _evaluator-interception-fraction-spec:
+.. admonition:: evaluator-interception-fraction-spec
 
    * `"interception fraction parameters`" ``[interception-fraction-model-spec]``
 
@@ -43,7 +45,9 @@ and/or ground surface).
 
 
 
- Fraction of incoming water that is intercepted.
+`src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/interception_fraction_model.hh <https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/interception_fraction_model.hh>`_
+
+Fraction of incoming water that is intercepted.
 
 Based on CLM 4.5 and Lawrence et al 2007:
 
@@ -63,7 +67,9 @@ The interception fraction is everything here after the precip.
 
 Drainage
 ^^^^^^^^
- Drainage rate from the canopy to the lower layers.
+`src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/drainage_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/drainage_evaluator.hh>`_
+
+Drainage rate from the canopy to the lower layers.
 
 A simple model based on relaxation from current water content to a saturated water content.
 
@@ -89,8 +95,8 @@ Drainage is given by:
 .. math::
    D = max(0, \frac{(\Theta - \Theta_sat)}{\tau})
 
-.. _drainage-evaluator-spec:
-.. admonition:: drainage-evaluator-spec
+.. _evaluator-drainage-spec:
+.. admonition:: evaluator-drainage-spec
 
    * `"drainage timescale [s]`" ``[double]`` **864** Timescale over which drainage occurs.
    * `"saturated specific water content [m^3 H2O / m^2 leaf area]`" ``[double]`` **1e-4**

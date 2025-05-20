@@ -16,40 +16,44 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link href="../../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
-  
-  <link href="../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
-
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=a746c00c" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/custom_theme.css?v=a03f4c85" />
   
+  <!-- So that users can add custom icons -->
+  <script src="../../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
-<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
-  <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
     <script src="../../../_static/jquery.js?v=5d32c60e"></script>
     <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
     <script src="../../../_static/documentation_options.js?v=3ce10a4d"></script>
-    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'input_spec/process_kernels/physical/energy';</script>
     <script>
-        DOCUMENTATION_OPTIONS.theme_version = '0.15.4';
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
         DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
-        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
         </script>
     <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
     <script src="../../../_static/main.js?v=b10558fa"></script>
@@ -57,9 +61,10 @@
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
     <link rel="next" title="Surface Energy Balance PKs" href="seb.html" />
-    <link rel="prev" title="Transport PK" href="transport.html" />
+    <link rel="prev" title="Geochemical Transport" href="transport.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="dev" />
   </head>
   
   
@@ -75,19 +80,8 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
-  
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
-  
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="../../../search.html"
       method="get">
@@ -95,7 +89,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search the docs ..."
          aria-label="Search the docs ..."
          autocomplete="off"
@@ -103,8 +96,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -138,7 +131,7 @@
     
     
     <img src="../../../_static/logo_full.png" class="logo__image only-light" alt="Amanzi-ATS documentation -- Home"/>
-    <script>document.write(`<img src="../../../_static/logo_full.png" class="logo__image only-dark" alt="Amanzi-ATS documentation -- Home"/>`);</script>
+    <img src="../../../_static/logo_full.png" class="logo__image only-dark pst-js-only" alt="Amanzi-ATS documentation -- Home"/>
   
   
 </a></div>
@@ -153,13 +146,6 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../concepts/index.html">
-    Amanzi-ATS Concepts
-  </a>
-</li>
-
-
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../../demos.html">
     ATS Demo Problems
@@ -184,29 +170,21 @@
         <div class="navbar-item navbar-persistent--container">
           
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
         </div>
       
       
         <div class="navbar-item">
 
-<script>
-document.write(`
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
-  </button>
-`);
-</script></div>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
       
     </div>
     
@@ -215,15 +193,11 @@ document.write(`
   
     <div class="navbar-persistent--mobile">
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
     </div>
   
 
@@ -238,7 +212,8 @@ document.write(`
       
       
       
-      <div class="bd-sidebar-primary bd-sidebar">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -253,13 +228,6 @@ document.write(`
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../concepts/index.html">
-    Amanzi-ATS Concepts
-  </a>
-</li>
-
-
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../../demos.html">
     ATS Demo Problems
@@ -285,15 +253,11 @@ document.write(`
         
           <div class="navbar-item">
 
-<script>
-document.write(`
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
-  </button>
-`);
-</script></div>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
         
       </div>
     
@@ -303,28 +267,24 @@ document.write(`
         <div class="sidebar-primary-item"><!-- This will display the version of the docs -->
 Version dev</div>
         <div class="sidebar-primary-item">
-<script>
-document.write(`
-  <div class="version-switcher__container dropdown">
-    <button id="pst-version-switcher-button-2"
-      type="button"
-      class="version-switcher__button btn btn-sm dropdown-toggle"
-      data-bs-toggle="dropdown"
-      aria-haspopup="listbox"
-      aria-controls="pst-version-switcher-list-2"
-      aria-label="Version switcher list"
-    >
-      Choose version  <!-- this text may get changed later by javascript -->
-      <span class="caret"></span>
-    </button>
-    <div id="pst-version-switcher-list-2"
-      class="version-switcher__menu dropdown-menu list-group-flush py-0"
-      role="listbox" aria-labelledby="pst-version-switcher-button-2">
-      <!-- dropdown will be populated by javascript on page load -->
-    </div>
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
   </div>
-`);
-</script></div>
+</div></div>
         <div class="sidebar-primary-item">
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
@@ -340,22 +300,24 @@ document.write(`
 <li class="toctree-l2"><a class="reference internal" href="../../io/visualization.html">Visualization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../io/observations.html">Observations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../io/checkpoint.html">Checkpoint</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../io/logfile.html">Logfile Control</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html">Process Kernels</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../base.html">Base PKs</a></li>
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="index.html">Physical PKs</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="flow.html">Flow PKs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="transport.html">Transport PK</a></li>
+<li class="toctree-l3"><a class="reference internal" href="transport.html">Geochemical Transport</a></li>
 <li class="toctree-l3 current active"><a class="current reference internal" href="#">Energy PKs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seb.html">Surface Energy Balance PKs</a></li>
-
-
+<li class="toctree-l3"><a class="reference internal" href="bgc.html">Biogeochemistry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="deformation.html">Deformation</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../mpcs/index.html">MPC</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../mpcs/base.html">Base MPCs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../mpcs/physical.html">Physical MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../mpcs/tightly_coupled.html">Tightly Coupled MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../mpcs/multiple_domain.html">Multiple Domain MPCs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../mpcs/globalization.html">Globalization Delegates</a></li>
 </ul>
 </details></li>
@@ -364,19 +326,22 @@ document.write(`
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../state/index.html">State</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../state/primary.html">Primary Variables</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../state/independent.html">Independent Variables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/secondary.html">Secondary Variables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/conserved.html">Conserved quantities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/subsurface_flow.html">Subsurface flow evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/surface_flow.html">Surface flow evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/thermo.html">Thermodynamic evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/eos.html">Equations of State</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/seb.html">Surface energy balance evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/snow.html">Snow evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/canopy.html">Canopy evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/bgc.html">Carbon and Biogeochemistry Models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/multiscale.html">Multiscale Models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/geometric.html">Geometric evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/generic.html">Generic evaluators</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../state/secondary.html">Secondary Variables</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../state/conserved.html">Conserved quantities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/subsurface_flow.html">Subsurface Flow Evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/surface_flow.html">Surface Flow Evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/transport.html">Transport evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/thermo.html">Thermodynamic evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/eos.html">Equations of State</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/seb.html">Surface Energy Balance Evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/snow.html">Snow evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/canopy.html">Canopy evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/bgc.html">Carbon and Biogeochemistry Models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/multiscale.html">Multiscale Models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/geometric.html">Geometric evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/generic.html">Generic evaluators</a></li>
+</ul>
+</details></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../math/index.html">Time integrators, solvers, and other mathematical specs</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -400,18 +365,23 @@ document.write(`
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#energy-base-pk">Energy Base PK</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#two-phase-subsurface-energy-pk">Two-Phase subsurface Energy PK</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#three-phase-subsurface-energy-pk">Three-Phase subsurface Energy PK</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overland-energy-with-ice">Overland energy with Ice</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#two-phase-energy-pk">Two-Phase Energy PK</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#three-phase-energy-pk">Three-Phase Energy PK</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overland-energy-with-ice">Overland Energy with Ice</a></li>
 </ul>
   </nav></div>
     </div>
   
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
   </div>
-  
-  <div id="rtd-footer-container"></div>
 
 
       </div>
@@ -429,10 +399,6 @@ document.write(`
       
         <div class="header-article-item">
 
-
-
-
-
 <nav aria-label="Breadcrumb" class="d-print-none">
   <ul class="bd-breadcrumbs">
     
@@ -445,12 +411,12 @@ document.write(`
     <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">ATS Input Specification</a></li>
     
     
-    <li class="breadcrumb-item"><i class="fa-solid fa-ellipsis"></i></li>
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Process Kernels</a></li>
     
     
     <li class="breadcrumb-item"><a href="index.html" class="nav-link">Physical PKs</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page">Energy PKs</li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Energy PKs</span></li>
   </ul>
 </nav>
 </div>
@@ -475,26 +441,26 @@ energy equations are based on a simple advection-diffusion equation,
 and include variants with and without freeze-thaw processes.</p>
 <section id="energy-base-pk">
 <h2>Energy Base PK<a class="headerlink" href="#energy-base-pk" title="Link to this heading">#</a></h2>
-<blockquote>
-<div><p>An advection-diffusion equation for energy.</p>
-</div></blockquote>
-<p>Solves an advection-diffusion equation for energy:</p>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/energy/energy_base.hh">src/physics/ats/src/pks/energy/energy_base.hh</a></p>
+<p>Solves an advection-diffusion equation for transport of energy:</p>
 <div class="math notranslate nohighlight">
 \[\frac{\partial E}{\partial t} - \nabla \cdot \kappa \nabla T + \nabla \cdot \mathbf{q} e(T) = Q_w e(T) + Q_e\]</div>
-<div class="admonition-energy-pk-spec admonition" id="energy-pk-spec">
-<p class="admonition-title">energy-pk-spec</p>
+<p>Note that this is implemented rather differently than chemical transport,
+likely for unclear (historical) reasons.  At some point energy and chemical
+transport should probably be merged into a shared PK which supports both
+sequential and globally implicit coupling of flow and transport.</p>
+<p>Note that this is a base class and cannot be directly created.  Instead, use
+two-phase or three-phase energy PKs.</p>
+<div class="admonition-pk-energy-base-spec admonition" id="pk-energy-base-spec">
+<p class="admonition-title">pk-energy-base-spec</p>
 <ul class="simple">
 <li><p><cite>“domain</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>“domain”</strong>  Defaults to the subsurface mesh.</p></li>
-<li><p><cite>“primary variable</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> The primary variable associated with
-this PK, typically <cite>“DOMAIN-temperature</cite>” Note there is no default – this
-must be provided by the user.</p></li>
+<li><p><cite>“primary variable</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-temperature</strong> The primary
+variable associated with this PK.</p></li>
 <li><p><cite>“boundary conditions</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code> Defaults to 0 diffusive flux
-boundary condition.  See <a href="#id2"><span class="problematic" id="id3">`Energy-specific Boundary Conditions`_</span></a></p></li>
-<li><p><cite>“thermal conductivity evaluator</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code>
-The thermal conductivity.  This
-needs to go away, and should get moved to State.</p></li>
+boundary condition.  See <a class="reference internal" href="../../common.html#energy-specific-boundary-conditions"><span class="std std-ref">Energy-specific Boundary Conditions</span></a></p></li>
 <li><p><cite>“absolute error tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>76.e-6</strong> A small amount of
-energy, see error norm. <cite>[MJ]</cite></p></li>
+energy, see error norm. [MJ]</p></li>
 <li><p><cite>“upwind conductivity method</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>arithmetic mean</strong> Method of
 moving cell-based thermal conductivities onto faces.  One of:</p>
 <ul>
@@ -503,26 +469,35 @@ moving cell-based thermal conductivities onto faces.  One of:</p>
 </ul>
 </li>
 </ul>
+<p>Math and solver algorithm options:</p>
+<ul class="simple">
+<li><p><cite>“inverse</cite>” <code class="docutils literal notranslate"><span class="pre">[inverse-spec]</span></code> <strong>optional</strong> The inverse used for
+preconditioning in a non-globally coupled problem.  See <span class="xref std std-ref">Inverse</span>.</p></li>
+<li><p><cite>“advection</cite>” <code class="docutils literal notranslate"><span class="pre">[advection-upwind-op-spec]</span></code> See <span class="xref std std-ref">Advection</span>.  Only
+one current implementation, so defaults are typically fine.</p></li>
+</ul>
 <p>IF</p>
 <ul class="simple">
-<li><p><cite>“explicit advection</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Treat the advection term implicitly.</p></li>
+<li><p><cite>“explicit advection</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Treat the advection term explicitly.</p></li>
 </ul>
 <p>ELSE</p>
 <ul class="simple">
 <li><p><cite>“supress advective terms in preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong>
 Typically subsurface energy equations are strongly diffusion dominated,
-and the advective terms may add little.  With this flag on, we ignore
-theem in the preconditioner, making an easier linear solve and often not
-negatively impacting the nonlinear solve.</p></li>
-<li><p><cite>“advection preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code> <strong>optional</strong>
-Typically defaults are correct.</p></li>
+and the advective terms may add little.  With this flag on, we ignore them
+in the preconditioner, making an easier linear solve and often not
+negatively impacting the nonlinear solve.  Note that this does NOT change
+the answer, just the performance.</p></li>
+<li><p><cite>“advection preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[advection-upwind-op-spec</span></code> <strong>optional</strong>
+Typically defaults are correct.  See <span class="xref std std-ref">Advection</span>.</p></li>
 </ul>
 <p>END</p>
 <ul class="simple">
-<li><p><cite>“diffusion</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-diffusion-spec]</span></code> See <a href="#id4"><span class="problematic" id="id5">PDE_Diffusion_</span></a>, the diffusion operator.</p></li>
-<li><p><cite>“diffusion preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-diffusion-spec]</span></code> See
-<a href="#id6"><span class="problematic" id="id7">PDE_Diffusion_</span></a>, the inverse operator.  Typically only adds Jacobian
-terms, as all the rest default to those values from <cite>“diffusion</cite>”.</p></li>
+<li><p><cite>“diffusion</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-diffusion-typedinline-spec]</span></code> See <a class="reference internal" href="../../math/operators.html#diffusion"><span class="std std-ref">Diffusion</span></a>,
+the diffusion operator.</p></li>
+<li><p><cite>“diffusion preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-diffusion-typedinline-spec]</span></code> See
+<a class="reference internal" href="../../math/operators.html#diffusion"><span class="std std-ref">Diffusion</span></a>, the inverse operator.  Typically only adds Jacobian terms,
+as all the rest default to those values from <cite>“diffusion</cite>”.</p></li>
 </ul>
 <p>IF</p>
 <ul class="simple">
@@ -531,21 +506,20 @@ terms, as all the rest default to those values from <cite>“diffusion</cite>”
 <p>THEN</p>
 <ul class="simple">
 <li><p><cite>“source key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-total_energy_source</strong> Typically
-not set, as the default is good. <code class="docutils literal notranslate"><span class="pre">[MJ</span> <span class="pre">s^-1]</span></code></p></li>
-<li><p><cite>“source term is differentiable</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>true</strong> Can the source term
-be differentiated with respect to the primary variable?</p></li>
-<li><p><cite>“source term finite difference</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> If the source term
-is not diffferentiable, we can do a finite difference approximation of
-this derivative anyway.  This is useful for difficult-to-differentiate
-terms like a surface energy balance, which includes many terms.</p></li>
+not set, as the default is good. [MJ s^-1]</p></li>
+<li><p><cite>“source term finite difference</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Option to do a
+finite difference approximation of the source term’s derivative with
+respect to the primary variable.  This is useful for
+difficult-to-differentiate terms like a surface energy balance, which
+includes many terms.</p></li>
 </ul>
 <p>END</p>
 <p>Globalization:</p>
 <ul class="simple">
 <li><p><cite>“modify predictor with consistent faces</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> In a
 face+cell diffusion discretization, this modifies the predictor to make
-sure that faces, which are a DAE, are consistent with the predicted cells
-(i.e. face fluxes from each sides match).</p></li>
+sure that faces, which are algebraic relative to cells, are consistent
+with the predicted cells values (i.e. face fluxes from each side match).</p></li>
 <li><p><cite>“modify predictor for freezing</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> A simple limiter
 that keeps temperature corrections from jumping over the phase change.</p></li>
 <li><p><cite>“limit correction to temperature change [K]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>-1.0</strong> If &gt;
@@ -553,12 +527,11 @@ that keeps temperature corrections from jumping over the phase change.</p></li>
 </ul>
 <p>The following are rarely set by the user, as the defaults are typically right.</p>
 <ul class="simple">
-<li><p><cite>“advection</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code> <strong>optional</strong> The <a href="#id8"><span class="problematic" id="id9">PDE_Advection_</span></a> spec.  Only one
-current implementation, so defaults are typically fine.</p></li>
 <li><p><cite>“accumulation preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-accumulation-spec]</span></code> <strong>optional</strong>
-The inverse of the accumulation operator.  See <a href="#id10"><span class="problematic" id="id11">PDE_Accumulation_</span></a>.
+The inverse of the accumulation operator.  See <a class="reference internal" href="../../math/operators.html#accumulation"><span class="std std-ref">Accumulation</span></a>.
 Typically not provided by users, as defaults are correct.</p></li>
 </ul>
+<p>Algorithmic physics control:</p>
 <p>IF</p>
 <ul class="simple">
 <li><p><cite>“coupled to surface via flux</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> If true, apply
@@ -598,48 +571,44 @@ surface boundary conditions from the surface temperature (Dirichlet).</p></li>
 </ul>
 </div>
 </section>
-<section id="two-phase-subsurface-energy-pk">
-<h2>Two-Phase subsurface Energy PK<a class="headerlink" href="#two-phase-subsurface-energy-pk" title="Link to this heading">#</a></h2>
-<blockquote>
-<div><p>An advection-diffusion equation for energy in two phases.</p>
-</div></blockquote>
-<p>This is simply a subsurface energy equation that places a few more requirements
-on the base class.  It could probably go away if we refactor to remove
-hard-coded evaluators.</p>
-<div class="admonition-energy-two-phase-pk-spec admonition" id="energy-two-phase-pk-spec">
-<p class="admonition-title">energy-two-phase-pk-spec</p>
+<section id="two-phase-energy-pk">
+<h2>Two-Phase Energy PK<a class="headerlink" href="#two-phase-energy-pk" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/energy/energy_two_phase.hh">src/physics/ats/src/pks/energy/energy_two_phase.hh</a></p>
+<p>Modifies the energy equation to provide two-phase energy (water + vapor/air).</p>
+<p><cite>“PK type</cite>” = <cite>“two-phase energy</cite>”</p>
+<div class="admonition-pk-two-phase-energy-spec admonition" id="pk-two-phase-energy-spec">
+<p class="admonition-title">pk-two-phase-energy-spec</p>
 <p>INCLUDES:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">[energy-pk-spec]</span></code>  See <a class="reference internal" href="#energy-base-pk">Energy Base PK</a></p></li>
 </ul>
 </div>
 </section>
-<section id="three-phase-subsurface-energy-pk">
-<h2>Three-Phase subsurface Energy PK<a class="headerlink" href="#three-phase-subsurface-energy-pk" title="Link to this heading">#</a></h2>
-<blockquote>
-<div><p>An advection-diffusion equation for energy in three phases.</p>
-</div></blockquote>
-<p>This is simply a subsurface energy equation that places a few more requirements
-on the base class.  It could probably go away if we refactor to remove
-hard-coded evaluators.</p>
-<div class="admonition-energy-three-phase-pk-spec admonition" id="energy-three-phase-pk-spec">
-<p class="admonition-title">energy-three-phase-pk-spec</p>
+<section id="three-phase-energy-pk">
+<h2>Three-Phase Energy PK<a class="headerlink" href="#three-phase-energy-pk" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/energy/energy_three_phase.hh">src/physics/ats/src/pks/energy/energy_three_phase.hh</a></p>
+<p>Modifies the energy equation to provide three-phase energy (water + ice + vapor/air).</p>
+<p><cite>“PK type</cite>” = <cite>“three-phase energy</cite>”</p>
+<div class="admonition-pk-three-phase-energy-spec admonition" id="pk-three-phase-energy-spec">
+<p class="admonition-title">pk-three-phase-energy-spec</p>
 <p>INCLUDES:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">[energy-two-phase-pk-spec]</span></code> See  <a class="reference internal" href="#two-phase-subsurface-energy-pk">Two-Phase subsurface Energy PK</a></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[pk-two-phase-energy-spec]</span></code> See  <a class="reference internal" href="#two-phase-energy-pk"><span class="std std-ref">Two-Phase Energy PK</span></a></p></li>
 </ul>
 </div>
 </section>
 <section id="overland-energy-with-ice">
-<h2>Overland energy with Ice<a class="headerlink" href="#overland-energy-with-ice" title="Link to this heading">#</a></h2>
-<blockquote>
-<div><p>An advection-diffusion equation for surface energy in two phases.</p>
-</div></blockquote>
-<p>This is simply a surface energy equation that places a few more requirements
-on the base class.  It could probably go away if we refactor to remove
-hard-coded evaluators.</p>
-<div class="admonition-energy-surface-ice-pk-spec admonition" id="energy-surface-ice-pk-spec">
-<p class="admonition-title">energy-surface-ice-pk-spec</p>
+<h2>Overland Energy with Ice<a class="headerlink" href="#overland-energy-with-ice" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/energy/energy_surface_ice.hh">src/physics/ats/src/pks/energy/energy_surface_ice.hh</a></p>
+<p>Modifies the energy equation to implement overland energy transport,
+particularly dealing with coupling terms to the subsurface energy equation.</p>
+<p>Note that this does not, but default, include all terms for a surface energy
+balance.  Those would typically be included on a snow surface energy balance
+PK, which would also compute a skin energy flux that would become a source term
+for this PK.</p>
+<p><cite>“PK type</cite>” = <cite>“suface energy</cite>”</p>
+<div class="admonition-pk-surface-energy-spec admonition" id="pk-surface-energy-spec">
+<p class="admonition-title">pk-surface-energy-spec</p>
 <p>These are typically not set by the user:</p>
 <ul class="simple">
 <li><p><cite>“coupled to subsurface via temperature</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> A coupling
@@ -652,7 +621,7 @@ Provided by MPC.</p></li>
 </ul>
 <p>INCLUDES:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">[energy-pk-spec]</span></code>  See <a class="reference internal" href="#energy-base-pk">Energy Base PK</a></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[pk-energy-base-spec]</span></code>  See <a class="reference internal" href="#energy-base-pk"><span class="std std-ref">Energy Base PK</span></a></p></li>
 </ul>
 </div>
 </section>
@@ -674,7 +643,7 @@ Provided by MPC.</p></li>
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Transport PK</p>
+        <p class="prev-next-title">Geochemical Transport</p>
       </div>
     </a>
     <a class="right-next"
@@ -704,8 +673,8 @@ Provided by MPC.</p></li>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
-<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -725,7 +694,7 @@ Provided by MPC.</p></li>
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
     <br/>
   </p>
 </div>
@@ -738,7 +707,8 @@ Provided by MPC.</p></li>
       
         <div class="footer-item">
 <p class="theme-version">
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
 </p></div>
       
     </div>

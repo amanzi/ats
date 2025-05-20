@@ -20,6 +20,7 @@ This option sets the default verbosity of all evaluators, PKs, operators, solver
 
 Verbose Object
 ==============
+`src/utils/VerboseObject.hh <https://github.com/amanzi/amanzi/blob/master/src/utils/VerboseObject.hh>`_
 
 
 This allows control of log-file verbosity for a wide variety of objects
@@ -61,7 +62,9 @@ Example:
 
 Debugger
 ========
- A mesh and vector structure aware utility for printing info.
+`src/state/Debugger.hh <https://github.com/amanzi/amanzi/blob/master/src/state/Debugger.hh>`_
+
+A utility for printing field values at specific IDs controlled by the user.
 
 This is a utility that makes it easier for the user to control output written
 to the screen.  It allows the user to provide element IDs, and then provides
@@ -69,17 +72,17 @@ functionality for a PK to write mesh geometry information and vector values of
 those elements to screen based upon verbosity levels.
 
 Note, most information is only written if the owning object's verbosity level
-from the `"Verbose Object`" spec is set to `"high`" or higher.
+from the `"verbose object`" spec is set to `"high`" or higher.
 
 .. debugger-spec:
 .. admonition:: debugger-spec
 
-    * `"debug cells`" ``[Array(int)]`` For each global ID of a cell provided
-      here, controls writing of vectors inside of the using PK.
+   * `"debug cells`" ``[Array(int)]`` **optional** For each global ID of a
+     cell provided here, controls writing of vectors inside of the using PK.
 
-    * `"debug faces`" ``[Array(int)]`` For each global ID of a face provided
-      here, writes all adjoining cell information as if each cell was included
-      in `"debug cells`".
+   * `"debug faces`" ``[Array(int)]`` **optional** For each global ID of a face provided
+     here, writes all adjoining cell information as if each cell was included
+     in `"debug cells`".
 
 
 
@@ -87,6 +90,7 @@ from the `"Verbose Object`" spec is set to `"high`" or higher.
 
 Residual Debugger
 =================
+`src/solvers/ResidualDebugger.hh <https://github.com/amanzi/amanzi/blob/master/src/solvers/ResidualDebugger.hh>`_
 
 
 Debugging object for writing vectors to file within an iterative

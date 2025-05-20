@@ -5,7 +5,9 @@ Linear Solvers
 .. _`Linear Solver`:
 .. _`Inverse`:
 
- Base class for providing ApplyInverse() methods on operators.
+`src/solvers/Inverse.hh <https://github.com/amanzi/amanzi/blob/master/src/solvers/Inverse.hh>`_
+
+Base class for providing ApplyInverse() methods on operators.
 
 Matrix provides existing Operators with an inverse.  Note this may be
 iterative or non-iterative, assembled or non-assembled, approximate or exact to
@@ -25,7 +27,9 @@ DOCUMENT ME!
 
 Linear Solver: PCG
 --------------------
- Preconditioned conjugate gradient method for a linear solver.
+`src/solvers/IterativeMethodPCG.hh <https://github.com/amanzi/amanzi/blob/master/src/solvers/IterativeMethodPCG.hh>`_
+
+Preconditioned conjugate gradient method for a linear solver.
 
 .. _iterative-method-pcg-spec:
 .. admonition:: iterative-method-pcg-spec
@@ -64,7 +68,9 @@ Linear Solver: PCG
 
 Linear Solver: GMRES
 --------------------
- Generalized minimum residual method for a linear solver.
+`src/solvers/IterativeMethodGMRES.hh <https://github.com/amanzi/amanzi/blob/master/src/solvers/IterativeMethodGMRES.hh>`_
+
+Generalized minimum residual method for a linear solver.
 
 Based on the methods of Yu. Kuznetsov, 1968; Y.Saad, 1986.  Deflated version of
 GMRES is due to R.Morgan, GMRES with deflated restarting, 2002 SISC; S.Rollin,
@@ -133,7 +139,9 @@ W.Fichtner, Improving accuracy of GMRES with deflated restarting, 2007 SISC.
 
 Linear Solver: NKA
 --------------------
- Uses NKA method as a linear solver.
+`src/solvers/IterativeMethodNKA.hh <https://github.com/amanzi/amanzi/blob/master/src/solvers/IterativeMethodNKA.hh>`_
+
+Uses NKA method as a linear solver.
 
 This is effectively equivalent to GMRES with a rolling restart, where vectors
 fall off the end of the space.
@@ -181,7 +189,9 @@ fall off the end of the space.
 
 Linear Solver: Amesos
 ---------------------
- Direct solvers via Trilinos.
+`src/solvers/DirectMethodAmesos.hh <https://github.com/amanzi/amanzi/blob/master/src/solvers/DirectMethodAmesos.hh>`_
+
+Direct solvers via Trilinos.
 
 Amesos library of Trilinos package provides interfaces to a few direct solvers.
 List `"amesos parameters`" contains parameters that understood by this library.
@@ -212,7 +222,9 @@ Additional parameters are:
 
 Linear Solver: Amesos
 ---------------------
- Direct solvers via Trilinos.
+`src/solvers/DirectMethodAmesos2.hh <https://github.com/amanzi/amanzi/blob/master/src/solvers/DirectMethodAmesos2.hh>`_
+
+Direct solvers via Trilinos.
 
 .. warning:: undocumented
 
@@ -221,7 +233,9 @@ Linear Solver: Amesos
 
 Linear Solver: Belos (GMRES)
 ----------------------------
- Trilinos/Belos implementations of iterative methods.
+`src/solvers/IterativeMethodBelos.hh <https://github.com/amanzi/amanzi/blob/master/src/solvers/IterativeMethodBelos.hh>`_
+
+Trilinos/Belos implementations of iterative methods.
 
 Includes GMRES and other Belos methods.
 

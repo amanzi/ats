@@ -13,15 +13,17 @@ equations between a coupled flow and energy problem.
 
 Richards Equation water content (liquid only)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
- Richards water content evaluator: the standard form as a function of liquid saturation.
+`src/physics/ats/src/pks/flow/constitutive_relations/water_content/richards_water_content_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/flow/constitutive_relations/water_content/richards_water_content_evaluator.hh>`_
+
+Richards water content evaluator: the standard form as a function of liquid saturation.
 
 .. math::
   \Theta = n s \phi V
 
-Specified with evaluator type: `"richards water content`"
+`"evaluator type`" = `"richards water content`"
 
-.. _field-evaluator-type-richards-water-content-spec:
-.. admonition:: field-evaluator-type-richards-water-content-spec
+.. _evaluator-richards-water-content-spec:
+.. admonition:: evaluator-type-richards-water-content-spec
 
    DEPENDENCIES:
 
@@ -35,16 +37,18 @@ Specified with evaluator type: `"richards water content`"
 
 Liquid+Gas water content
 ^^^^^^^^^^^^^^^^^^^^^^^^
- Water content for liquid + water vapor.
+`src/physics/ats/src/pks/flow/constitutive_relations/water_content/liquid_gas_water_content_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/flow/constitutive_relations/water_content/liquid_gas_water_content_evaluator.hh>`_
+
+Water content for liquid + water vapor.
 
 .. math::
   \Theta = (n_l s_l + n_g s_g \omega) \phi V
 
 
-Specified with evaluator type: `"liquid+gas water content`"
+`"evaluator type`" = `"liquid+gas water content`"
 
-.. _field-evaluator-type-liquid-gas-water-content-spec:
-.. admonition:: field-evaluator-type-liquid-gas-water-content-spec
+.. _evaluator-liquid-gas-water-content-spec:
+.. admonition:: evaluator-liquid-gas-water-content-spec
 
    DEPENDENCIES:
 
@@ -61,16 +65,18 @@ Specified with evaluator type: `"liquid+gas water content`"
 
 Liquid+Ice water content
 ^^^^^^^^^^^^^^^^^^^^^^^^
- Water content for liquid + water vapor.
+`src/physics/ats/src/pks/flow/constitutive_relations/water_content/liquid_ice_water_content_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/flow/constitutive_relations/water_content/liquid_ice_water_content_evaluator.hh>`_
+
+Water content for liquid + water vapor.
 
 .. math::
   \Theta = (n_l s_l + n_i s_i) \phi V
 
 
-Specified with evaluator type: `"liquid+ice water content`"
+`"evaluator type`" = `"liquid+ice water content`"
 
-.. _field-evaluator-type-liquid-ice-water-content-spec:
-.. admonition:: field-evaluator-type-liquid-ice-water-content-spec
+.. _evaluator-liquid-ice-water-content-spec:
+.. admonition:: evaluator-liquid-ice-water-content-spec
 
    DEPENDENCIES:
 
@@ -86,15 +92,17 @@ Specified with evaluator type: `"liquid+ice water content`"
 
 Liquid+Ice+Gas water content
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
- Three phase water content: vapor, liquid, and ice.
+`src/physics/ats/src/pks/flow/constitutive_relations/water_content/three_phase_water_content_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/flow/constitutive_relations/water_content/three_phase_water_content_evaluator.hh>`_
+
+Three phase water content: vapor, liquid, and ice.
 
 .. math::
   \Theta = (n_l s_l + n_i s_i + n_g s_g \omega_g ) \phi V
 
-Specified with evaluator type: `"three phase water content`"
+`"evaluator type`" = `"three phase water content`"
 
-.. _field-evaluator-type-three-phase-water-content-spec:
-.. admonition:: field-evaluator-type-three-phase-water-content-spec
+.. _evaluator-three-phase-water-content-spec:
+.. admonition:: evaluator-three-phase-water-content-spec
 
    DEPENDENCIES:
 
@@ -113,44 +121,91 @@ Specified with evaluator type: `"three phase water content`"
 
 Surface water content
 ^^^^^^^^^^^^^^^^^^^^^
+`src/physics/ats/src/pks/flow/constitutive_relations/water_content/overland_pressure_water_content_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/flow/constitutive_relations/water_content/overland_pressure_water_content_evaluator.hh>`_
+
+
+Computes water content for a water-only surface water problem.  This can be
+used to both compute an extensive water content (which is always non-negative)
+or a "bar" water content which can be negative for pressures less than
+atmospheric pressure for use in preconditioners.
+
+By default:
+
+.. math::
+
+   \Theta_s = \begin{cases}
+                0 & \text{if} \, p < p_{atm} \\
+                V \frac{1}{M_{H2O} g_z} \frac{(p - p_{atm})^2}{2 R} & \text{if} \, p_{atm} <= p < R \\
+                V \frac{1}{M_{H2O} g_z} (p - p_{atm} - \frac{R}{2}) & \text{if} \, \text{R <= p}
+              \end{cases}
+
+for molar mass :math:`M_{H2O}`, rollover cutoff :math:`R`, and gravity :math:`g`.
+
+If `"allow negative water content`" is true, then the first conditional is
+ignored (in this case :math:`R = 0` and is ignored).
+
+Note this is not valid for concentration-dependent density problems.
+
+`"evaluator type`" = `"overland pressure water content`"
+
+.. _evaluator-overland-pressure-water-content-spec:
+.. admonition:: evaluator-overland-pressure-water-content-spec
+
+  * `"allow negative water content`" ``[bool]`` **false**  See above
+
+  * `"water content rollover [Pa]`" ``[double]`` **0** A smoothing term that
+    also can represent subgrid topography.  Not typically used.
+
+  * `"molar mass [kg mol^-1]`" ``[double]`` **0.0180153**
+
+  DEPENDENCIES:
+
+  - `"pressure`"
+  - `"cell volume`"
+  - `"atmospheric_pressure`"
+  - `"gravity`"
+
+
 
 
 Snow or canopy water content
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Most other water contents can be formed as `Multiplicative`_
+Most other water contents can be formed as :ref:`Multiplicative`
 evaluators.  See below for a few examples:
 
 Multiplicative evalutator for `snow-water_content`:
 
 .. code-block:: xml
 
-      <ParameterList name="snow-water_content" type="ParameterList">
-        <Parameter name="field evaluator type" type="string" value="multiplicative evaluator" />
-        <Parameter name="evaluator dependencies" type="Array(string)" value="{snow-cell_volume, snow-water_equivalent, surface-molar_density_liquid}" />
-        <Parameter name="units" type="string" value="mol" />
-      </ParameterList>
+   <ParameterList name="snow-water_content" type="ParameterList">
+     <Parameter name="field evaluator type" type="string" value="multiplicative evaluator" />
+     <Parameter name="evaluator dependencies" type="Array(string)" value="{snow-cell_volume, snow-water_equivalent, surface-molar_density_liquid}" />
+     <Parameter name="units" type="string" value="mol" />
+   </ParameterList>
 
 Multiplicative evaluator for `canopy-water_content`:
 
 .. code-block:: xml
 
-      <ParameterList name="canopy-water_content" type="ParameterList">
-        <Parameter name="field evaluator type" type="string" value="multiplicative evaluator" />
-        <Parameter name="evaluator dependencies" type="Array(string)" value="{canopy-cell_volume, canopy-water_equivalent, surface-molar_density_liquid}" />
-        <Parameter name="units" type="string" value="mol" />
-      </ParameterList>
+   <ParameterList name="canopy-water_content" type="ParameterList">
+     <Parameter name="field evaluator type" type="string" value="multiplicative evaluator" />
+     <Parameter name="evaluator dependencies" type="Array(string)" value="{canopy-cell_volume, canopy-water_equivalent, surface-molar_density_liquid}" />
+     <Parameter name="units" type="string" value="mol" />
+   </ParameterList>
 
 Richards energy
 ^^^^^^^^^^^^^^^
- Energy content evaluator for a standard Richards equation's water content.
+`src/physics/ats/src/pks/energy/constitutive_relations/energy/richards_energy_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/energy/constitutive_relations/energy/richards_energy_evaluator.hh>`_
+
+Energy content evaluator for a standard Richards equation's water content.
 
 Energy associated with a soil and pore-water system, in [KJ]
 
 .. math::
   E = V * ( \phi u_l s_l n_l + (1-\phi_0) u_r \rho_r )
 
-Specified with evaluator type: `"richards energy`"
+`"evaluator type`" = `"richards energy`"
 
 Note this equation assumes that porosity is compressible, but is based on the
 uncompressed rock grain density (not bulk density).  This means that porosity
@@ -159,8 +214,8 @@ the larger, compressible value when used with the energy in the water.
 
 Note that this ignores energy in the gas phase.
 
-.. _field-evaluator-type-richards-energy-spec:
-.. admonition:: field-evaluator-type-richards-energy-spec
+.. _evaluator-richards-energy-spec:
+.. admonition:: evaluator-richards-energy-spec
 
    DEPENDENCIES:
 
@@ -180,22 +235,24 @@ Note that this ignores energy in the gas phase.
 
 Liquid+Gas energy
 ^^^^^^^^^^^^^^^^^
- Energy content evaluator for a standard Richards equation, including energy in the gas phase.
+`src/physics/ats/src/pks/energy/constitutive_relations/energy/liquid_gas_energy_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/energy/constitutive_relations/energy/liquid_gas_energy_evaluator.hh>`_
+
+Energy content evaluator for a standard Richards equation, including energy in the gas phase.
 
 Calculates energy, in [KJ], via the equation:
 
 .. math::
   E = V * ( \phi (u_l s_l n_l + u_g s_g n_g)  + (1-\phi_0) u_r \rho_r )
 
-Specified with evaluator type: `"liquid+gas energy`"
+`"evaluator type`" = `"liquid+gas energy`"
 
 Note this equation assumes that porosity is compressible, but is based on the
 uncompressed rock grain density (not bulk density).  This means that porosity
 is the base, uncompressible value when used with the energy in the grain, but
 the larger, compressible value when used with the energy in the water.
 
-.. _field-evaluator-type-liquid-gas-energy-spec:
-.. admonition:: field-evaluator-type-liquid-gas-energy-spec
+.. _evaluator-liquid-gas-energy-spec:
+.. admonition:: evaluator-liquid-gas-energy-spec
 
    DEPENDENCIES:
 
@@ -218,14 +275,16 @@ the larger, compressible value when used with the energy in the water.
 
 Liquid+Ice energy
 ^^^^^^^^^^^^^^^^^
- Energy content evaluator for a two-phase system, including energy in an ice phase.
+`src/physics/ats/src/pks/energy/constitutive_relations/energy/liquid_ice_energy_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/energy/constitutive_relations/energy/liquid_ice_energy_evaluator.hh>`_
+
+Energy content evaluator for a two-phase system, including energy in an ice phase.
 
 Calculates energy, in [KJ], via the equation:
 
 .. math::
   E = V * ( \phi (u_l s_l n_l + u_i s_i n_i)  + (1-\phi_0) u_r \rho_r )
 
-Specified with evaluator type: `"liquid+ice energy`"
+`"evaluator type`" = `"liquid+ice energy`"
 
 Note this equation assumes that porosity is compressible, but is based on the
 uncompressed rock grain density (not bulk density).  This means that porosity
@@ -234,8 +293,8 @@ the larger, compressible value when used with the energy in the water.
 
 Note that this ignores energy in the gas phase.
 
-.. _field-evaluator-type-liquid-ice-energy-spec:
-.. admonition:: field-evaluator-type-liquid-ice-energy-spec
+.. _evaluator-liquid-ice-energy-spec:
+.. admonition:: evaluator-liquid-ice-energy-spec
 
    DEPENDENCIES:
 
@@ -258,22 +317,24 @@ Note that this ignores energy in the gas phase.
 
 Liquid+Ice+Gas energy
 ^^^^^^^^^^^^^^^^^^^^^
- Energy content evaluator for a three-phase, gas, liquid, ice system including the surrounding soil.
+`src/physics/ats/src/pks/energy/constitutive_relations/energy/three_phase_energy_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/energy/constitutive_relations/energy/three_phase_energy_evaluator.hh>`_
+
+Energy content evaluator for a three-phase, gas, liquid, ice system including the surrounding soil.
 
 Calculates energy, in [KJ], via the equation:
 
 .. math::
   E = V * ( \phi (u_l s_l n_l + u_i s_i n_i + u_g s_g n_g)  + (1-\phi_0) u_r \rho_r )
 
-Specified with evaluator type: `"three phase energy`"
+`"evaluator type`" = `"three phase energy`"
 
 Note this equation assumes that porosity is compressible, but is based on the
 uncompressed rock grain density (not bulk density).  This means that porosity
 is the base, uncompressible value when used with the energy in the grain, but
 the larger, compressible value when used with the energy in the water.
 
-.. _field-evaluator-type-three-phase-energy-spec:
-.. admonition:: field-evaluator-type-three-phase-energy-spec
+.. _evaluator-three-phase-energy-spec:
+.. admonition:: evaluator-three-phase-energy-spec
 
    DEPENDENCIES:
 
@@ -299,17 +360,19 @@ the larger, compressible value when used with the energy in the water.
 
 Surface water+ice energy
 ^^^^^^^^^^^^^^^^^^^^^^^^
- Energy content for a surface water, partially frozen system.
+`src/physics/ats/src/pks/energy/constitutive_relations/energy/surface_ice_energy_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/energy/constitutive_relations/energy/surface_ice_energy_evaluator.hh>`_
+
+Energy content for a surface water, partially frozen system.
 
 The energy associated with ponded water, in [KJ], given by:
 
 .. math::
   E = V * ( \eta h u_l n_l + (1 - \eta) h u_i n_i )
 
-Specified with evaluator type: `"surface ice energy`"
+`"evaluator type`" = `"surface ice energy`"
 
-.. _field-evaluator-type-surface-ice-energy-spec:
-.. admonition:: field-evaluator-type-surface-ice-energy-spec
+.. _evaluator-surface-ice-energy-spec:
+.. admonition:: evaluator-surface-ice-energy-spec
 
    DEPENDENCIES:
 

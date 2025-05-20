@@ -1,24 +1,25 @@
 Observations
 ############
 .. _`UnstructuredObservation`:
- Collection of Observations on an unstructured mesh to be written to a common file.
+`src/state/UnstructuredObservations.hh <https://github.com/amanzi/amanzi/blob/master/src/state/UnstructuredObservations.hh>`_
 
+Collection of Observations on an unstructured mesh to be written to a common file.
 
 .. _observation-spec:
 .. admonition:: observation-spec
 
-    * `"observation output filename`" ``[string]`` user-defined name for the file
-      that the observations are written to.
-    * `"delimiter`" ``[string]`` **COMMA** Delimiter to split columns of the file
-    *  `"write interval`" ``[int]`` **1** Interval of observations on which to flush IO files.
-    * `"time units`" ``[string]`` **s** Controls the unit of the time column in the observation file.
-    * `"domain`" ``[string]`` **"domain"** Can be used to set the communicator which writes (defaults to the standard subsurface domain).
-    * `"observed quantities`" ``[observable-spec-list]`` A list of Observable_
-      objects that are all put in the same file.
+   * `"observation output filename`" ``[string]`` user-defined name for the file
+     that the observations are written to.
+   * `"delimiter`" ``[string]`` **COMMA** Delimiter to split columns of the file
+   *  `"write interval`" ``[int]`` **1** Interval of observations on which to flush IO files.
+   * `"time units`" ``[string]`` **s** Controls the unit of the time column in the observation file.
+   * `"domain`" ``[string]`` **"domain"** Can be used to set the communicator which writes (defaults to the standard subsurface domain).
+   * `"observed quantities`" ``[observable-spec-list]`` A list of Observable_
+     objects that are all put in the same file.
 
-    INCLUDES:
+   INCLUDES:
 
-    - ``[io-event-spec]`` An IOEvent_ spec
+   - ``[io-event-spec]`` An :ref:`IOEvent` spec.
 
 Note, for backwards compatibility, an ``observable-spec`` may be directly
 included within the `observation-spec` if it is the only variable to be
@@ -28,7 +29,9 @@ observed in this file.
 
 
 .. _`Observable`:
- Collects, reduces, and writes observations during a simulation.
+`src/state/Observable.hh <https://github.com/amanzi/amanzi/blob/master/src/state/Observable.hh>`_
+
+Collects, reduces, and writes observations during a simulation.
 
 Observations are a localized-in-space but frequent-in-time view of simulation
 output, designed to get at useful diagnostic quantities such as hydrographs,

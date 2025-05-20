@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Transport PK &#8212; Amanzi-ATS</title>
+    <title>Geochemical Transport &#8212; Amanzi-ATS</title>
   
   
   
@@ -16,40 +16,44 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link href="../../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
-  
-  <link href="../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
-
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=a746c00c" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/custom_theme.css?v=a03f4c85" />
   
+  <!-- So that users can add custom icons -->
+  <script src="../../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
-<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
-  <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
     <script src="../../../_static/jquery.js?v=5d32c60e"></script>
     <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
     <script src="../../../_static/documentation_options.js?v=3ce10a4d"></script>
-    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'input_spec/process_kernels/physical/transport';</script>
     <script>
-        DOCUMENTATION_OPTIONS.theme_version = '0.15.4';
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
         DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
-        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
         </script>
     <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
     <script src="../../../_static/main.js?v=b10558fa"></script>
@@ -60,6 +64,7 @@
     <link rel="prev" title="Flow PKs" href="flow.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="dev" />
   </head>
   
   
@@ -75,19 +80,8 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
-  
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
-  
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="../../../search.html"
       method="get">
@@ -95,7 +89,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search the docs ..."
          aria-label="Search the docs ..."
          autocomplete="off"
@@ -103,8 +96,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -138,7 +131,7 @@
     
     
     <img src="../../../_static/logo_full.png" class="logo__image only-light" alt="Amanzi-ATS documentation -- Home"/>
-    <script>document.write(`<img src="../../../_static/logo_full.png" class="logo__image only-dark" alt="Amanzi-ATS documentation -- Home"/>`);</script>
+    <img src="../../../_static/logo_full.png" class="logo__image only-dark pst-js-only" alt="Amanzi-ATS documentation -- Home"/>
   
   
 </a></div>
@@ -153,13 +146,6 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../concepts/index.html">
-    Amanzi-ATS Concepts
-  </a>
-</li>
-
-
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../../demos.html">
     ATS Demo Problems
@@ -184,29 +170,21 @@
         <div class="navbar-item navbar-persistent--container">
           
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
         </div>
       
       
         <div class="navbar-item">
 
-<script>
-document.write(`
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
-  </button>
-`);
-</script></div>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
       
     </div>
     
@@ -215,15 +193,11 @@ document.write(`
   
     <div class="navbar-persistent--mobile">
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
     </div>
   
 
@@ -238,7 +212,8 @@ document.write(`
       
       
       
-      <div class="bd-sidebar-primary bd-sidebar">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -253,13 +228,6 @@ document.write(`
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../concepts/index.html">
-    Amanzi-ATS Concepts
-  </a>
-</li>
-
-
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../../demos.html">
     ATS Demo Problems
@@ -285,15 +253,11 @@ document.write(`
         
           <div class="navbar-item">
 
-<script>
-document.write(`
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
-  </button>
-`);
-</script></div>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
         
       </div>
     
@@ -303,28 +267,24 @@ document.write(`
         <div class="sidebar-primary-item"><!-- This will display the version of the docs -->
 Version dev</div>
         <div class="sidebar-primary-item">
-<script>
-document.write(`
-  <div class="version-switcher__container dropdown">
-    <button id="pst-version-switcher-button-2"
-      type="button"
-      class="version-switcher__button btn btn-sm dropdown-toggle"
-      data-bs-toggle="dropdown"
-      aria-haspopup="listbox"
-      aria-controls="pst-version-switcher-list-2"
-      aria-label="Version switcher list"
-    >
-      Choose version  <!-- this text may get changed later by javascript -->
-      <span class="caret"></span>
-    </button>
-    <div id="pst-version-switcher-list-2"
-      class="version-switcher__menu dropdown-menu list-group-flush py-0"
-      role="listbox" aria-labelledby="pst-version-switcher-button-2">
-      <!-- dropdown will be populated by javascript on page load -->
-    </div>
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
   </div>
-`);
-</script></div>
+</div></div>
         <div class="sidebar-primary-item">
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
@@ -340,22 +300,24 @@ document.write(`
 <li class="toctree-l2"><a class="reference internal" href="../../io/visualization.html">Visualization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../io/observations.html">Observations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../io/checkpoint.html">Checkpoint</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../io/logfile.html">Logfile Control</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html">Process Kernels</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../base.html">Base PKs</a></li>
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="index.html">Physical PKs</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="flow.html">Flow PKs</a></li>
-<li class="toctree-l3 current active"><a class="current reference internal" href="#">Transport PK</a></li>
+<li class="toctree-l3 current active"><a class="current reference internal" href="#">Geochemical Transport</a></li>
 <li class="toctree-l3"><a class="reference internal" href="energy.html">Energy PKs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seb.html">Surface Energy Balance PKs</a></li>
-
-
+<li class="toctree-l3"><a class="reference internal" href="bgc.html">Biogeochemistry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="deformation.html">Deformation</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../mpcs/index.html">MPC</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../mpcs/base.html">Base MPCs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../mpcs/physical.html">Physical MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../mpcs/tightly_coupled.html">Tightly Coupled MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../mpcs/multiple_domain.html">Multiple Domain MPCs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../mpcs/globalization.html">Globalization Delegates</a></li>
 </ul>
 </details></li>
@@ -364,19 +326,22 @@ document.write(`
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../state/index.html">State</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../state/primary.html">Primary Variables</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../state/independent.html">Independent Variables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/secondary.html">Secondary Variables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/conserved.html">Conserved quantities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/subsurface_flow.html">Subsurface flow evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/surface_flow.html">Surface flow evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/thermo.html">Thermodynamic evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/eos.html">Equations of State</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/seb.html">Surface energy balance evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/snow.html">Snow evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/canopy.html">Canopy evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/bgc.html">Carbon and Biogeochemistry Models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/multiscale.html">Multiscale Models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/geometric.html">Geometric evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/generic.html">Generic evaluators</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../state/secondary.html">Secondary Variables</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../state/conserved.html">Conserved quantities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/subsurface_flow.html">Subsurface Flow Evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/surface_flow.html">Surface Flow Evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/transport.html">Transport evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/thermo.html">Thermodynamic evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/eos.html">Equations of State</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/seb.html">Surface Energy Balance Evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/snow.html">Snow evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/canopy.html">Canopy evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/bgc.html">Carbon and Biogeochemistry Models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/multiscale.html">Multiscale Models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/geometric.html">Geometric evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/generic.html">Generic evaluators</a></li>
+</ul>
+</details></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../math/index.html">Time integrators, solvers, and other mathematical specs</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -391,13 +356,32 @@ document.write(`
 </ul>
 </div>
 </nav></div>
+        <div class="sidebar-primary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#transport">Transport</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#chemistry">Chemistry</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#salinity-transport">Salinity Transport</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sediment-transport">Sediment Transport</a></li>
+</ul>
+  </nav></div>
     </div>
   
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
   </div>
-  
-  <div id="rtd-footer-container"></div>
 
 
       </div>
@@ -415,10 +399,6 @@ document.write(`
       
         <div class="header-article-item">
 
-
-
-
-
 <nav aria-label="Breadcrumb" class="d-print-none">
   <ul class="bd-breadcrumbs">
     
@@ -431,12 +411,12 @@ document.write(`
     <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">ATS Input Specification</a></li>
     
     
-    <li class="breadcrumb-item"><i class="fa-solid fa-ellipsis"></i></li>
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Process Kernels</a></li>
     
     
     <li class="breadcrumb-item"><a href="index.html" class="nav-link">Physical PKs</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page">Transport PK</li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Geochemical Transport</span></li>
   </ul>
 </nav>
 </div>
@@ -453,225 +433,118 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="transport-pk">
-<h1>Transport PK<a class="headerlink" href="#transport-pk" title="Link to this heading">#</a></h1>
-<p>The Transport PK describes the conservation of mass of components transported
-with water as it flows. The transport PK is based on the advection-diffusion
-equation, applies to one or more components that are dissolved in the aqueous
-phase, and is currently used in both surface and subsurface compartments.
-The key difference between surface and subsurface transport is in capturing
-the volume of water. In the subsurface, the volume of water is set by the
-porosity and saturation of the porous medium, while in the surface it is set
-by the ponded depth.</p>
-<p>The advection-diffusion equation for component <em>i</em> in partially saturated porous media may be written as</p>
+  <section id="geochemical-transport">
+<h1>Geochemical Transport<a class="headerlink" href="#geochemical-transport" title="Link to this heading">#</a></h1>
+<p>Geochemical transport capabilities are implemented in a few different PKs.</p>
+<section id="transport">
+<h2>Transport<a class="headerlink" href="#transport" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/transport/transport_ats.hh">src/physics/ats/src/pks/transport/transport_ats.hh</a></p>
+<p>This PK solves for transport of chemical species in water.  It may optionally
+be paired with a PK for reactions, typically in an operator-split form, to
+solve reactive transport.</p>
+<p>The advection-dispersion equation for component <em>i</em> may be written as:</p>
 <div class="math notranslate nohighlight">
-\[\frac{\partial (\phi s_l C_i)}{\partial t}
-=
-- \boldsymbol{\nabla} \cdot (\boldsymbol{q} C_i)
-+ \boldsymbol{\nabla} \cdot (\phi s_l\, (\boldsymbol{D^*}_l + \tau \boldsymbol{D}_i) \boldsymbol{\nabla} C_i) + Q_s,\]</div>
-<p>The advection-diffusion equation for component <em>i</em> in the surface may be written as</p>
+\[\frac{\partial (\Theta \xi_i)}{\partial t} = - \boldsymbol{\nabla} \cdot (\boldsymbol{q} \xi_i)
++ \boldsymbol{\nabla} \cdot (\Theta \, (\boldsymbol{D^*}_l + \tau \boldsymbol{D}_i) \boldsymbol{\nabla} \xi_i) + Q_s,\]</div>
+<p>The primary variable for this PK is <span class="math notranslate nohighlight">\(\xi_i\)</span>, the <strong>mole ratio</strong> of a
+specie <span class="math notranslate nohighlight">\(i\)</span> in the aqueous phase, with units of [mol i / mol H2O].</p>
+<p>This seems a bit odd to most people who are used to reactive transport codes
+where the primary variable is total component concentration <span class="math notranslate nohighlight">\(C\)</span>, in units of [mol i
+/ L].  The reason for this differences is to better enable variable-density
+problems.  Note that the two are related:</p>
 <div class="math notranslate nohighlight">
-\[\frac{\partial (C_i)}{\partial t}
-=
-- \boldsymbol{\nabla} \cdot (\boldsymbol{q_s} C_i)
-+ \boldsymbol{\nabla} \cdot ( (\boldsymbol{D^*}_l + \tau \boldsymbol{D}_i) \boldsymbol{\nabla} C_i) + Q_s,\]</div>
-<div class="admonition-transport-spec admonition" id="transport-spec">
-<p class="admonition-title">transport-spec</p>
+\[C_i = n_l \xi_i\]</div>
+<p>for molar density of liquid water <span class="math notranslate nohighlight">\(n_l\)</span>.</p>
+<p>For reactive transport problems, both concentration and mole ratio are output
+in the visualization file.  For transport-only problems, concentration may be
+output by adding a total component concentration evaluator that multiplies the
+two quantities using an <cite>“evaluator type</cite>” = <cite>“multiplicative evaluator</cite>”.</p>
+<p><cite>“PK type</cite>” = <cite>“transport ATS</cite>”</p>
+<div class="admonition-pk-transport-ats-spec admonition" id="pk-transport-ats-spec">
+<p class="admonition-title">pk-transport-ats-spec</p>
 <ul class="simple">
-<li><p><cite>“PK type</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>“transport ats”</strong></p></li>
-<li><p><cite>“domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>domain</strong> specifies mesh name that defines
+<li><p><cite>“domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>“domain”</strong> specifies mesh name that defines
 the domain of this PK.</p></li>
-<li><p><cite>“component names</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> No default. Provides the names of the
-components that will be transported. Must be in the order: aqueous, gaseous, solid.</p></li>
+<li><p><cite>“component names</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> <strong>optional</strong> No default. Provides
+the names of the components that will be transported.  Note that these
+must be provided by the user if transport is used alone, or are provided
+by the geochemical engine if reactions are to be used.</p></li>
 <li><p><cite>“number of aqueous components</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>-1</strong> The total number of
 aqueous components.  Default value is the length of <cite>“component names</cite>”</p></li>
-<li><p><cite>“number of gaseous components</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>0</strong> The total number of
-gaseous components.</p></li>
 <li><p><cite>“boundary conditions</cite>” <code class="docutils literal notranslate"><span class="pre">[transport-bc-spec]</span></code> Boundary conditions for
 transport are dependent on the boundary conditions for flow. See
-<a href="#id1"><span class="problematic" id="id2">`Flow-specific Boundary Conditions`_</span></a> and <a href="#id3"><span class="problematic" id="id4">`Transport-specific Boundary Conditions`_</span></a></p></li>
-<li><p><cite>“component molar masses</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> No default. Molar mass of
-each component.</p></li>
-<li><p><cite>“molecular diffusion</cite>” <code class="docutils literal notranslate"><span class="pre">[molecular-diffusion-spec]</span></code> defines names of
-solutes in aqueous and gaseous phases and related diffusivity values.</p></li>
-<li><p>“material properties” <code class="docutils literal notranslate"><span class="pre">[material-properties-spec-list]</span></code> Defines material
-properties see below).</p></li>
-</ul>
-<p>Source terms:</p>
-<ul class="simple">
+<a class="reference internal" href="../../common.html#transport-specific-boundary-conditions"><span class="std std-ref">Transport-specific Boundary Conditions</span></a></p></li>
+<li><p><cite>“molecular diffusivity [m^2 s^-1]</cite>” <code class="docutils literal notranslate"><span class="pre">[molecular-diffusivity-spec]</span></code> See
+below.</p></li>
+<li><p><cite>“tortuosity [-]</cite>” <code class="docutils literal notranslate"><span class="pre">[tortuosity-spec]</span></code> See below.</p></li>
 <li><p><cite>“source terms</cite>” <code class="docutils literal notranslate"><span class="pre">[transport-source-spec-list]</span></code> Provides solute source.</p></li>
-</ul>
-<p>Physical model and assumptions:</p>
-<ul class="simple">
-<li><p><cite>“physical models and assumptions</cite>” [material-properties-spec] Defines material properties.</p></li>
-<li><p><cite>“effective transport porosity</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> If <em>true</em>, effective transport porosity
-will be used by dispersive-diffusive fluxes instead of total porosity.</p></li>
 </ul>
 <p>Math and solver algorithm options:</p>
 <ul class="simple">
-<li><p><cite>“diffusion</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-diffusion-spec]</span></code> Diffusion drives the distribution.
-Typically we use finite volume here.  See <a href="#id5"><span class="problematic" id="id6">PDE_Diffusion_</span></a></p></li>
-<li><p><cite>“diffusion preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-diffusion-spec]</span></code> Inverse of the
-above.  Likely only Jacobian term options are needed here, as the others
-default to the same as the <cite>“diffusion</cite>” list.  See <a href="#id7"><span class="problematic" id="id8">PDE_Diffusion_</span></a>.</p></li>
-<li><p><cite>“inverse</cite>” <code class="docutils literal notranslate"><span class="pre">[inverse-typed-spec]</span></code> <a href="#id9"><span class="problematic" id="id10">Inverse_</span></a> method for the solve.</p></li>
-<li><p><cite>“cfl</cite>” [double] Time step limiter, a number less than 1. Default value is 1.</p></li>
-<li><p><cite>“spatial discretization order</cite>” [int] defines accuracy of spatial discretization.
-It permits values 1 or 2. Default value is 1.</p></li>
-<li><p><cite>“temporal discretization order</cite>” [int] defines accuracy of temporal discretization.
-It permits values 1 or 2 and values 3 or 4 when expert parameter
-<cite>“generic RK implementation</cite>” is set to true. Note that RK3 is not monotone.
-Default value is 1.</p></li>
-<li><dl class="simple">
-<dt><cite>“reconstruction</cite>” [list] collects reconstruction parameters. The available options are</dt><dd><p>describe in the separate section below.</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt><cite>“transport subcycling</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>true</strong> The code will default to</dt><dd><p>subcycling for transport within the master PK if there is one.</p>
-</dd>
-</dl>
-</li>
-</ul>
-<p>Developer parameters:</p>
-<ul class="simple">
-<li><dl class="simple">
-<dt><cite>“enable internal tests</cite>” [bool] turns on various internal tests during</dt><dd><p>run time. Default value is <cite>“false</cite>”.</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt><cite>“generic RK implementation</cite>” [bool] leads to generic implementation of</dt><dd><p>all Runge-Kutta methods. Default value is <cite>“false</cite>”.</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt><cite>“internal tests tolerance</cite>” [double] tolerance for internal tests such as the</dt><dd><p>divergence-free condition. The default value is 1e-6.</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt><cite>“runtime diagnostics: solute names</cite>” [Array(string)] defines solutes that will be</dt><dd><p>tracked closely each time step if verbosity <cite>“high</cite>”. Default value is the first
-solute in the global list of <cite>“aqueous names</cite>” and the first gas in the global list
-of <cite>“gaseous names</cite>”.</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt><cite>“runtime diagnostics: regions</cite>” [Array(string)] defines a boundary region for</dt><dd><p>tracking solutes. Default value is a seepage face boundary, see Flow PK.</p>
-</dd>
-</dl>
-</li>
+<li><p><cite>“diffusion</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-diffusion-typedinline-spec]</span></code> Diffusion drives the
+distribution.  Typically we use finite volume here, but mimetic schemes
+may be used.  See <a class="reference internal" href="../../math/operators.html#diffusion"><span class="std std-ref">Diffusion</span></a></p></li>
+<li><p><cite>“diffusion preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-diffusion-typedinline-spec]</span></code> Inverse
+of the above.  Likely only Jacobian term options are needed here, as the
+others default to the same as the <cite>“diffusion</cite>” list.  See
+<a class="reference internal" href="../../math/operators.html#diffusion"><span class="std std-ref">Diffusion</span></a>.</p></li>
+<li><p><cite>“inverse</cite>” <code class="docutils literal notranslate"><span class="pre">[inverse-typed-spec]</span></code> <span class="xref std std-ref">Inverse</span> method for the
+diffusion-dispersion solve.  See <span class="xref std std-ref">Inverse</span>.</p></li>
+<li><p><cite>“cfl</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.0</strong> Courant-Friedrichs-Lewy condition, a limiter
+on the timestep size relative to spatial size.  Must be &lt;= 1.</p></li>
+<li><p><cite>“advection spatial discretization order</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>1</strong> Defines
+accuracy of the spatial discretization in the advection term.  It permits
+values 1 or 2. Default value is 1 (donor upwind) but 2 (a limiter scheme)
+is much less numerically diffusive, and recommended for most cases.</p></li>
+<li><p><cite>“temporal discretization order</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>1</strong> Defines accuracy of
+temporal discretization.  It permits values 1 (forward Euler) and 2 (a
+Runga-Kutta scheme).</p></li>
+<li><p><cite>“reconstruction</cite>” <code class="docutils literal notranslate"><span class="pre">[reconstruction-spec]</span></code> collects reconstruction
+parameters for use in reconstructing the velocity field for 2nd order
+advection schemes.  See <span class="xref std std-ref">Reconstructions</span>.</p></li>
 </ul>
 <p>KEYS</p>
 <ul>
-<li><dl class="simple">
-<dt><cite>“saturation liquid</cite>” This variable is a multiplier in in the</dt><dd><p>accumulation term. For subsurface transport, this will typically be the
-saturation (<cite>“saturation_liquid</cite>”). For surface transport, this will
-typically be the ponded depth (<cite>“ponded_depth</cite>”).</p>
-</dd>
-</dl>
-</li>
-<li><p><cite>“previous saturation liquid</cite>”</p></li>
-<li><dl class="simple">
-<dt><cite>“molar density liquid</cite>”  Transport is solved</dt><dd><p>for concentrations in units of mol fractions. Molar density is needed for conversion.</p>
-</dd>
-</dl>
-</li>
-<li><p><cite>“water flux</cite>”</p></li>
-<li><dl>
-<dt><cite>“water source</cite>” Defines the water injection rate [mol H2O m^-2 s^-1] in</dt><dd><p>surface and [mol H2O m^-3 s^-1] in subsurface) which applies to
+<li><p><cite>“primary variable</cite>” <strong>“molar_ratio”</strong> [mol C mol H2O^-1]</p></li>
+<li><p><cite>“liquid water content</cite>” <strong>“water_content”</strong> This variable is a multiplier
+in in the accumulation term. This is often just <cite>“water_content</cite>”, but
+not in frozen cases, where it must be defined by the user (typically as
+<span class="math notranslate nohighlight">\(\phi s n_l |V|\)</span> in the subsurface, or <span class="math notranslate nohighlight">\(h n_l |V|\)</span> on the
+surface.</p></li>
+<li><p><cite>“molar density liquid</cite>” [mol H2O m^-3]</p></li>
+<li><p><cite>“water flux</cite>” The face-based water flux in [mol H2O s^-1].</p></li>
+<li><p><cite>“water source</cite>” Defines the water injection rate [mol H2O m^-2 s^-1] in
+surface and [mol H2O m^-3 s^-1] in subsurface) which applies to
 concentrations specified by the <cite>“geochemical conditions</cite>”.  Note that if
 this PK is coupled to a surface flow PK, the unit of the water source
 there <em>must</em> be in [mol m^-2 s^-1], <em>not</em> in [m s^-1] as is an option for
 that PK (e.g. <cite>“water source in meters</cite>” must be set to <cite>“false</cite>” in the
 overland flow PK).</p>
-<p>The injection rate of a solute [molC s^-1], when given as the product of
-a concentration and a water source, is evaluated as:</p>
-<dl class="simple">
-<dt>Concentration [mol C L^-1] *</dt><dd><p>1000 [L m^-3] of water *
-water source [mol H2O m^-3 s^-1] *
-volume of injection domain [m^3] /
+<p>The injection rate of a solute [molC s^-1], when given as the product of a
+concentration and a water source, is evaluated as:</p>
+<blockquote>
+<div><p>Concentration [mol C L^-1] <span class="math notranslate nohighlight">\(\times\)</span>
+1000 [L m^-3] of water <span class="math notranslate nohighlight">\(\times\)</span>
+water source [mol H2O m^-3 s^-1] <span class="math notranslate nohighlight">\(\times\)</span>
+volume of injection domain [m^3] <span class="math notranslate nohighlight">\(/\)</span>
 molar density of water [mol H2O m^-3]</p>
-</dd>
-</dl>
-</dd>
-</dl>
+</div></blockquote>
 </li>
 </ul>
 </div>
-<div class="admonition-molecular-diffusion-spec admonition" id="molecular-diffusion-spec">
-<p class="admonition-title">molecular-diffusion-spec</p>
-<ul class="simple">
-<li><p><cite>“aqueous names</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> List of aqueous component names to
-be diffused.</p></li>
-<li><p><cite>“aqueous values</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> Diffusivities of each component.</p></li>
-</ul>
+<p>Note, this is not dispersion, but strictly isotropic diffusion.</p>
+<div class="admonition-molecular-diffusivity-spec admonition" id="molecular-diffusivity-spec">
+<p class="admonition-title">molecular-diffusivity-spec</p>
+<p>For each aqueous component, a single value is provided for molecular diffusivity, e.g.</p>
+<p><cite>“COMPONENT_NAME</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> value [m^2 s^-1]</p>
 </div>
-<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;molecular diffusion&quot;</span><span class="nt">&gt;</span>
-<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;aqueous names&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{CO2(l),Tc-99}&quot;</span><span class="nt">/&gt;</span>
-<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;aqueous values&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">Array(double)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{1e-8,1e-9}&quot;</span><span class="nt">/&gt;</span>
-<span class="nt">&lt;/ParameterList&gt;</span>
-</pre></div>
-</div>
-<div class="admonition-material-properties-spec admonition" id="material-properties-spec">
-<p class="admonition-title">material-properties-spec</p>
+<div class="admonition-tortuosity-spec admonition" id="tortuosity-spec">
+<p class="admonition-title">tortuosity-spec</p>
 <ul class="simple">
-<li><p><cite>“region</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> Defines geometric regions for material SOIL.</p></li>
-<li><p><cite>“model</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>scalar</strong> Defines dispersivity model.  One of:</p>
-<ul>
-<li><p><cite>“scalar</cite>” : scalar dispersivity</p></li>
-<li><p><cite>“Bear</cite>” : dispersion split into along- and across- velocity</p></li>
-<li><p><cite>“Burnett-Frind</cite>”</p></li>
-<li><p><cite>“Lichtner-Kelkar-Robinson</cite>”</p></li>
-</ul>
-</li>
-<li><p><cite>“parameters for MODEL</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code> where <cite>“MODEL</cite>” is the model name.</p></li>
-</ul>
-<p>IF model == scalar</p>
-<p>ONE OF</p>
-<ul class="simple">
-<li><p><cite>“alpha</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> defines dispersivity in all directions, [m].</p></li>
-</ul>
-<p>OR</p>
-<ul class="simple">
-<li><p><cite>“dispersion coefficient</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> defines dispersion coefficient [m^2 s^-1].</p></li>
-</ul>
-<p>END</p>
-<p>ELSE IF model == Bear</p>
-<ul class="simple">
-<li><p><cite>“alpha_l</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> defines dispersion in the direction of Darcy velocity, [m].</p></li>
-<li><p><cite>“alpha_t</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> defines dispersion in the orthogonal direction, [m].</p></li>
-</ul>
-<p>ELSE IF model == Burnett-Frind</p>
-<ul class="simple">
-<li><p><cite>“alphaL</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> defines the longitudinal dispersion in the direction
-of Darcy velocity, [m].</p></li>
-<li><p><cite>“alpha_th</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> Defines the transverse dispersion in the horizonal
-direction orthogonal directions, [m].</p></li>
-<li><p><cite>“alpha_tv</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> Defines dispersion in the orthogonal directions,
-[m].  When <cite>“alpha_th</cite>” equals to <cite>“alpha_tv</cite>”, we obtain dispersion in
-the direction of the Darcy velocity.</p></li>
-</ul>
-<p>ELSE IF model == Lichtner-Kelker-Robinson</p>
-<ul class="simple">
-<li><p><cite>“alpha_lh</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> defines the longitudinal dispersion in the
-horizontal direction, [m].</p></li>
-<li><p><cite>“alpha_lv</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> Defines the longitudinal dispersion in the vertical
-direction, [m].  When <cite>“alpha_lh</cite>” equals to <cite>“alpha_lv</cite>”, we obtain
-dispersion in the direction of the Darcy velocity.</p></li>
-<li><p><cite>“alpha_th</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> Defines the transverse dispersion in the horizontal
-direction orthogonal directions, [m].</p></li>
-<li><p><cite>“alpha_tv” ``[double]`</cite> Defines dispersion in the orthogonal directions.
-When <cite>“alpha_th</cite>” equals to <cite>“alpha_tv</cite>”, we obtain dispersion in the
-direction of the Darcy velocity.</p></li>
-</ul>
-<p>END</p>
-<ul class="simple">
-<li><p><cite>“aqueous tortuosity</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> Defines tortuosity for calculating
+<li><p><cite>“aqueous</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> Defines tortuosity for calculating
 diffusivity of liquid solutes, [-].</p></li>
-<li><p><cite>“gaseous tortuosity</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> Defines tortuosity for calculating
-diffusivity of gas solutes, [-].</p></li>
+<li><p><cite>“gaseous</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> Defines tortuosity for calculating
+diffusivity of gas solutes, [-].  Not currently implemented!</p></li>
 </ul>
 </div>
 <div class="admonition-transport-source-spec admonition" id="transport-source-spec">
@@ -697,6 +570,87 @@ rate given by the water source.  Currently, this option is only available for Al
 </li>
 </ul>
 </div>
+</section>
+<section id="chemistry">
+<h2>Chemistry<a class="headerlink" href="#chemistry" title="Link to this heading">#</a></h2>
+<p>Reactive transport is done by coupling a <a class="reference internal" href="#transport"><span class="std std-ref">Transport</span></a> PK with
+chemistry using some variation on a <a class="reference internal" href="../mpcs/tightly_coupled.html#reactive-transport"><span class="std std-ref">Reactive Transport</span></a> MPC.
+Currently, ATS only implements chemistry through <a class="reference external" href="https://doi.org/10.11578/dc.20210416.49">Alquimia</a>, which calls out to either
+<a class="reference external" href="https://pflotran.org">PFloTran</a> or <a class="reference external" href="https://crunch.lbl.gov">Crunch</a> for reaction support.</p>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/pks/chemistry/Alquimia_PK.hh">src/pks/chemistry/Alquimia_PK.hh</a></p>
+<p>The Alquimia PK leverages the Alquimia interface to implement chemical
+reactions by calling out to a chemical engine.</p>
+<p>This PK, when not coupled, solves the following set of ODEs:</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial C_ij}{\partial t} = \sum_{k=1..nreactions} R_ik(C_{i=1..ncomponents,j})\]</div>
+<p>for <span class="math notranslate nohighlight">\(k\)</span> indexing reactions, <span class="math notranslate nohighlight">\(i\)</span> indexing components, and <span class="math notranslate nohighlight">\(j\)</span>
+indexing grid cells.  The total component concentrations <span class="math notranslate nohighlight">\(C\)</span> are in <cite>[kg L^-1]</cite>.</p>
+<p>The details of how to parameterize and specify a reaction network are specific
+to each geochemical engine, of which currently only PFloTran and Crunch are
+supported.  Corresponding input files for these engines must be provided.
+Examples are available in Amanzi’s user guide tests and ATS’s regression tests.</p>
+<p><cite>“PK type</cite>” = <cite>“chemistry alquimia</cite>”</p>
+<div class="admonition-pk-chemistry-alquimia-spec admonition">
+<p class="admonition-title">pk-chemistry-alquimia-spec</p>
+<ul class="simple">
+<li><p><cite>“timestep controller</cite>” <code class="docutils literal notranslate"><span class="pre">[timestep-controller-typed-spec]</span></code> Timestep control parameters.</p></li>
+<li><p><cite>“engine</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> One of:</p>
+<ul>
+<li><p><cite>“CrunchFlow</cite>”</p></li>
+<li><p><cite>“PfloTran</cite>”</p></li>
+</ul>
+</li>
+<li><p><cite>“engine input file</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Path to the engine’s input file.</p></li>
+</ul>
+<p>KEYS:</p>
+<ul class="simple">
+<li><p><cite>“total component concentration</cite>”</p></li>
+<li><p><cite>“mass density liquid</cite>”</p></li>
+<li><p><cite>“porosity</cite>”</p></li>
+<li><p><cite>“saturation liquid</cite>”</p></li>
+<li><p><cite>“temperature</cite>”</p></li>
+<li><p><cite>“mineral volume fractions</cite>”</p></li>
+<li><p><cite>“mineral specific surface area</cite>”</p></li>
+<li><p><cite>“mineral rate constant</cite>”</p></li>
+<li><p><cite>“surface site density</cite>”</p></li>
+<li><p><cite>“total_sorbed</cite>”</p></li>
+<li><p><cite>“isotherm kd</cite>”</p></li>
+<li><p><cite>“isotherm freundlich n</cite>”</p></li>
+<li><p><cite>“isotherm langmuir b</cite>”</p></li>
+<li><p><cite>“first order decay ratae constant</cite>”</p></li>
+<li><p><cite>“cation exchange capacity</cite>”</p></li>
+<li><p><cite>“aux data</cite>”</p></li>
+<li><p><cite>“pH</cite>”</p></li>
+</ul>
+</div>
+<p>See the Alquimia documentation for the needed input spec for a given engine.</p>
+<blockquote>
+<div><div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList&gt;</span><span class="w">  </span><span class="cm">&lt;!-- parent list --&gt;</span>
+<span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;alquimia PK&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;engine&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;PFloTran&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;engine input file&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;tritium.in&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;timestep controller&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;timestep control type&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;fixed&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;fixed parameters&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;timestep [s]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;1.0e-02&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</section>
+<section id="salinity-transport">
+<h2>Salinity Transport<a class="headerlink" href="#salinity-transport" title="Link to this heading">#</a></h2>
+<p>Salinity transport is not itself a PK, but may be implemented as a
+variation on <a class="reference internal" href="#transport">Transport</a> by supplying equations of state that are a
+function of the concentration of salt.  Examples of this are provided
+in the regression tests and demos.</p>
+</section>
+<section id="sediment-transport">
+<h2>Sediment Transport<a class="headerlink" href="#sediment-transport" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/transport/sediment_transport_pk.hh">src/physics/ats/src/pks/transport/sediment_transport_pk.hh</a></p>
+<p>Document me &#64;dasvyat</p>
+</section>
 </section>
 
 
@@ -745,8 +699,8 @@ rate given by the water source.  Currently, this option is only available for Al
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
-<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -766,7 +720,7 @@ rate given by the water source.  Currently, this option is only available for Al
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
     <br/>
   </p>
 </div>
@@ -779,7 +733,8 @@ rate given by the water source.  Currently, this option is only available for Al
       
         <div class="footer-item">
 <p class="theme-version">
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
 </p></div>
       
     </div>

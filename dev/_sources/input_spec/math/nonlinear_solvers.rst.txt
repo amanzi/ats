@@ -2,7 +2,9 @@ Nonlinear Solver
 ================
 .. _Solver:
    
- A factory for creating nonlinear solvers.
+`src/solvers/SolverFactory.hh <https://github.com/amanzi/amanzi/blob/master/src/solvers/SolverFactory.hh>`_
+
+A factory for creating nonlinear solvers.
 
 Nonlinear solvers are used within implicit time integration schemes to drive
 the residual to zero and thereby solve for the primary variable at the new
@@ -43,7 +45,9 @@ time.
 
 Solver: Newton and Inexact Newton
 ---------------------------------
- Straightforward Newton/Inexact Newton solver.
+`src/solvers/SolverNewton.hh <https://github.com/amanzi/amanzi/blob/master/src/solvers/SolverNewton.hh>`_
+
+Straightforward Newton/Inexact Newton solver.
 
 The classical Newton method works well for cases where Jacobian is available
 and corresponds to a stable (e.g. upwind) discretization.  The inexact Newton
@@ -102,7 +106,9 @@ method is Newton.  If it applies an appoximation, it is inexact Newton.
 
 Solver: Jacobian-Free Newton Krylov
 -----------------------------------
- Decorator for using a Solver with JFNK as the preconditioner.
+`src/solvers/SolverJFNK.hh <https://github.com/amanzi/amanzi/blob/master/src/solvers/SolverJFNK.hh>`_
+
+Decorator for using a Solver with JFNK as the preconditioner.
 
 Jacobian-Free Newton Krylov uses a finite difference scheme to approximate the
 action of the Jacobian matrix, then uses a Krylov method (which only needs the
@@ -154,6 +160,7 @@ inverse, the estimate of the inverse.
 
 
 
+`src/solvers/MatrixJF.hh <https://github.com/amanzi/amanzi/blob/master/src/solvers/MatrixJF.hh>`_
 
 
 The Jacobian-Free Matrix operator, which is used to estimate the action of the
@@ -183,7 +190,9 @@ the action of the Jacobian.  They are documented in Knoll & Keyes 2004 paper.
 
 Solver: Newton with Line Search
 -------------------------------
- Line search on the provided correction as a solver.
+`src/solvers/SolverLS.hh <https://github.com/amanzi/amanzi/blob/master/src/solvers/SolverLS.hh>`_
+
+Line search on the provided correction as a solver.
 
 Line Search accepts a correction from the Jacobian, then uses a
 process to attempt to minimize or at least ensure a reduction in the residual
@@ -237,7 +246,9 @@ Note, this always monitors the residual.
 
 Solver: Nonlinear Continuation
 ------------------------------
- A very simple nonlinear continuation method.
+`src/solvers/SolverContinuation.hh <https://github.com/amanzi/amanzi/blob/master/src/solvers/SolverContinuation.hh>`_
+
+A very simple nonlinear continuation method.
 
 Continuation methods are useful when the nonlinearity can be controlled by a
 single simple parameter.  In this method, the nonlinear problem is solved with
@@ -265,7 +276,9 @@ interface about how to update the continuation parameter.
 
 Solver: Nonlinear Krylov Acceleration
 -------------------------------------
- Nonlinear Krylov Acceleration as a nonlinear solver.
+`src/solvers/SolverNKA.hh <https://github.com/amanzi/amanzi/blob/master/src/solvers/SolverNKA.hh>`_
+
+Nonlinear Krylov Acceleration as a nonlinear solver.
 
 Uses the Nonlinear Krylov acceleration method of Carlson and Miller to do
 effectively a multivariant secant method, accelerating the solution of a
@@ -352,7 +365,9 @@ especially with an approximate Jacobian.
 
 Solver: Anderson Acceleration
 -----------------------------
- Anderson acceleration as a nonlinear solver.
+`src/solvers/SolverAA.hh <https://github.com/amanzi/amanzi/blob/master/src/solvers/SolverAA.hh>`_
+
+Anderson acceleration as a nonlinear solver.
 
 This is a variation of the GMRES solver for nonlinear problems.
 
@@ -398,7 +413,9 @@ This is a variation of the GMRES solver for nonlinear problems.
 
 Solver: NKA with Line Search
 ----------------------------
- NKA nonlinear solver with a line-search based on a Brendt minimization algorithm.
+`src/solvers/SolverNKA_LS.hh <https://github.com/amanzi/amanzi/blob/master/src/solvers/SolverNKA_LS.hh>`_
+
+NKA nonlinear solver with a line-search based on a Brendt minimization algorithm.
 
 Does NKA, then checks if that correction has reduced the residual by at least a
 tolerance.  If not, this uses a Brendt minimization algorithm to try and find
@@ -443,11 +460,14 @@ Note, this always monitors the residual.
 
 Solver: NKA with Line Search, ATS
 ---------------------------------
+`src/solvers/SolverNKA_LS_ATS.hh <https://github.com/amanzi/amanzi/blob/master/src/solvers/SolverNKA_LS_ATS.hh>`_
 
 
 Solver: NKA with backtracking, ATS
 ----------------------------------
- Nonlinear solve using NKA with a heuristic based backtracking.
+`src/solvers/SolverNKA_BT_ATS.hh <https://github.com/amanzi/amanzi/blob/master/src/solvers/SolverNKA_BT_ATS.hh>`_
+
+Nonlinear solve using NKA with a heuristic based backtracking.
 
 Whereas line search uses a formal minimization method, backtracking simply uses
 a heuristic multiplier on :math:`\alpha` to find a correction that sufficiently
@@ -529,7 +549,9 @@ Note this always monitors the residual, and the correction is always modified.
 
 Solver: NOX
 ----------------------------------
- Calls Nox nonlinear solvers/JFNK.
+`src/solvers/SolverNox.hh <https://github.com/amanzi/amanzi/blob/master/src/solvers/SolverNox.hh>`_
+
+Calls Nox nonlinear solvers/JFNK.
 
 The interface to Trilinos NOX solver is as follows:
 

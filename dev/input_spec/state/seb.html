@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Surface energy balance evaluators &#8212; Amanzi-ATS</title>
+    <title>Surface Energy Balance Evaluators &#8212; Amanzi-ATS</title>
   
   
   
@@ -16,40 +16,44 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link href="../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
-  
-  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
-
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
-    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/custom_theme.css?v=a03f4c85" />
   
+  <!-- So that users can add custom icons -->
+  <script src="../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
-<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
-  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
     <script src="../../_static/jquery.js?v=5d32c60e"></script>
     <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
     <script src="../../_static/documentation_options.js?v=3ce10a4d"></script>
-    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'input_spec/state/seb';</script>
     <script>
-        DOCUMENTATION_OPTIONS.theme_version = '0.15.4';
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
         DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
-        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
         </script>
     <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
     <script src="../../_static/main.js?v=b10558fa"></script>
@@ -60,6 +64,7 @@
     <link rel="prev" title="Equations of State" href="eos.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="dev" />
   </head>
   
   
@@ -75,19 +80,8 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
-  
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
-  
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="../../search.html"
       method="get">
@@ -95,7 +89,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search the docs ..."
          aria-label="Search the docs ..."
          autocomplete="off"
@@ -103,8 +96,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -138,7 +131,7 @@
     
     
     <img src="../../_static/logo_full.png" class="logo__image only-light" alt="Amanzi-ATS documentation -- Home"/>
-    <script>document.write(`<img src="../../_static/logo_full.png" class="logo__image only-dark" alt="Amanzi-ATS documentation -- Home"/>`);</script>
+    <img src="../../_static/logo_full.png" class="logo__image only-dark pst-js-only" alt="Amanzi-ATS documentation -- Home"/>
   
   
 </a></div>
@@ -153,13 +146,6 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../concepts/index.html">
-    Amanzi-ATS Concepts
-  </a>
-</li>
-
-
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../demos.html">
     ATS Demo Problems
@@ -184,29 +170,21 @@
         <div class="navbar-item navbar-persistent--container">
           
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
         </div>
       
       
         <div class="navbar-item">
 
-<script>
-document.write(`
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
-  </button>
-`);
-</script></div>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
       
     </div>
     
@@ -215,15 +193,11 @@ document.write(`
   
     <div class="navbar-persistent--mobile">
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
     </div>
   
 
@@ -238,7 +212,8 @@ document.write(`
       
       
       
-      <div class="bd-sidebar-primary bd-sidebar">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -253,13 +228,6 @@ document.write(`
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../concepts/index.html">
-    Amanzi-ATS Concepts
-  </a>
-</li>
-
-
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../demos.html">
     ATS Demo Problems
@@ -285,15 +253,11 @@ document.write(`
         
           <div class="navbar-item">
 
-<script>
-document.write(`
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
-  </button>
-`);
-</script></div>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
         
       </div>
     
@@ -303,28 +267,24 @@ document.write(`
         <div class="sidebar-primary-item"><!-- This will display the version of the docs -->
 Version dev</div>
         <div class="sidebar-primary-item">
-<script>
-document.write(`
-  <div class="version-switcher__container dropdown">
-    <button id="pst-version-switcher-button-2"
-      type="button"
-      class="version-switcher__button btn btn-sm dropdown-toggle"
-      data-bs-toggle="dropdown"
-      aria-haspopup="listbox"
-      aria-controls="pst-version-switcher-list-2"
-      aria-label="Version switcher list"
-    >
-      Choose version  <!-- this text may get changed later by javascript -->
-      <span class="caret"></span>
-    </button>
-    <div id="pst-version-switcher-list-2"
-      class="version-switcher__menu dropdown-menu list-group-flush py-0"
-      role="listbox" aria-labelledby="pst-version-switcher-button-2">
-      <!-- dropdown will be populated by javascript on page load -->
-    </div>
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
   </div>
-`);
-</script></div>
+</div></div>
         <div class="sidebar-primary-item">
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
@@ -340,22 +300,24 @@ document.write(`
 <li class="toctree-l2"><a class="reference internal" href="../io/visualization.html">Visualization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../io/observations.html">Observations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../io/checkpoint.html">Checkpoint</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../io/logfile.html">Logfile Control</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../process_kernels/index.html">Process Kernels</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../process_kernels/base.html">Base PKs</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../process_kernels/physical/index.html">Physical PKs</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../process_kernels/physical/flow.html">Flow PKs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../process_kernels/physical/transport.html">Transport PK</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../process_kernels/physical/transport.html">Geochemical Transport</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../process_kernels/physical/energy.html">Energy PKs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../process_kernels/physical/seb.html">Surface Energy Balance PKs</a></li>
-
-
+<li class="toctree-l3"><a class="reference internal" href="../process_kernels/physical/bgc.html">Biogeochemistry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../process_kernels/physical/deformation.html">Deformation</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../process_kernels/mpcs/index.html">MPC</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../process_kernels/mpcs/base.html">Base MPCs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../process_kernels/mpcs/physical.html">Physical MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../process_kernels/mpcs/tightly_coupled.html">Tightly Coupled MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../process_kernels/mpcs/multiple_domain.html">Multiple Domain MPCs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../process_kernels/mpcs/globalization.html">Globalization Delegates</a></li>
 </ul>
 </details></li>
@@ -364,19 +326,22 @@ document.write(`
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">State</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="primary.html">Primary Variables</a></li>
 <li class="toctree-l2"><a class="reference internal" href="independent.html">Independent Variables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="secondary.html">Secondary Variables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="conserved.html">Conserved quantities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="subsurface_flow.html">Subsurface flow evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="surface_flow.html">Surface flow evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="thermo.html">Thermodynamic evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="eos.html">Equations of State</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">Surface energy balance evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="snow.html">Snow evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="canopy.html">Canopy evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="bgc.html">Carbon and Biogeochemistry Models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="multiscale.html">Multiscale Models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="geometric.html">Geometric evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="generic.html">Generic evaluators</a></li>
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="secondary.html">Secondary Variables</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="conserved.html">Conserved quantities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="subsurface_flow.html">Subsurface Flow Evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="surface_flow.html">Surface Flow Evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="transport.html">Transport evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="thermo.html">Thermodynamic evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="eos.html">Equations of State</a></li>
+<li class="toctree-l3 current active"><a class="current reference internal" href="#">Surface Energy Balance Evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="snow.html">Snow evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="canopy.html">Canopy evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="bgc.html">Carbon and Biogeochemistry Models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="multiscale.html">Multiscale Models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="geometric.html">Geometric evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generic.html">Generic evaluators</a></li>
+</ul>
+</details></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../math/index.html">Time integrators, solvers, and other mathematical specs</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -413,13 +378,16 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#transpiration-distribution">Transpiration Distribution</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rooting-depth-fraction">Rooting Depth Fraction</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#plant-wilting-point">Plant Wilting Point</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evaporation-downregulation">Evaporation Downregulation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#soil-resistance-sakagucki-zeng">Soil Resistance, Sakagucki &amp; Zeng</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#soil-resistance-sellers">Soil Resistance, Sellers</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#soil-resistance">Soil Resistance</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#radiation-balance-terms">Radiation Balance Terms</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#radiation-balance">Radiation Balance</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#canopy-radiation-balance">Canopy Radiation Balance</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#surface-albedo">Surface Albedo</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#surface-albedo-two-components">Surface Albedo, Two Components</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Surface Albedo, Two Components</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#incident-shortwave-radiation">Incident Shortwave Radiation</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#longwave-radiation">Longwave Radiation</a></li>
 </ul>
@@ -434,9 +402,14 @@ document.write(`
   
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
   </div>
-  
-  <div id="rtd-footer-container"></div>
 
 
       </div>
@@ -454,8 +427,6 @@ document.write(`
       
         <div class="header-article-item">
 
-
-
 <nav aria-label="Breadcrumb" class="d-print-none">
   <ul class="bd-breadcrumbs">
     
@@ -470,7 +441,10 @@ document.write(`
     
     <li class="breadcrumb-item"><a href="index.html" class="nav-link">State</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page">Surface...</li>
+    
+    <li class="breadcrumb-item"><a href="secondary.html" class="nav-link">Secondary Variables</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Surface Energy Balance Evaluators</span></li>
   </ul>
 </nav>
 </div>
@@ -488,7 +462,7 @@ document.write(`
                 <article class="bd-article">
                   
   <section id="surface-energy-balance-evaluators">
-<h1>Surface energy balance evaluators<a class="headerlink" href="#surface-energy-balance-evaluators" title="Link to this heading">#</a></h1>
+<h1>Surface Energy Balance Evaluators<a class="headerlink" href="#surface-energy-balance-evaluators" title="Link to this heading">#</a></h1>
 <p>Evaluators used to solve the fluxes to and from the atmosphere and
 between layers of the surface.  Typically in ATS these calculate
 evapotranspiration.</p>
@@ -502,45 +476,55 @@ and fully bare ground.</p>
 full-cell quantities.</p>
 <section id="two-component-model">
 <h3>Two-component model<a class="headerlink" href="#two-component-model" title="Link to this heading">#</a></h3>
-<blockquote>
-<div><p>A subgrid model for determining the area fraction of snow vs not snow within a grid cell.</p>
-</div></blockquote>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/area_fractions_twocomponent_evaluator.hh">src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/area_fractions_twocomponent_evaluator.hh</a></p>
+<p>A subgrid model for determining the area fraction of snow vs not snow within a grid cell.</p>
 <p>Uses a simple linear transition to vary between liquid and bare ground, and
 another linear transition to vary between snow-covered and not-snow-covered.</p>
 <p>Ordering of the area fractions calculated are: [bare ground/water, snow].</p>
+<p>This evaluator simplifies the situation by assuming constant water density.
+This make it so that ice and water see the same geometry per unit pressure,
+which isn’t quite true thanks to density differences.  However, we hypothesize
+that these differences, on the surface (unlike in the subsurface) really don’t
+affect the solution.</p>
 <p><cite>“evaluator type</cite>” = <cite>“area fractions, two components</cite>”</p>
-<div class="admonition-area-fractions-twocomponent-evaluator-spec admonition" id="area-fractions-twocomponent-evaluator-spec">
-<p class="admonition-title">area-fractions-twocomponent-evaluator-spec:</p>
+<div class="admonition-evaluator-area-fractions-two-components-spec admonition" id="evaluator-area-fractions-two-components-spec">
+<p class="admonition-title">evaluator-area-fractions-two-components-spec:</p>
 <ul class="simple">
-<li><dl class="simple">
-<dt><cite>“minimum fractional area [-]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.e-5</strong></dt><dd><p>Mimimum area fraction allowed, less than this is rebalanced as zero.</p>
-</dd>
-</dl>
-</li>
+<li><p><cite>“minimum fractional area [-]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.e-5</strong> Minimum area
+fraction allowed, less than this is rebalanced as zero.</p></li>
 </ul>
 <p>DEPENDENCIES:</p>
 <ul class="simple">
 <li><p><cite>“snow depth</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code></p></li>
 </ul>
 </div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This evaluator also uses the <span class="xref std std-ref">Land Cover</span> types.  From that struct, it
+requires the value of the following parameters:</p>
+<ul class="simple">
+<li><p><cite>“snow transition height [m]</cite>”</p></li>
+</ul>
+</div>
 </section>
 <section id="three-component-model">
 <h3>Three-component model<a class="headerlink" href="#three-component-model" title="Link to this heading">#</a></h3>
-<blockquote>
-<div><p>A subgrid model for determining the area fraction of land, water, and snow within a grid cell.</p>
-</div></blockquote>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/area_fractions_threecomponent_evaluator.hh">src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/area_fractions_threecomponent_evaluator.hh</a></p>
+<p>A subgrid model for determining the area fraction of land, water, and snow within a grid cell.</p>
 <p>Uses a simple linear transition to vary between liquid and bare ground, and
 another linear transition to vary between snow-covered and not-snow-covered.</p>
 <p>Ordering of the area fractions calculated are: [bare ground, water, snow].</p>
+<p>This evaluator simplifies the situation by assuming constant water density.
+This make it so that ice and water see the same geometry per unit pressure,
+which isn’t quite true thanks to density differences.  However, we hypothesize
+that these differences, on the surface (unlike in the subsurface) really don’t
+affect the solution.</p>
 <p><cite>“evaluator type</cite>” = <cite>“area fractions, three components</cite>”</p>
-<div class="admonition-area-fractions-threecomponent-evaluator-spec admonition" id="area-fractions-threecomponent-evaluator-spec">
-<p class="admonition-title">area-fractions-threecomponent-evaluator-spec:</p>
+<div class="admonition-evaluator-area-fractions-three-components-spec admonition" id="evaluator-area-fractions-three-components-spec">
+<p class="admonition-title">evaluator-area-fractions-three-components-spec:</p>
 <ul class="simple">
-<li><dl class="simple">
-<dt><cite>“minimum fractional area [-]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.e-5</strong></dt><dd><p>Mimimum area fraction allowed, less than this is rebalanced as zero.</p>
-</dd>
-</dl>
-</li>
+<li><p><cite>“minimum fractional area [-]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.e-5</strong> Mimimum area
+fraction allowed, less than this is rebalanced as zero.</p></li>
 </ul>
 <p>DEPENDENCIES:</p>
 <ul class="simple">
@@ -548,18 +532,26 @@ another linear transition to vary between snow-covered and not-snow-covered.</p>
 <li><p><cite>“ponded depth</cite>” <strong>DOMAIN-ponded_depth</strong></p></li>
 </ul>
 </div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This evaluator also uses the <span class="xref std std-ref">Land Cover</span> types.  From that struct, it
+requires the value of the following parameters:</p>
+<ul class="simple">
+<li><p><cite>“snow transition height [m]</cite>”</p></li>
+<li><p><cite>“water transition height [m]</cite>”</p></li>
+</ul>
+</div>
 </section>
 <section id="three-component-model-with-microtopography">
 <h3>Three-component model, with microtopography<a class="headerlink" href="#three-component-model-with-microtopography" title="Link to this heading">#</a></h3>
-<blockquote>
-<div><p>A subgrid model for determining the area fraction of land, open water, and snow within a grid cell.</p>
-</div></blockquote>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/area_fractions_threecomponent_microtopography_evaluator.hh">src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/area_fractions_threecomponent_microtopography_evaluator.hh</a></p>
+<p>A subgrid model for determining the area fraction of land, open water, and snow within a grid cell.</p>
 <p>Uses the subgrid equation from Jan et al WRR 2018 for volumetric or effective
 ponded depth to determine the area of water, then heuristically places snow on
 top of that surface.</p>
 <p><cite>“evaluator type</cite>” = <cite>“area fractions, three components with microtopography</cite>”</p>
-<div class="admonition-area-fractions-threecomponent-microtopography-evaluator-spec admonition" id="area-fractions-threecomponent-microtopography-evaluator-spec">
-<p class="admonition-title">area-fractions-threecomponent-microtopography-evaluator-spec</p>
+<div class="admonition-evaluator-area-fractions-three-components-with-microtopography-spec admonition" id="evaluator-area-fractions-three-components-with-microtopography-spec">
+<p class="admonition-title">evaluator-area-fractions-three-components-with-microtopography-spec</p>
 <ul class="simple">
 <li><p><cite>“snow transitional height [m]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.02</strong>
 Minimum thickness for specifying the snow gradient.</p></li>
@@ -582,11 +574,6 @@ The name of the snow depth.</p></li>
 The name of the snow depth.</p></li>
 </ul>
 </div>
-<p>NOTE: this evaluator simplifies the situation by assuming constant density.
-This make it so that ice and water see the same geometry per unit pressure,
-which isn’t quite true thanks to density differences.  However, we hypothesize
-that these differences, on the surface (unlike in the subsurface) really don’t
-matter much. –etc</p>
 </section>
 </section>
 <section id="potential-evapotranspiration">
@@ -598,14 +585,13 @@ the atmosphere could accept.  This can then be limited based on water
 availability, etc.</p>
 <section id="priestley-taylor-potential-evapotranspiration">
 <h3>Priestley-Taylor Potential Evapotranspiration<a class="headerlink" href="#priestley-taylor-potential-evapotranspiration" title="Link to this heading">#</a></h3>
-<blockquote>
-<div><p>Evaluates potential evapotranpiration (PET) using Priestley &amp; Taylor formulation.</p>
-</div></blockquote>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/pet_priestley_taylor_evaluator.hh">src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/pet_priestley_taylor_evaluator.hh</a></p>
+<p>Evaluates potential evapotranpiration (PET) using Priestley &amp; Taylor formulation.</p>
 <p>This implementation is based on models provided in the PRMS-IV, Version 4, see
 pages 90-93, Equations 1-57 to 1-60</p>
 <p>Requires the following dependencies:</p>
-<div class="admonition-pet-priestley-taylor-evaluator-spec admonition" id="pet-priestley-taylor-evaluator-spec">
-<p class="admonition-title">pet-priestley-taylor-evaluator-spec:</p>
+<div class="admonition-evaluator-pet-priestley-taylor-spec admonition" id="evaluator-pet-priestley-taylor-spec">
+<p class="admonition-title">evaluator-pet-priestley-taylor-spec:</p>
 <ul class="simple">
 <li><p><cite>“include limiter</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> If true, multiply potential ET by
 a limiter to get an actual ET.</p></li>
@@ -620,22 +606,17 @@ get actual ET.</p></li>
 as limiters, and these have multiple dofs.  This provides how many.</p></li>
 <li><p><cite>“1 - limiter dof</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>0</strong> Area fractions are often used
 as limiters, and these have multiple dofs.  This provides which one to use.</p></li>
-<li><dl class="simple">
-<dt><cite>“sublimate snow</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> If true, use latent heat of</dt><dd><p>vaporization of snow, not water.</p>
-</dd>
-</dl>
-</li>
+<li><p><cite>“sublimate snow</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> If true, use latent heat of
+vaporization of snow, not water.</p></li>
 </ul>
 <p>KEYS:</p>
 <ul class="simple">
 <li><p><cite>“air temperature</cite>” <strong>DOMAIN-air_temperature</strong> Air temp, in [K]</p></li>
-<li><dl class="simple">
-<dt><cite>“surface temperature</cite>” <strong>DOMAIN-temperature</strong> Ground or leaf temp, in [K].  Note this may be the</dt><dd><p>same as air temperature.</p>
-</dd>
-</dl>
-</li>
+<li><p><cite>“surface temperature</cite>” <strong>DOMAIN-temperature</strong> Ground or leaf temp, in
+[K].  Note this may be the same as air temperature.</p></li>
 <li><p><cite>“elevation</cite>” <strong>DOMAIN-elevation</strong> Elevation [m]</p></li>
-<li><p><cite>“net radiation</cite>” <strong>DOMAIN-net_radiation</strong> [W m^-2] Net radiation balance, positive to the ground.</p></li>
+<li><p><cite>“net radiation</cite>” <strong>DOMAIN-net_radiation</strong> [W m^-2] Net radiation balance,
+positive to the ground.</p></li>
 <li><p><cite>“limiter</cite>” [-] See <cite>“include limiter</cite>” above.</p></li>
 <li><p><cite>“1 - limiter</cite>” [-] See <cite>“include 1 - limiter</cite>” above.</p></li>
 </ul>
@@ -650,9 +631,8 @@ limit, downregulate, distribute, or otherwise move a potential to an
 actual ET.</p>
 <section id="transpiration-distribution">
 <h3>Transpiration Distribution<a class="headerlink" href="#transpiration-distribution" title="Link to this heading">#</a></h3>
-<blockquote>
-<div><p>Distributes and downregulates potential transpiration to the rooting zone.</p>
-</div></blockquote>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/transpiration_distribution_evaluator.hh">src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/transpiration_distribution_evaluator.hh</a></p>
+<p>Distributes and downregulates potential transpiration to the rooting zone.</p>
 <p>The transpiration distribution evaluator looks to take a potential
 evapotranspiration and distribute it across the vertical column based on water
 availability and rooting depths.  It also potentially limits the transpiration
@@ -687,18 +667,12 @@ Penmann-Montief models, which are happy to predict transpiration all winter
 long.  Good choices for those models depend upon the local climate, but may be
 something like Julian day 101 for leaf on and Julian day 254 for leaf off (PRMS
 defaults for US temperate forests).</p>
-<p>Note that <cite>“leaf on doy</cite>” and <cite>“leaf off doy</cite>” are relative to the simulation’s
-zero time, not the start time.  Typically these are Julian day of the year, but
-this assumes that the 0 time of the simulation (not the “start time”, but time
-0!) is Jan 1.  This leaf on/off cycle is modulo the <cite>“year duration</cite>”
-(typically 1 noleap).  Note if <cite>“leaf off doy</cite>” &lt; <cite>“leaf on time</cite>” is ok too –
-this is the case if simulation time zero is mid-summer.  These parameters come
-from the LandCover type.</p>
-<div class="admonition-transpiration-distribution-evaluator-spec-year-duration-double-1-year-duration-units-string-noleap admonition" id="transpiration-distribution-evaluator-spec">
-<p class="admonition-title">transpiration-distribution-evaluator-spec
-* <cite>“year duration</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1</strong>
-* <cite>“year duration units</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>noleap</strong></p>
+<p><cite>“evaluator type</cite>” = <cite>“transpiration distribution, rooting depth</cite>”</p>
+<div class="admonition-evaluator-transpiration-distribution-rooting-depth-spec admonition" id="evaluator-transpiration-distribution-rooting-depth-spec">
+<p class="admonition-title">evaluator-transpiration-distribution-rooting-depth-spec</p>
 <ul class="simple">
+<li><p><cite>“year duration</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1</strong></p></li>
+<li><p><cite>“year duration units</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>noleap</strong></p></li>
 <li><p><cite>“water limiter function</cite>” <code class="docutils literal notranslate"><span class="pre">[function-spec]</span></code> <strong>optional</strong> If provided,
 limit the total water sink as a function of the integral of the water
 potential * rooting fraction.</p></li>
@@ -712,25 +686,31 @@ potential * rooting fraction.</p></li>
 <li><p><cite>“surface cell volume</cite>” <strong>DOMAIN_SURF-cell_volume</strong></p></li>
 </ul>
 </div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This evaluator also uses the <span class="xref std std-ref">Land Cover</span> types.  From that struct, it
+requires the value of the following parameters:</p>
+<ul class="simple">
+<li><p><cite>“leaf on time [doy]</cite>”</p></li>
+<li><p><cite>“leaf off time [doy]</cite>”</p></li>
+</ul>
+</div>
 </section>
 <section id="rooting-depth-fraction">
 <h3>Rooting Depth Fraction<a class="headerlink" href="#rooting-depth-fraction" title="Link to this heading">#</a></h3>
-<blockquote>
-<div><p>Provides a depth-based profile of root density.</p>
-</div></blockquote>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/rooting_depth_fraction_evaluator.hh">src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/rooting_depth_fraction_evaluator.hh</a></p>
+<p>Provides a depth-based profile of root density.</p>
 <p>Sets the (discrete) root fraction as a function of depth.  The rooting density
 is given by:</p>
 <p>This function is such that the integral over depth = [0,inf) is 1.  Then,
 computing this over the vertical corridor is done by integrating this function
 between the depth of the face above and below for each grid cell, with the
 bottom-most grid cell integrating to infinity.</p>
-<p>Note that the two parameters, <span class="math notranslate nohighlight">\(\alpha\)</span> and <span class="math notranslate nohighlight">\(\beta\)</span> are provided in
-the Land Cover class as <cite>“rooting profile alpha</cite>” and <cite>“rooting profile beta</cite>”
-respectively.</p>
-<div class="admonition-rooting-depth-fraction-evaluator-spec admonition" id="rooting-depth-fraction-evaluator-spec">
-<p class="admonition-title">rooting-depth-fraction-evaluator-spec</p>
+<div class="admonition-evaluator-rooting-depth-fraction-spec admonition" id="evaluator-rooting-depth-fraction-spec">
+<p class="admonition-title">evaluator-rooting-depth-fraction-spec</p>
 <ul class="simple">
-<li><p><cite>“surface domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>SURFACE_DOMAIN</strong> Sane default provided for most domain names.</p></li>
+<li><p><cite>“surface domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>SURFACE_DOMAIN</strong> Sane default
+provided for most domain names.</p></li>
 </ul>
 <p>KEYS:</p>
 <ul class="simple">
@@ -738,38 +718,164 @@ respectively.</p>
 <li><p><cite>“surface area</cite>” <strong>SURFACE_DOMAIN-cell_volume</strong></p></li>
 </ul>
 </div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This evaluator also uses the <span class="xref std std-ref">Land Cover</span> types.  From that struct, it
+requires the value of the following parameters:</p>
+<ul class="simple">
+<li><p><cite>“rooting profile alpha [-]</cite>”</p></li>
+<li><p><cite>“rooting profile beta [-]</cite>”</p></li>
+<li><p><cite>“rooting depth max [m]</cite>”</p></li>
+</ul>
+</div>
 </section>
 <section id="plant-wilting-point">
 <h3>Plant Wilting Point<a class="headerlink" href="#plant-wilting-point" title="Link to this heading">#</a></h3>
-<blockquote>
-<div><p>Plant wilting factor provides a moisture availability-based limiter on transpiration.</p>
-</div></blockquote>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/plant_wilting_factor_evaluator.hh">src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/plant_wilting_factor_evaluator.hh</a></p>
+<p>Plant wilting factor provides a moisture availability-based limiter on transpiration.</p>
 <p>Also known as Beta, or the water availability factor, or the plant wilting
 factor, or the transpiration reduction function.</p>
 <div class="math notranslate nohighlight">
-\[Beta =  (p_closed - p) / (p_closed - p_open)\]</div>
+\[\beta =  \frac{p_{closed} - p}{p_{closed} - p_{open}}\]</div>
 <p>where p is the capillary pressure or water potential, and closed
 and open indicate the values at which stomates are fully open or fully
 closed (the wilting point).</p>
-<p>Note this makes use of LandCover objects for water potential of fully open and
-fully closed stomata.</p>
 <p>Note the challenges of using this model with arbitrary van Genuchten WRMs.  See
-Verhoef &amp; Egea, Ag. &amp; Forest Meteorology, 2014
-<a class="reference external" href="https://doi.org/10.1016/j.agrformet.2014.02.009">https://doi.org/10.1016/j.agrformet.2014.02.009</a></p>
-<div class="admonition-plant-wilting-factor-evaluator-spec admonition" id="plant-wilting-factor-evaluator-spec">
-<p class="admonition-title">plant-wilting-factor-evaluator-spec</p>
+<a class="reference external" href="https://doi.org/10.1016/j.agrformet.2014.02.009">Verhoef &amp; Egea, Ag. &amp; Forest Meteorology, 2014</a></p>
+<div class="admonition-evaluator-plant-wilting-factor-spec admonition" id="evaluator-plant-wilting-factor-spec">
+<p class="admonition-title">evaluator-plant-wilting-factor-spec</p>
 <p>KEYS:</p>
 <ul class="simple">
 <li><p><cite>“capillary pressure</cite>” <strong>DOMAIN-capillary_pressure_gas_liq</strong></p></li>
 </ul>
 </div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This evaluator also uses the <span class="xref std std-ref">Land Cover</span> types.  From that struct, it
+requires the value of the following parameters:</p>
+<ul class="simple">
+<li><p><cite>“capillary pressure at fully closed stomata [Pa]</cite>”</p></li>
+<li><p><cite>“capillary pressure at fully open stomata [Pa]</cite>”</p></li>
+</ul>
+</div>
 </section>
+<section id="evaporation-downregulation">
+<h3>Evaporation Downregulation<a class="headerlink" href="#evaporation-downregulation" title="Link to this heading">#</a></h3>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/evaporation_downregulation_evaluator.hh">src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/evaporation_downregulation_evaluator.hh</a></p>
+<p>This evaluator computes actual evaporation from potential evaporation due to a
+dessicated zone via soil resistance.</p>
+<div class="math notranslate nohighlight">
+\[E = \frac{E_{potential}}{1 + R_{soil}}\]</div>
+<p><cite>“evaluator type</cite>” = <cite>“evaporation downregulation, soil resistance</cite>”</p>
+<div class="admonition-evaluator-evaporation-downregulation-soil-resistance admonition" id="evaluator-evaporation-downregulation-soil-resistance">
+<p class="admonition-title">evaluator-evaporation-downregulation-soil-resistance</p>
+<p>DEPENDENCIES:</p>
+<ul class="simple">
+<li><p><cite>“potential evaporation</cite>”</p></li>
+<li><p><cite>“soil resistance</cite>”</p></li>
+</ul>
+</div>
 </section>
-<section id="soil-resistance">
-<h2>Soil Resistance<a class="headerlink" href="#soil-resistance" title="Link to this heading">#</a></h2>
-<p>Downregulates evaporation through a dessicated zone via soil resistance.
-Currently support two soil resistance methods: Sakagucki-Zeng and Sellers.
-This will call soil resistance evaluator.</p>
+<section id="soil-resistance-sakagucki-zeng">
+<h3>Soil Resistance, Sakagucki &amp; Zeng<a class="headerlink" href="#soil-resistance-sakagucki-zeng" title="Link to this heading">#</a></h3>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/flow/constitutive_relations/sources/soil_resistance_sakagucki_zeng_evaluator.hh">src/physics/ats/src/pks/flow/constitutive_relations/sources/soil_resistance_sakagucki_zeng_evaluator.hh</a></p>
+<p>Evaluates the soil resistance at top cells through the Sakagucki-Zeng model
+referred to Sakagucki and Zeng (2009).</p>
+<p><cite>“evaluator type</cite>” = <cite>“soil resistance, Sakagucki-Zeng</cite>”</p>
+<div class="admonition-evaluator-soil-resistance-sakagucki-zeng-spec admonition">
+<p class="admonition-title">evaluator-soil-resistance-sakagucki-zeng-spec</p>
+<ul class="simple">
+<li><p><cite>“model parameters</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>WRM parameters</strong> Soil resistance based
+on Sakagucki-Zeng method uses soil properties defined in <cite>“WRM
+parameters</cite>” which is given through <cite>“model parameters</cite>” under state.</p>
+<ul>
+<li><p>If <cite>“van Genuchten</cite>” is used for WRM, either <cite>“van Genuchten n [-]</cite>” or
+<cite>“van Genuchten m [-]</cite>” will be used to determine Clapp-Hornberger-b
+through method 2 in Ma et al. (1999). Originally this method is from
+Lenhard et al. (1989).</p></li>
+<li><p>If <cite>“Brooks-Corey</cite>” is used for WRM, <cite>“Brooks-Corey lambda [-]</cite>” will be
+used to determine Clapp-Hornberger-b, which is the reciprocal of
+<cite>“Brooks-Corey lambda [-]</cite>”.</p></li>
+<li><p><cite>“residual saturation [-]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.0</strong></p></li>
+<li><p><cite>“dessicated zone thickness [m]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.1</strong></p></li>
+</ul>
+</li>
+</ul>
+<p>KEYS:</p>
+<ul class="simple">
+<li><p><cite>“gas saturation</cite>” Note only the column’s top grid cell is used</p></li>
+<li><p><cite>“porosity</cite>” Note only the column’s top grid cell is used</p></li>
+</ul>
+</div>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;state&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;model parameters&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;WRM parameters&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;domain&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;region&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;domain&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;wrm type&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;van Genuchten&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;van Genuchten alpha [Pa^-1]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;2e-05&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;van Genuchten n [-]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;1.58&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;residual saturation [-]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.2&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;smoothing interval width [saturation]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.05&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;dessicated zone thickness [m]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.1&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;evaluators&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;surface-soil_resistance&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;evaluator type&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;soil resistance, Sakagucki-Zeng&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;model parameters&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;WRM parameters&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span>...
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span>...
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="soil-resistance-sellers">
+<h3>Soil Resistance, Sellers<a class="headerlink" href="#soil-resistance-sellers" title="Link to this heading">#</a></h3>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/flow/constitutive_relations/sources/soil_resistance_sellers_evaluator.hh">src/physics/ats/src/pks/flow/constitutive_relations/sources/soil_resistance_sellers_evaluator.hh</a></p>
+<p>Evaluates the soil resistance at top cells through the Sellers model
+referred to Sellers et al. (1992).</p>
+<div class="math notranslate nohighlight">
+\[R_{soil} = \mathrm{exp}(8.206 - 4.255 s_l)\]</div>
+<p><cite>“evaluator type</cite>” = <cite>“soil resistance, Sellers</cite>”</p>
+<div class="admonition-evaluator-soil-resistance-sellers-spec admonition">
+<p class="admonition-title">evaluator-soil-resistance-sellers-spec</p>
+<p>KEYS:</p>
+<ul class="simple">
+<li><p><cite>“liquid saturation</cite>” of top cells</p></li>
+</ul>
+</div>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;state&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;model parameters&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;WRM parameters&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;domain&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;region&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;domain&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;wrm type&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;van Genuchten&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;van Genuchten alpha [Pa^-1]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;2e-05&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;van Genuchten n [-]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;1.58&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;residual saturation [-]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.2&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;smoothing interval width [saturation]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.05&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;dessicated zone thickness [m]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.1&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;evaluators&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;surface-soil_resistance&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;evaluator type&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;soil resistance, Sellers&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;model parameters&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;WRM parameters&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span>...
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span>...
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
 </section>
 <section id="radiation-balance-terms">
 <h2>Radiation Balance Terms<a class="headerlink" href="#radiation-balance-terms" title="Link to this heading">#</a></h2>
@@ -780,15 +886,13 @@ and therefore potential evapotranspiration.</p>
 meterological forcing dataset.</p>
 <section id="radiation-balance">
 <h3>Radiation Balance<a class="headerlink" href="#radiation-balance" title="Link to this heading">#</a></h3>
-<blockquote>
-<div><p>Evaluates a net radiation balance for ground and canopy.</p>
-</div></blockquote>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/radiation_balance_evaluator.hh">src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/radiation_balance_evaluator.hh</a></p>
+<p>This evaluates a net radiation balance for ground and canopy.</p>
 <p>Here the net radiation is positive for energy inputs to the layer.  Note that
 ground is based on the two-channel (land + snow) while canopy is assumed to be
 a simple, single layer.</p>
 <p>This evaluator requires that the surface temperature, snow temperature, and
 canopy temperature are known, or at least being solved for.</p>
-<p>Requires the use of LandCover types, for albedo and Beer’s law coefficients.</p>
 <p>This is combination of CLM v4.5 Tech Note and Beer’s law for attenuation of
 radiation absorption.  In particular, long-wave is exactly as Figure 4.1c in CLM
 4.5 Tech Note.  The main difference comes in how absorptivity (which is equal
@@ -813,34 +917,46 @@ emitted by the snow and surface.  It also does not include any secondary
 bounces (e.g. reflected atmosphere-&gt;canopy-&gt;cloud-&gt;back to canopy, or
 transmitted by the canopy, reflected by snow/surface.</p></li>
 </ol>
-<p>Requires the use of LandCover types, for canopy albedo and Beer’s law
-coefficients.</p>
 <p><cite>“evaluator type</cite>” = <cite>“radiation balance, surface and canopy</cite>”</p>
-<div class="admonition-radiation-balance-evaluator-spec admonition" id="radiation-balance-evaluator-spec">
-<p class="admonition-title">radiation-balance-evaluator-spec</p>
-<p>KEYS:
-- <cite>“surface albedos</cite>” <strong>SURFACE_DOMAIN-albedos</strong>
-- <cite>“surface emissivities</cite>” <strong>SURFACE_DOMAIN-emissivities</strong>
-- <cite>“incoming shortwave radiation</cite>” <strong>SURFACE_DOMAIN-incoming_shortwave_radiation</strong>
-- <cite>“incoming longwave radiation</cite>” <strong>SURFACE_DOMAIN-incoming_longwave_radiation</strong>
-- <cite>“surface temperature</cite>” <strong>SURFACE_DOMAIN-temperature</strong>
-- <cite>“snow temperature</cite>” <strong>SNOW_DOMAIN-temperature</strong>
-- <cite>“canopy temperature</cite>” <strong>CANOPY_DOMAIN-temperature</strong>
-- <cite>“leaf area index</cite>” <strong>CANOPY_DOMAIN-leaf_area_index</strong>
-- <cite>“area fractions</cite>” <strong>SURFACE_DOMAIN-area_fractions</strong></p>
+<div class="admonition-evaluator-radiation-balance-spec admonition" id="evaluator-radiation-balance-spec">
+<p class="admonition-title">evaluator-radiation-balance-spec</p>
+<p>KEYS:</p>
+<ul class="simple">
+<li><p><cite>“surface radiation balance</cite>”</p></li>
+<li><p><cite>“snow radiation balance</cite>”</p></li>
+<li><p><cite>“canopy radiation balance</cite>”</p></li>
+</ul>
+<p>DEPENDENCIES:</p>
+<ul class="simple">
+<li><p><cite>“surface albedos</cite>” <strong>SURFACE_DOMAIN-albedos</strong></p></li>
+<li><p><cite>“surface emissivities</cite>” <strong>SURFACE_DOMAIN-emissivities</strong></p></li>
+<li><p><cite>“incoming shortwave radiation</cite>” <strong>SURFACE_DOMAIN-incoming_shortwave_radiation</strong></p></li>
+<li><p><cite>“incoming longwave radiation</cite>” <strong>SURFACE_DOMAIN-incoming_longwave_radiation</strong></p></li>
+<li><p><cite>“surface temperature</cite>” <strong>SURFACE_DOMAIN-temperature</strong></p></li>
+<li><p><cite>“snow temperature</cite>” <strong>SNOW_DOMAIN-temperature</strong></p></li>
+<li><p><cite>“canopy temperature</cite>” <strong>CANOPY_DOMAIN-temperature</strong></p></li>
+<li><p><cite>“leaf area index</cite>” <strong>CANOPY_DOMAIN-leaf_area_index</strong></p></li>
+<li><p><cite>“area fractions</cite>” <strong>SURFACE_DOMAIN-area_fractions</strong></p></li>
+</ul>
 </div>
-<p>Note that this is a superset of the physics in the “canopy radiation
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This evaluator also uses the <span class="xref std std-ref">Land Cover</span> types.  From that struct, it
+requires the value of the following parameters:</p>
+<ul class="simple">
+<li><p><cite>“Beer’s law extinction coefficient, shortwave [-]</cite>”</p></li>
+<li><p><cite>“Beer’s law extinction coefficient, longwave [-]</cite>”</p></li>
+<li><p><cite>“albedo of canopy [-]</cite>”</p></li>
+</ul>
+</div>
+<p>Note that this is a <em>superset</em> of the physics in the “canopy radiation
 evaluator,” and is therefore mutually exclusive with that model.</p>
 </section>
 <section id="canopy-radiation-balance">
 <h3>Canopy Radiation Balance<a class="headerlink" href="#canopy-radiation-balance" title="Link to this heading">#</a></h3>
-<blockquote>
-<div><p>Evaluates the canopy radiation balance, providing canopy net and radiation to the snow/surface.</p>
-</div></blockquote>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/canopy_radiation_evaluator.hh">src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/canopy_radiation_evaluator.hh</a></p>
 <p>Computes and sums the downward radiation terms, determining the total radiation
 sent down to the surface from the canopy and above.</p>
-<p>Requires the use of LandCover types, for albedo and emissivity of the canopy
-itself, along with Beer’s law coefficients.</p>
 <p>Computes:</p>
 <ol class="arabic simple">
 <li><p>canopy-downward_shortwave_radiation – transmitted shortwave.  Note that
@@ -869,34 +985,47 @@ temperature, then compute upward terms.  The alternative would be to have a
 formal snow energy PK that computed snow temperature, at which point we would
 solve all of these balances to convergence simultaneously.</p>
 <p><cite>“evaluator type</cite>” = <cite>“canopy radiation balance from above</cite>”</p>
-<div class="admonition-canopy-radiation-evaluator-spec admonition" id="canopy-radiation-evaluator-spec">
-<p class="admonition-title">canopy-radiation-evaluator-spec</p>
-<p>KEYS:
-- <cite>“incoming shortwave radiation</cite>” <strong>SURFACE_DOMAIN-incoming_shortwave_radiation</strong>
-- <cite>“incoming longwave radiation</cite>” <strong>SURFACE_DOMAIN-incoming_longwave_radiation</strong>
-- <cite>“canopy temperature</cite>” <strong>CANOPY_DOMAIN-temperature</strong>
-- <cite>“leaf area index</cite>” <strong>CANOPY_DOMAIN-leaf_area_index</strong></p>
+<div class="admonition-evaluator-canopy-radiation-balance-from-above-spec admonition" id="evaluator-canopy-radiation-balance-from-above-spec">
+<p class="admonition-title">evaluator-canopy-radiation-balance-from-above-spec:</p>
+<p>KEYS:</p>
+<ul class="simple">
+<li><p><cite>“canopy downward shortwave radiation</cite>” <strong>CANOPY_DOMAIN-downward_shortwave_radiation</strong></p></li>
+<li><p><cite>“canopy downward longwave radiation</cite>” <strong>CANOPY_DOMAIN-downward_longwave_radiation</strong></p></li>
+<li><p><cite>“canopy radiation balance</cite>” <strong>CANOPY_DOMAIN-radiation_balance</strong></p></li>
+</ul>
+<p>DEPENDENCIES:</p>
+<ul class="simple">
+<li><p><cite>“incoming shortwave radiation</cite>” <strong>SURFACE_DOMAIN-incoming_shortwave_radiation</strong></p></li>
+<li><p><cite>“incoming longwave radiation</cite>” <strong>SURFACE_DOMAIN-incoming_longwave_radiation</strong></p></li>
+<li><p><cite>“canopy temperature</cite>” <strong>CANOPY_DOMAIN-temperature</strong></p></li>
+<li><p><cite>“leaf area index</cite>” <strong>CANOPY_DOMAIN-leaf_area_index</strong></p></li>
+</ul>
 </div>
-<p>Note that this is a subset of the physics in the “radiation balance evaluator,”
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This evaluator also uses the <span class="xref std std-ref">Land Cover</span> types.  From that struct, it
+requires the value of the following parameters:</p>
+<ul class="simple">
+<li><p><cite>“Beer’s law extinction coefficient, shortwave [-]</cite>”</p></li>
+<li><p><cite>“Beer’s law extinction coefficient, longwave [-]</cite>”</p></li>
+<li><p><cite>“albedo of canopy [-]</cite>”</p></li>
+</ul>
+</div>
+<p>Note that this is a <em>subset</em> of the physics in the “radiation balance evaluator,”
 and is therefore mutually exclusive with that model.</p>
 </section>
-<section id="surface-albedo">
-<h3>Surface Albedo<a class="headerlink" href="#surface-albedo" title="Link to this heading">#</a></h3>
-<p>Note that albedo is also a multiple subgrid component model, like
-surface balance.</p>
-<blockquote>
-<div><p>Evaluates albedos and emissivities in a two-component subgrid model.</p>
-</div></blockquote>
+<section id="surface-albedo-two-components">
+<h3>Surface Albedo, Two Components<a class="headerlink" href="#surface-albedo-two-components" title="Link to this heading">#</a></h3>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/albedo_twocomponent_evaluator.hh">src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/albedo_twocomponent_evaluator.hh</a></p>
 <p>Evaluates the albedo and emissivity as an interpolation on the surface
 properties and cover.  This allows for two components – snow and not snow
 (water/ice/land).  Note this internally calculates albedo of snow based upon
 snow density.</p>
 <p>Components are indexed by: 0 = land/ice/water, 1 = snow.</p>
-<p>Requires the use of LandCover types, for ground albedo and emissivity.</p>
-<div class="admonition-albedo-evaluator-spec admonition" id="albedo-evaluator-spec">
-<p class="admonition-title">albedo-evaluator-spec</p>
-<blockquote>
-<div><ul class="simple">
+<p><cite>“evaluator type</cite>” = <cite>“subgrid albedos, two components</cite>”</p>
+<div class="admonition-evaluator-subgrid-albedos-two-components-spec admonition" id="evaluator-subgrid-albedos-two-components-spec">
+<p class="admonition-title">evaluator-subgrid-albedos-two-components-spec</p>
+<ul class="simple">
 <li><p><cite>“albedo ice [-]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.44</strong></p></li>
 <li><p><cite>“albedo water [-]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.1168</strong></p></li>
 <li><p><cite>“emissivity ice [-]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.98</strong></p></li>
@@ -914,16 +1043,27 @@ snow density.</p>
 <li><p><cite>“ponded depth</cite>” <strong>DOMAIN-ponded_depth</strong></p></li>
 <li><p><cite>“unfrozen fraction</cite>” <strong>DOMAIN-unfrozen_fraction</strong></p></li>
 </ul>
-</div></blockquote>
-<p>Evaluates albedos and emissivities in a three-component subgrid model.</p>
 </div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This evaluator also uses the <span class="xref std std-ref">Land Cover</span> types.  From that struct, it
+requires the value of the following parameters:</p>
+<ul class="simple">
+<li><p><cite>“emissivity of bare ground [-]</cite>”</p></li>
+<li><p><cite>“albedo of bare ground [-]</cite>”</p></li>
+</ul>
+</div>
+</section>
+<section id="id1">
+<h3>Surface Albedo, Two Components<a class="headerlink" href="#id1" title="Link to this heading">#</a></h3>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/albedo_threecomponent_evaluator.hh">src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/albedo_threecomponent_evaluator.hh</a></p>
 <p>Evaluates the albedo and emissivity as an interpolation on the surface
 properties and cover.  This allows for three components – water/ice, land, and
 snow.  Note this internally calculates albedo of snow based upon snow density.</p>
 <p>Components are: 0 = land, 1 = ice/water, 2 = snow.</p>
-<p>Requires the use of LandCover types, for ground albedo and emissivity.</p>
-<div class="admonition-albedo-evaluator-subgrid-spec admonition" id="albedo-evaluator-subgrid-spec">
-<p class="admonition-title">albedo-evaluator-subgrid-spec</p>
+<p><cite>“evaluator type</cite>” = <cite>“subgrid albedos, three components</cite>”</p>
+<div class="admonition-evaluator-subgrid-albedos-three-components-spec admonition" id="evaluator-subgrid-albedos-three-components-spec">
+<p class="admonition-title">evaluator-subgrid-albedos-three-components-spec</p>
 <ul class="simple">
 <li><p><cite>“albedo ice [-]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.44</strong></p></li>
 <li><p><cite>“albedo water [-]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.1168</strong></p></li>
@@ -942,12 +1082,20 @@ snow.  Note this internally calculates albedo of snow based upon snow density.</
 <li><p><cite>“unfrozen fraction</cite>” <strong>DOMAIN-unfrozen_fraction</strong></p></li>
 </ul>
 </div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This evaluator also uses the <span class="xref std std-ref">Land Cover</span> types.  From that struct, it
+requires the value of the following parameters:</p>
+<ul class="simple">
+<li><p><cite>“emissivity of bare ground [-]</cite>”</p></li>
+<li><p><cite>“albedo of bare ground [-]</cite>”</p></li>
+</ul>
+</div>
 </section>
 <section id="incident-shortwave-radiation">
 <h3>Incident Shortwave Radiation<a class="headerlink" href="#incident-shortwave-radiation" title="Link to this heading">#</a></h3>
-<blockquote>
-<div><p>Evaluates the radiation incident on a non-flat surface.</p>
-</div></blockquote>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/incident_shortwave_radiation_evaluator.hh">src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/incident_shortwave_radiation_evaluator.hh</a></p>
+<p>Evaluates the radiation incident on a non-flat surface.</p>
 <p>Aspect modified shortwave radiation is determined by a factor which is
 multiplied by the ‘incoming radiation incident on a flat surface’ to determine
 the ‘incoming radiation incident on a sloping surface of a given aspect’ as a
@@ -962,21 +1110,23 @@ modifier.  It is notably better than the daily average radiation times
 the daily average aspect modifier.</p>
 <p>This implementation is derived from <a class="reference external" href="https://github.com/landlab/landlab/blob/master/landlab/components/radiation/radiation.py">LandLab code</a>,
 which is released under the MIT license.</p>
-<div class="admonition-incident-shortwave-radiation-evaluator-spec admonition" id="incident-shortwave-radiation-evaluator-spec">
-<p class="admonition-title">incident_shortwave_radiation_evaluator-spec</p>
-<blockquote>
-<div><ul class="simple">
-<li><p><cite>“incident shortwave radiation parameters</cite>” <code class="docutils literal notranslate"><span class="pre">[incident_shortwave_radiation_model-spec]</span></code></p></li>
+<p><cite>“evaluator type</cite>” = <cite>“incident shortwave radiation</cite>”</p>
+<div class="admonition-evaluator-incident-shortwave-radiation-spec admonition" id="evaluator-incident-shortwave-radiation-spec">
+<p class="admonition-title">evaluator-incident_shortwave_radiation-spec</p>
+<ul class="simple">
+<li><p><cite>“incident shortwave radiation parameters</cite>” <code class="docutils literal notranslate"><span class="pre">[incident-shortwave-radiation-model-spec]</span></code></p></li>
 </ul>
-<p>KEYS:
-- <cite>“slope</cite>” <strong>DOMAIN-slope_magnitude</strong>
-- <cite>“aspect</cite>” <strong>DOMAIN-aspect</strong>
-- <cite>“incoming shortwave radiation</cite>” <strong>DOMAIN-incoming_shortwave_radiation</strong></p>
-</div></blockquote>
-<p>Evaluates shortwave as a function of slope/aspect/etc.</p>
+<p>DEPENDENCIES:</p>
+<ul class="simple">
+<li><p><cite>“slope</cite>”</p></li>
+<li><p><cite>“aspect</cite>”</p></li>
+<li><p><cite>“incoming shortwave radiation</cite>”</p></li>
+</ul>
 </div>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/incident_shortwave_radiation_model.hh">src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/incident_shortwave_radiation_model.hh</a></p>
+<p>Evaluates shortwave as a function of slope/aspect/etc.</p>
 <div class="admonition-incident-shortwave-radiation-model-spec admonition" id="incident-shortwave-radiation-model-spec">
-<p class="admonition-title">incident_shortwave_radiation_model-spec</p>
+<p class="admonition-title">incident-shortwave-radiation-model-spec</p>
 <ul class="simple">
 <li><p><cite>“latitude [degrees]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> Latitude of the site.  A single
 typical value is fine for most domains, even relatively large ones
@@ -993,15 +1143,14 @@ met data’s time 0.</p></li>
 </section>
 <section id="longwave-radiation">
 <h3>Longwave Radiation<a class="headerlink" href="#longwave-radiation" title="Link to this heading">#</a></h3>
-<blockquote>
-<div><p>Evaluates incoming longwave radiation from vapor pressure and air temperature.</p>
-</div></blockquote>
-<div class="admonition-longwave-evaluator-spec admonition" id="longwave-evaluator-spec">
-<p class="admonition-title">longwave_evaluator-spec</p>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/longwave_evaluator.hh">src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/longwave_evaluator.hh</a></p>
+<p>Estimates incoming longwave radiation from vapor pressure and air temperature.</p>
+<div class="admonition-evaluator-incoming-longwave-radiation-spec admonition" id="evaluator-incoming-longwave-radiation-spec">
+<p class="admonition-title">evaluator-incoming-longwave-radiation-spec</p>
 <p>DEPENDENCIES:</p>
 <ul class="simple">
-<li><p><cite>“air temperature key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-air_temperature</strong></p></li>
-<li><p><cite>“vapor pressure air key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-vapor_pressure_air</strong></p></li>
+<li><p><cite>“air temperature key</cite>”</p></li>
+<li><p><cite>“vapor pressure air key</cite>”</p></li>
 </ul>
 </div>
 </section>
@@ -1013,17 +1162,16 @@ full-physics model are available.  These are often based on older,
 monolithic models.</p>
 <section id="bare-soil-surface-energy-balance">
 <h3>Bare Soil Surface Energy Balance<a class="headerlink" href="#bare-soil-surface-energy-balance" title="Link to this heading">#</a></h3>
-<blockquote>
-<div><p>Calculates source terms for surface fluxes to and from the atmosphere and a ground surface.</p>
-</div></blockquote>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/seb_twocomponent_evaluator.hh">src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/seb_twocomponent_evaluator.hh</a></p>
+<p>Calculates source terms for surface fluxes to and from the atmosphere and a ground surface.</p>
 <p>The ground is assumed to consist of two potential area-fraction components –
 snow and no-snow.  In the case of snow on the ground, this solves for a snow
 temperature, given a skin temperature, that satisfies a energy balance
 equation.  In the case of no-snow, this calculates a conductive heat flux to
 the ground from the atmosphere.</p>
 <p><cite>“evaluator type</cite>” = <cite>“surface energy balance, two components</cite>”</p>
-<div class="admonition-seb-twocomponent-evaluator-spec admonition" id="seb-twocomponent-evaluator-spec">
-<p class="admonition-title">seb-twocomponent-evaluator-spec</p>
+<div class="admonition-evaluator-seb-twocomponent-spec admonition" id="evaluator-seb-twocomponent-spec">
+<p class="admonition-title">evaluator-seb-twocomponent-spec</p>
 <ul class="simple">
 <li><p><cite>“wind speed reference height [m]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>2.0</strong> Reference height at which
 wind speed is measured.</p></li>
@@ -1077,6 +1225,8 @@ potential wierd data.  Models have trouble with no wind.</p></li>
 <li><p><cite>“mass density liquid</cite>” <strong>DOMAIN-mass_density_liquid</strong> [kg m^-3]</p></li>
 </ul>
 </div>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/seb_threecomponent_evaluator.hh">src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/seb_threecomponent_evaluator.hh</a></p>
+<p>Calculates source terms for surface fluxes to and from the atmosphere and a ground surface.</p>
 <p>Calculates source terms for surface fluxes to and from the atmosphere and a
 ground surface characterized by three components – snow, water-covered ground,
 and vegetated/bare soil.</p>
@@ -1087,9 +1237,9 @@ calculated by a minimum threshold in snow and a depression depth/geometry-based
 approach for water.  All snow is assumed to first cover water (likely ice),
 then cover land, as both water and snow prefer low-lying depressions due to
 gravity- and wind-driven redistributions, respectively.</p>
-<p><cite>“evaluator type</cite>” = <cite>“surface energy balance, two components</cite>”</p>
-<div class="admonition-seb-threecomponent-evaluator-spec admonition" id="seb-threecomponent-evaluator-spec">
-<p class="admonition-title">seb-threecomponent-evaluator-spec</p>
+<p><cite>“evaluator type</cite>” = <cite>“surface energy balance, three components</cite>”</p>
+<div class="admonition-evaluator-seb-threecomponent-spec admonition" id="evaluator-seb-threecomponent-spec">
+<p class="admonition-title">evaluator-seb-threecomponent-spec</p>
 <ul class="simple">
 <li><p><cite>“wind speed reference height [m]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>2.0</strong> Reference height at which
 wind speed is measured.</p></li>
@@ -1193,8 +1343,8 @@ potential wierd data.  Models have trouble with no wind.</p></li>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
-<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <script defer src="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -1214,7 +1364,7 @@ potential wierd data.  Models have trouble with no wind.</p></li>
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
     <br/>
   </p>
 </div>
@@ -1227,7 +1377,8 @@ potential wierd data.  Models have trouble with no wind.</p></li>
       
         <div class="footer-item">
 <p class="theme-version">
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
 </p></div>
       
     </div>

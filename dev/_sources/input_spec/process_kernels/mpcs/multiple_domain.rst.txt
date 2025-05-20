@@ -1,0 +1,349 @@
+Multiple Domain MPCs
+====================
+
+Additionally, MPCs are used to couple across multiple physical
+domains.  This includes for integrated surface-subsurface
+implementations, multiple media, for subgrid models, and other novel
+models across domain sets.
+
+Integrated Hydrology
+--------------------
+`src/physics/ats/src/pks/mpc/mpc_coupled_water.hh <https://github.com/amanzi/ats/blob/master/src/pks/mpc/mpc_coupled_water.hh>`_
+
+
+This MPC couples Richards equation (subsurface flow) to the diffusion wave
+equation (surface flow) through continuity of both pressure and fluxes.  In its
+standard form, it couples pressure at a the surface of the domain,
+:math:`\Gamma`, by solving:
+
+.. math::
+
+   \frac{\partial \Theta_s(p_s^*)}{\partial t} &= \nabla k_s \cdot \nabla (z+h(p_s^*)) + Q_{ext} + q_{ss} \\
+   \frac{\partial \Theta(p)}{\partial t} &= \nabla \cdot k K (\nabla p + \rho g \hat{z}) \\
+   -k K (\nabla p + \rho g \hat{z}) \cdot \hat{n} |_{\Gamma} &= q_{ss} \\
+   p|_{\Gamma} &= p_s
+   
+:math:`q_{ss}`, the "exfiltration" of water from subsurface to surface, is
+eliminated discretely (enforcing flux continuity) and the pressure equality
+condition (the last equation) is enforced by elimintating the surface unknowns
+discretely.
+
+This leverages subsurface discretizations that include face-based unknowns, and
+notes that those face unknowns that correspond to surface faces are co-located
+with the surface cell pressure, and therefore are equivalent.  In this approach
+(see `Coon et al WRR 2020 <https://doi.org/10.1016/j.advwatres.2020.103701>`_),
+the surface equations are directly assembled into the subsurface discrete
+operator.
+     
+As a result, this requires a subsurface discretization that uses face-based
+unknowns, e.g. any of the `"mfd: *`" class of methods.
+
+`"PK type`" = `"coupled water`"
+
+.. _pk-coupled-water-spec:
+.. admonition:: pk-coupled-water-spec
+
+   * `"PKs order`" ``[Array(string)]`` Order must be {subsurface_flow_pk,
+     surface_flow_pk}.
+
+   * `"subsurface domain name`" ``[string]`` **domain**
+
+   * `"surface domain name`" ``[string]`` **surface**
+
+   * `"water delegate`" ``[mpc-delegate-water-spec]`` A :ref:`Coupled Water
+     Globalization Delegate` spec.
+
+   INCLUDES:
+
+   - ``[strong-mpc-spec]`` *Is a* :ref:`Strong MPC`.
+
+
+
+
+Operator Split Integrated Hydrology
+-----------------------------------
+`src/physics/ats/src/pks/mpc/mpc_coupled_water_split_flux.hh <https://github.com/amanzi/ats/blob/master/src/pks/mpc/mpc_coupled_water_split_flux.hh>`_
+
+
+This MPC implements an operator-split coupled water, which splits the lateral
+overland fluxes from surface sources and subsurface flow.
+
+To advance the coupled flow problem from :math:`t^n` to :math:`t^{n + 1}`, we
+perform two steps.  First, solve the diffusion wave equation:
+
+.. math::
+   
+   \frac{\partial \Theta_s(p_s^*)}{\partial t} = \nabla k_s \cdot \nabla (z+h(p_s^*))
+
+for surface pressure :math:`p_s^*`.  This is colloquially called the "star"
+system.  Then, one of three algorithms is performed for the "primary" system,
+which is a variation on :ref:`Integrated Hydrology` without lateral surface
+fluxes and with extra coupling to the star system.
+
+**Pressure Coupling**
+
+`"pressure`" coupling is a standard operator splitting.  :math:`p_s^*` becomes
+the initial value for the coupled surface sources and subsurface equations:
+
+.. math::
+
+   \frac{\partial \Theta_s(p_s)}{\partial t} &= Q_ext + q_{ss} \\
+   \frac{\partial \Theta(p)}{\partial t} &= \nabla \cdot k K (\nabla p + \rho g \hat{z}) \\
+   -k K (\nabla p + \rho g \hat{z}) \cdot \hat{n} |_\Gamma &= q_{ss} \\
+   p|_\Gamma &= p_s \\
+   p_s(t^n) &= p_s^*
+
+Note the lack of a lateral flow term in the overland equation (relative to the
+standard diffusion wave equation shown in `Integrated Hydrology`_).  This
+system is coupled and solved in the same discrete way as `Integrated
+Hydrology`_.
+
+**Flux Coupling**
+
+`"flux`" coupling, rather than setting the initial pressure from the
+:math:`p_s^*`, instead provides the divergence of fluxes in the lateral flow
+system as a source to the surface system:
+
+.. math::
+
+   \frac{\partial \Theta_s(p_s)}{\partial t} &= \frac{\partial \Theta_s(p_s^*)}{\partial t} + Q_ext + q_{ss} \\
+   \frac{\partial \Theta(p)}{\partial t} &= \nabla \cdot k K (\nabla p + \rho g \hat{z}) \\
+   -k K (\nabla p + \rho g \hat{z}) \cdot \hat{n} |_\Gamma &= q_{ss} \\
+   p|_\Gamma &= p_s
+
+The advantage of this approach is that it more stably handles the case of
+wetting up -- when a dry surface cell first gets overland flow into that cell,
+it requires that :math:`p_s > p_{atm}`.  But if the subsurface below it is
+unsaturated, this can create a large gradient in pressure that will immediately
+be eliminated in the subsurface solve once "run-on" infiltrates.  This jump
+between a :math:`p_s^* > p_atm` and :math:`p_s < p_atm` is unstable, and hard
+on the nonlinear solver.
+
+Imposing the run-on as a source of water rather than as a initial pressure is
+much more stable for run-on.
+
+   
+**Hybrid Coupling**
+
+While the `"flux`" approach is more stable than `'pressure`" in cells
+experiencing run-on, it is not necessary, and potentially problematic in the
+case of run-off.  In those cases the `"pressure`" case is more stable.
+Therefore, a `"hybrid`" coupling approach is used most frequently; this uses
+the `"pressure`' algorithm where the divergence of lateral surface fluxes is
+negative (e.g. run-off) and the `"flux`" algorithm elsewhere.
+
+All three algorithms should result in the same (converged) solution.  The
+`"hybrid`" algorithm is the most robust for numerical performance.
+
+
+Additionally, the subsurface domain may be treated as either a 3D domain
+(solving 3D Richards equations) or as a domain-set of many 1D, vertical
+columns.  In this case, the second system of equations is implemented on each
+subsurface column individually -- there is nothing coupling these columns in
+the second system.  Lateral subsurface flow is ignored in this case.  This
+allows subcycling of individual columns, and a much more efficient solve.  This
+is most appropriate at larger or "intermediate" scales, where lateral flow in
+the subsurface is small.
+
+`"PK type`" = `"operator split coupled water`"
+
+.. _pk-operator-split-coupled-water-spec:
+.. admonition:: pk-operator-split-coupled-water-spec
+
+   * `"PKs order`" ``[Array(string)]`` Order is {star_system, primary_system}.
+     Note that the sub-PKs are likely a :ref:`Overland Flow PK` for the "star"
+     system and a :ref:`Integrated Hydrology` MPC for the "primary" system.
+
+   * `"domain name`" ``[string]`` The subsurface domain, e.g. `"domain`" (for a
+     3D subsurface) or `"column:*`" (for the intermediate scale, columnar model).
+
+   * `"star domain name`" ``[string]`` The surface domain, typically
+     `"surface_star`" by convention.
+
+   * `"coupling type`" ``[string]`` **"hybrid"** One of: `"pressure`", `"flux`",
+     or `"hybrid`" (see above).
+
+   INCLUDES:
+
+   - ``[mpc-spec]`` *Is an* :ref:`MPC`.
+   - ``[mpc-subcycled-spec]`` *Is a* :ref:`Subcycling MPC`.
+
+
+
+
+Integrated Thermal Hydrology
+----------------------------
+`src/physics/ats/src/pks/mpc/mpc_permafrost.hh <https://github.com/amanzi/ats/blob/master/src/pks/mpc/mpc_permafrost.hh>`_
+
+
+This MPC handles the coupling of surface energy and flow to subsurface energy
+and flow for integrated thermal hydrology with freeze/thaw processes.
+
+Coupling for flow is identical to that in :ref:`Integrated Hydrology`.
+Coupling between surface flow and energy is identical to that of :ref:`Surface
+Flow & Energy`, while coupling between subsurface flow and energy is identical
+to that of :ref:`Subsurface Flow & Energy`.  Coupling of energy between the
+surface and subsurface is similar to flow; both continuity of temperature and
+the diffusive flux of energy are enforced, while advected fluxes of energy are
+passed with mass (exfiltration) flux.
+
+This is the implementation of the model described in `Painter et al WRR 2016
+<https://doi.org/10.1002/2015WR018427>`_.
+
+`"PK type`" = `"permafrost model`"
+
+.. _pk-permafrost-model-spec:
+.. admonition:: pk-permafrost-model-spec
+
+   * `"PKs order`" ``[Array(string)]`` Order must be {subsurface_flow_pk,
+     subsurface_energy_pk, surface_flow_pk, surface_energy_pk}.
+
+   * `"subsurface domain name`" ``[string]`` **domain**
+
+   * `"surface domain name`" ``[string]`` **surface**
+
+   * `"mass exchange flux key`" ``[string]`` **SURFACE_DOMAIN-surface_subsurface_flux**
+
+   * `"energy exchange flux key`" ``[string]`` **SURFACE_DOMAIN-surface_subsurface_energy_flux**
+
+   * `"supress Jacobian terms: d div surface q / dT`" ``[bool]`` **false** Turn
+     off the Jacobian term associated with the derivative of overland
+     conductivity with respect to temperature.
+
+   * `"water delegate`" ``[mpc-delegate-water-spec]`` A :ref:`Coupled Water
+     Globalization Delegate` spec.
+
+   * `"surface ewc delegate`" ``[mpc-delegate-ewc-spec]`` A :ref:`EWC
+     Globalization Delegate` spec.
+
+   INCLUDES:
+
+   - ``[mpc-subsurface-spec]`` *Is a* :ref:`Subsurface Flow & Energy`
+
+ 
+
+
+Operator Split Integrated Thermal Hydrology
+-------------------------------------------
+`src/physics/ats/src/pks/mpc/mpc_permafrost_split_flux.hh <https://github.com/amanzi/ats/blob/master/src/pks/mpc/mpc_permafrost_split_flux.hh>`_
+
+
+This MPC solves the thermal equivalent of :ref:`Operator Split Integrated
+Hydrology`.  This is the permafrost analog, so deals with energy as well in a
+similar strategy.  In this case advection and diffusion of energy are handled
+in the "star" system, then the "primary" system solves the :ref:`Integrated
+Thermal Hydrology` system without lateral fluxes and with extra coupling terms
+equivalent to those for flow from :ref:`Operaor Split Integrated Hydrology`.
+
+Like the flow-only case, this can be used with either a 3D subsurface solve, by
+setting the 2nd sub-PK to be a 3D permafrost MPC, or a bunch of columns, but
+setting the 2nd sub-PK to be a DomainSetMPC.
+
+This is the model from `Jan et al Comp. Geosci. 2018
+<https://doi.org/10.1007/s10596-017-9679-3>`_
+
+`"PK type`" = `"operator split permafrost`"
+
+.. _pk-operator-split-permafrost:
+.. admonition:: pk-operator-split-permafrost
+
+   * `"PKs order`" ``[Array(string)]`` Order is {star_system, primary_system}.
+     Note that the sub-PKs are likely a :ref:`Surface Flow & Energy` MPC for
+     the star system and a :ref:`Integrated Thermal Hydrology` MPC for the
+     primary system.  Because the latter does not include lateral fluxes in the
+     surface, the sub-PKs of the primary system may be :ref:`General Surface
+     Balance` equations rather than :ref:`Overland Flow PK` and :ref:`Overland
+     Energy with Ice` (thereby removing the lateral flow and energy transport
+     components).
+                
+   * `"domain name`" ``[string]`` The subsurface domain, e.g. "domain" (for a
+     3D subsurface ) or "column:*" (for the intermediate scale model.
+
+   * `"star domain name`" ``[string]`` The surface domain, typically
+     `"surface_star`" by convention.
+
+   * `"coupling type`" ``[string]`` **hybrid** One of: `"pressure`" (pass the
+     pressure field when coupling flow in the operator splitting), `"flux`"
+     (pass the divergence of fluxes as a source), or `"hybrid`" a mixture of
+     the two that seems the most robust.
+
+   INCLUDES:
+   - ``[pk-mpc-spec]`` *Is an* :ref:`MPC`.
+   - ``[pk-subcycling-mpc-spec]`` *Is a* :ref:`Subcycling MPC`
+
+
+
+
+Integrated Hydrology with Dual Media
+------------------------------------
+`src/physics/ats/src/pks/mpc/mpc_coupled_dualmedia_water.hh <https://github.com/amanzi/ats/blob/master/src/pks/mpc/mpc_coupled_dualmedia_water.hh>`_
+
+A coupler which integrates surface, richards and preferantial flows implicitly.
+
+TODO: @dasvyat document me
+
+
+
+
+Integrated Transport
+--------------------
+`src/physics/ats/src/pks/mpc/mpc_coupled_transport.hh <https://github.com/amanzi/ats/blob/master/src/pks/mpc/mpc_coupled_transport.hh>`_
+
+
+This MPC couples surface and subsurface transport.  It is implemented as
+described in `Molins et al WRR 2022 <https://doi.org/10.1029/2022WR032074>`_,
+and deals with the conservation of advected fluxes as they are transported
+laterally, infiltrate, etc, including wetting and drying of surface cells.
+
+`"PK type`" = `"surface subsurface transport`"
+
+.. _pk-surface-subsurface-transport-spec:
+.. admonition:: pk-surface-subsurface-transport-spec
+
+   * `"PKs order`" ``[Array(string)]`` Order must be {subsurface transport,
+     surface transport}.
+
+
+
+
+Integrated Reactive Transport
+-----------------------------
+`src/physics/ats/src/pks/mpc/mpc_coupled_reactivetransport.hh <https://github.com/amanzi/ats/blob/master/src/pks/mpc/mpc_coupled_reactivetransport.hh>`_
+
+
+This couples integrated (surface + subsurface) transport MPC with an integrated
+chemistry MPC.
+
+Transport must be tightly coupled in order to correctly pass surface-subsurface
+advective fluxes between the two domains.  Chemistry is just a weak MPC.  The
+two are then coupled to form an integrated reactive-transport PK.
+
+This performs operatoring splitting between transport and chemistry in each
+domain.  Note that transport's primary variable is "molar_fraction", which is
+in units of [mol-C mol-H2O^-1].  Chemistry is in
+"total_component_concentration", which is in units of [mol-C L^-1].  Therefore,
+between steps, we convert between the two.
+
+`"PK type`" = `"surface subsurface reactive transport`"
+
+.. _pk-surface-subsurface-reactive-transport-spec:
+.. admonition:: pk-surface-subsurface-reactive-transport-spec
+
+   * `"PKs order`" ``[Array(string)]`` Order must be {chemistry_mpc,
+     transport_mpc}.  The chemistry MPC is likely just a :ref:`Weak MPC`
+     coupling to chemistry PKs, while the transport MPC is likely a
+     :ref:`Integrated Transport` MPC.
+     
+   KEYS:
+
+   - `"molar density liquid`"
+   - `"surface molar density liquid`"
+
+
+
+
+
+
+
+
+

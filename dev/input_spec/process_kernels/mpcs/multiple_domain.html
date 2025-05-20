@@ -1,0 +1,780 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Multiple Domain MPCs &#8212; Amanzi-ATS</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/custom_theme.css?v=a03f4c85" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../../_static/documentation_options.js?v=3ce10a4d"></script>
+    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'input_spec/process_kernels/mpcs/multiple_domain';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
+    <script src="../../../_static/main.js?v=b10558fa"></script>
+    <link rel="icon" href="../../../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="Globalization Delegates" href="globalization.html" />
+    <link rel="prev" title="Tightly Coupled MPCs" href="tightly_coupled.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="dev" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../_static/logo_full.png" class="logo__image only-light" alt="Amanzi-ATS documentation -- Home"/>
+    <img src="../../../_static/logo_full.png" class="logo__image only-dark pst-js-only" alt="Amanzi-ATS documentation -- Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../demos.html">
+    ATS Demo Problems
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../index.html">
+    ATS Input Specification
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../demos.html">
+    ATS Demo Problems
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../index.html">
+    ATS Input Specification
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item"><!-- This will display the version of the docs -->
+Version dev</div>
+        <div class="sidebar-primary-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../introduction.html">About the Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main.html">Main</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="../../mesh.html">Mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../region.html">Region</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../io/index.html">IO</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../io/ioevent.html">IOEvent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../io/visualization.html">Visualization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../io/observations.html">Observations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../io/checkpoint.html">Checkpoint</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../io/logfile.html">Logfile Control</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html">Process Kernels</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../base.html">Base PKs</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../physical/index.html">Physical PKs</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../physical/flow.html">Flow PKs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../physical/transport.html">Geochemical Transport</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../physical/energy.html">Energy PKs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../physical/seb.html">Surface Energy Balance PKs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../physical/bgc.html">Biogeochemistry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../physical/deformation.html">Deformation</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="index.html">MPC</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="base.html">Base MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tightly_coupled.html">Tightly Coupled MPCs</a></li>
+<li class="toctree-l3 current active"><a class="current reference internal" href="#">Multiple Domain MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="globalization.html">Globalization Delegates</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../state/index.html">State</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../state/primary.html">Primary Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../state/independent.html">Independent Variables</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../state/secondary.html">Secondary Variables</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../state/conserved.html">Conserved quantities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/subsurface_flow.html">Subsurface Flow Evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/surface_flow.html">Surface Flow Evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/transport.html">Transport evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/thermo.html">Thermodynamic evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/eos.html">Equations of State</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/seb.html">Surface Energy Balance Evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/snow.html">Snow evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/canopy.html">Canopy evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/bgc.html">Carbon and Biogeochemistry Models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/multiscale.html">Multiscale Models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/geometric.html">Geometric evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/generic.html">Generic evaluators</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../math/index.html">Time integrators, solvers, and other mathematical specs</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../math/time_integrators.html">Time Integrators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math/nonlinear_solvers.html">Nonlinear Solver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math/linear_solvers.html">Linear Solvers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math/preconditioners.html">Preconditioners</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math/operators.html">Operators</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../common.html">Shared Specs</a></li>
+</ul>
+</div>
+</nav></div>
+        <div class="sidebar-primary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#integrated-hydrology">Integrated Hydrology</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#operator-split-integrated-hydrology">Operator Split Integrated Hydrology</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#integrated-thermal-hydrology">Integrated Thermal Hydrology</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#operator-split-integrated-thermal-hydrology">Operator Split Integrated Thermal Hydrology</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#integrated-hydrology-with-dual-media">Integrated Hydrology with Dual Media</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#integrated-transport">Integrated Transport</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#integrated-reactive-transport">Integrated Reactive Transport</a></li>
+</ul>
+  </nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">ATS Input Specification</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Process Kernels</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">MPC</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Multiple Domain MPCs</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="multiple-domain-mpcs">
+<h1>Multiple Domain MPCs<a class="headerlink" href="#multiple-domain-mpcs" title="Link to this heading">#</a></h1>
+<p>Additionally, MPCs are used to couple across multiple physical
+domains.  This includes for integrated surface-subsurface
+implementations, multiple media, for subgrid models, and other novel
+models across domain sets.</p>
+<section id="integrated-hydrology">
+<h2>Integrated Hydrology<a class="headerlink" href="#integrated-hydrology" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/mpc/mpc_coupled_water.hh">src/physics/ats/src/pks/mpc/mpc_coupled_water.hh</a></p>
+<p>This MPC couples Richards equation (subsurface flow) to the diffusion wave
+equation (surface flow) through continuity of both pressure and fluxes.  In its
+standard form, it couples pressure at a the surface of the domain,
+<span class="math notranslate nohighlight">\(\Gamma\)</span>, by solving:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\frac{\partial \Theta_s(p_s^*)}{\partial t} &amp;= \nabla k_s \cdot \nabla (z+h(p_s^*)) + Q_{ext} + q_{ss} \\
+\frac{\partial \Theta(p)}{\partial t} &amp;= \nabla \cdot k K (\nabla p + \rho g \hat{z}) \\
+-k K (\nabla p + \rho g \hat{z}) \cdot \hat{n} |_{\Gamma} &amp;= q_{ss} \\
+p|_{\Gamma} &amp;= p_s\end{split}\]</div>
+<p><span class="math notranslate nohighlight">\(q_{ss}\)</span>, the “exfiltration” of water from subsurface to surface, is
+eliminated discretely (enforcing flux continuity) and the pressure equality
+condition (the last equation) is enforced by elimintating the surface unknowns
+discretely.</p>
+<p>This leverages subsurface discretizations that include face-based unknowns, and
+notes that those face unknowns that correspond to surface faces are co-located
+with the surface cell pressure, and therefore are equivalent.  In this approach
+(see <a class="reference external" href="https://doi.org/10.1016/j.advwatres.2020.103701">Coon et al WRR 2020</a>),
+the surface equations are directly assembled into the subsurface discrete
+operator.</p>
+<p>As a result, this requires a subsurface discretization that uses face-based
+unknowns, e.g. any of the <cite>“mfd: *</cite>” class of methods.</p>
+<p><cite>“PK type</cite>” = <cite>“coupled water</cite>”</p>
+<div class="admonition-pk-coupled-water-spec admonition" id="pk-coupled-water-spec">
+<p class="admonition-title">pk-coupled-water-spec</p>
+<ul class="simple">
+<li><p><cite>“PKs order</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> Order must be {subsurface_flow_pk,
+surface_flow_pk}.</p></li>
+<li><p><cite>“subsurface domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>domain</strong></p></li>
+<li><p><cite>“surface domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>surface</strong></p></li>
+<li><p><cite>“water delegate</cite>” <code class="docutils literal notranslate"><span class="pre">[mpc-delegate-water-spec]</span></code> A <a class="reference internal" href="globalization.html#coupled-water-globalization-delegate"><span class="std std-ref">Coupled Water Globalization Delegate</span></a> spec.</p></li>
+</ul>
+<p>INCLUDES:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[strong-mpc-spec]</span></code> <em>Is a</em> <a class="reference internal" href="base.html#strong-mpc"><span class="std std-ref">Strong MPC</span></a>.</p></li>
+</ul>
+</div>
+</section>
+<section id="operator-split-integrated-hydrology">
+<h2>Operator Split Integrated Hydrology<a class="headerlink" href="#operator-split-integrated-hydrology" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/mpc/mpc_coupled_water_split_flux.hh">src/physics/ats/src/pks/mpc/mpc_coupled_water_split_flux.hh</a></p>
+<p>This MPC implements an operator-split coupled water, which splits the lateral
+overland fluxes from surface sources and subsurface flow.</p>
+<p>To advance the coupled flow problem from <span class="math notranslate nohighlight">\(t^n\)</span> to <span class="math notranslate nohighlight">\(t^{n + 1}\)</span>, we
+perform two steps.  First, solve the diffusion wave equation:</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial \Theta_s(p_s^*)}{\partial t} = \nabla k_s \cdot \nabla (z+h(p_s^*))\]</div>
+<p>for surface pressure <span class="math notranslate nohighlight">\(p_s^*\)</span>.  This is colloquially called the “star”
+system.  Then, one of three algorithms is performed for the “primary” system,
+which is a variation on <a class="reference internal" href="#integrated-hydrology"><span class="std std-ref">Integrated Hydrology</span></a> without lateral surface
+fluxes and with extra coupling to the star system.</p>
+<p><strong>Pressure Coupling</strong></p>
+<p><cite>“pressure</cite>” coupling is a standard operator splitting.  <span class="math notranslate nohighlight">\(p_s^*\)</span> becomes
+the initial value for the coupled surface sources and subsurface equations:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\frac{\partial \Theta_s(p_s)}{\partial t} &amp;= Q_ext + q_{ss} \\
+\frac{\partial \Theta(p)}{\partial t} &amp;= \nabla \cdot k K (\nabla p + \rho g \hat{z}) \\
+-k K (\nabla p + \rho g \hat{z}) \cdot \hat{n} |_\Gamma &amp;= q_{ss} \\
+p|_\Gamma &amp;= p_s \\
+p_s(t^n) &amp;= p_s^*\end{split}\]</div>
+<p>Note the lack of a lateral flow term in the overland equation (relative to the
+standard diffusion wave equation shown in <a class="reference internal" href="#integrated-hydrology">Integrated Hydrology</a>).  This
+system is coupled and solved in the same discrete way as <a class="reference internal" href="#integrated-hydrology">Integrated
+Hydrology</a>.</p>
+<p><strong>Flux Coupling</strong></p>
+<p><cite>“flux</cite>” coupling, rather than setting the initial pressure from the
+<span class="math notranslate nohighlight">\(p_s^*\)</span>, instead provides the divergence of fluxes in the lateral flow
+system as a source to the surface system:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\frac{\partial \Theta_s(p_s)}{\partial t} &amp;= \frac{\partial \Theta_s(p_s^*)}{\partial t} + Q_ext + q_{ss} \\
+\frac{\partial \Theta(p)}{\partial t} &amp;= \nabla \cdot k K (\nabla p + \rho g \hat{z}) \\
+-k K (\nabla p + \rho g \hat{z}) \cdot \hat{n} |_\Gamma &amp;= q_{ss} \\
+p|_\Gamma &amp;= p_s\end{split}\]</div>
+<p>The advantage of this approach is that it more stably handles the case of
+wetting up – when a dry surface cell first gets overland flow into that cell,
+it requires that <span class="math notranslate nohighlight">\(p_s &gt; p_{atm}\)</span>.  But if the subsurface below it is
+unsaturated, this can create a large gradient in pressure that will immediately
+be eliminated in the subsurface solve once “run-on” infiltrates.  This jump
+between a <span class="math notranslate nohighlight">\(p_s^* &gt; p_atm\)</span> and <span class="math notranslate nohighlight">\(p_s &lt; p_atm\)</span> is unstable, and hard
+on the nonlinear solver.</p>
+<p>Imposing the run-on as a source of water rather than as a initial pressure is
+much more stable for run-on.</p>
+<p><strong>Hybrid Coupling</strong></p>
+<p>While the <cite>“flux</cite>” approach is more stable than <cite>‘pressure</cite>” in cells
+experiencing run-on, it is not necessary, and potentially problematic in the
+case of run-off.  In those cases the <cite>“pressure</cite>” case is more stable.
+Therefore, a <cite>“hybrid</cite>” coupling approach is used most frequently; this uses
+the <cite>“pressure</cite>’ algorithm where the divergence of lateral surface fluxes is
+negative (e.g. run-off) and the <cite>“flux</cite>” algorithm elsewhere.</p>
+<p>All three algorithms should result in the same (converged) solution.  The
+<cite>“hybrid</cite>” algorithm is the most robust for numerical performance.</p>
+<p>Additionally, the subsurface domain may be treated as either a 3D domain
+(solving 3D Richards equations) or as a domain-set of many 1D, vertical
+columns.  In this case, the second system of equations is implemented on each
+subsurface column individually – there is nothing coupling these columns in
+the second system.  Lateral subsurface flow is ignored in this case.  This
+allows subcycling of individual columns, and a much more efficient solve.  This
+is most appropriate at larger or “intermediate” scales, where lateral flow in
+the subsurface is small.</p>
+<p><cite>“PK type</cite>” = <cite>“operator split coupled water</cite>”</p>
+<div class="admonition-pk-operator-split-coupled-water-spec admonition" id="pk-operator-split-coupled-water-spec">
+<p class="admonition-title">pk-operator-split-coupled-water-spec</p>
+<ul class="simple">
+<li><p><cite>“PKs order</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> Order is {star_system, primary_system}.
+Note that the sub-PKs are likely a <a class="reference internal" href="../physical/flow.html#overland-flow-pk"><span class="std std-ref">Overland Flow PK</span></a> for the “star”
+system and a <a class="reference internal" href="#integrated-hydrology"><span class="std std-ref">Integrated Hydrology</span></a> MPC for the “primary” system.</p></li>
+<li><p><cite>“domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> The subsurface domain, e.g. <cite>“domain</cite>” (for a
+3D subsurface) or <cite>“column:*</cite>” (for the intermediate scale, columnar model).</p></li>
+<li><p><cite>“star domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> The surface domain, typically
+<cite>“surface_star</cite>” by convention.</p></li>
+<li><p><cite>“coupling type</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>“hybrid”</strong> One of: <cite>“pressure</cite>”, <cite>“flux</cite>”,
+or <cite>“hybrid</cite>” (see above).</p></li>
+</ul>
+<p>INCLUDES:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[mpc-spec]</span></code> <em>Is an</em> <a class="reference internal" href="index.html#mpc"><span class="std std-ref">MPC</span></a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[mpc-subcycled-spec]</span></code> <em>Is a</em> <a class="reference internal" href="base.html#subcycling-mpc"><span class="std std-ref">Subcycling MPC</span></a>.</p></li>
+</ul>
+</div>
+</section>
+<section id="integrated-thermal-hydrology">
+<h2>Integrated Thermal Hydrology<a class="headerlink" href="#integrated-thermal-hydrology" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/mpc/mpc_permafrost.hh">src/physics/ats/src/pks/mpc/mpc_permafrost.hh</a></p>
+<p>This MPC handles the coupling of surface energy and flow to subsurface energy
+and flow for integrated thermal hydrology with freeze/thaw processes.</p>
+<p>Coupling for flow is identical to that in <a class="reference internal" href="#integrated-hydrology"><span class="std std-ref">Integrated Hydrology</span></a>.
+Coupling between surface flow and energy is identical to that of <a class="reference internal" href="tightly_coupled.html#surface-flow-energy"><span class="std std-ref">Surface Flow &amp; Energy</span></a>, while coupling between subsurface flow and energy is identical
+to that of <a class="reference internal" href="tightly_coupled.html#subsurface-flow-energy"><span class="std std-ref">Subsurface Flow &amp; Energy</span></a>.  Coupling of energy between the
+surface and subsurface is similar to flow; both continuity of temperature and
+the diffusive flux of energy are enforced, while advected fluxes of energy are
+passed with mass (exfiltration) flux.</p>
+<p>This is the implementation of the model described in <a class="reference external" href="https://doi.org/10.1002/2015WR018427">Painter et al WRR 2016</a>.</p>
+<p><cite>“PK type</cite>” = <cite>“permafrost model</cite>”</p>
+<div class="admonition-pk-permafrost-model-spec admonition" id="pk-permafrost-model-spec">
+<p class="admonition-title">pk-permafrost-model-spec</p>
+<ul class="simple">
+<li><p><cite>“PKs order</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> Order must be {subsurface_flow_pk,
+subsurface_energy_pk, surface_flow_pk, surface_energy_pk}.</p></li>
+<li><p><cite>“subsurface domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>domain</strong></p></li>
+<li><p><cite>“surface domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>surface</strong></p></li>
+<li><p><cite>“mass exchange flux key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>SURFACE_DOMAIN-surface_subsurface_flux</strong></p></li>
+<li><p><cite>“energy exchange flux key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>SURFACE_DOMAIN-surface_subsurface_energy_flux</strong></p></li>
+<li><p><cite>“supress Jacobian terms: d div surface q / dT</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Turn
+off the Jacobian term associated with the derivative of overland
+conductivity with respect to temperature.</p></li>
+<li><p><cite>“water delegate</cite>” <code class="docutils literal notranslate"><span class="pre">[mpc-delegate-water-spec]</span></code> A <a class="reference internal" href="globalization.html#coupled-water-globalization-delegate"><span class="std std-ref">Coupled Water Globalization Delegate</span></a> spec.</p></li>
+<li><p><cite>“surface ewc delegate</cite>” <code class="docutils literal notranslate"><span class="pre">[mpc-delegate-ewc-spec]</span></code> A <a class="reference internal" href="globalization.html#ewc-globalization-delegate"><span class="std std-ref">EWC Globalization Delegate</span></a> spec.</p></li>
+</ul>
+<p>INCLUDES:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[mpc-subsurface-spec]</span></code> <em>Is a</em> <a class="reference internal" href="tightly_coupled.html#subsurface-flow-energy"><span class="std std-ref">Subsurface Flow &amp; Energy</span></a></p></li>
+</ul>
+</div>
+</section>
+<section id="operator-split-integrated-thermal-hydrology">
+<h2>Operator Split Integrated Thermal Hydrology<a class="headerlink" href="#operator-split-integrated-thermal-hydrology" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/mpc/mpc_permafrost_split_flux.hh">src/physics/ats/src/pks/mpc/mpc_permafrost_split_flux.hh</a></p>
+<p>This MPC solves the thermal equivalent of <a class="reference internal" href="#operator-split-integrated-hydrology"><span class="std std-ref">Operator Split Integrated Hydrology</span></a>.  This is the permafrost analog, so deals with energy as well in a
+similar strategy.  In this case advection and diffusion of energy are handled
+in the “star” system, then the “primary” system solves the <a class="reference internal" href="#integrated-thermal-hydrology"><span class="std std-ref">Integrated Thermal Hydrology</span></a> system without lateral fluxes and with extra coupling terms
+equivalent to those for flow from <span class="xref std std-ref">Operaor Split Integrated Hydrology</span>.</p>
+<p>Like the flow-only case, this can be used with either a 3D subsurface solve, by
+setting the 2nd sub-PK to be a 3D permafrost MPC, or a bunch of columns, but
+setting the 2nd sub-PK to be a DomainSetMPC.</p>
+<p>This is the model from <a class="reference external" href="https://doi.org/10.1007/s10596-017-9679-3">Jan et al Comp. Geosci. 2018</a></p>
+<p><cite>“PK type</cite>” = <cite>“operator split permafrost</cite>”</p>
+<div class="admonition-pk-operator-split-permafrost admonition" id="pk-operator-split-permafrost">
+<p class="admonition-title">pk-operator-split-permafrost</p>
+<ul class="simple">
+<li><p><cite>“PKs order</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> Order is {star_system, primary_system}.
+Note that the sub-PKs are likely a <a class="reference internal" href="tightly_coupled.html#surface-flow-energy"><span class="std std-ref">Surface Flow &amp; Energy</span></a> MPC for
+the star system and a <a class="reference internal" href="#integrated-thermal-hydrology"><span class="std std-ref">Integrated Thermal Hydrology</span></a> MPC for the
+primary system.  Because the latter does not include lateral fluxes in the
+surface, the sub-PKs of the primary system may be <span class="xref std std-ref">General Surface
+Balance</span> equations rather than <a class="reference internal" href="../physical/flow.html#overland-flow-pk"><span class="std std-ref">Overland Flow PK</span></a> and <a class="reference internal" href="../physical/energy.html#overland-energy-with-ice"><span class="std std-ref">Overland Energy with Ice</span></a> (thereby removing the lateral flow and energy transport
+components).</p></li>
+<li><p><cite>“domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> The subsurface domain, e.g. “domain” (for a
+3D subsurface ) or “column:<a href="#id1"><span class="problematic" id="id2">*</span></a>” (for the intermediate scale model.</p></li>
+<li><p><cite>“star domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> The surface domain, typically
+<cite>“surface_star</cite>” by convention.</p></li>
+<li><p><cite>“coupling type</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>hybrid</strong> One of: <cite>“pressure</cite>” (pass the
+pressure field when coupling flow in the operator splitting), <cite>“flux</cite>”
+(pass the divergence of fluxes as a source), or <cite>“hybrid</cite>” a mixture of
+the two that seems the most robust.</p></li>
+</ul>
+<p>INCLUDES:
+- <code class="docutils literal notranslate"><span class="pre">[pk-mpc-spec]</span></code> <em>Is an</em> <a class="reference internal" href="index.html#mpc"><span class="std std-ref">MPC</span></a>.
+- <code class="docutils literal notranslate"><span class="pre">[pk-subcycling-mpc-spec]</span></code> <em>Is a</em> <a class="reference internal" href="base.html#subcycling-mpc"><span class="std std-ref">Subcycling MPC</span></a></p>
+</div>
+</section>
+<section id="integrated-hydrology-with-dual-media">
+<h2>Integrated Hydrology with Dual Media<a class="headerlink" href="#integrated-hydrology-with-dual-media" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/mpc/mpc_coupled_dualmedia_water.hh">src/physics/ats/src/pks/mpc/mpc_coupled_dualmedia_water.hh</a></p>
+<p>A coupler which integrates surface, richards and preferantial flows implicitly.</p>
+<p>TODO: &#64;dasvyat document me</p>
+</section>
+<section id="integrated-transport">
+<h2>Integrated Transport<a class="headerlink" href="#integrated-transport" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/mpc/mpc_coupled_transport.hh">src/physics/ats/src/pks/mpc/mpc_coupled_transport.hh</a></p>
+<p>This MPC couples surface and subsurface transport.  It is implemented as
+described in <a class="reference external" href="https://doi.org/10.1029/2022WR032074">Molins et al WRR 2022</a>,
+and deals with the conservation of advected fluxes as they are transported
+laterally, infiltrate, etc, including wetting and drying of surface cells.</p>
+<p><cite>“PK type</cite>” = <cite>“surface subsurface transport</cite>”</p>
+<div class="admonition-pk-surface-subsurface-transport-spec admonition" id="pk-surface-subsurface-transport-spec">
+<p class="admonition-title">pk-surface-subsurface-transport-spec</p>
+<ul class="simple">
+<li><p><cite>“PKs order</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> Order must be {subsurface transport,
+surface transport}.</p></li>
+</ul>
+</div>
+</section>
+<section id="integrated-reactive-transport">
+<h2>Integrated Reactive Transport<a class="headerlink" href="#integrated-reactive-transport" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/mpc/mpc_coupled_reactivetransport.hh">src/physics/ats/src/pks/mpc/mpc_coupled_reactivetransport.hh</a></p>
+<p>This couples integrated (surface + subsurface) transport MPC with an integrated
+chemistry MPC.</p>
+<p>Transport must be tightly coupled in order to correctly pass surface-subsurface
+advective fluxes between the two domains.  Chemistry is just a weak MPC.  The
+two are then coupled to form an integrated reactive-transport PK.</p>
+<p>This performs operatoring splitting between transport and chemistry in each
+domain.  Note that transport’s primary variable is “molar_fraction”, which is
+in units of [mol-C mol-H2O^-1].  Chemistry is in
+“total_component_concentration”, which is in units of [mol-C L^-1].  Therefore,
+between steps, we convert between the two.</p>
+<p><cite>“PK type</cite>” = <cite>“surface subsurface reactive transport</cite>”</p>
+<div class="admonition-pk-surface-subsurface-reactive-transport-spec admonition" id="pk-surface-subsurface-reactive-transport-spec">
+<p class="admonition-title">pk-surface-subsurface-reactive-transport-spec</p>
+<ul class="simple">
+<li><p><cite>“PKs order</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> Order must be {chemistry_mpc,
+transport_mpc}.  The chemistry MPC is likely just a <a class="reference internal" href="base.html#weak-mpc"><span class="std std-ref">Weak MPC</span></a>
+coupling to chemistry PKs, while the transport MPC is likely a
+<a class="reference internal" href="#integrated-transport"><span class="std std-ref">Integrated Transport</span></a> MPC.</p></li>
+</ul>
+<p>KEYS:</p>
+<ul class="simple">
+<li><p><cite>“molar density liquid</cite>”</p></li>
+<li><p><cite>“surface molar density liquid</cite>”</p></li>
+</ul>
+</div>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="tightly_coupled.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Tightly Coupled MPCs</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="globalization.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Globalization Delegates</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 202X, jointly shared by contributor institutions.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

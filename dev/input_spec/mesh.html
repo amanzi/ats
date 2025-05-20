@@ -16,39 +16,43 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
-  
-  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
-
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/custom_theme.css?v=a03f4c85" />
   
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
-<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
-  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
     <script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
     <script src="../_static/documentation_options.js?v=3ce10a4d"></script>
-    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'input_spec/mesh';</script>
     <script>
-        DOCUMENTATION_OPTIONS.theme_version = '0.15.4';
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
         DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
-        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
         </script>
     <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
     <script src="../_static/main.js?v=b10558fa"></script>
@@ -59,6 +63,7 @@
     <link rel="prev" title="Main" href="main.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="dev" />
   </head>
   
   
@@ -74,19 +79,8 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
-  
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
-  
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="../search.html"
       method="get">
@@ -94,7 +88,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search the docs ..."
          aria-label="Search the docs ..."
          autocomplete="off"
@@ -102,8 +95,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -137,7 +130,7 @@
     
     
     <img src="../_static/logo_full.png" class="logo__image only-light" alt="Amanzi-ATS documentation -- Home"/>
-    <script>document.write(`<img src="../_static/logo_full.png" class="logo__image only-dark" alt="Amanzi-ATS documentation -- Home"/>`);</script>
+    <img src="../_static/logo_full.png" class="logo__image only-dark pst-js-only" alt="Amanzi-ATS documentation -- Home"/>
   
   
 </a></div>
@@ -152,13 +145,6 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../concepts/index.html">
-    Amanzi-ATS Concepts
-  </a>
-</li>
-
-
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../demos.html">
     ATS Demo Problems
@@ -183,29 +169,21 @@
         <div class="navbar-item navbar-persistent--container">
           
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
         </div>
       
       
         <div class="navbar-item">
 
-<script>
-document.write(`
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
-  </button>
-`);
-</script></div>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
       
     </div>
     
@@ -214,15 +192,11 @@ document.write(`
   
     <div class="navbar-persistent--mobile">
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
     </div>
   
 
@@ -237,7 +211,8 @@ document.write(`
       
       
       
-      <div class="bd-sidebar-primary bd-sidebar">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -252,13 +227,6 @@ document.write(`
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../concepts/index.html">
-    Amanzi-ATS Concepts
-  </a>
-</li>
-
-
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../demos.html">
     ATS Demo Problems
@@ -284,15 +252,11 @@ document.write(`
         
           <div class="navbar-item">
 
-<script>
-document.write(`
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
-  </button>
-`);
-</script></div>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
         
       </div>
     
@@ -302,28 +266,24 @@ document.write(`
         <div class="sidebar-primary-item"><!-- This will display the version of the docs -->
 Version dev</div>
         <div class="sidebar-primary-item">
-<script>
-document.write(`
-  <div class="version-switcher__container dropdown">
-    <button id="pst-version-switcher-button-2"
-      type="button"
-      class="version-switcher__button btn btn-sm dropdown-toggle"
-      data-bs-toggle="dropdown"
-      aria-haspopup="listbox"
-      aria-controls="pst-version-switcher-list-2"
-      aria-label="Version switcher list"
-    >
-      Choose version  <!-- this text may get changed later by javascript -->
-      <span class="caret"></span>
-    </button>
-    <div id="pst-version-switcher-list-2"
-      class="version-switcher__menu dropdown-menu list-group-flush py-0"
-      role="listbox" aria-labelledby="pst-version-switcher-button-2">
-      <!-- dropdown will be populated by javascript on page load -->
-    </div>
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
   </div>
-`);
-</script></div>
+</div></div>
         <div class="sidebar-primary-item">
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
@@ -339,22 +299,24 @@ document.write(`
 <li class="toctree-l2"><a class="reference internal" href="io/visualization.html">Visualization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="io/observations.html">Observations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="io/checkpoint.html">Checkpoint</a></li>
+<li class="toctree-l2"><a class="reference internal" href="io/logfile.html">Logfile Control</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="process_kernels/index.html">Process Kernels</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="process_kernels/base.html">Base PKs</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="process_kernels/physical/index.html">Physical PKs</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="process_kernels/physical/flow.html">Flow PKs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="process_kernels/physical/transport.html">Transport PK</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_kernels/physical/transport.html">Geochemical Transport</a></li>
 <li class="toctree-l3"><a class="reference internal" href="process_kernels/physical/energy.html">Energy PKs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="process_kernels/physical/seb.html">Surface Energy Balance PKs</a></li>
-
-
+<li class="toctree-l3"><a class="reference internal" href="process_kernels/physical/bgc.html">Biogeochemistry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_kernels/physical/deformation.html">Deformation</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="process_kernels/mpcs/index.html">MPC</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="process_kernels/mpcs/base.html">Base MPCs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="process_kernels/mpcs/physical.html">Physical MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_kernels/mpcs/tightly_coupled.html">Tightly Coupled MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_kernels/mpcs/multiple_domain.html">Multiple Domain MPCs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="process_kernels/mpcs/globalization.html">Globalization Delegates</a></li>
 </ul>
 </details></li>
@@ -363,19 +325,22 @@ document.write(`
 <li class="toctree-l1 has-children"><a class="reference internal" href="state/index.html">State</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="state/primary.html">Primary Variables</a></li>
 <li class="toctree-l2"><a class="reference internal" href="state/independent.html">Independent Variables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/secondary.html">Secondary Variables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/conserved.html">Conserved quantities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/subsurface_flow.html">Subsurface flow evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/surface_flow.html">Surface flow evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/thermo.html">Thermodynamic evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/eos.html">Equations of State</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/seb.html">Surface energy balance evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/snow.html">Snow evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/canopy.html">Canopy evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/bgc.html">Carbon and Biogeochemistry Models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/multiscale.html">Multiscale Models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/geometric.html">Geometric evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/generic.html">Generic evaluators</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="state/secondary.html">Secondary Variables</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="state/conserved.html">Conserved quantities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state/subsurface_flow.html">Subsurface Flow Evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state/surface_flow.html">Surface Flow Evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state/transport.html">Transport evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state/thermo.html">Thermodynamic evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state/eos.html">Equations of State</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state/seb.html">Surface Energy Balance Evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state/snow.html">Snow evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state/canopy.html">Canopy evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state/bgc.html">Carbon and Biogeochemistry Models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state/multiscale.html">Multiscale Models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state/geometric.html">Geometric evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state/generic.html">Generic evaluators</a></li>
+</ul>
+</details></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="math/index.html">Time integrators, solvers, and other mathematical specs</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -413,9 +378,14 @@ document.write(`
   
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
   </div>
-  
-  <div id="rtd-footer-container"></div>
 
 
       </div>
@@ -433,8 +403,6 @@ document.write(`
       
         <div class="header-article-item">
 
-
-
 <nav aria-label="Breadcrumb" class="d-print-none">
   <ul class="bd-breadcrumbs">
     
@@ -446,7 +414,7 @@ document.write(`
     
     <li class="breadcrumb-item"><a href="index.html" class="nav-link">ATS Input Specification</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page">Mesh</li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Mesh</span></li>
   </ul>
 </nav>
 </div>
@@ -465,9 +433,8 @@ document.write(`
                   
   <section id="mesh">
 <h1>Mesh<a class="headerlink" href="#mesh" title="Link to this heading">#</a></h1>
-<blockquote>
-<div><p>A list of mesh objects and their domain names.</p>
-</div></blockquote>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/executables/ats_mesh_factory.hh">src/physics/ats/src/executables/ats_mesh_factory.hh</a></p>
+<p>A list of mesh objects and their domain names.</p>
 <p>All processes are simulated on a domain, which is discretized through a mesh.</p>
 <p>Multiple domains and therefore meshes can be used in a single simulation, and
 multiple meshes can be constructed on the fly.  The top level <cite>“mesh</cite>” is a
@@ -524,7 +491,7 @@ mesh.  Note this only makes sense on the domain mesh.  One of:</p>
 <p>Generated mesh are by definition structured, with uniform dx, dy, and dz.
 Such a mesh is specified by a bounding box high and low coordinate, and a list
 of number of cells in each direction.</p>
-<p>Specified by <cite>“mesh type</cite>” of <cite>“generate mesh</cite>”.</p>
+<p><cite>“mesh type</cite>” = <cite>“generate mesh</cite>”.</p>
 <div class="admonition-mesh-generate-mesh-spec admonition" id="mesh-generate-mesh-spec">
 <p class="admonition-title">mesh-generate-mesh-spec</p>
 <ul class="simple">
@@ -558,7 +525,7 @@ directly.  When running in parallel with a prepartitioned mesh, the suffix is
 generated with a Nemesis tool and named as filename.par.N.r where N is the
 number of processors and r is the rank.  When running in parallel and the
 suffix is .exo, the code will partition automatically the serial file.</p>
-<p>Specified by <cite>“mesh type</cite>” of <cite>“read mesh file</cite>”.</p>
+<p><cite>“mesh type</cite>” = <cite>“read mesh file</cite>”.</p>
 <div class="admonition-mesh-read-mesh-file-spec admonition" id="mesh-read-mesh-file-spec">
 <p class="admonition-title">mesh-read-mesh-file-spec</p>
 <ul class="simple">
@@ -588,7 +555,7 @@ and can be used like a mesh, but don’t fit MSTK’s view of an
 unstructured mesh.</p>
 <p>This is an active research and development area, and is used most
 frequently for river networks, root networks, and crack networks.</p>
-<p>Specified by <cite>“mesh type</cite>” of <cite>“logical</cite>”.</p>
+<p><cite>“mesh type</cite>” = <cite>“logical</cite>”.</p>
 <div class="admonition-mesh-logical-spec admonition" id="mesh-logical-spec">
 <p class="admonition-title">mesh-logical-spec</p>
 <p>Not yet completed…</p>
@@ -604,7 +571,7 @@ The mesh is flattened, so all surface faces must have non-zero area when
 projected in the z-direction.  No checks for holes are performed.  Surface
 meshes may similarly be audited to make sure they are reasonable for
 computation.</p>
-<p>Specified by <cite>“mesh type</cite>” of <cite>“surface</cite>”.</p>
+<p><cite>“mesh type</cite>” = <cite>“surface</cite>”.</p>
 <div class="admonition-mesh-surface-spec admonition" id="mesh-surface-spec">
 <p class="admonition-title">mesh-surface-spec</p>
 <ul class="simple">
@@ -612,11 +579,11 @@ computation.</p>
 </ul>
 <p>ONE OF</p>
 <ul class="simple">
-<li><p><cite>“surface sideset name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> The <a href="#id2"><span class="problematic" id="id3">Region_</span></a> name containing all surface faces.</p></li>
+<li><p><cite>“surface sideset name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> The <a class="reference internal" href="region.html"><span class="doc">Region</span></a> name containing all surface faces.</p></li>
 </ul>
 <p>OR</p>
 <ul class="simple">
-<li><p><cite>“surface sideset names</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> A list of <a href="#id4"><span class="problematic" id="id5">Region_</span></a> names containing the surface faces.</p></li>
+<li><p><cite>“surface sideset names</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> A list of <a class="reference internal" href="region.html"><span class="doc">Region</span></a> names containing the surface faces.</p></li>
 </ul>
 <p>END</p>
 <ul class="simple">
@@ -656,7 +623,7 @@ surface.</p></li>
 is preserved, so all local entities in this mesh have parents whose entities
 are local on the parent mesh, so that no communication is ever done when
 passing info between an parent mesh and an extracted mesh.</p>
-<p>Specified by <cite>“mesh type</cite>” of <cite>“extracted</cite>”.</p>
+<p><cite>“mesh type</cite>” = <cite>“extracted</cite>”.</p>
 <div class="admonition-mesh-extracted-spec admonition" id="mesh-extracted-spec">
 <p class="admonition-title">mesh-extracted-spec</p>
 <ul class="simple">
@@ -664,11 +631,11 @@ passing info between an parent mesh and an extracted mesh.</p>
 </ul>
 <p>ONE OF</p>
 <ul class="simple">
-<li><p><cite>“region</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> The <a href="#id6"><span class="problematic" id="id7">Region_</span></a> name containing all surface faces.</p></li>
+<li><p><cite>“region</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> The <a href="#id2"><span class="problematic" id="id3">Region_</span></a> name containing all surface faces.</p></li>
 </ul>
 <p>OR</p>
 <ul class="simple">
-<li><p><cite>“regions</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> A list of <a href="#id8"><span class="problematic" id="id9">Region_</span></a> names containing the surface faces.</p></li>
+<li><p><cite>“regions</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> A list of <a href="#id4"><span class="problematic" id="id5">Region_</span></a> names containing the surface faces.</p></li>
 </ul>
 <p>END</p>
 <ul class="simple">
@@ -689,7 +656,7 @@ instance, one might find it useful to define both a “surface water” and a
 “snow” domain that share a common “surface” mesh.  In that case, typically the
 “surface” domain would point to the “surface” mesh, and the “snow” domain would
 be an “aliased” domain whose target is the “surface” mesh.</p>
-<p>Specified by <cite>“mesh type</cite>” of <cite>“aliased</cite>”.</p>
+<p><cite>“mesh type</cite>” = <cite>“aliased</cite>”.</p>
 <div class="admonition-mesh-aliased-spec admonition" id="mesh-aliased-spec">
 <p class="admonition-title">mesh-aliased-spec</p>
 <ul class="simple">
@@ -706,7 +673,7 @@ meshes off of each surface cell as a subgrid model, etc.</p>
 <p>The domain set meshes are then named <cite>“MESH_NAME:X”</cite> for each X, which can be a
 local ID of an entity (in the case of <cite>“domain set indexed</cite>”) or a region name
 (in the case of <cite>“domain set regions</cite>”).</p>
-<p>Indexed domain set meshes are specified by <cite>“mesh type</cite>” of <cite>“domain set indexed</cite>”.</p>
+<p><cite>“mesh type</cite>” = <cite>“domain set indexed</cite>”.</p>
 <div class="admonition-mesh-domain-set-indexed-spec admonition" id="mesh-domain-set-indexed-spec">
 <p class="admonition-title">mesh-domain-set-indexed-spec</p>
 <ul class="simple">
@@ -721,7 +688,7 @@ surface.</p></li>
 </ul>
 </div>
 <p>Note, additionally, there must be a sublist of the name of the domain set,
-which itself is a <cite>“mesh-typed-spec</cite>”_, but may be missing some info
+which itself is a <a class="reference internal" href="#"><span class="doc">mesh-typed-spec</span></a>, but may be missing some info
 (e.g. <cite>“entity LID</cite>”) that is filled in by this index.</p>
 <p>Example:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;column:*&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
@@ -741,7 +708,7 @@ which itself is a <cite>“mesh-typed-spec</cite>”_, but may be missing some i
 <span class="nt">&lt;/ParameterList&gt;</span>
 </pre></div>
 </div>
-<p>Region-based domain set meshes are specified by <cite>“mesh type</cite>” of <cite>“domain set regions</cite>”.</p>
+<p><cite>“mesh type</cite>” = <cite>“domain set regions</cite>”.</p>
 <div class="admonition-mesh-domain-set-regions-spec admonition" id="mesh-domain-set-regions-spec">
 <p class="admonition-title">mesh-domain-set-regions-spec</p>
 <ul class="simple">
@@ -756,7 +723,7 @@ surface.</p></li>
 </ul>
 </div>
 <p>Note, additionally, there must be a sublist of the name of the domain set,
-which itself is a <cite>“mesh-typed-spec</cite>”_, but may be missing some info
+which itself is a <a class="reference internal" href="#"><span class="doc">mesh-typed-spec</span></a>, but may be missing some info
 (e.g. <cite>“region</cite>”) that is filled in by this domain set.</p>
 <p>Example: the below example shows how to extract two subdomains, making them
 each a proper mesh whose communicators only live where they have cells, thereby
@@ -788,7 +755,7 @@ decomposing the domain mesh into two subdomains.</p>
 <a class="reference internal" href="#domain-set-meshes">Domain Set Meshes</a>, which generate a column mesh spec for every face
 of a set.</p>
 </div>
-<p>Specified by <cite>“mesh type</cite>” of <cite>“column</cite>”.</p>
+<p><cite>“mesh type</cite>” = <cite>“column</cite>”.</p>
 <div class="admonition-mesh-column-spec admonition" id="mesh-column-spec">
 <p class="admonition-title">mesh-column-spec</p>
 <ul class="simple">
@@ -826,7 +793,7 @@ Note that the <cite>“build columns from set</cite>” parameter must be set in
 <a class="reference internal" href="#domain-set-meshes">Domain Set Meshes</a>, which generate a column surface mesh spec for every face
 of a set.</p>
 </div>
-<p>Specified by <cite>“mesh type</cite>” of <cite>“column surface</cite>”.</p>
+<p><cite>“mesh type</cite>” = <cite>“column surface</cite>”.</p>
 <div class="admonition-mesh-column-surface-spec admonition" id="mesh-column-surface-spec">
 <p class="admonition-title">mesh-column-surface-spec</p>
 <ul class="simple">
@@ -886,8 +853,8 @@ Note that the <cite>“build columns from set</cite>” parameter must be set in
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
-<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -907,7 +874,7 @@ Note that the <cite>“build columns from set</cite>” parameter must be set in
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
     <br/>
   </p>
 </div>
@@ -920,7 +887,8 @@ Note that the <cite>“build columns from set</cite>” parameter must be set in
       
         <div class="footer-item">
 <p class="theme-version">
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
 </p></div>
       
     </div>

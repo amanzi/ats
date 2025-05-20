@@ -16,40 +16,44 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
-  
-  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
-
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/custom_theme.css?v=a03f4c85" />
   
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
-<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
-  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
     <script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
     <script src="../_static/documentation_options.js?v=3ce10a4d"></script>
-    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'input_spec/introduction';</script>
     <script>
-        DOCUMENTATION_OPTIONS.theme_version = '0.15.4';
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
         DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
-        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
         </script>
     <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
     <script src="../_static/main.js?v=b10558fa"></script>
@@ -60,6 +64,7 @@
     <link rel="prev" title="ATS Input Specification" href="index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="dev" />
   </head>
   
   
@@ -75,19 +80,8 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
-  
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
-  
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="../search.html"
       method="get">
@@ -95,7 +89,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search the docs ..."
          aria-label="Search the docs ..."
          autocomplete="off"
@@ -103,8 +96,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -138,7 +131,7 @@
     
     
     <img src="../_static/logo_full.png" class="logo__image only-light" alt="Amanzi-ATS documentation -- Home"/>
-    <script>document.write(`<img src="../_static/logo_full.png" class="logo__image only-dark" alt="Amanzi-ATS documentation -- Home"/>`);</script>
+    <img src="../_static/logo_full.png" class="logo__image only-dark pst-js-only" alt="Amanzi-ATS documentation -- Home"/>
   
   
 </a></div>
@@ -153,13 +146,6 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../concepts/index.html">
-    Amanzi-ATS Concepts
-  </a>
-</li>
-
-
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../demos.html">
     ATS Demo Problems
@@ -184,29 +170,21 @@
         <div class="navbar-item navbar-persistent--container">
           
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
         </div>
       
       
         <div class="navbar-item">
 
-<script>
-document.write(`
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
-  </button>
-`);
-</script></div>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
       
     </div>
     
@@ -215,15 +193,11 @@ document.write(`
   
     <div class="navbar-persistent--mobile">
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
     </div>
   
 
@@ -238,7 +212,8 @@ document.write(`
       
       
       
-      <div class="bd-sidebar-primary bd-sidebar">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -253,13 +228,6 @@ document.write(`
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../concepts/index.html">
-    Amanzi-ATS Concepts
-  </a>
-</li>
-
-
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../demos.html">
     ATS Demo Problems
@@ -285,15 +253,11 @@ document.write(`
         
           <div class="navbar-item">
 
-<script>
-document.write(`
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
-  </button>
-`);
-</script></div>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
         
       </div>
     
@@ -303,28 +267,24 @@ document.write(`
         <div class="sidebar-primary-item"><!-- This will display the version of the docs -->
 Version dev</div>
         <div class="sidebar-primary-item">
-<script>
-document.write(`
-  <div class="version-switcher__container dropdown">
-    <button id="pst-version-switcher-button-2"
-      type="button"
-      class="version-switcher__button btn btn-sm dropdown-toggle"
-      data-bs-toggle="dropdown"
-      aria-haspopup="listbox"
-      aria-controls="pst-version-switcher-list-2"
-      aria-label="Version switcher list"
-    >
-      Choose version  <!-- this text may get changed later by javascript -->
-      <span class="caret"></span>
-    </button>
-    <div id="pst-version-switcher-list-2"
-      class="version-switcher__menu dropdown-menu list-group-flush py-0"
-      role="listbox" aria-labelledby="pst-version-switcher-button-2">
-      <!-- dropdown will be populated by javascript on page load -->
-    </div>
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
   </div>
-`);
-</script></div>
+</div></div>
         <div class="sidebar-primary-item">
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
@@ -340,22 +300,24 @@ document.write(`
 <li class="toctree-l2"><a class="reference internal" href="io/visualization.html">Visualization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="io/observations.html">Observations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="io/checkpoint.html">Checkpoint</a></li>
+<li class="toctree-l2"><a class="reference internal" href="io/logfile.html">Logfile Control</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="process_kernels/index.html">Process Kernels</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="process_kernels/base.html">Base PKs</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="process_kernels/physical/index.html">Physical PKs</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="process_kernels/physical/flow.html">Flow PKs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="process_kernels/physical/transport.html">Transport PK</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_kernels/physical/transport.html">Geochemical Transport</a></li>
 <li class="toctree-l3"><a class="reference internal" href="process_kernels/physical/energy.html">Energy PKs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="process_kernels/physical/seb.html">Surface Energy Balance PKs</a></li>
-
-
+<li class="toctree-l3"><a class="reference internal" href="process_kernels/physical/bgc.html">Biogeochemistry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_kernels/physical/deformation.html">Deformation</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="process_kernels/mpcs/index.html">MPC</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="process_kernels/mpcs/base.html">Base MPCs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="process_kernels/mpcs/physical.html">Physical MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_kernels/mpcs/tightly_coupled.html">Tightly Coupled MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_kernels/mpcs/multiple_domain.html">Multiple Domain MPCs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="process_kernels/mpcs/globalization.html">Globalization Delegates</a></li>
 </ul>
 </details></li>
@@ -364,19 +326,22 @@ document.write(`
 <li class="toctree-l1 has-children"><a class="reference internal" href="state/index.html">State</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="state/primary.html">Primary Variables</a></li>
 <li class="toctree-l2"><a class="reference internal" href="state/independent.html">Independent Variables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/secondary.html">Secondary Variables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/conserved.html">Conserved quantities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/subsurface_flow.html">Subsurface flow evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/surface_flow.html">Surface flow evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/thermo.html">Thermodynamic evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/eos.html">Equations of State</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/seb.html">Surface energy balance evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/snow.html">Snow evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/canopy.html">Canopy evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/bgc.html">Carbon and Biogeochemistry Models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/multiscale.html">Multiscale Models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/geometric.html">Geometric evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/generic.html">Generic evaluators</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="state/secondary.html">Secondary Variables</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="state/conserved.html">Conserved quantities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state/subsurface_flow.html">Subsurface Flow Evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state/surface_flow.html">Surface Flow Evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state/transport.html">Transport evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state/thermo.html">Thermodynamic evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state/eos.html">Equations of State</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state/seb.html">Surface Energy Balance Evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state/snow.html">Snow evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state/canopy.html">Canopy evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state/bgc.html">Carbon and Biogeochemistry Models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state/multiscale.html">Multiscale Models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state/geometric.html">Geometric evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state/generic.html">Generic evaluators</a></li>
+</ul>
+</details></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="math/index.html">Time integrators, solvers, and other mathematical specs</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -401,17 +366,23 @@ document.write(`
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#specs">Specs</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#syntax">Syntax</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#naming">Naming</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#name-and-symbol-index">Name and Symbol Index</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#units">Units</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#variable-naming">Variable Naming</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#default-names-symbols-and-units">Default Names, Symbols, and Units</a></li>
 </ul>
   </nav></div>
     </div>
   
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
   </div>
-  
-  <div id="rtd-footer-container"></div>
 
 
       </div>
@@ -429,8 +400,6 @@ document.write(`
       
         <div class="header-article-item">
 
-
-
 <nav aria-label="Breadcrumb" class="d-print-none">
   <ul class="bd-breadcrumbs">
     
@@ -442,7 +411,7 @@ document.write(`
     
     <li class="breadcrumb-item"><a href="index.html" class="nav-link">ATS Input Specification</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page">About the...</li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">About the Specification</span></li>
   </ul>
 </nav>
 </div>
@@ -473,6 +442,10 @@ all information needed to run the simulation.  This input spec is
 designed for the code, not necessarily for the user.  In general,
 avoid writing input files from scratch, and prefer to modify existing
 demos or examples.</p>
+<p>Additionally, the <a class="reference external" href="https://github.com/ecoon/ats_input_spec">ATS Input Spec</a>
+tool can be used to generate ATS input files through a python script.
+Despite this tool, it is important to be able to parse and understand
+the resulting xml file.</p>
 <p>Here we document the input spec by defining what each possible element
 used by the code needs to be well posed.</p>
 <section id="specs">
@@ -483,27 +456,46 @@ initial data might be uniform (the value is required), or linear in y
 (the value and its gradient are required).  Where ATS supports a
 number of parameterized models for quantity Z, the available models
 will be listed by name, and then will be described in the subsequent
-section.  For example, the specification for an <cite>“X</cite>” list might look
+section.  For example, the specification for an <cite>“apple</cite>” list might look
 like:</p>
-<div class="admonition-x-spec admonition" id="x-spec">
-<p class="admonition-title">X-spec</p>
+<div class="admonition-apple-spec admonition" id="apple-spec">
+<p class="admonition-title">apple-spec</p>
 <ul class="simple">
-<li><p><cite>“Y</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>default_value</strong> Documentation desribing Y.</p></li>
-<li><p><cite>“Z</cite>” <code class="docutils literal notranslate"><span class="pre">[Z-spec]</span></code> Model for Z, One of <cite>“z1</cite>” or <cite>“z2</cite>” (see below)</p></li>
+<li><p><cite>“apple kind</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> A string defining the kind of apple;
+valid choices include <cite>“cosmic crisp</cite>”, <cite>“granny smith</cite>”, or
+<cite>“golden delicious</cite>”</p></li>
+<li><p><cite>“color</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>red</strong> The color of the apple, defaults to
+<cite>“red</cite>”.</p></li>
 </ul>
 </div>
-<p>Here, an <cite>“X</cite>” is defined by a <cite>“Y</cite>” and a <cite>“Z</cite>”.  The <cite>“Y</cite>” is a
-string parameter but the <cite>“Z</cite>” is given by a model (which will require
-its own set of parameters).  The options for <cite>“Z</cite>” will then be
-described seperately as a <cite>“Z-spec</cite>”</p>
+<p>An <cite>“apple-spec</cite>” might be used when defining a pie recipe:</p>
+<div class="admonition-apple-pie-spec admonition" id="apple-pie-spec">
+<p class="admonition-title">apple-pie-spec</p>
+<ul class="simple">
+<li><p><cite>“apple</cite>” <code class="docutils literal notranslate"><span class="pre">[apple-spec]</span></code></p></li>
+<li><p><cite>“apple volume [cups]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1</strong></p></li>
+</ul>
+</div>
+<p>Note that the <cite>“apple</cite>” entry would be a <cite>ParameterList</cite>, named
+<cite>“apple</cite>”, that includes all of the parameters required to define an
+<cite>“apple-spec</cite>”.  Also, note that, wherever possible, units are defined
+in the name of the parameter.</p>
 <p>An example of using such a specification:</p>
-<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;X&quot;</span><span class="nt">&gt;</span>
-<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;Y&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;hello&quot;</span><span class="nt">/&gt;</span>
-<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;z2&quot;</span><span class="nt">&gt;</span>
-<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;z2a&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.7&quot;</span><span class="nt">/&gt;</span>
-<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;z2b&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;int&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;3&quot;</span><span class="nt">/&gt;</span>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;my apple pie&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;apple volume [cups]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;1.5&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;apple&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;apple kind&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;granny smith&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;color&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;green&quot;</span><span class="nt">/&gt;</span>
 <span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
 <span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+<p>or equivalently,</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">my apple pie</span><span class="p">:</span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">apple volume [cups]</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.5</span>
+<span class="w">  </span><span class="nt">apple</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">apple kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">granny smith</span>
+<span class="w">    </span><span class="nt">color</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">green</span>
 </pre></div>
 </div>
 </section>
@@ -522,13 +514,33 @@ be renamed from their defaults if it makes sense to the problem.</p></li>
 is not provided.</p></li>
 </ul>
 </section>
-<section id="naming">
-<h2><a class="toc-backref" href="#id4" role="doc-backlink">Naming</a><a class="headerlink" href="#naming" title="Link to this heading">#</a></h2>
-<p>Variables are named according to a very strong convention.  While some
-variables may be overridden by the user, users should choose to follow
-these conventions or things like visualization scripts may not behave
-as expected.</p>
-<p>A variable name looks like one of:</p>
+<section id="units">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">Units</a><a class="headerlink" href="#units" title="Link to this heading">#</a></h2>
+<p>Wherever possible, units for a parameter are included in the parameter
+name, in brackets, and in SI units.  When there are common alternative
+units (e.g. g/mL) we sometimes provide a second parameter option with
+the same name, but different units.</p>
+<p>All units are written in the numerator.  <cite>^</cite> is used to indicate
+powers, including negative powers.  For example, a parameter
+prescribing the density of water might be: <cite>“density of water [kg
+m^-3]</cite>”.</p>
+</section>
+<section id="variable-naming">
+<h2><a class="toc-backref" href="#id5" role="doc-backlink">Variable Naming</a><a class="headerlink" href="#variable-naming" title="Link to this heading">#</a></h2>
+<p>Unlike parameters (which can only be spelled one way), variables are
+often named with user-defined strings which have a default value.  For
+instance, a Richards equation might need a variable defining the
+saturation of the liquid phase.  By default, we would call this
+<cite>“saturation_liquid</cite>”, but the user may choose to override this name.
+This makes variables hard to define with certainty, because the user
+may change these things.  This is a feature, but to a new user, it may
+seem confusing.  Prefer to use default names wherever possible, unless
+there is a good reason not to do so.</p>
+<p>Variables are named according to a very strong convention.  While
+variable names may be overridden by the user, users should choose to
+follow these conventions or things like visualization scripts may not
+behave as expected.</p>
+<p>A <strong>variable name</strong> looks like one of:</p>
 <ul class="simple">
 <li><p>ROOT_NAME</p></li>
 <li><p>DOMAIN-ROOT_NAME</p></li>
@@ -536,35 +548,44 @@ as expected.</p>
 </ul>
 <p>where:</p>
 <ul class="simple">
+<li><p>ROOT_NAME is the root of the variable, e.g. <cite>“temperature</cite>”.</p></li>
 <li><p>When DOMAIN is not supplied, it is implied to be the “default” mesh,
 called <cite>“domain</cite>” in the mesh list.  Otherwise the domain name is
-the same as the mesh name (e.g. <cite>“surface</cite>”).</p></li>
+the same as the mesh name (e.g. <cite>“surface</cite>”).  This distinguishes
+between <cite>“surface-temperature</cite>” (the temperature on the surface
+mesh) and <cite>“temperature</cite>” (the temperature on the subsurface/domain
+mesh).</p></li>
 <li><p>DOMAIN_SET:ID is itself a DOMAIN, where the set defines the
 collection as a whole (from the mesh list) and the ID is defined by
-an index across the collection, e.g. <cite>“column:4</cite>”</p></li>
+an index across the collection, e.g. <cite>“column:4</cite>”.  So
+<cite>“column:4-temperature</cite>” is the temperature on the 4th domain of the
+domain set <cite>“column</cite>”.</p></li>
 </ul>
-<p>Tags indicate the use of a variable at a specific time in the
+<p><strong>Tags</strong> indicate the use of a variable at a specific time in the
 discretized time interval.  Default tags include <cite>“current</cite>” and
 <cite>“next</cite>” indicating the variable at the beginning and end of the
 interval, respectively.  Often subcycling and other schemes will
 designate special-purpose tags which may be used internally by a
 subset of the equations begin solved.  Tags are combined with
 variables to indicate a specific data structure,
-e.g. <cite>“surface-pressure&#64;NEXT</cite>”.</p>
-<p>Lastly, derivatives are named using the <cite>“d</cite>” and the <cite>“|</cite>” character,
-e.g. <cite>“dsurface-water_content|dsurface-pressure</cite>” is the derivative of
-the <cite>“water_content</cite>” variable on the <cite>“surface</cite>” domain with respect
-to the <cite>“pressure</cite>” on the same domain.</p>
+e.g. <cite>“surface-pressure&#64;next</cite>”.  Note that the default tag <cite>“</cite>” is
+equivalent to <cite>“next</cite>”.</p>
+<p>Lastly, <strong>derivatives</strong> are named using the <cite>“d</cite>” and the <cite>“|</cite>”
+character, e.g. <cite>“dsurface-water_content|dsurface-pressure</cite>” is the
+derivative of the <cite>“water_content</cite>” variable on the <cite>“surface</cite>” domain
+with respect to the <cite>“pressure</cite>” on the same domain.</p>
 <p>As a result of these conventions, none of the above individual strings,
 (root names, domains, domain sets, or IDs) can contain any of the
 following reserved characters: <cite>:</cite>, <cite>-</cite>, <cite>|</cite>, <cite>&#64;</cite>.</p>
+<p>Avoid including spaces in variable names.  This doesn’t break the
+code, but it does break some visualization tools.</p>
 </section>
-<section id="name-and-symbol-index">
-<h2><a class="toc-backref" href="#id5" role="doc-backlink">Name and Symbol Index</a><a class="headerlink" href="#name-and-symbol-index" title="Link to this heading">#</a></h2>
+<section id="default-names-symbols-and-units">
+<h2><a class="toc-backref" href="#id6" role="doc-backlink">Default Names, Symbols, and Units</a><a class="headerlink" href="#default-names-symbols-and-units" title="Link to this heading">#</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
 <dt class="field-odd">Author<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Ethan Coon</p>
+<dd class="field-odd"><p>Coon</p>
 </dd>
 </dl>
 </div></blockquote>
@@ -575,8 +596,9 @@ following reserved characters: <cite>:</cite>, <cite>-</cite>, <cite>|</cite>, <
 <ul>
 <li><p><a class="reference internal" href="#specs" id="id2">Specs</a></p></li>
 <li><p><a class="reference internal" href="#syntax" id="id3">Syntax</a></p></li>
-<li><p><a class="reference internal" href="#naming" id="id4">Naming</a></p></li>
-<li><p><a class="reference internal" href="#name-and-symbol-index" id="id5">Name and Symbol Index</a></p></li>
+<li><p><a class="reference internal" href="#units" id="id4">Units</a></p></li>
+<li><p><a class="reference internal" href="#variable-naming" id="id5">Variable Naming</a></p></li>
+<li><p><a class="reference internal" href="#default-names-symbols-and-units" id="id6">Default Names, Symbols, and Units</a></p></li>
 </ul>
 </li>
 </ul>
@@ -594,596 +616,668 @@ following reserved characters: <cite>:</cite>, <cite>-</cite>, <cite>|</cite>, <
 <tr class="row-even"><td><p>coordinate, centroid</p></td>
 <td><p><span class="math notranslate nohighlight">\(x\)</span>, <span class="math notranslate nohighlight">\(y\)</span>, <span class="math notranslate nohighlight">\(z\)</span></p></td>
 <td><p>spatial coordinates</p></td>
-<td><p>[m]</p></td>
+<td><p><span class="math notranslate nohighlight">\([m]\)</span></p></td>
 <td><p></p></td>
 </tr>
 <tr class="row-odd"><td><p>time</p></td>
 <td><p><span class="math notranslate nohighlight">\(t\)</span></p></td>
 <td><p>time variable</p></td>
-<td><p>[s]</p></td>
+<td><p><span class="math notranslate nohighlight">\([s]\)</span></p></td>
 <td><p></p></td>
 </tr>
 <tr class="row-even"><td><p>cell_volume</p></td>
 <td><p><span class="math notranslate nohighlight">\(\vert V \vert\)</span>, <span class="math notranslate nohighlight">\(V\)</span></p></td>
 <td><p>volume (if 3D) or area (if 2D) of a discrete element</p></td>
-<td><p>[m<sup>3</sup>] or [m<sup>2</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([m^3]\)</span> or <span class="math notranslate nohighlight">\([m^2]\)</span></p></td>
 <td><p></p></td>
 </tr>
 <tr class="row-odd"><td><p>gravity</p></td>
 <td><p><span class="math notranslate nohighlight">\(g\)</span></p></td>
 <td><p>gravitational acceleration vector</p></td>
-<td><p>[m s<sup>-2</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([m \, s^{-2}]\)</span></p></td>
 <td><p></p></td>
 </tr>
 <tr class="row-even"><td><p>canopy-drainage</p></td>
 <td><p><span class="math notranslate nohighlight">\(D\)</span></p></td>
 <td><p>flux of water dripping from the canopy to the ground below</p></td>
-<td><p>[m s<sup>-1</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([m \, s^{-1}]\)</span></p></td>
 <td><p>canopy</p></td>
 </tr>
-<tr class="row-odd"><td><p>canopy-throughfall_drainage_\{rain,snow\}</p></td>
+<tr class="row-odd"><td><p>canopy-throughfall_drainage_{rain,snow}</p></td>
 <td><p></p></td>
 <td><p>source of {rain,snow} to the respective layer, throughfall + drainage</p></td>
-<td><p>[m s<sup>-1</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([m \, s^{-1}]\)</span></p></td>
 <td><p>canopy</p></td>
 </tr>
 <tr class="row-even"><td><p>canopy-evaporation</p></td>
 <td><p><span class="math notranslate nohighlight">\(E_{can}\)</span></p></td>
 <td><p>evaporative flux of stored water from the leaf surface</p></td>
-<td><p>[m s<sup>-1</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([m \, s^{-1}]\)</span></p></td>
 <td><p>canopy</p></td>
 </tr>
 <tr class="row-odd"><td><p>canopy-fracwet</p></td>
 <td><p><span class="math notranslate nohighlight">\(f_{wet}\)</span></p></td>
 <td><p>fraction of the canopy leaf area that is covered in water</p></td>
-<td><p>[-]</p></td>
+<td><p><span class="math notranslate nohighlight">\([-]\)</span></p></td>
 <td><p>canopy</p></td>
 </tr>
 <tr class="row-even"><td><p>canopy-water_content</p></td>
 <td><p><span class="math notranslate nohighlight">\(\Theta_{can}\)</span></p></td>
-<td><p>extensive water content on the leaf surface:math:<cite>^5</cite></p></td>
-<td><p>[mol]</p></td>
+<td><p><span class="math notranslate nohighlight">\(^5\)</span> extensive water content on the leaf surface</p></td>
+<td><p><span class="math notranslate nohighlight">\([\mathop{\mathrm{mol}}] ^8\)</span></p></td>
 <td><p>canopy</p></td>
 </tr>
 <tr class="row-odd"><td><p>canopy-water_equivalent</p></td>
 <td><p></p></td>
 <td><p>effective thickness of water (per unit surface or leaf area???)</p></td>
-<td><p>[m]</p></td>
+<td><p><span class="math notranslate nohighlight">\([m]\)</span></p></td>
 <td><p>canopy</p></td>
 </tr>
 <tr class="row-even"><td><p>canopy-water_source</p></td>
 <td><p></p></td>
 <td><p>sum of all sources and sinks of water to the leaf surface</p></td>
-<td><p>[mol m^2 s<sup>-1</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([\mathop{\mathrm{mol}} \,  m^2 \, s^{-1}]\)</span></p></td>
 <td><p>canopy</p></td>
 </tr>
 <tr class="row-odd"><td><p>canopy-water_source_meters</p></td>
 <td><p></p></td>
 <td><p>sum of all sources and sinks of water to the leaf surface</p></td>
-<td><p>[m s<sup>-1</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([m \, s^{-1}]\)</span></p></td>
 <td><p>canopy</p></td>
 </tr>
 <tr class="row-even"><td><p>canopy-interception</p></td>
 <td><p><span class="math notranslate nohighlight">\(I_{can}\)</span></p></td>
 <td><p>flux of water to the canopy as intercepted rain or snow</p></td>
-<td><p>[m s<sup>-1</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([m \, s^{-1}]\)</span></p></td>
 <td><p>canopy</p></td>
 </tr>
 <tr class="row-odd"><td><p>canopy-leaf_area_index</p></td>
 <td><p><span class="math notranslate nohighlight">\(LAI\)</span></p></td>
 <td><p>leaf area per unit surface area</p></td>
-<td><p>[-]</p></td>
+<td><p><span class="math notranslate nohighlight">\([-]\)</span></p></td>
 <td><p>canopy</p></td>
 </tr>
 <tr class="row-even"><td><p>canopy-potential_transpiration</p></td>
 <td><p><span class="math notranslate nohighlight">\(T_{pot}\)</span></p></td>
 <td><p>potential transpiration, unlimited by water availability</p></td>
-<td><p>[m s<sup>-1</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([m \, s^{-1}]\)</span></p></td>
 <td><p>canopy</p></td>
 </tr>
 <tr class="row-odd"><td><p>canopy-potential_transpiration_mols</p></td>
 <td><p><span class="math notranslate nohighlight">\(T_{pot}\)</span></p></td>
 <td><p>potential transpiration, unlimited by water availability</p></td>
-<td><p>[mol m<sup>-2</sup>s<sup>-1</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([\mathop{\mathrm{mol}} \, m^{-2} \, s^{-1}]\)</span></p></td>
 <td><p>canopy</p></td>
 </tr>
 <tr class="row-even"><td><p>canopy-temperature</p></td>
 <td><p><span class="math notranslate nohighlight">\(T_{can}\)</span></p></td>
 <td><p>leaf temperature, used in longwave radiation out calculation</p></td>
-<td><p>[K]</p></td>
+<td><p><span class="math notranslate nohighlight">\([K]\)</span></p></td>
 <td><p>canopy</p></td>
 </tr>
 <tr class="row-odd"><td><p>{canopy,snow,surface}-radiation_balance</p></td>
 <td><p></p></td>
 <td><p>net energy balance including radiation and conduction (Priestley-Taylor’s R - G)</p></td>
-<td><p>[W m<sup>-2</sup>]</p></td>
+<td><p></p></td>
 <td><p>surface</p></td>
 </tr>
 <tr class="row-even"><td><p>snow-depth</p></td>
 <td><p><span class="math notranslate nohighlight">\(h_{snow}\)</span></p></td>
 <td><p>thickness of the snowpack</p></td>
-<td><p>[m]</p></td>
+<td><p><span class="math notranslate nohighlight">\([m]\)</span></p></td>
 <td><p>snow</p></td>
 </tr>
 <tr class="row-odd"><td><p>snow-age</p></td>
 <td><p></p></td>
 <td><p>average age of the snowpack</p></td>
-<td><p>[day]</p></td>
+<td><p><span class="math notranslate nohighlight">\([day]\)</span></p></td>
 <td><p>snow</p></td>
 </tr>
 <tr class="row-even"><td><p>snow-density</p></td>
 <td><p><span class="math notranslate nohighlight">\(\rho_{snow}\)</span></p></td>
 <td><p>Mass density of the snow</p></td>
-<td><p>[kg m^-3]</p></td>
+<td><p><span class="math notranslate nohighlight">\([kg \, m^-3]\)</span></p></td>
 <td><p>snow</p></td>
 </tr>
 <tr class="row-odd"><td><p>snow-melt</p></td>
 <td><p><span class="math notranslate nohighlight">\(M\)</span></p></td>
 <td><p>Snow melt rate (SWE)</p></td>
-<td><p>[m SWE s<sup>-1</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([m \mathop{\mathrm{SWE}} s^{-1}]\)</span></p></td>
 <td><p>snow</p></td>
 </tr>
 <tr class="row-even"><td><p>snow-precipitation</p></td>
 <td><p><span class="math notranslate nohighlight">\(P_{snow}\)</span></p></td>
 <td><p>precipitation of snow, in snow-water-equivalent (SWE)</p></td>
-<td><p>[m SWE s<sup>-1</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([m \mathop{\mathrm{SWE}} \, s^{-1}]\)</span></p></td>
 <td><p>snow</p></td>
 </tr>
 <tr class="row-odd"><td><p>snow-evaporation</p></td>
 <td><p><span class="math notranslate nohighlight">\(E_{snow}\)</span></p></td>
 <td><p>evaporation of snow, in snow-water-equivalent (SWE)</p></td>
-<td><p>[m SWE s<sup>-1</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([m \mathop{\mathrm{SWE}} \, s^{-1}]\)</span></p></td>
 <td><p>snow</p></td>
 </tr>
 <tr class="row-even"><td><p>snow-source_sink</p></td>
 <td><p><span class="math notranslate nohighlight">\(Q_{snow}\)</span></p></td>
 <td><p>extensive sum of all sources and sinks of water as snow</p></td>
-<td><p>[mol s<sup>-1</sup>] ??</p></td>
+<td><p><span class="math notranslate nohighlight">\([\mathop{\mathrm{mol}} \, s^{-1}]\)</span> ??</p></td>
 <td><p>snow</p></td>
 </tr>
 <tr class="row-odd"><td><p>snow-water_source</p></td>
 <td><p><span class="math notranslate nohighlight">\(Q_{snow}\)</span></p></td>
 <td><p>sum of all sources and sinks of water as snow</p></td>
-<td><p>[mol m<sup>-2</sup>s<sup>-1</sup>] ??</p></td>
+<td><p><span class="math notranslate nohighlight">\([\mathop{\mathrm{mol}} \, m^{-2} s^{-1}]\)</span> ??</p></td>
 <td><p>snow</p></td>
 </tr>
 <tr class="row-even"><td><p>snow-water_source_meters</p></td>
 <td><p><span class="math notranslate nohighlight">\(Q_{snow}\)</span></p></td>
 <td><p>sum of all sources and sinks of water as snow</p></td>
-<td><p>[m s<sup>-1</sup>] ??</p></td>
+<td><p><span class="math notranslate nohighlight">\([m \, s^{-1}]\)</span> ??</p></td>
 <td><p>snow</p></td>
 </tr>
 <tr class="row-odd"><td><p>snow-source</p></td>
 <td><p></p></td>
 <td><p>sum of all sources of water as snow, excluding sinks</p></td>
-<td><p>[m s<sup>-1</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([m \, s^{-1}]\)</span></p></td>
 <td><p>snow</p></td>
 </tr>
 <tr class="row-even"><td><p>snow-death_rate</p></td>
 <td><p></p></td>
 <td><p>If all snow disappears in a timestep, the effective rate of snow loss.</p></td>
-<td><p>[m SWE s<sup>-1</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([m \mathop{\mathrm{SWE}} s^{-1}]\)</span></p></td>
 <td><p>snow</p></td>
 </tr>
 <tr class="row-odd"><td><p>snow-water_equivalent</p></td>
 <td><p><span class="math notranslate nohighlight">\(SWE\)</span></p></td>
 <td><p>equivalent “ponded_depth” if one melted the snow</p></td>
-<td><p>[m]</p></td>
+<td><p><span class="math notranslate nohighlight">\([m]\)</span></p></td>
 <td><p>snow</p></td>
 </tr>
 <tr class="row-even"><td><p>snow-water_content</p></td>
 <td><p><span class="math notranslate nohighlight">\(\Theta_{snow}\)</span></p></td>
-<td><p>extensive water content in snow:math:<cite>^5</cite></p></td>
-<td><p>[mol]</p></td>
+<td><p><span class="math notranslate nohighlight">\(^5\)</span> extensive water content in snow</p></td>
+<td><p><span class="math notranslate nohighlight">\([\mathop{\mathrm{mol}}] ^8\)</span></p></td>
 <td><p>snow</p></td>
 </tr>
 <tr class="row-odd"><td><p>snow-temperature</p></td>
 <td><p><span class="math notranslate nohighlight">\(T_{snow}\)</span></p></td>
 <td><p>temperature of the snowpack</p></td>
-<td><p>[K]</p></td>
+<td><p><span class="math notranslate nohighlight">\([K]\)</span></p></td>
 <td><p>snow</p></td>
 </tr>
 <tr class="row-even"><td><p>surface-ponded_depth</p></td>
 <td><p><span class="math notranslate nohighlight">\(h\)</span></p></td>
 <td><p>ponded depth, or the water head over the surface</p></td>
-<td><p>[m]</p></td>
+<td><p><span class="math notranslate nohighlight">\([m]\)</span></p></td>
 <td><p>flow</p></td>
 </tr>
 <tr class="row-odd"><td><p>surface-unfrozen_effective_depth</p></td>
 <td><p><span class="math notranslate nohighlight">\(\eta h\)</span></p></td>
 <td><p>portion of ponded depth that is unfrozen</p></td>
-<td><p>[m]</p></td>
+<td><p><span class="math notranslate nohighlight">\([m]\)</span></p></td>
 <td><p>flow</p></td>
 </tr>
 <tr class="row-even"><td><p>surface-unfrozen_fraction</p></td>
 <td><p><span class="math notranslate nohighlight">\(\eta\)</span></p></td>
 <td><p>fraction of water on the surface that is liquid (vs ice)</p></td>
-<td><p>[-]</p></td>
+<td><p><span class="math notranslate nohighlight">\([-]\)</span></p></td>
 <td><p>energy</p></td>
 </tr>
 <tr class="row-odd"><td><p>surface-albedo</p></td>
 <td><p><span class="math notranslate nohighlight">\(\alpha\)</span></p></td>
 <td><p>area-weighted albedo of the surface, as seen by the canopy/atmosphere</p></td>
-<td><p>[-]</p></td>
+<td><p><span class="math notranslate nohighlight">\([-]\)</span></p></td>
 <td><p>surface</p></td>
 </tr>
 <tr class="row-even"><td><p>surface-albedos.{bare,water,snow}</p></td>
 <td><p><span class="math notranslate nohighlight">\(\alpha\)</span></p></td>
 <td><p>albedo of a given media</p></td>
-<td><p>[-]</p></td>
+<td><p><span class="math notranslate nohighlight">\([-]\)</span></p></td>
 <td><p>surface</p></td>
 </tr>
 <tr class="row-odd"><td><p>surface-emissivities.{bare,water,snow}</p></td>
 <td><p><span class="math notranslate nohighlight">\(\epsilon\)</span></p></td>
 <td><p>emissivity (equivalently absorptivity) of a given media</p></td>
-<td><p>[-]</p></td>
+<td><p><span class="math notranslate nohighlight">\([-]\)</span></p></td>
 <td><p>surface</p></td>
 </tr>
 <tr class="row-even"><td><p>surface-area_fractions.{bare,water,snow}</p></td>
 <td><p><span class="math notranslate nohighlight">\(a\)</span></p></td>
 <td><p>fraction of the ground surface of a given media</p></td>
-<td><p>[-]</p></td>
+<td><p><span class="math notranslate nohighlight">\([-]\)</span></p></td>
 <td><p>surface</p></td>
 </tr>
 <tr class="row-odd"><td><p>surface-incoming_longwave_radiation</p></td>
 <td><p><span class="math notranslate nohighlight">\(Q^e_{SW}\)</span></p></td>
 <td><p>longwave radiation from the atmosphere</p></td>
-<td><p>[W m<sup>-2</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([W \, m^{-2}]\)</span></p></td>
 <td><p>surface</p></td>
 </tr>
 <tr class="row-even"><td><p>surface-incoming_shortwave_radiation</p></td>
 <td><p><span class="math notranslate nohighlight">\(Q^e_{SW}\)</span></p></td>
 <td><p>shortwave radiation from the atmosphere</p></td>
-<td><p>[W m<sup>-2</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([W \, m^{-2}]\)</span></p></td>
 <td><p>surface</p></td>
 </tr>
 <tr class="row-odd"><td><p>surface-incident_shortwave_radiation</p></td>
 <td><p><span class="math notranslate nohighlight">\(Q^e_{SWin}\)</span></p></td>
 <td><p>shortwave radiation incident on a surface (of a given slope/aspect)</p></td>
-<td><p>[W m<sup>-2</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([W \, m^{-2}]\)</span></p></td>
 <td><p>surface</p></td>
 </tr>
 <tr class="row-even"><td><p>surface-qE_conducted</p></td>
 <td><p><span class="math notranslate nohighlight">\(Q^e_{c}\)</span></p></td>
 <td><p>energy conducted to the ground surface</p></td>
-<td><p>[W m<sup>-2</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([W \, m^{-2}]\)</span></p></td>
 <td><p>surface</p></td>
 </tr>
 <tr class="row-odd"><td><p>surface-qE_lw_out</p></td>
 <td><p><span class="math notranslate nohighlight">\(Q^e_{LWout}\)</span></p></td>
 <td><p>longwave energy radiated away from the surface</p></td>
-<td><p>[W m<sup>-2</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([W \, m^{-2}]\)</span></p></td>
 <td><p>surface</p></td>
 </tr>
 <tr class="row-even"><td><p>surface-qE_sensible_heat</p></td>
 <td><p><span class="math notranslate nohighlight">\(Q^e_{h}\)</span></p></td>
 <td><p>sensible heat flux to the atmosphere</p></td>
-<td><p>[W m<sup>-2</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([W \, m^{-2}]\)</span></p></td>
 <td><p>surface</p></td>
 </tr>
 <tr class="row-odd"><td><p>surface-qE_latent_heat</p></td>
 <td><p><span class="math notranslate nohighlight">\(Q^e_{E}\)</span></p></td>
 <td><p>latent heat flux to the atmosphere</p></td>
-<td><p>[W m<sup>-2</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([W \, m^{-2}]\)</span></p></td>
 <td><p>surface</p></td>
 </tr>
 <tr class="row-even"><td><p>surface-qE_snowmelt</p></td>
 <td><p><span class="math notranslate nohighlight">\(Q^e_{snow}\)</span></p></td>
 <td><p>latent heat released via snowmelt</p></td>
-<td><p>[W m<sup>-2</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([W \, m^{-2}]\)</span></p></td>
 <td><p>surface</p></td>
 </tr>
 <tr class="row-odd"><td><p>surface-transpiration</p></td>
 <td><p><span class="math notranslate nohighlight">\(T\)</span></p></td>
 <td><p>actual transpiration, integrated vertically and limited by water availability</p></td>
-<td><p>[m s<sup>-1</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([m \, s^{-1}]\)</span></p></td>
 <td><p>flow</p></td>
 </tr>
 <tr class="row-even"><td><p>surface-total_evapotranspiration</p></td>
 <td><p><span class="math notranslate nohighlight">\(ET\)</span></p></td>
 <td><p>total evaporation (canopy, snow, and bare ground) plus transpiration</p></td>
-<td><p>[m s<sup>-1</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([m \, s^{-1}]\)</span></p></td>
 <td><p>flow</p></td>
 </tr>
 <tr class="row-odd"><td><p>surface-capillary_pressure_plant</p></td>
-<td><p><span class="math notranslate nohighlight">\(p_c^{can}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(pc_{can}\)</span></p></td>
 <td><p>capillary pressure in the plant stem at the ground surface</p></td>
-<td><p>[Pa]</p></td>
+<td><p><span class="math notranslate nohighlight">\([Pa]\)</span></p></td>
 <td><p>flow</p></td>
 </tr>
 <tr class="row-even"><td><p>surface-overland_conductivity</p></td>
 <td><p><span class="math notranslate nohighlight">\(k\)</span></p></td>
 <td><p>coefficient for the diffusion wave equation</p></td>
-<td><p>[…] ??</p></td>
+<td><p><span class="math notranslate nohighlight">\([...]\)</span></p></td>
 <td><p>flow</p></td>
 </tr>
 <tr class="row-odd"><td><p>surface-manning_coefficient</p></td>
 <td><p><span class="math notranslate nohighlight">\(m_n\)</span></p></td>
 <td><p>coefficient in Manning’s equation, a measure of surface roughness</p></td>
-<td><p>[…] ??</p></td>
+<td><p><span class="math notranslate nohighlight">\([...]\)</span></p></td>
 <td><p>flow</p></td>
 </tr>
 <tr class="row-even"><td><p>surface-precipitation_rain</p></td>
 <td><p><span class="math notranslate nohighlight">\(P_{r}\)</span></p></td>
 <td><p>precipitation of rain</p></td>
-<td><p>[m s<sup>-1</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([m \, s^{-1}]\)</span></p></td>
 <td><p>surface</p></td>
 </tr>
 <tr class="row-odd"><td><p>surface-air_temperature</p></td>
 <td><p><span class="math notranslate nohighlight">\(T_{air}\)</span></p></td>
 <td><p>temperature of the air at the ground surface</p></td>
-<td><p>[K]</p></td>
+<td><p><span class="math notranslate nohighlight">\([K]\)</span></p></td>
 <td><p>surface</p></td>
 </tr>
 <tr class="row-even"><td><p>surface-vapor_pressure_air</p></td>
 <td><p><span class="math notranslate nohighlight">\(vp_{air}\)</span></p></td>
 <td><p>partial pressure of water vapor in the atmosphere</p></td>
-<td><p>[Pa]</p></td>
+<td><p><span class="math notranslate nohighlight">\([Pa]\)</span></p></td>
 <td><p>surface</p></td>
 </tr>
 <tr class="row-odd"><td><p>surface-wind_speed</p></td>
-<td><p><span class="math notranslate nohighlight">\(\mathbf{v}_{air}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\({v}_{air}\)</span></p></td>
 <td><p>magnitude of the wind speed</p></td>
-<td><p>[m s<sup>-1</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([m \, s^{-1}]\)</span></p></td>
 <td><p>surface</p></td>
 </tr>
 <tr class="row-even"><td><p>surface-water_source</p></td>
-<td><p><span class="math notranslate nohighlight">\(Q_{s}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(Q_s\)</span></p></td>
 <td><p>extensive sum of all sources and sinks of water as liquid (surface)</p></td>
-<td><p>[mol s<sup>-1</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([\mathop{\mathrm{mol}} \, s^{-1}]\)</span></p></td>
 <td><p>flow</p></td>
 </tr>
 <tr class="row-odd"><td><p>surface-elevation</p></td>
 <td><p><span class="math notranslate nohighlight">\(z\)</span></p></td>
 <td><p>elevation</p></td>
-<td><p>[m]</p></td>
+<td><p><span class="math notranslate nohighlight">\([m]\)</span></p></td>
 <td><p></p></td>
 </tr>
 <tr class="row-even"><td><p>surface-aspect</p></td>
 <td><p><span class="math notranslate nohighlight">\(\psi\)</span></p></td>
 <td><p>aspect, clockwise relative to North, in [0,360)</p></td>
-<td><p>[degrees]</p></td>
+<td><p><span class="math notranslate nohighlight">\([degrees]\)</span></p></td>
 <td><p>surface</p></td>
 </tr>
 <tr class="row-odd"><td><p>surface-slope_magnitude</p></td>
 <td><p><span class="math notranslate nohighlight">\(\vert S \vert\)</span></p></td>
 <td><p>1 - dot product of the surface’s normal with the vertical</p></td>
-<td><p>[-]</p></td>
+<td><p><span class="math notranslate nohighlight">\([-]\)</span></p></td>
 <td><p>flow</p></td>
 </tr>
 <tr class="row-even"><td><p>surface-water_flux</p></td>
-<td><p><span class="math notranslate nohighlight">\(\mathbf{q}_{s}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\mathbf{q_s}\)</span></p></td>
 <td><p>surface flux vector</p></td>
-<td><p>[mol  s<sup>-1</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([\mathop{\mathrm{mol}} \, s^{-1}]\)</span></p></td>
 <td><p>flow</p></td>
 </tr>
-<tr class="row-odd"><td><p>surface-velocity.{1,2}<sup>4</sup></p></td>
-<td><p><span class="math notranslate nohighlight">\(\mathbf{V}_{s}\)</span></p></td>
+<tr class="row-odd"><td><p>surface-velocity.{1,2} <span class="math notranslate nohighlight">\(^4\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\mathbf{V_s}\)</span></p></td>
 <td><p>surface water velocity vector</p></td>
-<td><p>[m s<sup>-1</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([m \, s^{-1}]\)</span></p></td>
 <td><p>flow</p></td>
 </tr>
 <tr class="row-even"><td><p>surface-evaporative_flux</p></td>
 <td><p><span class="math notranslate nohighlight">\(E\)</span></p></td>
 <td><p>water sink due to evaporation</p></td>
-<td><p>[m s<sup>-1</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([m \, s^{-1}]\)</span></p></td>
 <td><p>flow</p></td>
 </tr>
 <tr class="row-odd"><td><p>surface-evaporation</p></td>
 <td><p><span class="math notranslate nohighlight">\(E\)</span></p></td>
 <td><p>water sink due to evaporation</p></td>
-<td><p>[m s<sup>-1</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([m \, s^{-1}]\)</span></p></td>
 <td><p>flow</p></td>
 </tr>
 <tr class="row-even"><td><p>surface-soil_resistance</p></td>
 <td><p><span class="math notranslate nohighlight">\(r_{soil}\)</span></p></td>
 <td><p>resistance of soil to water vapor transport, used in evaporation downregulation</p></td>
-<td><p>[-]</p></td>
+<td><p><span class="math notranslate nohighlight">\([-]\)</span></p></td>
 <td><p>flow</p></td>
 </tr>
 <tr class="row-odd"><td><p>surface-subsurface_flux</p></td>
-<td><p><span class="math notranslate nohighlight">\(\mathbf{q}_{ss}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\mathbf{q_{ss}}\)</span></p></td>
 <td><p>infiltration, the flux of water into the ground</p></td>
-<td><p>[mol s<sup>-1</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([\mathop{\mathrm{mol}} \, s^{-1}]\)</span></p></td>
 <td><p>flow</p></td>
 </tr>
 <tr class="row-even"><td><p>surface-subsurface_energy_flux</p></td>
-<td><p><span class="math notranslate nohighlight">\(\mathbf{q}^e_{ss}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\mathbf{q^e_{ss}}\)</span></p></td>
 <td><p>diffusive flux of energy into the ground</p></td>
-<td><p>[MJ s<sup>-1</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([\mathop{\mathrm{MJ}} \, s^{-1}]\)</span></p></td>
 <td><p>energy</p></td>
 </tr>
 <tr class="row-odd"><td><p>surface-advected_energy_flux</p></td>
-<td><p><span class="math notranslate nohighlight">\(e\mathbf{q}_s\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\mathbf{eq_s}\)</span></p></td>
 <td><p>extensive energy flux due to advection (face-based)</p></td>
-<td><p>[MJ  s<sup>-1</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([\mathop{\mathrm{MJ}} \, s^{-1}]\)</span></p></td>
 <td><p>energy</p></td>
 </tr>
 <tr class="row-even"><td><p>surface-diffusive_energy_flux</p></td>
-<td><p><span class="math notranslate nohighlight">\(\mathbf{q}_{s}^{e}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\mathbf{q_s^e}\)</span></p></td>
 <td><p>extensive energy flux due to diffusion (face-based)</p></td>
-<td><p>[MJ s<sup>-1</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([\mathop{\mathrm{MJ}} \, s^{-1}]\)</span></p></td>
 <td><p>energy</p></td>
 </tr>
 <tr class="row-odd"><td><p>surface-water_content</p></td>
-<td><p><span class="math notranslate nohighlight">\(\Theta_{s}\)</span></p></td>
-<td><p>extensive water content (liquid or ice, but not snow) of a cell<sup>5</sup></p></td>
-<td><p>[mol]</p></td>
+<td><p><span class="math notranslate nohighlight">\(\Theta_s\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(^5\)</span> extensive water content (liquid or ice, but not snow) of a cell</p></td>
+<td><p><span class="math notranslate nohighlight">\([\mathop{\mathrm{mol}}]\)</span></p></td>
 <td><p>flow</p></td>
 </tr>
 <tr class="row-even"><td><p>surface-temperature</p></td>
-<td><p><span class="math notranslate nohighlight">\(T_{s}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(T_s\)</span></p></td>
 <td><p>temperature of ponded water or the ground surface</p></td>
-<td><p>[K]</p></td>
+<td><p><span class="math notranslate nohighlight">\([K]\)</span></p></td>
 <td><p>energy</p></td>
 </tr>
 <tr class="row-odd"><td><p>surface-source_molar_density</p></td>
 <td><p><span class="math notranslate nohighlight">\(n_{source}\)</span></p></td>
 <td><p>molar density of all water sources (surface)</p></td>
-<td><p>[mol m<sup>-3</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([\mathop{\mathrm{mol}} \, m^{-3}]\)</span></p></td>
 <td><p>flow</p></td>
 </tr>
 <tr class="row-even"><td><p>transpiration</p></td>
 <td><p><span class="math notranslate nohighlight">\(T\)</span></p></td>
 <td><p>actual transpiration, vertically distributed to the subsurface</p></td>
-<td><p>[mol m^-3 s<sup>-1</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([\mathop{\mathrm{mol}} \, m^-3 \, s^{-1}]\)</span></p></td>
 <td><p>flow</p></td>
 </tr>
 <tr class="row-odd"><td><p>root_fraction</p></td>
-<td><p><span class="math notranslate nohighlight">\(f_{r}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(f_r\)</span></p></td>
 <td><p>fraction of all roots in this soil layer (vertically sums to 1)</p></td>
-<td><p>[-]</p></td>
+<td><p><span class="math notranslate nohighlight">\([-]\)</span></p></td>
 <td><p>flow</p></td>
 </tr>
 <tr class="row-even"><td><p>permeability</p></td>
 <td><p><span class="math notranslate nohighlight">\(K\)</span></p></td>
 <td><p>absolute permeability</p></td>
-<td><p>[m^2]</p></td>
+<td><p><span class="math notranslate nohighlight">\([m^2]\)</span></p></td>
 <td><p>flow</p></td>
 </tr>
-<tr class="row-odd"><td><p>relative_permeability<sup>1</sup></p></td>
-<td><p><span class="math notranslate nohighlight">\(k_{r}\)</span></p></td>
+<tr class="row-odd"><td><p>relative_permeability <span class="math notranslate nohighlight">\(^1\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(k_r\)</span></p></td>
 <td><p>relative <strong>**conductivity**</strong>, <span class="math notranslate nohighlight">\(\frac{n}{\mu} k\)</span></p></td>
 <td><p>see note</p></td>
 <td><p>flow</p></td>
 </tr>
-<tr class="row-even"><td><p>molar_density<sub>liquid,gas,ice</sub></p></td>
+<tr class="row-even"><td><p>molar_density_{liquid,gas,ice} <span class="math notranslate nohighlight">\(^7\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(n_{\{l,g,i\}}\)</span></p></td>
 <td><p>molar density of a given phase</p></td>
-<td><p>[mol m<sup>-3</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([\mathop{\mathrm{mol}} \, m^{-3}]\)</span></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p>mass_density<sub>liquid,gas,ice</sub></p></td>
+<tr class="row-odd"><td><p>mass_density_{liquid,gas,ice}</p></td>
 <td><p><span class="math notranslate nohighlight">\(\rho_{\{l,g,i\}}\)</span></p></td>
 <td><p>mass density of a phase</p></td>
-<td><p>[kg m<sup>-3</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([\mathop{\mathrm{kg}} \, m^{-3}]\)</span></p></td>
 <td><p></p></td>
 </tr>
 <tr class="row-even"><td><p>density_rock</p></td>
 <td><p><span class="math notranslate nohighlight">\(\rho_{rock}\)</span></p></td>
 <td><p>mass density of the medium</p></td>
-<td><p>[kg m<sup>-3</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([\mathop{\mathrm{kg}} \, m^{-3}]\)</span></p></td>
 <td><p></p></td>
 </tr>
 <tr class="row-odd"><td><p>pressure</p></td>
 <td><p><span class="math notranslate nohighlight">\(p\)</span></p></td>
 <td><p>pressure of the liquid phase</p></td>
-<td><p>[Pa]</p></td>
+<td><p><span class="math notranslate nohighlight">\([\mathop{\mathrm{Pa}}]\)</span></p></td>
 <td><p>flow</p></td>
 </tr>
 <tr class="row-even"><td><p>water_source</p></td>
 <td><p><span class="math notranslate nohighlight">\(Q\)</span></p></td>
 <td><p>extensive sum of all sources and sinks of water as liquid (subsurface)</p></td>
-<td><p>[mol s<sup>-1</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([\mathop{\mathrm{mol}} \, s^{-1}]\)</span></p></td>
 <td><p>flow</p></td>
 </tr>
 <tr class="row-odd"><td><p>source_molar_density</p></td>
 <td><p><span class="math notranslate nohighlight">\(n_{source}\)</span></p></td>
 <td><p>molar density of all water sources (subsurface)</p></td>
-<td><p>[mol m<sup>-3</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([\mathop{\mathrm{mol}} \, m^{-3}]\)</span></p></td>
 <td><p>flow</p></td>
 </tr>
-<tr class="row-even"><td><p>saturation<sub>liquid,gas,ice</sub></p></td>
+<tr class="row-even"><td><p>saturation_{liquid,gas,ice}</p></td>
 <td><p><span class="math notranslate nohighlight">\(s_{\{l,g,i\}}\)</span></p></td>
 <td><p>saturation of a given phase</p></td>
-<td><p>[-]</p></td>
+<td><p><span class="math notranslate nohighlight">\([-]\)</span></p></td>
 <td><p>flow</p></td>
 </tr>
-<tr class="row-odd"><td><p>capillary_pressure<sub>A</sub><sub>B</sub></p></td>
+<tr class="row-odd"><td><p>capillary_pressure_{A}_{B}</p></td>
 <td><p><span class="math notranslate nohighlight">\(p_c^{A-B}\)</span></p></td>
 <td><p>capillary pressure of phase A over phase B</p></td>
-<td><p>[Pa]</p></td>
+<td><p><span class="math notranslate nohighlight">\([Pa]\)</span></p></td>
 <td><p>flow</p></td>
 </tr>
 <tr class="row-even"><td><p>viscosity_liquid</p></td>
 <td><p><span class="math notranslate nohighlight">\(\nu\)</span></p></td>
 <td><p>dynamic viscosity of water</p></td>
-<td><p>[Pa s]</p></td>
+<td><p><span class="math notranslate nohighlight">\([\mathop{\mathrm{Pa}} \, s]\)</span></p></td>
 <td><p>flow</p></td>
 </tr>
 <tr class="row-odd"><td><p>base_porosity</p></td>
-<td><p><span class="math notranslate nohighlight">\(\phi_{0}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\phi_0\)</span></p></td>
 <td><p>porosity of the undeformed medium</p></td>
-<td><p>[-]</p></td>
+<td><p><span class="math notranslate nohighlight">\([-]\)</span></p></td>
 <td><p>flow</p></td>
 </tr>
 <tr class="row-even"><td><p>porosity</p></td>
 <td><p><span class="math notranslate nohighlight">\(\phi\)</span></p></td>
 <td><p>porosity of the medium, including any compressibility/specific storage</p></td>
-<td><p>[-]</p></td>
+<td><p><span class="math notranslate nohighlight">\([-]\)</span></p></td>
 <td><p>flow</p></td>
 </tr>
 <tr class="row-odd"><td><p>water_flux</p></td>
 <td><p><span class="math notranslate nohighlight">\(\mathbf{q}\)</span></p></td>
 <td><p>extensive water flux (face-based)</p></td>
-<td><p>[mol  s<sup>-1</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([\mathop{\mathrm{mol}} \, s^{-1}]\)</span></p></td>
 <td><p>flow</p></td>
 </tr>
-<tr class="row-even"><td><p>darcy_velocity.{1,2,3}<sup>4</sup></p></td>
+<tr class="row-even"><td><p>darcy_velocity.{1,2,3} <span class="math notranslate nohighlight">\(^4\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(\mathbf{V}\)</span></p></td>
 <td><p>subsurface water velocity vector</p></td>
-<td><p>[m s<sup>-1</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([m \, s^{-1}]\)</span></p></td>
 <td><p>flow</p></td>
 </tr>
 <tr class="row-odd"><td><p>water_content</p></td>
 <td><p><span class="math notranslate nohighlight">\(\Theta\)</span></p></td>
-<td><p>extensive water content (liquid, ice, or vapor) of a cell<sup>5</sup></p></td>
-<td><p>[mol]</p></td>
+<td><p><span class="math notranslate nohighlight">\(^5\)</span> extensive water content (liquid, ice, or vapor) of a cell</p></td>
+<td><p><span class="math notranslate nohighlight">\([\mathop{\mathrm{mol}}] ^8\)</span></p></td>
 <td><p>flow</p></td>
 </tr>
 <tr class="row-even"><td><p>temperature</p></td>
 <td><p><span class="math notranslate nohighlight">\(T\)</span></p></td>
 <td><p>temperature</p></td>
-<td><p>[K]</p></td>
+<td><p><span class="math notranslate nohighlight">\([K]\)</span></p></td>
 <td><p>energy</p></td>
 </tr>
 <tr class="row-odd"><td><p>thermal_conductivity</p></td>
 <td><p><span class="math notranslate nohighlight">\(\kappa\)</span></p></td>
 <td><p>thermal conductivity of the grid cell</p></td>
-<td><p>[MW m<sup>-1</sup>K<sup>-1</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([\mathop{\mathrm{MW}} \, m^{-1} \, K^{-1}]\)</span></p></td>
 <td><p>energy</p></td>
 </tr>
-<tr class="row-even"><td><p>total_energy_source<sup>2</sup></p></td>
-<td><p><span class="math notranslate nohighlight">\(Q^{e}\)</span></p></td>
-<td><p>extensive<sup>3</sup>sum of all sources and sinks of energy</p></td>
-<td><p>[MJ s<sup>-1</sup>]</p></td>
+<tr class="row-even"><td><p>total_energy_source <span class="math notranslate nohighlight">\(^2\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(Q^e\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(^3\)</span> extensive sum of all sources and sinks of energy</p></td>
+<td><p><span class="math notranslate nohighlight">\([\mathop{\mathrm{MJ}} \, s^{-1}]\)</span></p></td>
 <td><p>energy</p></td>
 </tr>
 <tr class="row-odd"><td><p>advected_energy_flux</p></td>
-<td><p><span class="math notranslate nohighlight">\(e\mathbf{q}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\mathbf{eq}\)</span></p></td>
 <td><p>extensive energy flux due to advection (face-based)</p></td>
-<td><p>[MJ  s<sup>-1</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([\mathop{\mathrm{MJ}} \, s^{-1}]\)</span></p></td>
 <td><p>energy</p></td>
 </tr>
 <tr class="row-even"><td><p>diffusive_energy_flux</p></td>
-<td><p><span class="math notranslate nohighlight">\(\mathbf{q}^{e}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\mathbf{q^e}\)</span></p></td>
 <td><p>extensive energy flux due to diffusion (face-based)</p></td>
-<td><p>[MJ s<sup>-1</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\([\mathop{\mathrm{MJ}} \, s^{-1}]\)</span></p></td>
 <td><p>energy</p></td>
 </tr>
-<tr class="row-odd"><td><p>internal_energy<sub>liquid,gas,ice,rock</sub></p></td>
-<td><p><span class="math notranslate nohighlight">\(u_{X}\)</span></p></td>
-<td><p>specific internal energy of a given phase/medium</p></td>
-<td><p>[MJ mol<sup>-1</sup>]</p></td>
+<tr class="row-odd"><td><p>internal_energy_{liquid,gas,ice,rock}</p></td>
+<td><p><span class="math notranslate nohighlight">\(u_X\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(^6\)</span> specific internal energy of a given phase/medium</p></td>
+<td><p><span class="math notranslate nohighlight">\([\mathop{\mathrm{MJ}} \, \mathop{\mathrm{mol}}^{-1}]\)</span></p></td>
 <td><p>energy</p></td>
 </tr>
 <tr class="row-even"><td><p>energy</p></td>
 <td><p><span class="math notranslate nohighlight">\(E\)</span></p></td>
-<td><p>extensive energy of a cell<sup>5</sup></p></td>
-<td><p>[MJ]</p></td>
+<td><p><span class="math notranslate nohighlight">\(^5\)</span> extensive energy of a cell</p></td>
+<td><p><span class="math notranslate nohighlight">\([\mathop{\mathrm{MJ}}]\)</span></p></td>
 <td><p>energy</p></td>
 </tr>
 <tr class="row-odd"><td><p>enthalpy</p></td>
 <td><p><span class="math notranslate nohighlight">\(e\)</span></p></td>
-<td><p>specific<sup>3</sup>enthalpy</p></td>
-<td><p>[MJ mol<sup>-1</sup>]</p></td>
+<td><p><span class="math notranslate nohighlight">\(^6\)</span> specific enthalpy</p></td>
+<td><p><span class="math notranslate nohighlight">\([\mathop{\mathrm{MJ}} \, \mathop{\mathrm{mol}}^{-1}]\)</span></p></td>
 <td><p>energy</p></td>
 </tr>
-<tr class="row-even"><td><p></p></td>
+<tr class="row-even"><td><p>mole_ratio</p></td>
+<td><p><span class="math notranslate nohighlight">\(\xi^C\)</span></p></td>
+<td><p>ratio of mols of C to mols of H2O, typically in the liquid phase</p></td>
+<td><p><span class="math notranslate nohighlight">\([\mathop{\mathrm{mol C}} \, \mathop{\mathrm{mol H2O}}^{-1}] ^9\)</span></p></td>
+<td><p>transport</p></td>
+</tr>
+<tr class="row-odd"><td><p>total_component_concentration</p></td>
+<td><p><span class="math notranslate nohighlight">\(C\)</span></p></td>
+<td><p>concentration of a component C in liquid water</p></td>
+<td><p>$[mathop{mathrm{mol C}} \, L^{-1}</p></td>
+<td><p>chemistry</p></td>
+</tr>
+<tr class="row-even"><td><p>mineral_volume_fractions</p></td>
 <td><p></p></td>
+<td><p>mineral volume fractions for solid phase reactions</p></td>
+<td><p><span class="math notranslate nohighlight">\([-]\)</span></p></td>
+<td><p>chemistry</p></td>
+</tr>
+<tr class="row-odd"><td><p>mineral_specific_surface_area</p></td>
 <td><p></p></td>
+<td><p>specific surface area of solid phase</p></td>
+<td><p><span class="math notranslate nohighlight">\([m^2 \mathop{\mathrm{(surface area)}} m^-3]\)</span></p></td>
+<td><p>chemistry</p></td>
+</tr>
+<tr class="row-even"><td><p>mineral_rate_constant</p></td>
 <td><p></p></td>
+<td><p>reaction rate constants for solid phase</p></td>
+<td><p>??</p></td>
+<td><p>chemistry</p></td>
+</tr>
+<tr class="row-odd"><td><p>surface_site_density</p></td>
 <td><p></p></td>
+<td><p>density of sites for surface complexation ??</p></td>
+<td><p>??</p></td>
+<td><p>chemistry</p></td>
+</tr>
+<tr class="row-even"><td><p>total_sorbed</p></td>
+<td><p>C^{sorb}</p></td>
+<td><p>concentration of sorbed C</p></td>
+<td><p><span class="math notranslate nohighlight">\([\mathop{\mathrm{mol C}} \, L^{-1}]\)</span></p></td>
+<td><p>chemistry</p></td>
+</tr>
+<tr class="row-odd"><td><p>isotherm_kd</p></td>
+<td><p></p></td>
+<td><p>isotherm k</p></td>
+<td><p>??</p></td>
+<td><p>chemistry</p></td>
+</tr>
+<tr class="row-even"><td><p>isotherm_freundlich_n</p></td>
+<td><p></p></td>
+<td><p>Freundlich’s n for isotherms</p></td>
+<td><p>??</p></td>
+<td><p>chemistry</p></td>
+</tr>
+<tr class="row-odd"><td><p>isotherm_langmuir_b</p></td>
+<td><p></p></td>
+<td><p>Langmuir’s b for isotherms</p></td>
+<td><p>??</p></td>
+<td><p>chemistry</p></td>
+</tr>
+<tr class="row-even"><td><p>first_order_decay_rate_constant</p></td>
+<td><p>k_{C1,C2}</p></td>
+<td><p>decay rate constant for first order reactions from C1 to C2</p></td>
+<td><p>??</p></td>
+<td><p>chemistry</p></td>
+</tr>
+<tr class="row-odd"><td><p>cation_exchange_capacity</p></td>
+<td><p>CEC</p></td>
+<td><p>cation exchange capacity</p></td>
+<td><p>??</p></td>
+<td><p>chemistry</p></td>
+</tr>
+<tr class="row-even"><td><p>aux_data</p></td>
+<td><p></p></td>
+<td><p>auxiliary data needed by the geochemical engine</p></td>
+<td><p>n/a</p></td>
+<td><p>chemistry</p></td>
 </tr>
 </tbody>
 </table>
@@ -1201,13 +1295,13 @@ relative permeability are scalars that are typically upwinded or
 averaged to faces, while the absolute permeability may be a
 tensor. We therefore store the first three terms together, but
 incorrectly call this “relative_permeability.” Furthermore,
-because K is order <span class="math notranslate nohighlight">\(10^{\{-10 \dash -15\}}\)</span>, but
+because K is order <span class="math notranslate nohighlight">\(10^{\{-10 -- -15\}}\)</span>, but
 <span class="math notranslate nohighlight">\(\frac{{n}}{{\mu}}\)</span> is order <span class="math notranslate nohighlight">\(10^7\)</span>, we are
 multiplying a very small number by a very large number, a
 classic problem in numerics.  Therefore, we typically rescale
 both, moving 7 orders of magnitude off of the scalar and putting
 them on the tensor.  As a result, the units of this variable are
-something like: <span class="math notranslate nohighlight">\([mol m^-3 Pa^-1 s^-1 10^7]\)</span>, and typical
+something like: [mol m^-3 Pa^-1 s^-1 10^7]`, and typical
 values range from 0 to ~6.  Note that the rescaling factor is
 NOT stored on the absolute permeability, so permeability is in
 the typical units <span class="math notranslate nohighlight">\([m^2]\)</span>.</p></li>
@@ -1222,6 +1316,12 @@ the quantity, and is not per unit grid cell volume or area.</p></li>
 <li><p>We use the word “specific” to mean a quantity that is per unit
 extent, e.g. specific enthalpy is per unit mol of water, or
 specific leaf area is per unit dry mass.</p></li>
+<li><p>This is somewhat of a misnomer – molar density is a property of
+a component in a phase.  These are the molar density of H2O in a
+given phase, not total mols in a given phase.  Perhaps a better
+name would be molar_density_water_as_liquid.</p></li>
+<li><p>Note that, unless otherwise specified, [mol] always means mols of water.</p></li>
+<li><p>[mol C] implies mols of an arbitrary component C.</p></li>
 </ol>
 </div>
 </section>
@@ -1273,8 +1373,8 @@ specific leaf area is per unit dry mass.</p></li>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
-<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -1294,7 +1394,7 @@ specific leaf area is per unit dry mass.</p></li>
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
     <br/>
   </p>
 </div>
@@ -1307,7 +1407,8 @@ specific leaf area is per unit dry mass.</p></li>
       
         <div class="footer-item">
 <p class="theme-version">
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
 </p></div>
       
     </div>
