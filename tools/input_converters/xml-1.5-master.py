@@ -18,6 +18,23 @@ from amanzi_xml.utils import errors as aerrors
 from amanzi_xml.common import parameter, parameter_list
 import fix_chemistry_ts_control
 
+def moveLC(xml):
+    ics = asearch.find_path(xml, ["state", "initial conditions"])
+
+    if ics.isElement("land cover types"):
+        lc = ics.pop("land cover types")
+        model_pars = xml.sublist("state").sublist("model parameters")
+        model_pars.append(lc)
+
+def viscosityRelationType(xml):
+    for par in asearch.findall_path(xml, ["state", "evaluators", "viscosity relation type"]):
+        par.setName("viscosity type")
+
+def molarMass(xml):
+    for par in asearch.findall_path(xml, ["state", "evaluators", "molar mass"]):
+        par.setName("molar mass [kg mol^-1]")
+        
+
 def enforceDtHistory(xml):
     """Find and revert the timestep from file option, moving it to the cycle driver list."""
     ti_file_pars = None
@@ -117,9 +134,6 @@ def fixTransportPK(pk, evals_list):
         domain = pk.getElement("domain name").getValue()
     else:
         domain = "domain"
-
-    if not pk.isElement("primary variable key") and not pk.isElement("primary variable key suffix"):
-        pk.setParameter("primary variable key suffix", "string", "total_component_concentration")
 
     if not pk.isElement("advection spatial discretization order") and pk.isElement("spatial discretization order"):
         order = pk.getElement("spatial discretization order")
@@ -291,6 +305,15 @@ def update(xml):
 
     # this fixes chemistry
     fix_chemistry_ts_control.fixAll(xml)
+
+    # moves lc types from ICs -> model parameters
+    moveLC(xml)
+
+    # viscosity relation type -> viscosity type
+    viscosityRelationType(xml)
+
+    # molar mass --> molar mass [kg m^-3]
+    molarMass(xml)
     
 
 if __name__ == "__main__":

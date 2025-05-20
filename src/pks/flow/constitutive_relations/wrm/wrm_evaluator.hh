@@ -47,9 +47,6 @@ mesh.
    * `"_WRM_type_ parameters`" ``[_WRM_type_-spec]`` See below for the required
      parameter spec for each type.
 
-*/
-
-     
 Example:
 
 .. code-block:: xml

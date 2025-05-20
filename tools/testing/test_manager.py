@@ -30,7 +30,6 @@ import subprocess
 import textwrap
 import time
 import traceback
-import distutils.spawn
 import numpy
 import collections
 import configparser
@@ -1495,7 +1494,7 @@ def check_for_executable(options, testlog):
     if options.executable is None:
         # try to detect from env
         try:
-            executable = distutils.spawn.find_executable("ats")
+            executable = shutil.which("ats")
         except Exception:
             executable = None
         finally:
@@ -1539,7 +1538,7 @@ def check_for_mpiexec(options, testlog):
     if options.mpiexec is None:
         # try to detect from env
         try:
-            mpiexec = distutils.spawn.find_executable("mpiexec")
+            mpiexec = shutil.which("mpiexec")
         except IOError:
             mpiexec = None
     else:

@@ -22,7 +22,7 @@ OverlandPressureWaterContentEvaluator::OverlandPressureWaterContentEvaluator(
   Teuchos::ParameterList& plist)
   : EvaluatorSecondaryMonotypeCV(plist)
 {
-  M_ = plist_.get<double>("molar mass H2O [kg mol^-1]", 0.0180153);
+  M_ = plist_.get<double>("molar mass [kg mol^-1]", 0.0180153);
   bar_ = plist_.get<bool>("allow negative water content", false);
   rollover_ = plist_.get<double>("water content rollover [Pa]", 0.);
 

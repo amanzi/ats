@@ -12,8 +12,8 @@
 
 Evaluator name: `"active layer average temperature`"
 
-.. _activelayer-average_temp-evaluator-spec
-.. admonition:: activelayer-average_temp-evaluator-spec
+.. _activelayer-average_evaluator-temp-spec
+.. admonition:: activelayer-average_evaluator-temp-spec
 
    * `"transition width [K]`" ``[double]`` **0.2**
 

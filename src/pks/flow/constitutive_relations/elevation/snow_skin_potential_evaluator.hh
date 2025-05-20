@@ -19,8 +19,8 @@ snow precip, so defines what we mean by low-lying.
 
 `"evaluator type`" = `"snow skin potential`"
 
-.. _snow-skin-potential-evaluator-spec:
-.. admonition:: snow-skin-potential-evaluator-spec
+.. _evaluator-snow-skin-potential-spec:
+.. admonition:: evaluator-snow-skin-potential-spec
 
    * `"dt factor [s]`" ``[double]`` A free-parameter factor for providing a
      time scale for diffusion of snow precipitation into low-lying areas.

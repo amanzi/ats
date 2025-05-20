@@ -16,8 +16,8 @@ pages 90-93, Equations 1-57 to 1-60
 
 Requires the following dependencies:
 
-.. _pet-priestley-taylor-evaluator-spec:
-.. admonition:: pet-priestley-taylor-evaluator-spec:
+.. _evaluator-pet-priestley-taylor-spec:
+.. admonition:: evaluator-pet-priestley-taylor-spec:
 
    * `"include limiter`" ``[bool]`` **false** If true, multiply potential ET by
      a limiter to get an actual ET.
@@ -33,15 +33,16 @@ Requires the following dependencies:
    * `"1 - limiter dof`" ``[int]`` **0** Area fractions are often used
      as limiters, and these have multiple dofs.  This provides which one to use.
    * `"sublimate snow`" ``[bool]`` **false** If true, use latent heat of
-      vaporization of snow, not water.
+     vaporization of snow, not water.
 
    KEYS:
 
    - `"air temperature`" **DOMAIN-air_temperature** Air temp, in [K]
-   - `"surface temperature`" **DOMAIN-temperature** Ground or leaf temp, in [K].  Note this may be the
-      same as air temperature.
+   - `"surface temperature`" **DOMAIN-temperature** Ground or leaf temp, in
+     [K].  Note this may be the same as air temperature.
    - `"elevation`" **DOMAIN-elevation** Elevation [m]
-   - `"net radiation`" **DOMAIN-net_radiation** [W m^-2] Net radiation balance, positive to the ground.
+   - `"net radiation`" **DOMAIN-net_radiation** [W m^-2] Net radiation balance,
+     positive to the ground.
    - `"limiter`" [-] See `"include limiter`" above.
    - `"1 - limiter`" [-] See `"include 1 - limiter`" above.
 

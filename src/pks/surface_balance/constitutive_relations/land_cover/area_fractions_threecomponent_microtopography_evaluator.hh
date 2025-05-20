@@ -16,8 +16,8 @@ top of that surface.
 
 `"evaluator type`" = `"area fractions, three components with microtopography`"
 
-.. _area-fractions-threecomponent-microtopography-evaluator-spec:
-.. admonition:: area-fractions-threecomponent-microtopography-evaluator-spec
+.. _evaluator-area-fractions-three-components-with-microtopography-spec:
+.. admonition:: evaluator-area-fractions-three-components-with-microtopography-spec
 
    * `"snow transitional height [m]`" ``[double]`` **0.02**
      Minimum thickness for specifying the snow gradient.
@@ -38,13 +38,6 @@ top of that surface.
      The name of the snow depth.
    - `"volumetric snow depth`" **DOMAIN_SNOW-volumetric_depth**
      The name of the snow depth.
-
-
-NOTE: this evaluator simplifies the situation by assuming constant density.
-This make it so that ice and water see the same geometry per unit pressure,
-which isn't quite true thanks to density differences.  However, we hypothesize
-that these differences, on the surface (unlike in the subsurface) really don't
-matter much. --etc
 
 */
 

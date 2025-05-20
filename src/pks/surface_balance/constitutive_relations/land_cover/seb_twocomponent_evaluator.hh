@@ -18,8 +18,8 @@ the ground from the atmosphere.
 
 `"evaluator type`" = `"surface energy balance, two components`"
 
-.. _seb-twocomponent-evaluator-spec:
-.. admonition:: seb-twocomponent-evaluator-spec
+.. _evaluator-seb-twocomponent-spec:
+.. admonition:: evaluator-seb-twocomponent-spec
 
    * `"wind speed reference height [m]`" ``[double]`` **2.0** Reference height at which
      wind speed is measured.

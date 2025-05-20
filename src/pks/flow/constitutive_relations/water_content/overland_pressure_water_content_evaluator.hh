@@ -40,7 +40,7 @@ Note this is not valid for concentration-dependent density problems.
   * `"water content rollover [Pa]`" ``[double]`` **0** A smoothing term that
     also can represent subgrid topography.  Not typically used.
 
-  * `"molar mass H2O [kg mol^-1]`" ``[double]`` **0.0180153**
+  * `"molar mass [kg mol^-1]`" ``[double]`` **0.0180153**
 
   DEPENDENCIES:
 

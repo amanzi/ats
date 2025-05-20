@@ -150,7 +150,7 @@ void
 AreaFractionsThreeComponentEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
   if (land_cover_.size() == 0)
-    land_cover_ = getLandCover(S.ICList().sublist("land cover types"),
+    land_cover_ = getLandCover(S.GetModelParameters("land cover types"),
                                { "snow_transition_depth", "water_transition_depth" });
 
   auto tag = my_keys_.front().second;
