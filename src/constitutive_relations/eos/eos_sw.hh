@@ -30,14 +30,14 @@ class EOS_SW : public EOS {
 
   // Virtual methods that form the EOS
   virtual double MassDensity(std::vector<double>& params) override;
-  virtual double DMassDensityDMolarRatio(std::vector<double>& params) override;
+  virtual double DMassDensityDC(std::vector<double>& params) override;
 
   virtual double MolarDensity(std::vector<double>& params) override;
-  virtual double DMolarDensityDMolarRatio(std::vector<double>& params) override;
+  virtual double DMolarDensityDC(std::vector<double>& params) override;
 
   virtual bool IsTemperature() override { return false; }
   virtual bool IsPressure() override { return false; }
-  virtual bool IsMolarRatio() override { return true; }
+  virtual bool IsConcentration() override { return true; }
 
   // If molar mass is constant, we can take some shortcuts if we need both
   // molar and mass densities.  MolarMass() is undefined if
@@ -55,7 +55,8 @@ class EOS_SW : public EOS {
   Teuchos::ParameterList eos_plist_;
   double E_;
   double rho_f_;
-  double n_l_;
+  double M_salt_;
+  double M_water_;
 
  private:
   static Utils::RegisteredFactory<EOS, EOS_SW> factory_;
