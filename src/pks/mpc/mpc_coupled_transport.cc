@@ -58,7 +58,7 @@ MPCCoupledTransport::parseParameterList()
     pks_list_->sublist(name_surf_), domain_surf, "conserved quantity", "total_component_quantity");
 
   auto& bc_list =
-    pks_list_->sublist(name_ss_).sublist("boundary conditions").sublist("molar mixing ratio");
+    pks_list_->sublist(name_ss_).sublist("boundary conditions").sublist("molar ratio");
   if (!bc_list.isSublist("BC coupling")) {
     Teuchos::ParameterList& bc_coupling = bc_list.sublist("BC coupling");
     bc_coupling.set<std::string>("spatial distribution method", "domain coupling");

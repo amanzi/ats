@@ -35,7 +35,7 @@ EOS_SW::MassDensity(std::vector<double>& params)
 };
 
 double
-EOS_SW::DMassDensityDC(std::vector<double>& params)
+EOS_SW::DMassDensityDMolarRatio(std::vector<double>& params)
 {
   return E_;
 };
@@ -48,11 +48,11 @@ EOS_SW::MolarDensity(std::vector<double>& params)
 };
 
 double
-EOS_SW::DMolarDensityDC(std::vector<double>& params)
+EOS_SW::DMolarDensityDMolarRatio(std::vector<double>& params)
 {
   double C = params[0];
   double b = (M_water_ * (1 - C) + M_salt_ * C);
-  return (DMassDensityDC(params) * b - MassDensity(params) * (M_salt_ - M_water_)) / (b * b);
+  return (DMassDensityDMolarRatio(params) * b - MassDensity(params) * (M_salt_ - M_water_)) / (b * b);
 };
 
 
