@@ -30,14 +30,14 @@ class EOS_SW : public EOS {
 
   // Virtual methods that form the EOS
   virtual double MassDensity(std::vector<double>& params) override;
-  virtual double DMassDensityDMolarRatio(std::vector<double>& params) override;
+  virtual double DMassDensityDMoleFraction(std::vector<double>& params) override;
 
   virtual double MolarDensity(std::vector<double>& params) override;
-  virtual double DMolarDensityDMolarRatio(std::vector<double>& params) override;
+  virtual double DMolarDensityDMoleFraction(std::vector<double>& params) override;
 
   virtual bool IsTemperature() override { return false; }
   virtual bool IsPressure() override { return false; }
-  virtual bool IsMolarRatio() override { return true; }
+  virtual bool IsMoleFraction() override { return true; }
 
   // If molar mass is constant, we can take some shortcuts if we need both
   // molar and mass densities.  MolarMass() is undefined if

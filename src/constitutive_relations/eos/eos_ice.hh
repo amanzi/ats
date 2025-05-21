@@ -47,11 +47,11 @@ class EOSIce : public EOSConstantMolarMass {
   virtual double MassDensity(std::vector<double>& params) override;
   virtual double DMassDensityDT(std::vector<double>& params) override;
   virtual double DMassDensityDp(std::vector<double>& params) override;
-  virtual double DMassDensityDMolarRatio(std::vector<double>& params) override { return 0; }
+  virtual double DMassDensityDMoleFraction(std::vector<double>& params) override { return 0; }
 
   virtual bool IsTemperature() override { return true; }
   virtual bool IsPressure() override { return true; }
-  virtual bool IsMolarRatio() override { return false; }
+  virtual bool IsMoleFraction() override { return false; }
 
  private:
   virtual void InitializeFromPlist_();
