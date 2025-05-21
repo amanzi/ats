@@ -352,6 +352,7 @@ OverlandPressureFlow::SetupOverlandFlow_()
     .SetMesh(mesh_)
     ->SetGhosted()
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 3);
+  S_->GetRecordSetW(velocity_key_).set_subfieldnames(mesh_->getSpaceDimensionNames());
 };
 
 

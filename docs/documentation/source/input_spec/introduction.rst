@@ -152,6 +152,17 @@ where:
   `"column:4-temperature`" is the temperature on the 4th domain of the
   domain set `"column`".
 
+Additionally, a variable name may include a **component name** and a
+**subfield name**, e.g. ROOT_NAME.COMPONENT_NAME.SUBFIELD_NAME.  The
+component name refers to a component of the field, and typically is
+named according to the entity on which it is defined, e.g. `"cell`" or
+`"face`".  The SUBFIELD_NAME refers to a name for each degree of
+freedom in the vector.  Typically this is used for n-dimensional
+vector-valued fields such as velocity, where the names are e.g. `"x`",
+`"y`", and `"z`", or chemical specie names.  If multiple degrees of
+freedom are needed but subfield names are not provided, they are
+assigned integer values indexing the degree of freedom.
+  
 **Tags** indicate the use of a variable at a specific time in the
 discretized time interval.  Default tags include `"current`" and
 `"next`" indicating the variable at the beginning and end of the
@@ -167,9 +178,12 @@ character, e.g. `"dsurface-water_content|dsurface-pressure`" is the
 derivative of the `"water_content`" variable on the `"surface`" domain
 with respect to the `"pressure`" on the same domain.
 
-As a result of these conventions, none of the above individual strings,
-(root names, domains, domain sets, or IDs) can contain any of the
-following reserved characters: `:`, `-`, `|`, `@`.
+As a result of these conventions, none of the above individual
+strings, (root names, domains, domain sets, or IDs) can contain any of
+the following reserved characters: `:`, `-`, `|`, `@`.  The lone
+exception to this rule is that subfield names may include trailing `-`
+characters to indicate charge,
+e.g. `total_component_concentration.NO3-`.
 
 Avoid including spaces in variable names.  This doesn't break the
 code, but it does break some visualization tools.
