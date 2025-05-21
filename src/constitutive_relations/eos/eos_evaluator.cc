@@ -113,7 +113,7 @@ EOSEvaluator::ParsePlistConc_()
 
   // -- concentration
   conc_key_ =
-    Keys::readKeyTag(plist_, domain_name, "molar ratio", "molar_ratio", tag);
+    Keys::readKeyTag(plist_, domain_name, "mole fraction", "mole_fraction", tag);
   dependencies_.insert(conc_key_);
 }
 

@@ -103,7 +103,7 @@ two quantities using an `"evaluator type`" = `"multiplicative evaluator`".
 
    KEYS
 
-   - `"primary variable`" **"molar_ratio"** [mol C mol H2O^-1]
+   - `"primary variable`" **"mole_fraction"** [mol C mol H2O^-1]
    - `"liquid water content`" **"water_content"** This variable is a multiplier
      in in the accumulation term. This is often just `"water_content`", but
      not in frozen cases, where it must be defined by the user (typically as
