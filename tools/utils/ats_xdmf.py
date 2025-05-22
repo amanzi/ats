@@ -27,10 +27,28 @@ def valid_mesh_filename(domain, format=None):
         format = 'ats_vis_{}_mesh.h5'
     return valid_data_filename(domain, format)
 
+def time_unit_conversion(value, input_unit, output_unit):
+    time_in_seconds = {
+        'yr': 365.25 * 24 * 3600,
+        'noleap': 365 * 24 *3600,
+        'd': 24 * 3600,
+        'hr': 3600,
+        's': 1
+    }
+    if input_unit not in time_in_seconds:
+        raise ValueError("Invalid input time unit : must be one of 'yr', 'noleap', 'd', 'hr', or 's'")
+    if output_unit not in time_in_seconds:
+        raise ValueError("Invalid output time unit : must be one of 'yr', 'noleap', 'd', 'hr', or 's'")
+    
+    value2sec = value * time_in_seconds[input_unit]
+    output_value = value2sec / time_in_seconds[output_unit]
+    return output_value
+    
 
 class VisFile:
     """Class managing the reading of ATS visualization files."""
-    def __init__(self, directory='.', domain=None, filename=None, mesh_filename=None, time_unit='yr'):
+    def __init__(self, directory='.', domain=None, filename=None, mesh_filename=None, 
+                 input_time_unit='yr', output_time_unit='d'):
         """Create a VisFile object.
 
         Parameters
@@ -44,6 +62,8 @@ class VisFile:
           (e.g. ats_vis_surface_data.h5).
         mesh_filename : str, optional
           Filename for the h5 mesh file.  Default is 'ats_vis_DOMAIN_mesh.h5'.
+        input_time_unit : time unit used in visualization of ATS input files.
+        output_time_unit : time unit used in this vis filrs postprocessing.
 
         Returns
         -------
@@ -65,21 +85,9 @@ class VisFile:
                 self.mesh_filename = 'ats_vis_mesh.h5'
             else:
                 self.mesh_filename = 'ats_vis_{}_mesh.h5'.format(self.domain)
-
-        if time_unit == 'yr':
-            time_factor = 1.0
-        elif time_unit == 'noleap':
-            time_factor = 365.25 / 365
-        elif time_unit == 'd':
-            time_factor = 365.25
-        elif time_unit == 'hr':
-            time_factor = 365.25 * 24
-        elif time_unit == 's':
-            time_factor = 365.25 * 24 * 3600
-        else:
-            raise ValueError("Invalid time unit '{}': must be one of 'yr', 'noleap', 'd', 'hr', or 's'".format(time_unit))
-        self.time_factor = time_factor
-        self.time_unit = time_unit
+        
+        self.input_time_unit = input_time_unit
+        self.output_time_unit = output_time_unit
 
         self.fname = os.path.join(self.directory, self.filename)
         if not os.path.isfile(self.fname):
@@ -105,7 +113,8 @@ class VisFile:
         """(Re-)loads the list of cycles and times."""
         a_field = next(iter(self.d.keys()))
         self.cycles = list(sorted(self.d[a_field].keys(), key=int))
-        self.times = np.array([self.d[a_field][cycle].attrs['Time'] for cycle in self.cycles]) * self.time_factor
+        self.times = np.array([time_unit_conversion(t, self.input_time_unit, self.output_time_unit) 
+                              for t in [self.d[a_field][cycle].attrs['Time'] for cycle in self.cycles]])
 
     def filterIndices(self, indices):
         """Filter based on the index into the current set of cycles.
@@ -325,7 +334,7 @@ class VisFile:
             elif coordinate == 'xy':
                 raise ValuerError("Cannot infer coordinate 'xy' -- likely this dataset was loaded with inconsistent ordering or you provided an invalid coordinate.")
         coordinate_slice = spatial_slice + [s[coordinate],]
-        coords = self.centroids[*coordinate_slice]
+        coords = self.centroids[tuple(coordinate_slice)]
 
         # default transpose is True for z, False for others
         if transpose is None:
@@ -335,7 +344,7 @@ class VisFile:
         # slice data to get values
         vals = self.getArray(varname)
         vals_slicer = [time_slice,] + spatial_slice
-        vals = vals[*vals_slicer]
+        vals = vals[tuple(vals_slicer)]
 
         X = np.tile(coords, (vals.shape[0], 1))
         Y = vals
@@ -344,7 +353,7 @@ class VisFile:
             X,Y = Y,X
 
         if colorbar_label is None:
-            colorbar_label = f'{varname} in time [{self.time_unit}]'
+            colorbar_label = f'{varname} in time [{self.output_time_unit}]'
         ax, axcb = plot_lines.plotLines(X, Y, self.times[time_slice], ax=ax,
                                         t_min=self.times[0], t_max=self.times[-1],
                                         colorbar_label=colorbar_label, **kwargs)
