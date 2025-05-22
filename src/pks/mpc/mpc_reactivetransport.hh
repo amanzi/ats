@@ -6,13 +6,12 @@
 
   Authors: Daniil Svyatskiy
 */
-
 /*!
 
 This MPC couples transport and chemistry through an operator split strategy.
 
-Note that transport's primary variable is "mole_ratio", which is in units
-of [mol-C mol-H2O^-1].  Chemistry is in "total_component_concentration", which
+Note that transport's primary variable is `"mole_fraction`", which is in units
+of [mol C mol liquid^-1].  Chemistry is in "total_component_concentration", which
 is in units of [mol-C L^-1].  Therefore, between steps, we convert between the
 two.
 
