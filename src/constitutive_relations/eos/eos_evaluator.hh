@@ -27,7 +27,7 @@ ratio/concentration.
 
    - `"temperature`"
    - `"pressure`"
-   - `"molar ratio`"
+   - `"mole fraction`"
 
 */
 

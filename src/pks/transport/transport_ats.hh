@@ -5,15 +5,9 @@
   provided in the top-level COPYRIGHT file.
 
   Authors: Konstantin Lipnikov (lipnikov@lanl.gov)
+           Daniil Svyatsky (dasvyat@lanl.gov)
            Ethan Coon (coonet@ornl.gov)
 */
-
-/*
-  Transport PK
-
-*/
-
-
 /*!
 
 This PK solves for transport of chemical species in water.  It may optionally
@@ -23,26 +17,27 @@ solve reactive transport.
 The advection-dispersion equation for component *i* may be written as:
 
 .. math::
-  \frac{\partial (\Theta \xi_i)}{\partial t} = - \boldsymbol{\nabla} \cdot (\boldsymbol{q} \xi_i)
-  + \boldsymbol{\nabla} \cdot (\Theta \, (\boldsymbol{D^*}_l + \tau \boldsymbol{D}_i) \boldsymbol{\nabla} \xi_i) + Q_s,
+  \frac{\partial (\Theta \chi_i)}{\partial t} = - \boldsymbol{\nabla} \cdot (\boldsymbol{q} \chi_i)
+  + \boldsymbol{\nabla} \cdot (\Theta \, (\boldsymbol{D^*}_l + \tau \boldsymbol{D}_i) \boldsymbol{\nabla} \chi_i) + Q_s,
 
-The primary variable for this PK is :math:`\xi_i`, the **mole ratio** of a
-specie :math:`i` in the aqueous phase, with units of [mol i / mol H2O].
+The primary variable for this PK is :math:`\chi_i`, the **mole fraction** of a
+specie :math:`i` in the aqueous phase, with units of [mol i mol liquid^-1].
 
 This seems a bit odd to most people who are used to reactive transport codes
-where the primary variable is total component concentration :math:`C`, in units of [mol i
-/ L].  The reason for this differences is to better enable variable-density
-problems.  Note that the two are related:
+where the primary variable is total component concentration :math:`C`, in units
+of [mol i L^-1].  The reason for this differences is to better enable
+variable-density problems.  Note that the two are related:
 
 .. math::
-   C_i = n_l \xi_i
+   C_i = n_l \chi_i
 
-for molar density of liquid water :math:`n_l`.
+for molar density of liquid :math:`n_l`.
 
-For reactive transport problems, both concentration and mole ratio are output
-in the visualization file.  For transport-only problems, concentration may be
-output by adding a total component concentration evaluator that multiplies the
-two quantities using an `"evaluator type`" = `"multiplicative evaluator`".
+For reactive transport problems, both concentration and mole fraction are
+output in the visualization file.  For transport-only problems, concentration
+may be output by adding a total component concentration evaluator that
+multiplies the two quantities using an `"evaluator type`" = `"multiplicative
+evaluator`".
 
 `"PK type`" = `"transport ATS`"
 
@@ -103,7 +98,7 @@ two quantities using an `"evaluator type`" = `"multiplicative evaluator`".
 
    KEYS
 
-   - `"primary variable`" **"molar_ratio"** [mol C mol H2O^-1]
+   - `"primary variable`" **"mole_fraction"** [mol C mol H2O^-1]
    - `"liquid water content`" **"water_content"** This variable is a multiplier
      in in the accumulation term. This is often just `"water_content`", but
      not in frozen cases, where it must be defined by the user (typically as
@@ -124,9 +119,9 @@ two quantities using an `"evaluator type`" = `"multiplicative evaluator`".
       
         Concentration [mol C L^-1] :math:`\times`
         1000 [L m^-3] of water :math:`\times`
-        water source [mol H2O m^-3 s^-1] :math:`\times`
+        water source [mol m^-3 s^-1] :math:`\times`
         volume of injection domain [m^3] :math:`/`
-        molar density of water [mol H2O m^-3]
+        molar density of water [mol m^-3]
 
 
 Note, this is not dispersion, but strictly isotropic diffusion.        

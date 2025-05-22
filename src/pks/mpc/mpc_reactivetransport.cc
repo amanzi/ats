@@ -40,7 +40,7 @@ MPCReactiveTransport::parseParameterList()
   tcc_key_ = Keys::readKey(*getSubPKPlist_(0), domain_, "primary variable",
                            "total_component_concentration");
   mol_frac_key_ = Keys::readKey(*getSubPKPlist_(1), domain_, "primary variable",
-                           "molar_ratio");
+                           "mole_fraction");
   if (tcc_key_ == mol_frac_key_) {
     Errors::Message msg;
     msg << "Chemistry and Transport may not be given the same primary variable name (\"" << tcc_key_

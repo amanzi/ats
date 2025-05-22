@@ -73,7 +73,7 @@ void
 Transport_ATS::parseParameterList()
 {
   if (!plist_->isParameter("primary variable key suffix")) {
-    plist_->set<std::string>("primary variable key suffix", "molar_ratio");
+    plist_->set<std::string>("primary variable key suffix", "mole_fraction");
   }
 
   // with subfield names, the header width is often insufficient
@@ -417,7 +417,7 @@ Transport_ATS::SetupTransport_()
     // -- try tracer-type conditions
     PK_DomainFunctionFactory<TransportDomainFunction> factory(mesh_, S_);
     auto bcs_list = Teuchos::sublist(plist_, "boundary conditions");
-    auto conc_bcs_list = Teuchos::sublist(bcs_list, "molar ratio");
+    auto conc_bcs_list = Teuchos::sublist(bcs_list, "mole fraction");
 
     for (const auto& it : *conc_bcs_list) {
       std::string name = it.first;
@@ -446,7 +446,7 @@ Transport_ATS::SetupTransport_()
           bc_list.set("entity GID", gid);
 
           Teuchos::RCP<TransportDomainFunction> bc = factory.Create(
-            bc_list, "boundary molar ratio", AmanziMesh::Entity_kind::FACE, Teuchos::null, tag_current_);
+            bc_list, "boundary mole fraction", AmanziMesh::Entity_kind::FACE, Teuchos::null, tag_current_);
 
           for (int i = 0; i < num_components_; i++) {
             bc->tcc_names().push_back(component_names_[i]);
@@ -458,7 +458,7 @@ Transport_ATS::SetupTransport_()
         } else {
           Teuchos::RCP<TransportDomainFunction> bc =
             factory.Create(bc_list,
-                           "boundary molar ratio function",
+                           "boundary mole fraction function",
                            AmanziMesh::Entity_kind::FACE,
                            Teuchos::null,
                            tag_current_);

@@ -51,7 +51,7 @@ class EOSVaporInGas : public EOS {
     AMANZI_ASSERT(0);
     return 0.0;
   }
-  double DMassDensityDMolarRatio(std::vector<double>& params) override
+  double DMassDensityDMoleFraction(std::vector<double>& params) override
   {
     AMANZI_ASSERT(0);
     return 0.0;
@@ -60,11 +60,11 @@ class EOSVaporInGas : public EOS {
   double MolarDensity(std::vector<double>& params) override;
   double DMolarDensityDT(std::vector<double>& params) override;
   double DMolarDensityDp(std::vector<double>& params) override;
-  double DMolarDensityDMolarRatio(std::vector<double>& params) override { return 0.; }
+  double DMolarDensityDMoleFraction(std::vector<double>& params) override { return 0.; }
 
   virtual bool IsTemperature() override { return gas_eos_->IsTemperature(); }
   virtual bool IsPressure() override { return gas_eos_->IsPressure(); }
-  virtual bool IsMolarRatio() override { return gas_eos_->IsMolarRatio(); }
+  virtual bool IsMoleFraction() override { return gas_eos_->IsMoleFraction(); }
 
   bool IsConstantMolarMass() override { return false; }
   double MolarMass() override
