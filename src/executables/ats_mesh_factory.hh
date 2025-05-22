@@ -75,9 +75,12 @@ of number of cells in each direction.
 .. _mesh-generate-mesh-spec:
 .. admonition:: mesh-generate-mesh-spec
 
-   * `"domain low coordinate`" ``[Array(double)]`` Location of low corner of domain
-   * `"domain high coordinate`" ``[Array(double)]`` Location of high corner of domain
-   * `"number of cells`" ``[Array(int)]`` the number of uniform cells in each coordinate direction
+   * `"domain low coordinate`" ``[Array(double)]`` Location of low corner of
+     domain
+   * `"domain high coordinate`" ``[Array(double)]`` Location of high corner of
+     domain
+   * `"number of cells`" ``[Array(int)]`` the number of uniform cells in each
+     coordinate direction
 
 Example:
 
