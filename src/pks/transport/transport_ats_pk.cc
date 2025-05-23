@@ -589,7 +589,7 @@ Transport_ATS::SetupPhysicalEvaluators_()
   requireEvaluatorAtNext(mass_flux_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
-    ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);  
+    ->SetComponent("face", AmanziMesh::Entity_kind::FACE, num_aqueous_);  
 }
 
 
