@@ -115,6 +115,9 @@ Transport_ATS::parseParameterList()
   // -- flux -- only needed at new time, evaluator controlled elsewhere
   flux_key_ = Keys::readKey(*plist_, domain_, "water flux", "water_flux");
 
+  mass_flux_key_ = Keys::readKey(*plist_, domain_, "mass flux", "mass_flux");
+  requireEvaluatorAtNext(mass_flux_key_, tag_next_, *S_, name_);
+
   // -- liquid water content - need at new time, copy at current time
   lwc_key_ = Keys::readKey(*plist_, domain_, "liquid water content", "water_content");
   requireEvaluatorAtCurrent(lwc_key_, tag_current_, *S_, name_);
@@ -581,6 +584,12 @@ Transport_ATS::SetupPhysicalEvaluators_()
     ->SetGhosted(true)
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_aqueous_ + 2);
   S_->GetRecordSetW(conserve_qty_key_).set_subfieldnames(subfield_names);
+
+  // -- solute mass flux
+  requireEvaluatorAtNext(mass_flux_key_, tag_next_, *S_)
+    .SetMesh(mesh_)
+    ->SetGhosted(true)
+    ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);  
 }
 
 
@@ -1016,8 +1025,13 @@ Transport_ATS::AdvanceAdvectionSources_RK1_(double t_old,
     *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_)
     .ViewComponent("cell", false);
 
-  // -- M <-- C0 * WC0
-  // -- mol H2O * (mol C / mol H20) --> mol C, the conserved component quantity
+  // populating solute mass flux (unit: molC)
+  Epetra_MultiVector& mass_flux = 
+    *S_->GetW<CompositeVector>(mass_flux_key_, tag_next_, name_)
+    .ViewComponent("face", false);  
+
+  // Mass <-- Concentration * water content
+  // conserved component quantity [mol C] = (mol C / mol H20) * mol H2O
   for (int i = 0; i != num_aqueous_; ++i) {
     conserve_qty(i)->Multiply(1., *lwc_old(0), *tcc_old(i), 0.);
   }
@@ -1028,8 +1042,10 @@ Transport_ATS::AdvanceAdvectionSources_RK1_(double t_old,
 
   // advection: M <-- M + dt * div q * C0
   if (spatial_order == 1) {
-    AddAdvection_FirstOrderUpwind_(t_old, t_new, tcc_old, conserve_qty);
+    // conserve_qty = conserve_qty + div qC
+    AddAdvection_FirstOrderUpwind_(t_old, t_new, tcc_old, conserve_qty, mass_flux);
   } else if (spatial_order == 2) {
+    // conserve_qty = conserve_qty + div qC
     AddAdvection_SecondOrderUpwind_(t_old, t_new, tcc_old, conserve_qty);
   }
   db_->WriteCellVector("qnty (adv)", conserve_qty,
@@ -1084,6 +1100,11 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(double t_old,
     *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_)
     .ViewComponent("cell", false);
 
+  // populating solute mass flux (unit: molC)
+  Epetra_MultiVector& mass_flux = 
+    *S_->GetW<CompositeVector>(mass_flux_key_, tag_next_, name_)
+    .ViewComponent("face", false);
+
   // -- M <-- C0 * W0
   // -- mol H2O * (mol C / mol H20) --> mol C, the conserved component quantity
   for (int i = 0; i != num_aqueous_; ++i) {
@@ -1097,7 +1118,7 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(double t_old,
   // Predictor Step:
   // -- advection: M <-- M + dt * div q * C0
   if (spatial_order == 1) {
-    AddAdvection_FirstOrderUpwind_(t_old, t_new, tcc_old, conserve_qty);
+    AddAdvection_FirstOrderUpwind_(t_old, t_new, tcc_old, conserve_qty, mass_flux);
   } else if (spatial_order == 2) {
     AddAdvection_SecondOrderUpwind_(t_old, t_new, tcc_old, conserve_qty);
   }
@@ -1139,7 +1160,7 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(double t_old,
     //   M <-- M + dt/2 * div q * C'
     //     <-- (C0 W0 + dt div q C0 + dt Q0) / 2 + W0 C0 / 2 + dt div q C' / 2
     if (spatial_order == 1) {
-      AddAdvection_FirstOrderUpwind_(t_old + dt/2., t_new, tcc_new, conserve_qty);
+      AddAdvection_FirstOrderUpwind_(t_old + dt/2., t_new, tcc_new, conserve_qty, mass_flux);
     } else if (spatial_order == 2) {
       AddAdvection_SecondOrderUpwind_(t_old + dt/2., t_new, tcc_new, conserve_qty);
     }

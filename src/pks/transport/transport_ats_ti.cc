@@ -32,95 +32,103 @@ namespace Transport {
 // DEV NOTE: this requires that tcc is ghosted and scattered, and that cq_flux is
 // owned.
 void
-Transport_ATS::AddAdvection_FirstOrderUpwind_(double t_old,
-        double t_new,
-        const Epetra_MultiVector& tcc,
-        Epetra_MultiVector& cq_flux)
+Transport_ATS::AddAdvection_FirstOrderUpwind_(
+  double t_old, double t_new,  // old and new time
+  const Epetra_MultiVector& tcc,  // concentration in a cell [mols C / mols H2O]
+  Epetra_MultiVector& c_qty,  // component quantity in a cell [mols C]
+  Epetra_MultiVector& cq_flux)  // component flux across a face [mols C / s]
 {
-  double dt = t_new - t_old;
+  double dt = t_new - t_old;  // time step [s]
 
+  // number of faces in the (local) domain
   int nfaces_all =
     mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::ALL);
+  
+    // get water flux (flux_key_) for each face at next time step (tag_next_)
   const Epetra_MultiVector& flux = *S_->Get<CompositeVector>(flux_key_, tag_next_)
     .ViewComponent("face", true);
 
   // advance all components at once
   for (int f = 0; f < nfaces_all; f++) {
-    // flow moves from upwind cell (c1) to downwind cell (c2).
-    // If ci < 0 || ci > ncells_owned -> indicates boundary or halo cells (i=1,2)
+    // flow from upwind cell (c1) to downwind cell (c2).
+    // If ci < 0 || ci > ncells_owned -> indicates boundary or halo cells (i=1,2...)
     int c1 = (*upwind_cell_)[f];
     int c2 = (*downwind_cell_)[f];
-    double u = std::abs(flux[0][f]);
+    double u = std::abs(flux[0][f]);  // magnitude of water flux [mols H2O /s]
 
-    if (c1 >= 0 && c1 < cq_flux.MyLength() && c2 >= 0 && c2 < cq_flux.MyLength()) {
-      // Here c1 & c2 are inside local domain. Update solute fluxes for both cells
+    if (c1 >= 0 && c1 < c_qty.MyLength() && c2 >= 0 && c2 < c_qty.MyLength()) {
+      // Here c1 & c2 are inside local domain
+      // Thus, update solute fluxes for both cells
       for (int i = 0; i < num_aqueous_; i++) {
-        double tcc_flux = dt * u * tcc[i][c1];
-        cq_flux[i][c1] -= tcc_flux;
-        cq_flux[i][c2] += tcc_flux;
+        double delta_c_mass = dt * u * tcc[i][c1];  // [mols C]
+        c_qty[i][c1] -= delta_c_mass;  // [mols C]
+        c_qty[i][c2] += delta_c_mass;  // [mols C]
+        cq_flux[i][f] = u * tcc[i][c1];  // tcc [mols C / mols H2O] --> cq_flux [mols C / s]
       }
-      // Update (tag next) water fluxes for both cells
-      cq_flux[num_aqueous_ + 1][c1] -= dt * u;
-      cq_flux[num_aqueous_ + 1][c2] += dt * u;
+      // update (tag next) water fluxes for both cells
+      c_qty[num_aqueous_ + 1][c1] -= dt * u;  // [mols H2O]
+      c_qty[num_aqueous_ + 1][c2] += dt * u;  // [mols H2O]
 
     } else if (c1 >= 0 && c1 < cq_flux.MyLength() && (c2 >= cq_flux.MyLength() || c2 < 0)) {
       // downind cell c2 is boundary or belong to another domain owned by other processors
-      // Update solute flux for c1
+      // update solute flux for c1 only
       for (int i = 0; i < num_aqueous_; i++) {
-        double tcc_flux = dt * u * tcc[i][c1];
-        cq_flux[i][c1] -= tcc_flux;
+        double delta_c_mass = dt * u * tcc[i][c1];  // [mols C]
+        c_qty[i][c1] -= delta_c_mass;  // [mols C]
+        cq_flux[i][f] = u * tcc[i][c1];  // [mols C / s]        
       }
-      // Update or subtract (tag next) water fluxes for c1
-      cq_flux[num_aqueous_ + 1][c1] -= dt * u;
+      // update or subtract (tag next) water fluxes for c1
+      c_qty[num_aqueous_ + 1][c1] -= dt * u;  // [mols H2O]
 
-    } else if (c1 >= cq_flux.MyLength() && c2 >= 0 && c2 < cq_flux.MyLength()) {
+    } else if (c1 >= c_qty.MyLength() && c2 >= 0 && c2 < c_qty.MyLength()) {
       // upwind cell c1 is boundary or belong to another domain owned by other processors
-      // Update solute flux for c2
+      // update solute flux for c2 only
       for (int i = 0; i < num_aqueous_; i++) {
-        double tcc_flux = dt * u * tcc[i][c1];
-        cq_flux[i][c2] += tcc_flux;
+        double delta_c_mass = dt * u * tcc[i][c1];  // [mols C]
+        c_qty[i][c2] += delta_c_mass;  // [mols C]
       }
-      // Update or add (tag next) water fluxes for c2
-      cq_flux[num_aqueous_ + 1][c2] += dt * u;
+      // update or add (tag next) water fluxes for c2
+      c_qty[num_aqueous_ + 1][c2] += dt * u;  // [mols H2O]
 
-    } else if (c2 < 0 && c1 >= 0 && c1 < cq_flux.MyLength()) {
-      // this case is very similar to line 1165, except c2<0 only. Why we don't update solute flux??? --PL
-      //
-      // Negative cell value implies the face is a domain boundary (not process
-      // boundary).  Solute fluxes over domain boundaries (to c1) are taken
-      // care of in the below boundary loop, but water fluxes aren't because
-      // water fluxes may not bring solute, so deal with water fluxes
-      // here. --ETC
-      cq_flux[num_aqueous_ + 1][c1] -= dt * u;
+    } else if (c2 < 0 && c1 >= 0 && c1 < c_qty.MyLength()) {
+      // Negative cell value implies the face is a domain boundary.
+      // This mean flux is going from a regular cell (c1) to a domain boundary (c2).
+      // Solute fluxes over domain boundaries are taken care of in the 
+      // below boundary loop, but water fluxes aren't because water
+      // fluxes may not bring solute, so deal with water fluxes only here.
+      c_qty[num_aqueous_ + 1][c1] -= dt * u;  // [mols C]
 
-    } else if (c1 < 0 && c2 >= 0 && c2 < cq_flux.MyLength()) {
-      // why no solute update??? --PL
-      cq_flux[num_aqueous_ + 1][c2] += dt * u;
+    } else if (c1 < 0 && c2 >= 0 && c2 < c_qty.MyLength()) {
+      // This mean flux is going from a domain boundary (c1) to a regular cell (c2).
+      // Similarly, solute fluxes over domain boundaries are taken care
+      // of in the below boundary loop. We only need to deal with
+      // water fluxes here.
+      c_qty[num_aqueous_ + 1][c2] += dt * u;  // [mols C]
     }
   }
 
-  // loop over exterior boundary sets
-  //
-  // Why no check on the boundary type?  This can be Dirichlet or Neumann?  Or
-  // is this hard-coded as just Dirichlet data? --ETC
+  // Process fluxes and quantities at the boundary faces
+  // Why no check on the boundary type?  This can be Dirichlet or Neumann?
+  // Or is this hard-coded as just Dirichlet data? --ETC
   for (int m = 0; m < bcs_.size(); m++) {
     std::vector<int>& tcc_index = bcs_[m]->tcc_index();
-    int ncomp = tcc_index.size();
+    int ncomp = tcc_index.size();  // number of components
 
     for (auto it = bcs_[m]->begin(); it != bcs_[m]->end(); ++it) {
-      int f = it->first;
+      int f = it->first;  // get face id
 
       std::vector<double>& values = it->second;
-      int c2 = (*downwind_cell_)[f];
-      int c1 = (*upwind_cell_)[f];
+      int c2 = (*downwind_cell_)[f];  // downwind cell id
+      int c1 = (*upwind_cell_)[f];  // upwind cell id
 
       double u = std::abs(flux[0][f]);
-      if (c2 >= 0 && c2 < cq_flux.MyLength()) {
+      if (c2 >= 0 && c2 < c_qty.MyLength()) {
+        // if downwind cell c2 is inside local domain, update solute fluxes for c2
         for (int i = 0; i < ncomp; i++) {
           int k = tcc_index[i];
           if (k < num_aqueous_) {
-            double tcc_flux = dt * u * values[i];
-            cq_flux[k][c2] += tcc_flux;
+            double delta_c_mass = dt * u * values[i];  // [mols C]
+            c_qty[k][c2] += delta_c_mass;  // [mols C]
           }
         }
       }
