@@ -1046,7 +1046,7 @@ Transport_ATS::AdvanceAdvectionSources_RK1_(double t_old,
     AddAdvection_FirstOrderUpwind_(t_old, t_new, tcc_old, conserve_qty, mass_flux);
   } else if (spatial_order == 2) {
     // conserve_qty = conserve_qty + div qC
-    AddAdvection_SecondOrderUpwind_(t_old, t_new, tcc_old, conserve_qty);
+    AddAdvection_SecondOrderUpwind_(t_old, t_new, tcc_old, conserve_qty, mass_flux);
   }
   db_->WriteCellVector("qnty (adv)", conserve_qty,
                        S_->GetRecordSet(conserve_qty_key_).subfieldnames());
@@ -1120,7 +1120,7 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(double t_old,
   if (spatial_order == 1) {
     AddAdvection_FirstOrderUpwind_(t_old, t_new, tcc_old, conserve_qty, mass_flux);
   } else if (spatial_order == 2) {
-    AddAdvection_SecondOrderUpwind_(t_old, t_new, tcc_old, conserve_qty);
+    AddAdvection_SecondOrderUpwind_(t_old, t_new, tcc_old, conserve_qty, mass_flux);
   }
   db_->WriteCellVector("qnty (pred adv)", conserve_qty,
                        S_->GetRecordSet(conserve_qty_key_).subfieldnames());
@@ -1162,7 +1162,7 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(double t_old,
     if (spatial_order == 1) {
       AddAdvection_FirstOrderUpwind_(t_old + dt/2., t_new, tcc_new, conserve_qty, mass_flux);
     } else if (spatial_order == 2) {
-      AddAdvection_SecondOrderUpwind_(t_old + dt/2., t_new, tcc_new, conserve_qty);
+      AddAdvection_SecondOrderUpwind_(t_old + dt/2., t_new, tcc_new, conserve_qty, mass_flux);
     }
     db_->WriteCellVector("qnty (corr adv)", conserve_qty,
                          S_->GetRecordSet(conserve_qty_key_).subfieldnames());

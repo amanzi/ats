@@ -287,10 +287,12 @@ class Transport_ATS : public PK_Physical_Default {
   void AddAdvection_SecondOrderUpwind_(double t_old,
           double t_new,
           const Epetra_MultiVector& tcc,
+          Epetra_MultiVector& conserve_qty,
           Epetra_MultiVector& f);
   void AddAdvection_SecondOrderUpwind_(double t_old,
           double t_new,
           const Epetra_Vector& tcc,
+          Epetra_Vector& conserve_qty,          
           Epetra_Vector& f,
           int component);
 

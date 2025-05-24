@@ -29,18 +29,18 @@ namespace Transport {
 //
 // This uses a first-order donor upwind scheme.
 //
-// DEV NOTE: this requires that tcc is ghosted and scattered, and that cq_flux is
+// DEV NOTE: this requires that tcc is ghosted and scattered, and that c_qty is
 // owned.
 void
 Transport_ATS::AddAdvection_FirstOrderUpwind_(
   double t_old, double t_new,  // old and new time
-  const Epetra_MultiVector& tcc,  // concentration in a cell [mols C / mols H2O]
+  const Epetra_MultiVector& tcc,  // concentration in a cell at old time [mols C / mols H2O]
   Epetra_MultiVector& c_qty,  // component quantity in a cell [mols C]
   Epetra_MultiVector& cq_flux)  // component flux across a face [mols C / s]
 {
   double dt = t_new - t_old;  // time step [s]
 
-  // number of faces in the (local) domain
+  // total number of faces in the domain
   int nfaces_all =
     mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::ALL);
   
@@ -116,14 +116,13 @@ Transport_ATS::AddAdvection_FirstOrderUpwind_(
 
     for (auto it = bcs_[m]->begin(); it != bcs_[m]->end(); ++it) {
       int f = it->first;  // get face id
-
       std::vector<double>& values = it->second;
       int c2 = (*downwind_cell_)[f];  // downwind cell id
       int c1 = (*upwind_cell_)[f];  // upwind cell id
 
       double u = std::abs(flux[0][f]);
+      // if downwind cell c2 is inside local domain, update solute fluxes for c2
       if (c2 >= 0 && c2 < c_qty.MyLength()) {
-        // if downwind cell c2 is inside local domain, update solute fluxes for c2
         for (int i = 0; i < ncomp; i++) {
           int k = tcc_index[i];
           if (k < num_aqueous_) {
@@ -138,13 +137,14 @@ Transport_ATS::AddAdvection_FirstOrderUpwind_(
 
 
 void
-Transport_ATS::AddAdvection_SecondOrderUpwind_(double t_old,
-        double t_new,
-        const Epetra_MultiVector& tcc,
-        Epetra_MultiVector& cq_flux)
+Transport_ATS::AddAdvection_SecondOrderUpwind_(
+  double t_old, double t_new,  // old and new time
+  const Epetra_MultiVector& tcc,  // concentration in a cell at old time [mols C / mols H2O]
+  Epetra_MultiVector& c_qty,  // component quantity in a cell [mols C]
+  Epetra_MultiVector& cq_flux)  // component flux across a face [mols C / s]
 {
   for (int i = 0; i != num_aqueous_; ++i) {
-    AddAdvection_SecondOrderUpwind_(t_old, t_new, *tcc(i), *cq_flux(i), i);
+    AddAdvection_SecondOrderUpwind_(t_old, t_new, *tcc(i), *c_qty(i), *cq_flux(i), i);
   }
 }
 
@@ -152,17 +152,20 @@ Transport_ATS::AddAdvection_SecondOrderUpwind_(double t_old,
 //
 // Given C_old, this computes div Cq using a second order limiter
 //
-// DEV NOTE: requires that tcc is ghosted and scattered, while cq_flux is
+// DEV NOTE: requires that tcc is ghosted and scattered, while c_qty is
 // owned.
 void
-Transport_ATS::AddAdvection_SecondOrderUpwind_(double t_old,
-        double t_new,
-        const Epetra_Vector& tcc,
-        Epetra_Vector& cq_flux,
-        int component)
+Transport_ATS::AddAdvection_SecondOrderUpwind_(
+  double t_old, double t_new,
+  const Epetra_Vector& tcc,
+  Epetra_Vector& c_qty,
+  Epetra_Vector& cq_flux,
+  int component)
 {
-  double dt = t_new - t_old;
+  double dt = t_new - t_old;  // time step [s]
 
+  // number of faces owned by this processor
+  // and total number of faces in the domain
   int nfaces_owned =
     mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
   int nfaces_all =
@@ -188,73 +191,75 @@ Transport_ATS::AddAdvection_SecondOrderUpwind_(double t_old,
     int c1 = (*upwind_cell_)[f];
     int c2 = (*downwind_cell_)[f];
 
-    double u1, u2, umin, umax;
+    double tcc1, tcc2, tccmin, tccmax;
     if (c1 >= 0 && c2 >= 0) {
-      u1 = tcc[c1];
-      u2 = tcc[c2];
-      umin = std::min(u1, u2);
-      umax = std::max(u1, u2);
+      tcc1 = tcc[c1];
+      tcc2 = tcc[c2];
+      tccmin = std::min(tcc1, tcc2);
+      tccmax = std::max(tcc1, tcc2);
     } else if (c1 >= 0) {
-      u1 = u2 = umin = umax = tcc[c1];
+      tcc1 = tcc2 = tccmin = tccmax = tcc[c1];
     } else if (c2 >= 0) {
-      u1 = u2 = umin = umax = tcc[c2];
+      tcc1 = tcc2 = tccmin = tccmax = tcc[c2];
     }
 
     double u = std::abs((*flux)[0][f]);
     const AmanziGeometry::Point& xf = mesh_->getFaceCentroid(f);
 
-    double upwind_tcc, tcc_flux;
-    if (c1 >= 0 && c1 < cq_flux.MyLength() && c2 >= 0 && c2 < cq_flux.MyLength() ) {
+    double upwind_tcc, delta_c_mass;
+    if (c1 >= 0 && c1 < c_qty.MyLength() && c2 >= 0 && c2 < c_qty.MyLength() ) {
       upwind_tcc = limiter_->getValue(c1, xf);
-      upwind_tcc = std::max(upwind_tcc, umin);
-      upwind_tcc = std::min(upwind_tcc, umax);
+      upwind_tcc = std::max(upwind_tcc, tccmin);
+      upwind_tcc = std::min(upwind_tcc, tccmax);
 
-      tcc_flux = dt * u * upwind_tcc;
-      cq_flux[c1] -= tcc_flux;
-      cq_flux[c2] += tcc_flux;
+      delta_c_mass = dt * u * upwind_tcc;
+      c_qty[c1] -= delta_c_mass;  // [mols C]
+      c_qty[c2] += delta_c_mass;  // [mols C]
 
-    } else if (c1 >= 0 && c1 < cq_flux.MyLength() && (c2 >= cq_flux.MyLength() || c2 < 0)) {
+    } else if (c1 >= 0 && c1 < c_qty.MyLength() && (c2 >= c_qty.MyLength() || c2 < 0)) {
       upwind_tcc = limiter_->getValue(c1, xf);
-      upwind_tcc = std::max(upwind_tcc, umin);
-      upwind_tcc = std::min(upwind_tcc, umax);
+      upwind_tcc = std::max(upwind_tcc, tccmin);
+      upwind_tcc = std::min(upwind_tcc, tccmax);
 
-      tcc_flux = dt * u * upwind_tcc;
-      cq_flux[c1] -= tcc_flux;
+      delta_c_mass = dt * u * upwind_tcc;
+      c_qty[c1] -= delta_c_mass;  // [mols C]
 
-    } else if (c1 >= 0 && c1 < cq_flux.MyLength() && (c2 < 0)) {
+    } else if (c1 >= 0 && c1 < c_qty.MyLength() && (c2 < 0)) {
       upwind_tcc = tcc[c1];
-      upwind_tcc = std::max(upwind_tcc, umin);
-      upwind_tcc = std::min(upwind_tcc, umax);
+      upwind_tcc = std::max(upwind_tcc, tccmin);
+      upwind_tcc = std::min(upwind_tcc, tccmax);
 
-      tcc_flux = dt * u * upwind_tcc;
-      cq_flux[c1] -= tcc_flux;
+      delta_c_mass = dt * u * upwind_tcc;
+      c_qty[c1] -= delta_c_mass;  // [mols C]
 
-    } else if (c1 >= cq_flux.MyLength() && c2 >= 0 && c2 < cq_flux.MyLength() ) {
+    } else if (c1 >= c_qty.MyLength() && c2 >= 0 && c2 < c_qty.MyLength() ) {
       upwind_tcc = limiter_->getValue(c1, xf);
-      upwind_tcc = std::max(upwind_tcc, umin);
-      upwind_tcc = std::min(upwind_tcc, umax);
+      upwind_tcc = std::max(upwind_tcc, tccmin);
+      upwind_tcc = std::min(upwind_tcc, tccmax);
 
-      tcc_flux = dt * u * upwind_tcc;
-      cq_flux[c2] += tcc_flux;
+      delta_c_mass = dt * u * upwind_tcc;  // [mols C]
+      c_qty[c2] += delta_c_mass;
     }
+    cq_flux[f] = u * upwind_tcc;  // [mols C / s]
   }
 
   // boundary conditions for advection
   for (int m = 0; m < bcs_.size(); m++) {
     std::vector<int>& tcc_index = bcs_[m]->tcc_index();
-    int ncomp = tcc_index.size();
+    int ncomp = tcc_index.size();  // number of components
 
     for (int i = 0; i < ncomp; i++) {
       if (component == tcc_index[i]) {
         for (auto it = bcs_[m]->begin(); it != bcs_[m]->end(); ++it) {
-          int f = it->first;
-          std::vector<double>& values = it->second;
-          int c2 = (*downwind_cell_)[f];
+          int f = it->first;  // get face id
+          std::vector<double>& values = it->second;  // concentration values [mols C / mols H2O]
+          int c2 = (*downwind_cell_)[f];  // get downwind cell id
 
-          if (c2 >= 0 && f < nfaces_owned) {
-            double u = std::abs((*flux)[0][f]);
-            double tcc_flux = dt * u * values[i];
-            cq_flux[c2] += tcc_flux;
+          // if downwind cell c2 is inside local domain and face id is owned by this processor
+          if (c2 >= 0 && f < nfaces_owned) {            
+            double u = std::abs((*flux)[0][f]);  // water flux [mols H2O / s]
+            double delta_c_mass = dt * u * values[i];  // [mols C]
+            c_qty[c2] += delta_c_mass;  // [mols C]
           }
         }
       }
