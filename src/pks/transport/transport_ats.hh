@@ -333,7 +333,8 @@ class Transport_ATS : public PK_Physical_Default {
   Key solid_residue_mass_key_; // residue -- mass that was left behind by water
                                // sinks that do not carry aqueous species, e.g. freezing or evaporation
   Key conserve_qty_key_;
-  Key mass_flux_key_;
+  Key mass_flux_advection_key_;
+  Key mass_flux_diffusion_key_;
   Key dispersion_tensor_key_;
 
   // component information
