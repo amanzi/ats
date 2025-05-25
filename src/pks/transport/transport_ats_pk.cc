@@ -519,7 +519,8 @@ Transport_ATS::SetupPhysicalEvaluators_()
   S_->Require<CompositeVector, CompositeVectorSpace>(key_, tag_next_, passwd_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
-    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_components_);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_components_)
+    ->AddComponent("face", AmanziMesh::Entity_kind::FACE, num_components_);
   S_->GetRecordSetW(key_).set_subfieldnames(component_names_);
 
   // -- water flux
@@ -897,8 +898,11 @@ Transport_ATS ::AdvanceDispersionDiffusion_(double t_old, double t_new)
   if (!has_diffusion_ && !has_dispersion_) return;
   double dt = t_new - t_old;
 
-  Epetra_MultiVector& tcc_new = *S_->GetW<CompositeVector>(key_, tag_next_, passwd_)
-    .ViewComponent("cell", false);
+  // Get tcc_cvs as composite vectors (CVS). This includes both cell and face components.
+  // The face component will used to compute the diffusive mass fluxes in UpdateFlux().
+  // The tcc_new is the new tcc viewed as a cell component from the CVS
+  Teuchos::RCP<CompositeVector> tcc_cvs = S_->GetPtrW<CompositeVector>(key_, tag_next_, passwd_);
+  Epetra_MultiVector& tcc_new = *tcc_cvs->ViewComponent("cell", false);
 
   // needed for diffusion coefficent and for accumulation term
   const Epetra_MultiVector& lwc = *S_->Get<CompositeVector>(lwc_key_, tag_next_)
@@ -975,9 +979,8 @@ Transport_ATS ::AdvanceDispersionDiffusion_(double t_old, double t_new)
     diff_op_->ApplyBCs(true, true, true);
 
     // get diffusive mass fluxes
-    Teuchos::RCP<CompositeVector> tcc_cv = S_->GetPtrW<CompositeVector>(key_, tag_next_, name_);
     Teuchos::RCP<CompositeVector> cq_flux = S_->GetPtrW<CompositeVector>(mass_flux_diffusion_key_, tag_next_, name_);    
-    // diff_op_->UpdateFlux(tcc_cv.ptr(), cq_flux.ptr());
+    diff_op_->UpdateFlux(tcc_cvs.ptr(), cq_flux.ptr());
 
     // -- apply the inverse
     CompositeVector& rhs = *diff_global_op_->rhs();
