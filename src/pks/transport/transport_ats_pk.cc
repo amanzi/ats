@@ -118,7 +118,7 @@ Transport_ATS::parseParameterList()
   mass_flux_advection_key_ = Keys::readKey(*plist_, domain_, "mass flux advection", "mass_flux_advection");
   requireEvaluatorAtNext(mass_flux_advection_key_, tag_next_, *S_, name_);
 
-  mass_flux_diffusion_key_ = Keys::readKey(*plist_, domain_, "mass flux diffusion", "mass_flux_difusion");
+  mass_flux_diffusion_key_ = Keys::readKey(*plist_, domain_, "mass flux diffusion", "mass_flux_diffusion");
   requireEvaluatorAtNext(mass_flux_diffusion_key_, tag_next_, *S_, name_);
 
   // -- liquid water content - need at new time, copy at current time
