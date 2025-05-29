@@ -79,14 +79,24 @@ MPCReactiveTransport::Setup()
 void
 MPCReactiveTransport::cast_sub_pks_()
 {
-  // cast and call parse on chemistry
+  // cast transport PK
+  transport_pk_ = Teuchos::rcp_dynamic_cast<Transport::Transport_ATS>(sub_pks_[1]);
+  AMANZI_ASSERT(transport_pk_ != Teuchos::null);
+
+
+#ifdef ENABLE_ALQUIMIA
   chemistry_pk_ = Teuchos::rcp_dynamic_cast<AmanziChemistry::Alquimia_PK>(sub_pks_[0]);
   AMANZI_ASSERT(chemistry_pk_ != Teuchos::null);
 
   // now chem engine is set and we can hand it to transport
-  transport_pk_ = Teuchos::rcp_dynamic_cast<Transport::Transport_ATS>(sub_pks_[1]);
-  AMANZI_ASSERT(transport_pk_ != Teuchos::null);
   transport_pk_->setChemEngine(chemistry_pk_);
+
+#else
+  chemistry_pk_ = Teuchos::rcp_dynamic_cast<AmanziChemistry::Chemistry_PK>(sub_pks_[0]);
+  AMANZI_ASSERT(chemistry_pk_ != Teuchos::null);
+
+#endif
+
 }
 
 // -----------------------------------------------------------------------------
