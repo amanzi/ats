@@ -5,15 +5,15 @@ Shared Specs
 Initial Conditions
 ==================
 
-Initial condition specs are used in three places:
+Initial conditions specs are used in three places:
 
 * In the `"initial conditions`" sublist of state, in which the value
   of atomic constants are provided (not really initial conditions and
   should be renamed).  These atomic values are not controlled by
   evaluators, and are not included in the DaG.
 
-* Within the PK_ spec which describes the initial condition of primary variables (true
-  initial conditions).
+* Within physical PK specs which describes the initial conditions of
+  primary variables (true initial conditions).
 
 * In :ref:`Independent Variable Constant`
 

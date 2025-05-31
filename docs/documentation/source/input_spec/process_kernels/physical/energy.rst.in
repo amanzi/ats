@@ -10,15 +10,15 @@ Energy Base PK
 ^^^^^^^^^^^^^^
 { energy_base }
 
-Two-Phase subsurface Energy PK
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Two-Phase Energy PK
+^^^^^^^^^^^^^^^^^^^
 { energy_two_phase }
 
-Three-Phase subsurface Energy PK
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Three-Phase Energy PK
+^^^^^^^^^^^^^^^^^^^^^
 { energy_three_phase }
 
-Overland energy with Ice
+Overland Energy with Ice
 ^^^^^^^^^^^^^^^^^^^^^^^^
 { energy_surface_ice }
 

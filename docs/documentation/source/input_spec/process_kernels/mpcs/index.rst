@@ -19,5 +19,6 @@ other things.  Think of these as the custom couplers.
    :maxdepth: 1
 
    base
-   physical
+   tightly_coupled
+   multiple_domain
    globalization

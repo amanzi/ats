@@ -4,15 +4,14 @@ Flow PKs
 Flow PKs describe the conservation of mass of water as it flows both
 above and below-ground.  Subsurface flow PKs are based on 3D Richards
 equation, which describes variably saturated flow in porous media.
-Minor variations to this include the incorporation of freeze-thaw
-processes.  Surface flow PKs are based on a diffusion wave equation
-and Manning's model for sheet flow.  Variations to this also include
-the incorporation of freeze-thaw processes.  Finally we include in
-flow a "snow distribution" algorithm which takes as input
-precipitation and applies it based on the existing surface level
-(elevation + water + snowpack), thereby "filling in" low-lying areas
-preferentially.  This makes for more accurate snowpacks at fine
-scales.
+Variations on this include the incorporation of freeze-thaw processes.
+Surface flow PKs are based on a diffusion wave equation and Manning's
+model for sheet flow.  Variations on this also include the
+incorporation of freeze-thaw processes.  Finally we include in flow a
+"snow distribution" algorithm which takes as input precipitation and
+applies it based on the existing surface level (elevation + water +
+snowpack), thereby "filling in" low-lying areas preferentially.  This
+makes for more accurate snowpacks at fine scales.
 
 Richards PK
 ^^^^^^^^^^^

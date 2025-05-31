@@ -125,7 +125,6 @@ OverlandPressureFlow::parseParameterList()
   // require a few primary variable keys now to set the leaf node in the dep graph
   requireEvaluatorAtCurrent(pd_key_, tag_current_, *S_, name_);
 
-
 }
 
 
@@ -352,7 +351,8 @@ OverlandPressureFlow::SetupOverlandFlow_()
   requireEvaluatorAtNext(velocity_key_, Tags::NEXT, *S_, name_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 3);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 2);
+  S_->GetRecordSetW(velocity_key_).set_subfieldnames(mesh_->getSpaceDimensionNames());
 };
 
 

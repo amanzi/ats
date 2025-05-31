@@ -31,8 +31,8 @@ Instead, it is a mix of:
 
 `"evaluator type`" = `"elevation column`"
 
-.. _column-elevation-evaluator-spec:
-.. admonition:: column-elevation-evaluator-spec
+.. _evaluator-column-elevation-spec:
+.. admonition:: evaluator-column-elevation-spec
 
    * `"elevation key`" ``[string]`` **elevation** Name the elevation variable. [m]
    * `"slope magnitude key`" ``[string]`` **slope_magnitude** Name the elevation

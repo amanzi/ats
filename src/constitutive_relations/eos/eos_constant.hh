@@ -6,14 +6,39 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+/*!
 
-/*
-  ATS
+A constant molar and mass density of water, independent of temperature or
+concentration, but related to each other by a molar mass of water.
 
-  Simple EOS for constant density.
-  Defaults to reasonable values for water.
+Note, users should prefer to use `"independent variable constant`" to this.
 
-  http://software.lanl.gov/ats/trac
+`"EOS type`" = `"constant`"
+
+.. _eos-constant-spec:
+.. admonition:: eos-constant-spec
+
+   ONE OF
+
+   * `"molar mass [kg mol^-1]`" ``[double]`` **0.0180153**
+
+   OR
+
+   * `"molar mass [g mol^-1]`" ``[double]`` **18.0153**
+
+   END
+
+   ONE OF
+
+   * `"density [mol m^-3]`" ``[double]`` molar density of water
+
+   OR
+
+   * `"density [kg m^-3]`" ``[double]`` mass density of water
+
+   END
+
+
 
 */
 
@@ -39,11 +64,12 @@ class EOSConstant : public EOSConstantMolarMass {
 
   virtual double DMolarDensityDp(std::vector<double>& params) override { return 0.; }
 
-  virtual double DMolarDensityDMolarRatio(std::vector<double>& params) override { return 0.; }
+  virtual double DMolarDensityDMoleFraction(std::vector<double>& params) override { return 0.; }
 
   virtual bool IsTemperature() override { return false; }
   virtual bool IsPressure() override { return false; }
-  virtual bool IsMolarRatio() override { return false; }
+  virtual bool IsMoleFraction() override { return false; }
+
 
  private:
   virtual void InitializeFromPlist_();

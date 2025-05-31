@@ -12,9 +12,7 @@
 A constitutive relation for the viscosity of water as a function of temperature
 in K, given as an empirical series expansion fit to data.
 
-Used by setting
-
-`"viscosity relation type`" = `"liquid water`"
+`"viscosity type`" = `"liquid water`"
 
 .. _viscosity-water-spec:
 .. admonition:: viscosity-water-spec

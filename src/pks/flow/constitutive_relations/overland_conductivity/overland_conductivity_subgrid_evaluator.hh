@@ -21,8 +21,8 @@ diffusion wave equation.  The term is given by:
 This includes a density factor, typically a molar density, which
 converts the flow law to water flux rather than volumetric flux.
 
-.. _overland-conductivity-subgrid-evaluator-spec
-.. admonition:: overland-conductivity-subgrid-evaluator-spec
+.. _evaluator-overland-conductivity-subgrid-spec
+.. admonition:: evaluator-overland-conductivity-subgrid-spec
 
    DEPENDENCIES:
    - `"mobile depth`" **DOMAIN-mobile_depth** Depth of the mobile water; delta

@@ -7,18 +7,22 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-//! Multi process coupler for globally implicit (strong) coupling.
 /*!
 
-Globally implicit coupling solves all sub-PKs as a single system of equations.  This can be completely automated when all PKs are also `PK: BDF`_ PKs, using a block-diagonal preconditioner where each diagonal block is provided by its own sub-PK.
+Globally implicit coupling solves all sub-PKs as a single system of equations.
+This can be completely automated when all PKs are also :ref:`PK: BDF` PKs,
+using a block-diagonal preconditioner where each diagonal block is provided by
+its own sub-PK.
 
-.. _strong-mpc-spec:
-.. admonition:: strong-mpc-spec
+`"PK type`" = `"strong MPC`"
 
-    INCLUDES:
+.. _pk-strong-mpc-spec:
+.. admonition:: pk-strong-mpc-spec
 
-    - ``[mpc-spec]`` *Is a* MPC_.
-    - ``[pk-bdf-default-spec]`` *Is a* `PK: BDF`_.
+   INCLUDES:
+
+   - ``[mpc-spec]`` *Is a* :ref:`MPC`.
+   - ``[pk-bdf-default-spec]`` *Is a* :ref:`PK: BDF`.
 
 */
 

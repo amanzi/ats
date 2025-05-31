@@ -14,10 +14,10 @@
   \Theta = (n_l s_l + n_i s_i) \phi V
 
 
-Specified with evaluator type: `"liquid+ice water content`"
+`"evaluator type`" = `"liquid+ice water content`"
 
-.. _field-evaluator-type-liquid-ice-water-content-spec:
-.. admonition:: field-evaluator-type-liquid-ice-water-content-spec
+.. _evaluator-liquid-ice-water-content-spec:
+.. admonition:: evaluator-liquid-ice-water-content-spec
 
    DEPENDENCIES:
 

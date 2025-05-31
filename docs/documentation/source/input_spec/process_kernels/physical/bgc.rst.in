@@ -1,0 +1,16 @@
+Biogeochemistry
+---------------
+
+To accurately predict watershed ecohydrology, a carbon cycle model is
+needed to predict transpiration.  By simulating a carbon cycle, we are
+able to predict the rate of photosynthesis as a function of space and
+time, and photosynthesis governs root water uptake.  Currently only
+one big-leaf model is available, but ongoing work is wrapping a
+generalized Common/Colorado Land Model based on that developed within
+the ParFlow team, and another ongoing project is working on wrapping
+kernels from E3SM's Land Model.
+
+Biogeochemistry -- Monolithic Version
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+{ bgc_simple }
+

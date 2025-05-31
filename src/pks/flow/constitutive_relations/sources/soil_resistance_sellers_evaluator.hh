@@ -12,10 +12,15 @@
 Evaluates the soil resistance at top cells through the Sellers model
 referred to Sellers et al. (1992).
 
+.. math::
+
+      R_{soil} = \mathrm{exp}(8.206 - 4.255 s_l)
+   
+
 `"evaluator type`" = `"soil resistance, Sellers`"
 
-.. _soil-resistance-sellers-evaluator-spec
-.. admonition:: soil-resistance-sellers-evaluator-spec
+.. _evaluator-soil-resistance-sellers-spec
+.. admonition:: evaluator-soil-resistance-sellers-spec
 
    KEYS:
 

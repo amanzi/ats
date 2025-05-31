@@ -39,11 +39,11 @@ Solves Preferential Flow equation:
      - `"full tensor`". (Note symmetry is required.)  Either {xx, yy,
        xy} or {xx,yy,zz,xy,xz,yz}.
 
-   * `"water retention evaluator`" ``[wrm-evaluator-spec]`` The water
+   * `"water retention evaluator`" evaluator-``[wrm-spec]`` The water
      retention curve.  This needs to go away, and should get moved to
      State.
 
-   * `"water retention evaluator for gravity terms`" ``[wrm-evaluator-spec]`` The water
+   * `"water retention evaluator for gravity terms`" evaluator-``[wrm-spec]`` The water
      retention curve.  This needs to go away, and should get moved to
      State.
 

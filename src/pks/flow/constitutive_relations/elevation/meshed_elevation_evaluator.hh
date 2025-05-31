@@ -14,8 +14,8 @@
 
 Evaluates the z-coordinate and the magnitude of the slope :math:``|\nambla_h z|``
 
-.. _meshed-elevation-evaluator-spec:
-.. admonition:: meshed-elevation-evaluator-spec
+.. _evaluator-meshed-elevation-spec:
+.. admonition:: evaluator-meshed-elevation-spec
 
    * `"parent domain name`" ``[string]`` **SUBSURFACE_DOMAIN** Domain name of the parent
      mesh, which is the 3D version of this domain.  Attempts to generate an

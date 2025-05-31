@@ -19,7 +19,7 @@ namespace Flow {
 
 // registry of method
 Utils::RegisteredFactory<Evaluator, CompressiblePorosityLeijnseEvaluator>
-  CompressiblePorosityLeijnseEvaluator::fac_("compressible porosity leijnse");
+  CompressiblePorosityLeijnseEvaluator::fac_("compressible porosity, Leijnse");
 
 } // namespace Flow
 } // namespace Amanzi

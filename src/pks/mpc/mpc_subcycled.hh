@@ -6,25 +6,24 @@
 
   Authors: Ethan Coon
 */
-
-/*
+/*!
 
 A generic MPC that weakly couples N PKs, potentially subcycling any of them.
 
 `"PK type`" = `"subcycling MPC`"
+.. _pk-subcycling-mpc-spec:
+.. admonition:: pk-subcycling-mpc-spec
 
-.. _mpc-subcycled-spec:
-.. admonition:: mpc-subcycled-spec
+   * `"subcycle`" ``[Array(bool)]`` Array of the same length as sub_pks.
+   * `"subcycling target timestep [s]`" ``[double]`` **optional** If provided,
+     this target dt is included, setting a ceiling on the largest timestep size
+     and therefore setting a max dt over which we let the sub-PKs step
+     independently without synchronization.  This is required if all sub-PKs are
+     being subcycled.
 
-  * `"subcycle`" ``[Array(bool)]`` Array of the same length as sub_pks.
-  * `"subcycling target timestep [s]`" ``[double]`` **optional** If provided,
-    this target dt is included, setting a ceiling on the largest timestep size
-    and therefore setting a max dt over which we let the sub-PKs step
-    independently without synchronization.  This is required if all sub-PKs are
-    being subcycled.
+   INCLUDES:
 
-  INCLUDES:
-  - ``[mpc-spec]``
+   - ``[mpc-spec]`` *Is a* :ref:`MPC`.
 
 */
 

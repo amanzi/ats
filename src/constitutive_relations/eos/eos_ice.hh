@@ -6,14 +6,25 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+/*!
 
-/*
-  ATS
+A molar and mass density of solid water, empirically fit to data as a function
+of both pressure and temperature.
 
-  EOS for liquid ice.  See the permafrost physical properties notes for
-  references and documentation of this EOS at:
+`"EOS type`" = `"ice`"
 
-  http://software.lanl.gov/ats/trac
+.. _eos-ice-spec:
+.. admonition:: eos-ice-spec
+
+   ONE OF
+
+   * `"molar mass [kg mol^-1]`" ``[double]`` **0.0180153** :math:`M` above
+
+   OR
+
+   * `"molar mass [g mol^-1]`" ``[double]`` **18.0153**
+
+   END
 
 */
 
@@ -36,11 +47,11 @@ class EOSIce : public EOSConstantMolarMass {
   virtual double MassDensity(std::vector<double>& params) override;
   virtual double DMassDensityDT(std::vector<double>& params) override;
   virtual double DMassDensityDp(std::vector<double>& params) override;
-  virtual double DMassDensityDMolarRatio(std::vector<double>& params) override { return 0; }
+  virtual double DMassDensityDMoleFraction(std::vector<double>& params) override { return 0; }
 
   virtual bool IsTemperature() override { return true; }
   virtual bool IsPressure() override { return true; }
-  virtual bool IsMolarRatio() override { return false; }
+  virtual bool IsMoleFraction() override { return false; }
 
  private:
   virtual void InitializeFromPlist_();

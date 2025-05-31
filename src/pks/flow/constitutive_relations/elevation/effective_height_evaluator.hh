@@ -6,13 +6,6 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-
-/*
-  Evaluator for determining effective_height(height), which is a smoothing
-  term near 0 height.
-
-*/
-
 /*!
 
 Computes ponded depth from surface water pressure using a smoothed term to make
@@ -20,15 +13,16 @@ derivative smooth near 0.  This is pretty much never used anymore.
 
 `"evaluator type`" = `"effective height`"
 
-.. _effective-height-evaluator-spec:
-.. admonition:: effective-height-evaluator-spec
+.. _evaluator-effective-height-spec:
+.. admonition:: evaluator-effective-height-spec
 
-   * `"smoothing width [m]`" ``[double]`` **0.01** the width over which smoothing
-     is applied.
+   * `"smoothing width [m]`" ``[double]`` **0.01** the length scale over which
+     smoothing is applied.
 
    KEYS:
 
    - `"height`" The unsmoothed ponded depth
+
 */
 #ifndef AMANZI_FLOW_RELATIONS_EFFECTIVE_HEIGHT_EVALUATOR_
 #define AMANZI_FLOW_RELATIONS_EFFECTIVE_HEIGHT_EVALUATOR_

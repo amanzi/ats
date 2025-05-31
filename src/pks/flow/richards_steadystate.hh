@@ -12,12 +12,14 @@
 
 This is the same as Richards equation, but turns off the accumulation term.
 
-.. _richards-steadystate-spec:
-.. admonition:: richards-steadystate-spec
+`"PK type`" = `"richards steady state`"
 
-    INCLUDES:
+.. _pk-richards-steady-state-spec:
+.. admonition:: pk-richards-steady-state-spec
 
-    - ``[richards-spec]`` See `Richards PK`_
+   INCLUDES:
+
+   - ``[pk-richards-flow-spec]`` See `Richards PK`_
 
 */
 

@@ -43,15 +43,14 @@ MPCCoupledReactiveTransport::parseParameterList()
   domain_surf_ = pks_list_->sublist(transport_names[1]).get<std::string>("domain name", "surface");
 
   mol_frac_key_ = Keys::readKey(pks_list_->sublist(transport_names[0]), domain_,
-                           "primary variable", "molar_ratio");
+                           "primary variable", "mole_fraction");
   mol_frac_surf_key_ = Keys::readKey(pks_list_->sublist(transport_names[1]), domain_surf_,
-                           "primary variable", "molar_ratio");
+                           "primary variable", "mole_fraction");
 
   tcc_key_ = Keys::readKey(pks_list_->sublist(chem_names[0]), domain_,
                            "primary variable", "total_component_concentration");
   tcc_surf_key_ = Keys::readKey(pks_list_->sublist(chem_names[1]), domain_surf_,
                            "primary variable", "total_component_concentration");
-
 
   mol_dens_key_ = Keys::readKey(*plist_, domain_, "molar density liquid", "molar_density_liquid");
   mol_dens_surf_key_ =

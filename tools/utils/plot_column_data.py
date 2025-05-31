@@ -250,7 +250,6 @@ def plotColumnData(directories,
        mesh_filename_format='ats_vis_{}_mesh.h5',
        time_unit='d',
        fig=None,
-
        figsize=[5,3]):
     """Plots the column data given directories and a layout."""
 

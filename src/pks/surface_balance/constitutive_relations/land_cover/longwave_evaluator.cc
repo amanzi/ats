@@ -7,20 +7,6 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-//! Evaluates incoming longwave radiation from vapor pressure and air temperature.
-/*!
-
-.. _longwave_evaluator-spec:
-.. admonition:: longwave_evaluator-spec
-
-
-    DEPENDENCIES:
-
-    * `"air temperature key`" ``[string]`` **DOMAIN-air_temperature**
-    * `"vapor pressure air key`" ``[string]`` **DOMAIN-vapor_pressure_air**
-
-*/
-
 #include "Key.hh"
 #include "seb_physics_defs.hh"
 #include "seb_physics_funcs.hh"

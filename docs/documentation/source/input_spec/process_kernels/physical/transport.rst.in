@@ -1,14 +1,37 @@
-Transport PK
-------------
+Geochemical Transport
+---------------------
 
-The Transport PK describes the conservation of mass of components transported
-with water as it flows. The transport PK is based on the advection-diffusion 
-equation, applies to one or more components that are dissolved in the aqueous 
-phase, and is currently used in both surface and subsurface compartments. 
-The key difference between surface and subsurface transport is in capturing 
-the volume of water. In the subsurface, the volume of water is set by the 
-porosity and saturation of the porous medium, while in the surface it is set 
-by the ponded depth.
+Geochemical transport capabilities are implemented in a few different PKs.
 
-{transport_ats}
+Transport
+^^^^^^^^^
+
+{ transport_ats }
+
+
+Chemistry
+^^^^^^^^^
+
+Reactive transport is done by coupling a :ref:`Transport` PK with
+chemistry using some variation on a :ref:`Reactive Transport` MPC.
+Currently, ATS only implements chemistry through `Alquimia
+<https://doi.org/10.11578/dc.20210416.49>`_, which calls out to either
+`PFloTran <https://pflotran.org>`_ or `Crunch
+<https://crunch.lbl.gov>`_ for reaction support.
+
+{ Alquimia_PK }
+
+Salinity Transport
+^^^^^^^^^^^^^^^^^^
+
+Salinity transport is not itself a PK, but may be implemented as a
+variation on Transport_ by supplying equations of state that are a
+function of the concentration of salt.  Examples of this are provided
+in the regression tests and demos.
+
+
+Sediment Transport
+^^^^^^^^^^^^^^^^^^
+
+{ sediment_transport_pk }
 

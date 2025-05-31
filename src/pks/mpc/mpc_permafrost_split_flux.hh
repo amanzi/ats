@@ -6,43 +6,36 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-
-//! An operator-split permafrost coupler, splitting overland flow from subsurface.
 /*!
-solve:
 
-(dTheta_s / dt)^* = div k_s grad (z+h)
+This MPC solves the thermal equivalent of :ref:`Operator Split Integrated
+Hydrology`.  This is the permafrost analog, so deals with energy as well in a
+similar strategy.  In this case advection and diffusion of energy are handled
+in the "star" system, then the "primary" system solves the :ref:`Integrated
+Thermal Hydrology` system without lateral fluxes and with extra coupling terms
+equivalent to those for flow from :ref:`Operaor Split Integrated Hydrology`.
 
-then solve:
+Like the flow-only case, this can be used with either a 3D subsurface solve, by
+setting the 2nd sub-PK to be a 3D permafrost MPC, or a bunch of columns, but
+setting the 2nd sub-PK to be a DomainSetMPC.
 
-dTheta_s / dt = (dTheta_s / dt)^* + Q_ext + q_ss
-dTheta / dt = div k (grad p + rho*g*\hat{z})
-k  (grad p + rho*g*\hat{z}) |_s = q_ss
+This is the model from `Jan et al Comp. Geosci. 2018
+<https://doi.org/10.1007/s10596-017-9679-3>`_
 
-This effectively does an operator splitting on the surface flow equation,
-passing some combination of pressure and divergence of fluxes to the
-subsurface.
+`"PK type`" = `"operator split permafrost`"
 
-This is the permafrost analog, so deals with energy as well in a similar
-strategy.  In this case advection and diffusion of energy are handled in the
-first solve:
+.. _pk-operator-split-permafrost:
+.. admonition:: pk-operator-split-permafrost
 
-(dE_s / dt)^* = div (  kappa_s grad T + hq )
-
-then:
-
-dE_s / dt = (dE_s / dt)^* + QE_ext + h * Q_ext + qE_ss + h * q_ss
-dE / dt = div (  kappa grad T) + hq )
-kappa grad T |_s = qE_ss
-
-Note that this can be used with either a 3D subsurface solve, by setting the
-2nd sub-PK to be a 3D permafrost MPC, or a bunch of columns, but setting the
-2nd sub-PK to be a DomainSetMPC.
-
-
-.. _mpc-permafrost-split-flux-spec
-.. admonition:: mpc-permafrost-split-flux-spec
-
+   * `"PKs order`" ``[Array(string)]`` Order is {star_system, primary_system}.
+     Note that the sub-PKs are likely a :ref:`Surface Flow & Energy` MPC for
+     the star system and a :ref:`Integrated Thermal Hydrology` MPC for the
+     primary system.  Because the latter does not include lateral fluxes in the
+     surface, the sub-PKs of the primary system may be :ref:`General Surface
+     Balance` equations rather than :ref:`Overland Flow PK` and :ref:`Overland
+     Energy with Ice` (thereby removing the lateral flow and energy transport
+     components).
+                
    * `"domain name`" ``[string]`` The subsurface domain, e.g. "domain" (for a
      3D subsurface ) or "column:*" (for the intermediate scale model.
 
@@ -55,8 +48,8 @@ Note that this can be used with either a 3D subsurface solve, by setting the
      the two that seems the most robust.
 
    INCLUDES:
-   - ``[mpc-spec]`` *Is an* MPC_.
-   - ``[mpc-subcycled-spec]`` *Is a* MPCSubcycled_
+   - ``[pk-mpc-spec]`` *Is an* :ref:`MPC`.
+   - ``[pk-subcycling-mpc-spec]`` *Is a* :ref:`Subcycling MPC`
 
 */
 

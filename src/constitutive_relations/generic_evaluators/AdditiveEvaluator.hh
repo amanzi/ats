@@ -10,8 +10,8 @@
 //! A generic evaluator for summing a collection of fields.
 /*!
 
-.. _additive-evaluator-spec:
-.. admonition:: additive-evaluator-spec
+.. _evaluator-additive-spec:
+.. admonition:: evaluator-additive-spec
    * `"constant shift`" ``[double]`` **0** A constant value to add to the sum.
 
    * `"enforce positivity`" ``[bool]`` **false** If true, max the result with 0.

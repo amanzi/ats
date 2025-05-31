@@ -100,7 +100,7 @@ PlantWiltingFactorEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
   if (models_.size() == 0) {
     land_cover_ =
-      getLandCover(S.ICList().sublist("land cover types"),
+      getLandCover(S.GetModelParameters("land cover types"),
                    { "stomata_closed_capillary_pressure", "stomata_open_capillary_pressure" });
     for (const auto& lc : land_cover_) {
       models_[lc.first] = Teuchos::rcp(new PlantWiltingFactorModel(lc.second));

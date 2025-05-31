@@ -21,19 +21,26 @@ computing this over the vertical corridor is done by integrating this function
 between the depth of the face above and below for each grid cell, with the
 bottom-most grid cell integrating to infinity.
 
-Note that the two parameters, :math:`\alpha` and :math:`\beta` are provided in
-the Land Cover class as `"rooting profile alpha`" and `"rooting profile beta`"
-respectively.
+.. _evaluator-rooting-depth-fraction-spec:
+.. admonition:: evaluator-rooting-depth-fraction-spec
 
-.. _rooting-depth-fraction-evaluator-spec:
-.. admonition:: rooting-depth-fraction-evaluator-spec
-
-   * `"surface domain name`" ``[string]`` **SURFACE_DOMAIN** Sane default provided for most domain names.
+   * `"surface domain name`" ``[string]`` **SURFACE_DOMAIN** Sane default
+     provided for most domain names.
 
    KEYS:
 
    - `"cell volume`" **DOMAIN-cell_volume**
    - `"surface area`" **SURFACE_DOMAIN-cell_volume**
+
+
+.. note::
+
+   This evaluator also uses the :ref:`Land Cover` types.  From that struct, it
+   requires the value of the following parameters:
+
+   - `"rooting profile alpha [-]`"
+   - `"rooting profile beta [-]`"
+   - `"rooting depth max [m]`"
 
 */
 

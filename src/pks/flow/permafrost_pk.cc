@@ -49,13 +49,12 @@ Permafrost::SetupPhysicalEvaluators_()
 
   // -- saturation
   requireEvaluatorAtNext(sat_key_, tag_next_, *S_, true)
-
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1)
     ->AddComponent("boundary_face", AmanziMesh::Entity_kind::BOUNDARY_FACE, 1);
-  requireEvaluatorAtNext(sat_gas_key_, tag_next_, *S_, true)
 
+  requireEvaluatorAtNext(sat_gas_key_, tag_next_, *S_, true)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1)

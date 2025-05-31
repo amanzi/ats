@@ -617,7 +617,7 @@ SEBThreeComponentEvaluator::EnsureCompatibility_ToDeps_(State& S)
 
     if (land_cover_.size() == 0)
       land_cover_ =
-        getLandCover(S.ICList().sublist("land cover types"),
+        getLandCover(S.GetModelParameters("land cover types"),
                      { "roughness_snow", "roughness_ground", "water_transition_depth" });
 
     // use domain name to set the mesh type

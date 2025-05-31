@@ -127,7 +127,7 @@ AlbedoThreeComponentEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
   // new state!
   if (land_cover_.size() == 0)
-    land_cover_ = getLandCover(S.ICList().sublist("land cover types"),
+    land_cover_ = getLandCover(S.GetModelParameters("land cover types"),
                                { "albedo_ground", "emissivity_ground" });
 
   for (auto dep : dependencies_) {

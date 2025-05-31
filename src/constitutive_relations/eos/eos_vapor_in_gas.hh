@@ -6,14 +6,18 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+/*!
 
-/*
-  ATS
+A molar and mass density of gas including water vapor.  This wraps another EOS
+for providing molar density, but removes mass density functions as they are not
+valid for this use case.  Typically this wraps the ideal gas law EOS.
 
-  EOS for a combination of air and vapor pressure.  Mass density is not
-  available, not because it can't be calculated, but because it depends upon
-  omega.  It's not really needed, and if it were, would not fit the EOS
-  interface without serious work.
+`"EOS type`" = `"vapor in gas`"
+
+.. _eos-vapor-in-gas-spec:
+.. admonition:: eos-vapor-in-gas-spec
+
+   * `"gas EOS parameters`" ``[eos-typedinline-spec]``
 
 */
 
@@ -47,7 +51,7 @@ class EOSVaporInGas : public EOS {
     AMANZI_ASSERT(0);
     return 0.0;
   }
-  double DMassDensityDMolarRatio(std::vector<double>& params) override
+  double DMassDensityDMoleFraction(std::vector<double>& params) override
   {
     AMANZI_ASSERT(0);
     return 0.0;
@@ -56,11 +60,11 @@ class EOSVaporInGas : public EOS {
   double MolarDensity(std::vector<double>& params) override;
   double DMolarDensityDT(std::vector<double>& params) override;
   double DMolarDensityDp(std::vector<double>& params) override;
-  double DMolarDensityDMolarRatio(std::vector<double>& params) override { return 0.; }
+  double DMolarDensityDMoleFraction(std::vector<double>& params) override { return 0.; }
 
   virtual bool IsTemperature() override { return gas_eos_->IsTemperature(); }
   virtual bool IsPressure() override { return gas_eos_->IsPressure(); }
-  virtual bool IsMolarRatio() override { return gas_eos_->IsMolarRatio(); }
+  virtual bool IsMoleFraction() override { return gas_eos_->IsMoleFraction(); }
 
   bool IsConstantMolarMass() override { return false; }
   double MolarMass() override

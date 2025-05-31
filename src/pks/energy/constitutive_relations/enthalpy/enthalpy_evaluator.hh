@@ -6,24 +6,18 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-
-/* -----------------------------------------------------------------------------
-ATS
-
-Evaluator for enthalpy.
------------------------------------------------------------------------------ */
-
 /*!
 
-Computes enthalpy [MJ / mol] of as a function of internal energy, pressure, and density.
+Computes enthalpy `[MJ mol^-1]` of as a function of internal energy, pressure, and density.
 
 .. math::
+
    e = u + 10^{-6} * \frac{p}{n_l}
 
 `"evaluator type`" = `"enthalpy`"
 
-.. _enthalpy-evaluator-spec:
-.. admonition:: enthalpy-evaluator-spec
+.. _evaluator-enthalpy-spec:
+.. admonition:: evaluator-enthalpy-spec
 
    * `"include work term`" ``[bool]`` **false** If false, e = u, ignoring the work term.
 

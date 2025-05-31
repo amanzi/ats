@@ -137,7 +137,7 @@ RootingDepthFractionEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
   if (land_cover_.size() == 0) {
     land_cover_ =
-      getLandCover(S.ICList().sublist("land cover types"),
+      getLandCover(S.GetModelParameters("land cover types"),
                    { "rooting_depth_max", "rooting_profile_alpha", "rooting_profile_beta" });
   }
 

@@ -15,8 +15,10 @@ Brooks-Corey's water retention curve, typically used to determine relative
 permeability under freezing conditions by converting van Genuchten parameters
 to Brooks-Corey parameters.
 
-.. _WRM-Brooks-Corey-spec
-.. admonition:: WRM-Brooks-Corey-spec
+`"WRM type`" = `"Brooks-Corey`"
+
+.. _wrm-brooks-corey-spec
+.. admonition:: wrm-brooks-corey-spec
 
    * `"region`" ``[string]`` Region to which this applies
    * `"Brooks-Corey lambda [-]`" ``[double]`` Brooks-Corey's lambda

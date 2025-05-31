@@ -17,8 +17,8 @@ This implements the term,
 
 from Jan et al WRR 2018.
 
-.. _fractional-conductance-evaluator-spec
-.. admonition:: fractional-conductance-evaluator-spec
+.. _evaluator-fractional-conductance-spec
+.. admonition:: evaluator-fractional-conductance-spec
 
   DEPENDENCIES:
   - `"volumetric ponded depth`" **DOMAIN-volumetric_ponded_depth**

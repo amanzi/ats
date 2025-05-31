@@ -7,10 +7,16 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-/*
-  The manning coefficient with variable litter model is an algebraic model with dependencies.
+/*!
 
-  Constant values.
+A constant Manning's n
+
+`"Manning coefficient model type`" = `"constant`"
+
+.. manning-coefficient-constant-spec:
+.. admonition:: manning-coefficient-constant-spec
+
+   * `"Manning coefficient [s m^-1/3]`" ``[double]``
 
 */
 
@@ -27,7 +33,7 @@ class ManningCoefficientLitterConstantModel : public ManningCoefficientLitterMod
  public:
   ManningCoefficientLitterConstantModel(Teuchos::ParameterList& plist)
   {
-    n_ = plist.get<double>("manning coefficient [s m^-1/3]");
+    n_ = plist.get<double>("Manning coefficient [s m^-1/3]");
   }
 
 

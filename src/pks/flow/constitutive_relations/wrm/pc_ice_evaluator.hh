@@ -6,9 +6,32 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+/*!
 
-/*
-  PCIceEvaluator is the interface between state/data and the model, an EOS.
+Capillary pressure for liquid on ice.
+
+.. math::
+
+   p_{c}^{liq-ice} = \begin{cases}
+                       0 &\text{if} \, T >= T_0 \\
+                       L_f \frac{\sigma_{gas}^{liq}}{\sigma_{liq}^{ice}} \rho_l \frac{T_0 - T}{T_0} &\text{otherwise}
+                     \end{cases}
+
+This may also be modified with a smoothing spline at :math:`T = T_0` for a
+slower nonlinear transition.
+
+`"evaluator type`" = `"capillary pressure, water over ice`"
+
+.. _evaluator-capillary-pressure-water-over-ice-spec:
+.. admonition:: evaluator-capillary-pressure-water-over-ice-spec
+
+   * `"capillary pressure of ice-water`" ``[pc-ice-water-spec]``
+
+   DEPENDENCIES:
+
+   - `"temperature`"
+   - `"molar density`" **molar_density_liquid**
+   - `"mass density`" **mass_density_liquid**
 
 */
 

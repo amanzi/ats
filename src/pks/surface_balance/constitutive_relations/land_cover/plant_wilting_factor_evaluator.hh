@@ -14,26 +14,32 @@ Also known as Beta, or the water availability factor, or the plant wilting
 factor, or the transpiration reduction function.
 
 .. math::
-   Beta =  (p_closed - p) / (p_closed - p_open)
+
+   \beta =  \frac{p_{closed} - p}{p_{closed} - p_{open}}
 
 where p is the capillary pressure or water potential, and closed
 and open indicate the values at which stomates are fully open or fully
 closed (the wilting point).
 
-Note this makes use of LandCover objects for water potential of fully open and
-fully closed stomata.
-
 Note the challenges of using this model with arbitrary van Genuchten WRMs.  See
-Verhoef & Egea, Ag. & Forest Meteorology, 2014
-https://doi.org/10.1016/j.agrformet.2014.02.009
+`Verhoef & Egea, Ag. & Forest Meteorology, 2014
+<https://doi.org/10.1016/j.agrformet.2014.02.009>`_
 
 
-.. _plant-wilting-factor-evaluator-spec:
-.. admonition:: plant-wilting-factor-evaluator-spec
+.. _evaluator-plant-wilting-factor-spec:
+.. admonition:: evaluator-plant-wilting-factor-spec
 
    KEYS:
 
    - `"capillary pressure`" **DOMAIN-capillary_pressure_gas_liq**
+
+.. note::
+
+   This evaluator also uses the :ref:`Land Cover` types.  From that struct, it
+   requires the value of the following parameters:
+
+   - `"capillary pressure at fully closed stomata [Pa]`"
+   - `"capillary pressure at fully open stomata [Pa]`"
 
 
 */

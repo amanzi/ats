@@ -6,40 +6,41 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-
-//! An implicit PK for surface balance snow SWE conservation.
 /*!
 
-This is a balance PK whose conserved quantity is snow SWE.  The energy balance
-comes in as it provides the energy needed to melt snow.  So source terms
-include snow precipitation and snowmelt.  It also manages snow density, which
-should get rethought a bit.
+This is a balance PK whose conserved quantity is snow water equivalent.  The
+energy balance comes in as it provides the energy needed to melt snow.  So
+source terms include snow precipitation and snowmelt.  It also manages snow
+density, which should get rethought a bit.
 
 There is also some wierd hackiness here about area fractions -- see ATS Issue
-#8
+#8.
 
-.. _subgrid-balance-pk-spec:
-.. admonition:: subgrid-balance-pk-spec
+`"PK type`" = `"surface balance implicit subgrid`"
 
-    * `"absolute error tolerance`" ``[double]`` **0.01** ``[m]``
+.. _pk-surface-balance-implicit-subgrid-spec:
+.. admonition:: pk-surface-balance-implicit-subgrid-spec
 
-    INCLUDES:
+   * `"absolute error tolerance`" ``[double]`` **0.01** ``[m]`` A small amount
+     of snow.
 
-    - ``[balance-pk-spec]`` This *is a* `Balance Equation`_
+   INCLUDES:
 
-    Not typically set by user, defaults work:
+   - ``[balance-pk-spec]`` This *is a* `Balance Equation`_
 
-    * `"conserved quantity key`" ``[string]`` **DOMAIN-snow_water_equivalent**
-      Sets the default conserved quantity key, so this is likely not supplied
-      by the user. `[m]`
-    * `"snow density key`" ``[string]`` **DOMAIN-density** Default snow density
-      key. `[kg m^-3]`
-    * `"snow age key`" ``[string]`` **DOMAIN-age** Default snow age key. `[d]`
-    * `"new snow key`" ``[string]`` **DOMAIN-source** Default new snow key. `[m SWE s^-1]`
-    * `"area fractions key`" ``[string]`` **DOMAIN-fractional_areas** Subgrid
-      model fractional areas, see note above. `[-]`
-    * `"snow death rate key`" ``[string]`` **DOMAIN-death_rate** Deals with last
-      tiny bit of snowmelt.
+   KEYS:
+
+   - `"conserved quantity key`" **DOMAIN-snow_water_equivalent** Sets the
+     default conserved quantity key, so this is likely not supplied by the
+     user. `[m]`
+   - `"snow density key`" **DOMAIN-density** Default snow density key. `[kg
+     m^-3]`
+   - `"snow age key`" **DOMAIN-age** Default snow age key. `[d]`
+   - `"new snow key`" **DOMAIN-source** Default new snow key. `[m SWE s^-1]`
+   - `"area fractions key`" **DOMAIN-fractional_areas** Subgrid model
+     fractional areas, see note above. `[-]`
+   - `"snow death rate key`" **DOMAIN-death_rate** Deals with last tiny bit of
+     snowmelt.
 
 */
 

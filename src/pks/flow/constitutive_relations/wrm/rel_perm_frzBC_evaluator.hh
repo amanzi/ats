@@ -4,34 +4,35 @@
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
-           Bo Gao (gaob@ornl.gov)
+  Authors: Bo Gao (gaob@ornl.gov)
 */
-
-//! Evaluates relative permeability using an empirical model for frozen conditions.
 /*!
 
-This is an empirical relative permeability model according to Niu and Yang (2006).
-This model is based on Brooks-Corey relative permeability model and an additional
-coefficient term is added to account for the effect of soil ice. This model is
-used for freezing conditions to make snowmelt water infiltrate deeper. See paper
-Agnihotri et al. (2023) for discussions about the influence of relative permeability
-model on discharge under freezing conditions.
+This is an empirical relative permeability model according to Niu and Yang
+(2006).  This model is based on Brooks-Corey relative permeability model and an
+additional coefficient term is added to account for the effect of soil
+ice. This model is used for freezing conditions to make snowmelt water
+infiltrate deeper. See paper Agnihotri et al. (2023) for discussions about the
+influence of relative permeability model on discharge under freezing
+conditions.
 
 .. math::
-   k_{rel} = ( 1 - F_{frz} ) \times ( \frac{1 - s_{g} - s_r}{1 - s_r} )^{2*b + 3} \\
-   F_{frz} = \mathrm{exp}( -\omega \times ( s_{l} + s_{g} ) ) - \mathrm{exp}( -\omega )
 
-Under freezing conditions, it is recommended to call Brooks-Corey based relative
-permeability corrected by ice content. This model needs Brooks-Corey parameters:
-Brooks-Corey lambda, Brooks-Corey saturated matric suction (Pa), and residual
-saturation. The reciprocal of Brooks-Corey lambda is Clapp-Hornberger b. Use tool
-`"convert_paramters_vg2bc.py`" to convert van Genuchten parameters to Brooks-Corey
-paramters. The conversion method is referred to Lenhard et al. (1989) or Ma et al. (1999)
-method 2.
+   k_{rel} &= ( 1 - F_{frz} ) \times ( \frac{1 - s_{g} - s_r}{1 - s_r} )^{2*b + 3} \\
+   F_{frz} &= \mathrm{exp}( -\omega \times ( s_{l} + s_{g} ) ) - \mathrm{exp}( -\omega )
 
-.. _rel-perm-evaluator-spec
-.. admonition:: rel-perm-evaluator-spec
+Under freezing conditions, it is recommended to call Brooks-Corey based
+relative permeability corrected by ice content. This model needs Brooks-Corey
+parameters: Brooks-Corey lambda, Brooks-Corey saturated matric suction (Pa),
+and residual saturation. The reciprocal of Brooks-Corey lambda is
+Clapp-Hornberger b. Use tool `"convert_paramters_vg2bc.py`" to convert van
+Genuchten parameters to Brooks-Corey paramters. The conversion method is
+referred to Lenhard et al. (1989) or Ma et al. (1999) method 2.
+
+`"evaluator type`" = `"relative permeability, freezing Brooks-Corey`"
+
+.. _evaluator-relative-permeability-freezing-brooks-corey-spec:
+.. admonition:: evaluator-relative-permeability-freezing-brooks-corey-spec
 
    * `"use density on viscosity in rel perm`" ``[bool]`` **true**
 
@@ -39,31 +40,37 @@ method 2.
      how the rel perm is calculated on boundary faces.  Note, this may be
      overwritten by upwinding later!  One of:
 
-      - `"boundary pressure`" Evaluates kr of pressure on the boundary face, upwinds normally.
-      - `"interior pressure`" Evaluates kr of the pressure on the interior cell (bad idea).
-      - `"harmonic mean`" Takes the harmonic mean of kr on the boundary face and kr on the interior cell.
-      - `"arithmetic mean`" Takes the arithmetic mean of kr on the boundary face and kr on the interior cell.
+      - `"boundary pressure`" Evaluates kr of pressure on the boundary face,
+        upwinds normally.
+      - `"interior pressure`" Evaluates kr of the pressure on the interior cell
+        (bad idea).
+      - `"harmonic mean`" Takes the harmonic mean of kr on the boundary face
+        and kr on the interior cell.
+      - `"arithmetic mean`" Takes the arithmetic mean of kr on the boundary
+        face and kr on the interior cell.
       - `"one`" Sets the boundary kr to 1.
-      - `"surface rel perm`" Looks for a field on the surface mesh and uses that.
+      - `"surface rel perm`" Looks for a field on the surface mesh and uses
+        that.
 
-   * `"minimum rel perm cutoff`" ``[double]`` **0.** Provides a lower bound on rel perm.
+   * `"minimum rel perm cutoff`" ``[double]`` **0.** Provides a lower bound on
+     rel perm.
 
-   * `"permeability rescaling`" ``[double]`` Typically rho * kr / mu is very big
-     and K_sat is very small.  To avoid roundoff propagation issues, rescaling
-     this quantity by offsetting and equal values is encourage.  Typically 10^7 or so is good.
+   * `"omega [-]`" ``[double]`` **2.0** A scale dependent parameter in the
+     relative permeability model.  See paper Niu & Yang (2006) for details
+     about the model. Typical values range from 2-3.
 
-   * `"omega [-]`" ``[double]`` **2.0** A scale dependent parameter in the relative permeability model.
-     See paper Niu & Yang (2006) for details about the model. Typical values range from 2-3.
-
-   * `"model parameters`" ``[string]``  **WRM parameters** ``[wrm-typedinline-spec-list]``
-     List (by region) of WRM specs. This will copy `"WRM parameters`" given in `"model parameters`"
-     under state here to evaluate relative permeability. If use `"WRM parameters`", both WRM and
-     relative permeability evaluators use the same set of `"WRM parameters`", which can be van Genuchten
-     or Brooks-Corey. If use a customed name, e.g., `"relative permeability parameters`", and declare
-     `"relative permeability parameters`" in `"model parameters`" under state, this allows to use
-     different models for WRM (by default through `"WRM parameters`") and relative permeability. Typically,
-     under freezing conditions, van Genuchten model is used as WRM and Brooks-Corey based high frozen
-     rel perm is used for relative permeability.
+   * `"model parameters`" ``[string]`` **WRM parameters**
+     ``[wrm-typedinline-spec-list]`` List (by region) of WRM specs. This will
+     copy `"WRM parameters`" given in `"model parameters`" under state here to
+     evaluate relative permeability. If use `"WRM parameters`", both WRM and
+     relative permeability evaluators use the same set of `"WRM parameters`",
+     which can be van Genuchten or Brooks-Corey. If use a customed name, e.g.,
+     `"relative permeability parameters`", and declare `"relative permeability
+     parameters`" in `"model parameters`" under state, this allows to use
+     different models for WRM (by default through `"WRM parameters`") and
+     relative permeability. Typically, under freezing conditions, van Genuchten
+     model is used as WRM and Brooks-Corey based high frozen rel perm is used
+     for relative permeability.
 
 
    KEYS:
@@ -74,11 +81,13 @@ method 2.
    - `"viscosity`" (if `"use density on viscosity in rel perm`" == true)
    - `"surface relative permeability`" (if `"boundary rel perm strategy`" == `"surface rel perm`")
 
-Example:
-Using van Genuchten for WRM and Brooks-Corey based high frozen rel perm for relative permeability.
-Note that in this case, van Genuchten parameters and Brooks-Corey parameters need to
-be consistent. Using tool `"convert_parameters_vg2bc.py`" to convert van Genuchten
-parameters to Brooks-Corey parameters.
+**Example:**
+
+Using van Genuchten for WRM and Brooks-Corey based high frozen rel perm for
+relative permeability.  Note that in this case, van Genuchten parameters and
+Brooks-Corey parameters need to be consistent. Using tool
+`"convert_parameters_vg2bc.py`" to convert van Genuchten parameters to
+Brooks-Corey parameters.
 
 .. code-block:: xml
 

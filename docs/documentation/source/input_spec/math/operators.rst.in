@@ -3,12 +3,12 @@ Operators
 
 { Operator }
 
-PDE_Accumulation
-----------------
+Accumulation
+------------
 { PDE_Accumulation }
 
-PDE_Diffusion
--------------
+Diffusion
+---------
 { PDE_DiffusionFactory }
 
 { PDE_Diffusion }

@@ -5,20 +5,11 @@ The density of water can be specified in many ways, depending upon
 phase and problem of interest.  Options are available from the
 simplest (constant value) to functions of just temperature,
 temperature and pressure, and temperature/pressure/concentration
-(e.g. salinity).
+(e.g. salinity).  We call these Equations of State (EOS).
 
 Note that density includes both molar and mass-based values.  Most
 density evaluators can provide either, or do provide both, the
 difference being simply a factor of the molecular mass of water.
-
-Finally, nearly all (except the constant value) equations of state use
-a common set of models which accept all of temperature, pressure, and
-concentration.  Many of these models ignore one or the other, so it
-should be preferred (but is not necessary) to choose the right model
-for a given evaluator.  Choosing a model that uses fewer of
-these than the evaluator provides is valid, but it is inefficient.
-Choosing a model that uses more than the evaluator provides will
-result in an error.
 
 Constant Value
 ^^^^^^^^^^^^^^

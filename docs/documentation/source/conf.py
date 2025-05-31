@@ -112,7 +112,8 @@ html_js_files = [
 
 
 
-nb_execution_excludepatterns = ['IHMIP_units.ipynb', 'mesh_gen.ipynb']
+nb_execution_excludepatterns = ['*',]
+#nb_execution_excludepatterns = ['IHMIP_units.ipynb', 'mesh_gen.ipynb']
 
 
 

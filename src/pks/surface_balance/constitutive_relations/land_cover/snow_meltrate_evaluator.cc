@@ -47,7 +47,7 @@ void
 SnowMeltRateEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
   // new state!
-  land_cover_ = getLandCover(S.ICList().sublist("land cover types"), { "snow_transition_depth" });
+  land_cover_ = getLandCover(S.GetModelParameters("land cover types"), { "snow_transition_depth" });
   EvaluatorSecondaryMonotypeCV::EnsureCompatibility_ToDeps_(S);
 }
 

@@ -15,33 +15,31 @@ another linear transition to vary between snow-covered and not-snow-covered.
 
 Ordering of the area fractions calculated are: [bare ground/water, snow].
 
+This evaluator simplifies the situation by assuming constant water density.
+This make it so that ice and water see the same geometry per unit pressure,
+which isn't quite true thanks to density differences.  However, we hypothesize
+that these differences, on the surface (unlike in the subsurface) really don't
+affect the solution.
+
+
 `"evaluator type`" = `"area fractions, two components`"
 
-.. _area-fractions-twocomponent-evaluator-spec:
-.. admonition:: area-fractions-twocomponent-evaluator-spec:
+.. _evaluator-area-fractions-two-components-spec:
+.. admonition:: evaluator-area-fractions-two-components-spec:
 
-   * `"minimum fractional area [-]`" ``[double]`` **1.e-5**
-         Mimimum area fraction allowed, less than this is rebalanced as zero.
+   * `"minimum fractional area [-]`" ``[double]`` **1.e-5** Minimum area
+     fraction allowed, less than this is rebalanced as zero.
 
    DEPENDENCIES:
 
    - `"snow depth`" ``[string]``
 
-.. note:
+.. note::
 
-   This evaluator also uses the LandCover_ types.  From that struct, it
+   This evaluator also uses the :ref:`Land Cover` types.  From that struct, it
    requires the value of the following parameters:
 
-   - `"snow transition height [m]`" ``[double]`` **0.02**
-      Minimum thickness for specifying the snow gradient.
-
-.. note:
-
-   This evaluator simplifies the situation by assuming constant density.  This
-   make it so that ice and water see the same geometry per unit pressure, which
-   isn't quite true thanks to density differences.  However, we hypothesize
-   that these differences, on the surface (unlike in the subsurface) really
-   don't affect the solution.
+   - `"snow transition height [m]`"
 
 */
 

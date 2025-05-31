@@ -7,13 +7,6 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-/*
-  ATS
-
-  EOS for an ideal gas (does not implement viscosity at this point!)
-
-*/
-
 #include "eos_factory.hh"
 #include "eos_vapor_in_gas.hh"
 

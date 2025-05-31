@@ -9,9 +9,26 @@ sys.path.append(os.path.join(os.environ['AMANZI_SRC_DIR'],
                              "tools", "amanzi_xml"))
 import amanzi_xml.utils.io
 
-def readFileDoc(filename):
+def filenameToLink(filename, branch):
+    filename_relto_amanzi = os.path.relpath(filename, os.environ['AMANZI_SRC_DIR'])
+    if filename_relto_amanzi.startswith(os.path.join('src', 'physics', 'ats')):
+        filename_relto_ats = os.path.relpath(filename, os.environ['ATS_SRC_DIR'])
+        assert not filename_relto_ats.startswith('..')
+    
+        # an ATS source file
+        rel_url = '/'.join(os.path.split(filename_relto_ats))
+        link = f"https://github.com/amanzi/ats/blob/{branch}/{rel_url}"
+
+    else:
+        assert not filename_relto_amanzi.startswith('..')
+        rel_url = '/'.join(os.path.split(filename_relto_amanzi))
+        link = f"https://github.com/amanzi/amanzi/blob/{branch}/{rel_url}"
+
+    return f'`{filename_relto_amanzi} <{link}>`_'
+
+def readFileDoc(filename, branch='master'):
     """Parses provided file for doc strings, returning a header that starts with "//!" and any blocks that start with "/*!" """
-    header = None
+    header = '\n'.join([filenameToLink(filename, branch), ''])
     doc = []
     
     with open(filename) as fid:
@@ -24,8 +41,8 @@ def readFileDoc(filename):
                 done = True
                 continue
 
-            if header is None and line.strip().startswith("//!"):
-                header = line.strip()[3:]
+            if line.strip().startswith("//!"):
+                header = '\n'.join([header, line.strip()[3:].strip()])
 
             elif line.strip().startswith("/*!"):
                 example = [line.strip()[3:].split("*/")[0]+"\n",]
@@ -43,6 +60,7 @@ def readFileDoc(filename):
 
             line = fid.readline()
 
+    
     if header is not None:
         doc.insert(0, header)
         

@@ -15,10 +15,10 @@ The energy associated with ponded water, in [KJ], given by:
 .. math::
   E = V * ( \eta h u_l n_l + (1 - \eta) h u_i n_i )
 
-Specified with evaluator type: `"surface ice energy`"
+`"evaluator type`" = `"surface ice energy`"
 
-.. _field-evaluator-type-surface-ice-energy-spec:
-.. admonition:: field-evaluator-type-surface-ice-energy-spec
+.. _evaluator-surface-ice-energy-spec:
+.. admonition:: evaluator-surface-ice-energy-spec
 
    DEPENDENCIES:
 

@@ -7,16 +7,6 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-/*
-  ATS
-
-  EOS for liquid water.  See the permafrost physical properties notes for
-  references and documentation of this EOS at:
-
-  http://software.lanl.gov/ats/trac
-
-*/
-
 #include "eos_water.hh"
 
 namespace Amanzi {
@@ -25,15 +15,20 @@ namespace Relations {
 EOSWater::EOSWater(Teuchos::ParameterList& eos_plist)
   : EOSConstantMolarMass(0.0180153),
     eos_plist_(eos_plist),
-
     ka_(999.915),
     kb_(0.0416516),
     kc_(-0.0100836),
     kd_(0.000206355),
     kT0_(273.15),
-
     kalpha_(5.0e-10),
-    kp0_(1.0e5){};
+    kp0_(1.0e5)
+{
+  if (eos_plist_.isParameter("molar mass [kg mol^-1]")) {
+    M_ = eos_plist_.get<double>("molar mass [kg mol^-1]");
+  } else {
+    M_ = eos_plist_.get<double>("molar mass [g mol^-1]", 18.0153) * 1e-3;
+  }
+};
 
 
 double

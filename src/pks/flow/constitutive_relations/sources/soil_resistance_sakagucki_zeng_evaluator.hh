@@ -14,31 +14,28 @@ referred to Sakagucki and Zeng (2009).
 
 `"evaluator type`" = `"soil resistance, Sakagucki-Zeng`"
 
-.. _soil-resistance-sakagucki-zeng-evaluator-spec
-.. admonition:: soil-resistance-sakagucki-zeng-evaluator-spec
+.. _evaluator-soil-resistance-sakagucki-zeng-spec
+.. admonition:: evaluator-soil-resistance-sakagucki-zeng-spec
 
-  * `"model parameters`" ``[string]`` **WRM parameters** ``[WRM-typedinline-spec-list]``
-  Soil resistance based on Sakagucki-Zeng method uses soil properties defined in
-  `"WRM parameters`" which is given through `"model parameters`" under state.
+   * `"model parameters`" ``[string]`` **WRM parameters** Soil resistance based
+     on Sakagucki-Zeng method uses soil properties defined in `"WRM
+     parameters`" which is given through `"model parameters`" under state.
 
-    - If `"van Genuchten`" is used for WRM, either `"van Genuchten n [-]`"
-    or `"van Genuchten m [-]`" will be used to determine Clapp-Hornberger-b
-    through method 2 in Ma et al. (1999). Originally this method is from
-    Lenhard et al. (1989).
+     - If `"van Genuchten`" is used for WRM, either `"van Genuchten n [-]`" or
+       `"van Genuchten m [-]`" will be used to determine Clapp-Hornberger-b
+       through method 2 in Ma et al. (1999). Originally this method is from
+       Lenhard et al. (1989).
+     - If `"Brooks-Corey`" is used for WRM, `"Brooks-Corey lambda [-]`" will be
+       used to determine Clapp-Hornberger-b, which is the reciprocal of
+       `"Brooks-Corey lambda [-]`".
+     - `"residual saturation [-]`" ``[double]`` **0.0**
+     - `"dessicated zone thickness [m]`" ``[double]`` **0.1**  
 
-    - If `"Brooks-Corey`" is used for WRM, `"Brooks-Corey lambda [-]`" will
-    be used to determine Clapp-Hornberger-b, which is the reciprocal of
-    `"Brooks-Corey lambda [-]`".
+   KEYS:
 
-    - `"residual saturation [-]`" ``[double]`` **0.0**
-
-    - `"dessicated zone thickness [m]`" ``[double]`` **0.1**
-
-  KEYS:
-
-  - `"gas saturation`" of top cells
-  - `"porosity`" of top cells
-
+   - `"gas saturation`" Note only the column's top grid cell is used
+   - `"porosity`" Note only the column's top grid cell is used
+     
 Example:
 
 .. code-block:: xml

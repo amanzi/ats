@@ -6,43 +6,40 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-
-//! Preferential distribution of snow precip in low-lying areas.
 /*!
 
 This PK is a heuristic PK that distributes incoming snow precipitation using a
 diffusion wave equation.  Think of it as an analogue to overland flow -- it
-effectively ensures that new snow "flows downhill," due to a uniformly random
-direction and strength wind, and lands on the lowest lying areas.
+effectively ensures that new snow "flows downhill," due to a uniformly
+distributed random direction wind, and lands on the lowest lying
+areas.
 
-Tweaking the snow-manning_coefficient lets you play with how uniform the snow
-layer ends up.  Most of the parameters are set by your snow precipitation input
-data interval.  The details of this are a bit tricky mathematically, and it may
-take some fiddling with parameters to do this correctly if your data is not
-daily (which all defaults are set for).
+The Manning coefficient determines with how uniform the snow layer becomes.
+Most of the parameters are set depending upon the snow precipitation input data
+interval.
 
-.. _snow-distribution-spec:
-.. admonition:: snow-distribution-spec
+`"PK type`" = `"snow distribution`"
 
-    * `"distribution time`" ``[double]`` **86400.** Interval of snow precip input dataset. `[s]`
-    * `"precipitation function`" ``[function-spec]`` Snow precipitation function, see Functions_.
+.. _pk-snow-distribution-spec:
+.. admonition:: pk-snow-distribution-spec
 
-    * `"diffusion`" ``[pde-diffusion-spec]`` Diffusion drives the distribution.
-      Typically we use finite volume here.  See PDE_Diffusion_
+   * `"distribution time`" ``[double]`` **86400.** Interval of snow precip
+     input dataset. `[s]`
 
-    * `"diffusion preconditioner`" ``[pde-diffusion-spec]`` Inverse of the
-      above.  Likely only Jacobian term options are needed here, as the others
-      default to the same as the `"diffusion`" list.  See PDE_Diffusion_.
+   * `"precipitation function`" ``[function-spec]`` Snow precipitation
+     function, see :ref:`Functions`.
 
-    * `"inverse`" ``[inverse-typed-spec]`` Inverse_ method for the solve.
+   * `"diffusion`" ``[pde-diffusion-spec]`` Diffusion drives the distribution.
+     Typically we use finite volume here.  See :ref:`Diffusion`.
 
-    Not typically provided by the user, defaults are good:
+   * `"diffusion preconditioner`" ``[pde-diffusion-spec]`` Inverse of the
+     above.  Likely only Jacobian term options are needed here, as the others
+     default to the same as the `"diffusion`" list.  See :ref:`Diffusion`.
 
-    * `"accumulation preconditioner`" ``[pde-accumulation-spec]`` See PDE_Accumulation_.
+   * `"inverse`" ``[inverse-typed-spec]`` :ref:`Inverse` method for the solve.
 
-
-.. todo::
-    For this PK, all variable root names are hard-coded.  This should get changed.
+   * `"accumulation preconditioner`" ``[pde-accumulation-spec]`` **optional**
+     See :ref:`Accumulation`.
 
 */
 
@@ -104,9 +101,7 @@ class SnowDistribution : public PK_PhysicalBDF_Default {
   // Choose a timestep compatible with physics.
   double get_dt() override { return dt_factor_; }
 
-  // Advance PK from time t_old to time t_new. True value of the last
-  // parameter indicates drastic change of boundary and/or source terms
-  // that may need PK's attention.
+  // Advance PK from time t_old to time t_new.
   //
   //  ALL SORTS OF FRAGILITY and UGLINESS HERE!
   //  DO NOT USE THIS OUT IN THE WILD!

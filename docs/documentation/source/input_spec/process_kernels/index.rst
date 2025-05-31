@@ -5,7 +5,7 @@ Process Kernels
 Process Kernels, or PKs, are the fundamental unit of a model, and
 represent a single or system of Partial Differential Equations (PDEs)
 or Differential Algebraic Equations (DAEs).  PKs are broadly split
-into individual equations (Physical PKs) and systems of equations,
+into individual equations, called Physical PKs, and systems of equations,
 called Multi-Process Coordinators (MPCs).
 
 The PK tree forms the fundamental definition of the entire system of

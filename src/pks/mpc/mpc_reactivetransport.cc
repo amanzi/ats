@@ -40,7 +40,8 @@ MPCReactiveTransport::parseParameterList()
   tcc_key_ = Keys::readKey(*getSubPKPlist_(0), domain_, "primary variable",
                            "total_component_concentration");
   mol_frac_key_ = Keys::readKey(*getSubPKPlist_(1), domain_, "primary variable",
-                           "molar_ratio");
+                           "mole_fraction");
+
   if (tcc_key_ == mol_frac_key_) {
     Errors::Message msg;
     msg << "Chemistry and Transport may not be given the same primary variable name (\"" << tcc_key_
@@ -68,10 +69,8 @@ MPCReactiveTransport::Setup()
 {
   // must Setup transport first to get alias for saturation, etc set up correctly
   transport_pk_->Setup();
-#ifdef ALQUIMIA_ENABLED
   chemistry_pk_->Setup();
-#endif
-  
+
   requireEvaluatorAtNext(mol_dens_key_, tag_next_, *S_)
     .SetMesh(S_->GetMesh(domain_))
     ->SetGhosted()
@@ -81,17 +80,14 @@ MPCReactiveTransport::Setup()
 void
 MPCReactiveTransport::cast_sub_pks_()
 {
-#ifdef ALQUIMIA_ENABLED  
   // cast and call parse on chemistry
   chemistry_pk_ = Teuchos::rcp_dynamic_cast<AmanziChemistry::Alquimia_PK>(sub_pks_[0]);
   AMANZI_ASSERT(chemistry_pk_ != Teuchos::null);
-#endif
+
   // now chem engine is set and we can hand it to transport
   transport_pk_ = Teuchos::rcp_dynamic_cast<Transport::Transport_ATS>(sub_pks_[1]);
   AMANZI_ASSERT(transport_pk_ != Teuchos::null);
-#ifdef ALQUIMIA_ENABLED  
   transport_pk_->setChemEngine(chemistry_pk_);
-#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -101,10 +97,8 @@ void
 MPCReactiveTransport::Initialize()
 {
   // initialize chemistry, including geochemical ICs
-#ifdef ALQUIMIA_ENABLED
   chemistry_pk_->Initialize();
   AMANZI_ASSERT(S_->GetRecord(tcc_key_, tag_next_).initialized());
-#endif
 
   // Compute mol frac from concentration
   //
@@ -119,7 +113,6 @@ MPCReactiveTransport::Initialize()
   // initialize transport
   transport_pk_->Initialize();
 }
-
 
 // -----------------------------------------------------------------------------
 // Advance each sub-PK individually, returning a failure as soon as possible.
@@ -136,12 +129,10 @@ MPCReactiveTransport::AdvanceStep(double t_old, double t_new, bool reinit)
   convertMolFracToConcentration(*S_, {mol_frac_key_, tag_next_},
           {tcc_key_, tag_current_}, {mol_dens_key_, tag_next_}, name());
 
-#ifdef ALQUIMIA_ENABLED  
   // Next to chemistry step
   fail = chemistry_pk_->AdvanceStep(t_old, t_new, reinit);
   if (fail) return fail;
-#endif
-  
+
   // move from tcc@next to mol_frac@next
   convertConcentrationToMolFrac(*S_, {tcc_key_, tag_next_},
           {mol_frac_key_, tag_next_}, {mol_dens_key_, tag_next_}, name());

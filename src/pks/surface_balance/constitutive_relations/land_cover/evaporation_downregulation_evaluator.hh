@@ -8,9 +8,23 @@
 */
 
 /*!
-Downregulates evaporation through a dessicated zone via soil resistance.
-Currently support two soil resistance methods: Sakagucki-Zeng and Sellers.
-This will call soil resistance evaluator.
+
+This evaluator computes actual evaporation from potential evaporation due to a
+dessicated zone via soil resistance.
+
+.. math::
+
+   E = \frac{E_{potential}}{1 + R_{soil}}
+
+`"evaluator type`" = `"evaporation downregulation, soil resistance`"
+
+.. _evaluator-evaporation-downregulation-soil-resistance:
+.. admonition:: evaluator-evaporation-downregulation-soil-resistance
+
+   DEPENDENCIES:
+
+   - `"potential evaporation`"
+   - `"soil resistance`"
 
 */
 

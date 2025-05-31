@@ -32,8 +32,8 @@ the snow SWE goes to zero.  That factor is 1 at the snow transition depth, and
 0 when snow SWE is 0.  This uses LandCover for the snow_ground_transition
 parameter.
 
-.. _snow-meltrate-evaluator-spec:
-.. admonition:: snow-meltrate-evaluator-spec
+.. _evaluator-snow-meltrate-spec:
+.. admonition:: evaluator-snow-meltrate-spec
 
    * `"snow melt rate [mm day^-1 C^-1]`" ``[double]`` **2.74**
      the melt rate per degree-day, above 0 C, e.g. :math:`R` above.

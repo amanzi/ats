@@ -1,9 +1,11 @@
 ATS: The Advanced Terrestrial Simulator
 =======================================
 
-The Advanced Terrestrial Simulator (formerly sometimes known as the Arctic Terrestrial Simulator) is a code for solving ecosystem-based, integrated, distributed hydrology.
+The Advanced Terrestrial Simulator (ATS) is a code for solving watershed-to-river basin scale problems on integrated, distributed ecohydrology, including the built environment.
 
-Capabilities are largely based on solving various forms of Richards equation coupled to a surface flow equation, along with the needed sources and sinks for ecosystem and climate models.  This can (but need not) include thermal processes (especially ice for frozen soils), evapo-transpiration, albedo-driven surface energy balances, snow, biogeochemistry, plant dynamics, deformation, transport, and much more.  In addition, we solve problems of reactive transport in both the subsurface and surface, leveraging external geochemical engines through the Alquimia interface.
+Capabilities are largely based on solving various forms of Richards equation coupled to a surface flow equation, along with the needed sources and sinks.  This can (but need not) include thermal processes (especially ice for frozen soils), evapo-transpiration, surface energy exchange with the atmosphere, snow, deformation, gray and green infrastructure, and much more.  In addition, we solve problems of reactive transport in both the subsurface and surface, leveraging external geochemical engines through the Alquimia interface.
+
+ATS is a suite of physics processes built for Amanzi.  Amanzi includes the underlying mesh, data structure, multi-physics APIs, and math libraries for defining and solving the physics implemented in ATS.
 
 Join the Community
 ------------------
@@ -22,6 +24,8 @@ Documentation
 Our [Documentation](https://amanzi.github.io/ats/) covers the input spec, and is motivated by a large suite of [Demos](https://github.com/amanzi/ats-demos).
 
 See also our [Wiki](https://github.com/amanzi/ats/wiki) and [Frequently Asked Questions](https://github.com/amanzi/ats/wiki/FAQs), or take our online [Short Course](https://github.com/amanzi/ats-short-course).
+
+Setting up watershed- and river basin-scale problems is frequently done through [Watershed Worfklow](https://environmental-modeling-workflows.github.io/watershed-workflow/), a workflow tool that downloads and adapts a wide variety of open data for this purpose.
 
 
 License and Copyright

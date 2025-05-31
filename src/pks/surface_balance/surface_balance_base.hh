@@ -7,8 +7,9 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-//! A simple conservation ODE.
 /*!
+
+A simple set of time-evolving ODEs, solving for conservation of some quantity.
 
 This is a very simple vector of ODEs, useful in balance equations, where the
 time derivative of a conserved quantity is determined by a bunch of sources and
@@ -17,31 +18,48 @@ sinks.
 .. math::
     \frac{\partial \Phi }{\partial t} = \sum_i Q_i
 
-.. _balance-pk-spec:
-.. admonition:: balance-pk-spec
+`"PK type`" = `"general surface balance`"
 
-    * `"primary variable key`" ``[string]`` The primary variable associated with
-      this PK.  Note there is no default -- this must be provided by the user.
+.. _pk-general-surface-balance-spec:
+.. admonition:: pk-general-surface-balance-spec
 
-    * `"conserved quantity key`" ``[string]`` The conserved quantity :math:`\Phi`
+   * `"primary variable key`" ``[string]`` The primary variable associated with
+     this PK.  Note there is no default -- this must be provided by the user.
 
-    * `"source key`" ``[string]`` **DOMAIN-source_sink** Units are in conserved
-      quantity per second per cell volume.
+   * `"conserved quantity key`" ``[string]`` The conserved quantity :math:`\Phi`
 
-    * `"time discretization theta`" ``[double]`` **1.0** :math:`\theta` in a
-      Crank-Nicholson time integration scheme.  1.0 implies fully implicit, 0.0
-      implies explicit, 0.5 implies C-N.
+   * `"source key`" ``[string]`` **DOMAIN-source_sink** Units are in conserved
+     quantity per second per cell volume.  This default is typically only
+     appropriate when this is a water balance PK and the domain is sufficient
+     to identify the balance.  E.g. the domain is "canopy" and this equation
+     solves for a canopy water balance.  Otherwise this should also be renamed
+     to avoid confusion.
 
-    * `"modify predictor positivity preserving`" ``[bool]`` **false** If true,
-      predictors are modified to ensure that the conserved quantity is always > 0.
+   * `"time discretization theta`" ``[double]`` **1.0** :math:`\theta` in a
+     Crank-Nicholson time integration scheme.  1.0 implies fully implicit, 0.0
+     implies explicit, 0.5 implies C-N.
 
-    * `"absolute error tolerance`" ``[double]`` **550.0** a_tol in the standard
-      error norm calculation.  Defaults to a small amount of water.  Units are
-      the same as the conserved quantity.
+   Math and solver algorithm options:
+     
+   * `"absolute error tolerance`" ``[double]`` **550.0** a_tol in the standard
+     error norm calculation.  Defaults to a small amount of water.  Units are
+     the same as the conserved quantity.
 
-    INCLUDES:
+   * `"inverse`" ``[inverse-spec]`` **optional** The inverse used for
+     preconditioning in a non-globally coupled problem.  See :ref:`Inverse`.
 
-    - ``[pk-physical-bdf-default-spec]``
+   * `"accumulation preconditioner`" ``[pde-accumulation-spec]`` **optional**
+     The inverse of the accumulation operator.  See :ref:`Accumulation`.
+     Typically not provided by users, as defaults are sufficient.
+
+   Globalization and other process-based hacks:
+
+   * `"modify predictor positivity preserving`" ``[bool]`` **false** If true,
+     predictors are modified to ensure that the conserved quantity is always > 0.
+     
+   INCLUDES:
+
+   - ``[pk-physical-bdf-default-spec]`` A :ref:`PK: Physical and BDF` spec.
 
 */
 

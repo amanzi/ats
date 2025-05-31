@@ -97,7 +97,6 @@ Richards::parseParameterList()
   velocity_key_ = Keys::readKey(*plist_, domain_, "darcy velocity", "darcy_velocity");
   requireEvaluatorAtNext(velocity_key_, Tags::NEXT, *S_, name_);
 
-
   sat_key_ = Keys::readKey(*plist_, domain_, "saturation", "saturation_liquid");
   sat_gas_key_ = Keys::readKey(*plist_, domain_, "saturation gas", "saturation_gas");
   sat_ice_key_ = Keys::readKey(*plist_, domain_, "saturation ice", "saturation_ice");
@@ -425,6 +424,7 @@ Richards::SetupRichardsFlow_()
     .SetMesh(mesh_)
     ->SetGhosted()
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 3);
+  S_->GetRecordSetW(velocity_key_).set_subfieldnames(mesh_->getSpaceDimensionNames());
 
   // Globalization and other timestep control flags
   // -- predictors
@@ -557,9 +557,6 @@ Richards::Initialize()
   S_->GetRecordW(flux_dir_key_, tag_next_, name()).set_initialized();
   S_->GetW<CompositeVector>(velocity_key_, Tags::NEXT, name()).PutScalar(0.0);
   S_->GetRecordW(velocity_key_, Tags::NEXT, name()).set_initialized();
-
-  // absolute perm
-  // SetAbsolutePermeabilityTensor_(tag_next_);
 
   // operators
   const AmanziGeometry::Point& g = S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);

@@ -6,15 +6,10 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-
-//! Evaluates the canopy radiation balance, providing canopy net and radiation to the snow/surface.
 /*!
 
 Computes and sums the downward radiation terms, determining the total radiation
 sent down to the surface from the canopy and above.
-
-Requires the use of LandCover types, for albedo and emissivity of the canopy
-itself, along with Beer's law coefficients.
 
 Computes:
 
@@ -49,16 +44,33 @@ solve all of these balances to convergence simultaneously.
 
 `"evaluator type`" = `"canopy radiation balance from above`"
 
-.. _canopy-radiation-evaluator-spec:
-.. admonition:: canopy-radiation-evaluator-spec
+.. _evaluator-canopy-radiation-balance-from-above-spec:
+.. admonition:: evaluator-canopy-radiation-balance-from-above-spec:
 
    KEYS:
+
+   - `"canopy downward shortwave radiation`" **CANOPY_DOMAIN-downward_shortwave_radiation**
+   - `"canopy downward longwave radiation`" **CANOPY_DOMAIN-downward_longwave_radiation**
+   - `"canopy radiation balance`" **CANOPY_DOMAIN-radiation_balance**
+
+   DEPENDENCIES:
+
    - `"incoming shortwave radiation`" **SURFACE_DOMAIN-incoming_shortwave_radiation**
    - `"incoming longwave radiation`" **SURFACE_DOMAIN-incoming_longwave_radiation**
    - `"canopy temperature`" **CANOPY_DOMAIN-temperature**
    - `"leaf area index`" **CANOPY_DOMAIN-leaf_area_index**
 
-Note that this is a subset of the physics in the "radiation balance evaluator,"
+.. note::
+
+   This evaluator also uses the :ref:`Land Cover` types.  From that struct, it
+   requires the value of the following parameters:
+   
+   - `"Beer's law extinction coefficient, shortwave [-]`"
+   - `"Beer's law extinction coefficient, longwave [-]`"
+   - `"albedo of canopy [-]`"
+
+
+Note that this is a *subset* of the physics in the "radiation balance evaluator,"
 and is therefore mutually exclusive with that model.
 
 */

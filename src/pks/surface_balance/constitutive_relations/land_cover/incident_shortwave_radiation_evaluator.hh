@@ -7,8 +7,9 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-//! Evaluates the radiation incident on a non-flat surface.
 /*!
+
+Evaluates the radiation incident on a non-flat surface.
 
 Aspect modified shortwave radiation is determined by a factor which is
 multiplied by the 'incoming radiation incident on a flat surface' to determine
@@ -28,16 +29,18 @@ This implementation is derived from `LandLab code
 <https://github.com/landlab/landlab/blob/master/landlab/components/radiation/radiation.py>`_,
 which is released under the MIT license.
 
+`"evaluator type`" = `"incident shortwave radiation`"
 
-.. _incident_shortwave_radiation_evaluator-spec:
-.. admonition:: incident_shortwave_radiation_evaluator-spec
+.. _evaluator-incident_shortwave_radiation-spec:
+.. admonition:: evaluator-incident_shortwave_radiation-spec
 
-    * `"incident shortwave radiation parameters`" ``[incident_shortwave_radiation_model-spec]``
+    * `"incident shortwave radiation parameters`" ``[incident-shortwave-radiation-model-spec]``
 
-    KEYS:
-    - `"slope`" **DOMAIN-slope_magnitude**
-    - `"aspect`" **DOMAIN-aspect**
-    - `"incoming shortwave radiation`" **DOMAIN-incoming_shortwave_radiation**
+    DEPENDENCIES:
+
+    - `"slope`"
+    - `"aspect`"
+    - `"incoming shortwave radiation`"
 
 */
 

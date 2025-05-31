@@ -82,7 +82,7 @@ void
 RadiationBalanceEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
   if (!compatible_) {
-    land_cover_ = getLandCover(S.ICList().sublist("land cover types"),
+    land_cover_ = getLandCover(S.GetModelParameters("land cover types"),
                                { "beers_k_lw", "beers_k_sw", "albedo_canopy" });
 
     for (const auto& dep : dependencies_) {

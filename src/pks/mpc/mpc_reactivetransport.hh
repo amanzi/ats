@@ -6,24 +6,25 @@
 
   Authors: Daniil Svyatskiy
 */
+/*!
 
-/*
+This MPC couples transport and chemistry through an operator split strategy.
 
-MPC coupling of transport and chemistry.
+Note that transport's primary variable is `"mole_fraction`", which is in units
+of [mol C mol liquid^-1].  Chemistry is in "total_component_concentration", which
+is in units of [mol-C L^-1].  Therefore, between steps, we convert between the
+two.
 
-This performs operatoring splitting between transport and chemistry.  Note that
-transport's primary variable is "molar_fraction", which is in units of [mol-C
-mol-H2O^-1].  Chemistry is in "total_component_concentration", which is in
-units of [mol-C L^-1].  Therefore, between steps, we convert between the two.
+`"PK type`" = `"reactive transport`"
 
-.. _mpc-reactivetransport-spec:
-.. admonition:: mpc-reactivetransport-spec
+.. _pk-reactive-transport-spec:
+.. admonition:: pk-reactive-transport-spec
 
-   * `"PK type`" ``[string]`` **"reactive transport"**
+   * `"domain name`" ``[string]`` Domain of simulation
 
    KEYS:
-   - `"molar density liquid`"
 
+   - `"molar density liquid`"
 
 */
 
@@ -66,10 +67,8 @@ class MPCReactiveTransport : public WeakMPC {
 
   // storage for the component concentration intermediate values
   Teuchos::RCP<Transport::Transport_ATS> transport_pk_;
-#ifdef ALQUIMIA_ENABLED
-  Teuchos::RCP<Amanzi::AmanziChemistry::Alquimia_PK> chemistry_pk_;
-#endif
-  
+  Teuchos::RCP<AmanziChemistry::Alquimia_PK> chemistry_pk_;
+
   // factory registration
   static RegisteredPKFactory<MPCReactiveTransport> reg_;
 };

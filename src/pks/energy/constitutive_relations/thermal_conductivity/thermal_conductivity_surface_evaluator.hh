@@ -18,8 +18,8 @@ Thermal conductivity of surface water that can be either frozen or liquid phase.
 
 `"evaluator type`" = `"surface thermal conductivity`"
 
-.. _thermal-conductivity-surface-evaluator-spec:
-.. admonition:: thermal-conductivity-surface-evaluator-spec
+.. _evaluator-thermal-conductivity-surface-spec:
+.. admonition:: evaluator-thermal-conductivity-surface-spec
 
    * `"thermal conductivity parameters`" ``[thermal-conductivity-surface-spec]``
 

@@ -19,10 +19,10 @@ fraction of water vapor in the gaseous phase.
 
 `"evaluator type`" = `"iem water vapor`"
 
-.. _iem-water-vapor-evaluator-spec:
-.. admonition:: iem-water-vapor-evaluator-spec
+.. _evaluator-iem-water-vapor-spec:
+.. admonition:: evaluator-iem-water-vapor-spec
 
-   * `"IEM parameters`" ``[IEM-water-vapor-model-spec]``
+   * `"IEM parameters`" ``[iem-water-vapor-spec]``
 
    KEYS:
 

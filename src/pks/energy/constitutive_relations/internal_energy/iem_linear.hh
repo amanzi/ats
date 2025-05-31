@@ -18,20 +18,20 @@ Linear internal energy model -- function of Cv and temperature
 
 `"IEM type`" = `"linear`"
 
-.. _IEM-model-linear-spec:
-.. admonition:: IEM-model-linear-spec
+.. _iem-linear-spec:
+.. admonition:: iem-linear-spec
 
-    * `"reference temperature [K]`" ``[double]`` **273.15** The phase transition point, T_ref above
+    * `"reference temperature [K]`" ``[double]`` **273.15** The phase transition point, :math:`T_{ref}` above
 
     ONE OF
 
-    * `"latent heat [J kg^-1]`" ``[double]`` Latent heat of fusion, L_f above
-    * `"heat capacity [J kg^-1 K^-1]`" ``[double]`` C_v above
+    * `"latent heat [J kg^-1]`" ``[double]`` Latent heat of fusion, :math:`L_f` above
+    * `"heat capacity [J kg^-1 K^-1]`" ``[double]`` :math:`C_v` above
 
     OR
 
-    * `"latent heat [J mol^-1]`" ``[double]`` Latent heat of fusion, L_f above.
-    * `"heat capacity [J mol^-1 K^-1]`" ``[double]`` C_v above
+    * `"latent heat [J mol^-1]`" ``[double]`` Latent heat of fusion, :math:`L_f` above.
+    * `"heat capacity [J mol^-1 K^-1]`" ``[double]`` :math:`C_v` above
 
     END
 

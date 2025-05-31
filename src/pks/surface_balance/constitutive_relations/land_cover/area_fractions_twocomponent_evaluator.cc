@@ -113,7 +113,7 @@ void
 AreaFractionsTwoComponentEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
   if (land_cover_.size() == 0)
-    land_cover_ = getLandCover(S.ICList().sublist("land cover types"), { "snow_transition_depth" });
+    land_cover_ = getLandCover(S.GetModelParameters("land cover types"), { "snow_transition_depth" });
 
   for (auto dep : dependencies_) {
     auto& fac = S.Require<CompositeVector, CompositeVectorSpace>(dep.first, dep.second);

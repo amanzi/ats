@@ -74,8 +74,8 @@ CanopyRadiationEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
   if (!compatible_) {
     land_cover_ =
-      getLandCover(S.ICList().sublist("land cover types"),
-                   { "beers_k_lw", "beers_k_sw", "emissivity_canopy", "albedo_canopy" });
+      getLandCover(S.GetModelParameters("land cover types"),
+                   { "beers_k_lw", "beers_k_sw", "albedo_canopy" });
 
     for (const auto& dep : dependencies_) {
       S.Require<CompositeVector, CompositeVectorSpace>(dep.first, dep.second)

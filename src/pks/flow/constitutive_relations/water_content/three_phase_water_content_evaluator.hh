@@ -13,10 +13,10 @@
 .. math::
   \Theta = (n_l s_l + n_i s_i + n_g s_g \omega_g ) \phi V
 
-Specified with evaluator type: `"three phase water content`"
+`"evaluator type`" = `"three phase water content`"
 
-.. _field-evaluator-type-three-phase-water-content-spec:
-.. admonition:: field-evaluator-type-three-phase-water-content-spec
+.. _evaluator-three-phase-water-content-spec:
+.. admonition:: evaluator-three-phase-water-content-spec
 
    DEPENDENCIES:
 

@@ -10,7 +10,7 @@
 //! A coupler which integrates surface, richards and preferantial flows implicitly.
 /*!
 
-
+TODO: @dasvyat document me
 
 */
 

@@ -7,18 +7,29 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-//! A coupler which solves flow and energy both surface and subsurface.
 /*!
 
 This MPC handles the coupling of surface energy and flow to subsurface energy
-and flow for integrated hydrology with freeze/thaw processes.
+and flow for integrated thermal hydrology with freeze/thaw processes.
 
-.. _mpc-permafrost-spec:
-.. admonition:: mpc-permafrost-spec
+Coupling for flow is identical to that in :ref:`Integrated Hydrology`.
+Coupling between surface flow and energy is identical to that of :ref:`Surface
+Flow & Energy`, while coupling between subsurface flow and energy is identical
+to that of :ref:`Subsurface Flow & Energy`.  Coupling of energy between the
+surface and subsurface is similar to flow; both continuity of temperature and
+the diffusive flux of energy are enforced, while advected fluxes of energy are
+passed with mass (exfiltration) flux.
 
-   * `"PKs order`" ``[Array(string)]`` The user supplies the names of the
-     coupled PKs.  The order must be {subsurface_flow_pk, subsurface_energy_pk,
-     surface_flow_pk, surface_energy_pk}.
+This is the implementation of the model described in `Painter et al WRR 2016
+<https://doi.org/10.1002/2015WR018427>`_.
+
+`"PK type`" = `"permafrost model`"
+
+.. _pk-permafrost-model-spec:
+.. admonition:: pk-permafrost-model-spec
+
+   * `"PKs order`" ``[Array(string)]`` Order must be {subsurface_flow_pk,
+     subsurface_energy_pk, surface_flow_pk, surface_energy_pk}.
 
    * `"subsurface domain name`" ``[string]`` **domain**
 
@@ -28,12 +39,19 @@ and flow for integrated hydrology with freeze/thaw processes.
 
    * `"energy exchange flux key`" ``[string]`` **SURFACE_DOMAIN-surface_subsurface_energy_flux**
 
-   * `"water delegate`" ``[mpc-delegate-water-spec]`` A `Coupled Water
-     Globalization Delegate`_ spec.
+   * `"supress Jacobian terms: d div surface q / dT`" ``[bool]`` **false** Turn
+     off the Jacobian term associated with the derivative of overland
+     conductivity with respect to temperature.
+
+   * `"water delegate`" ``[mpc-delegate-water-spec]`` A :ref:`Coupled Water
+     Globalization Delegate` spec.
+
+   * `"surface ewc delegate`" ``[mpc-delegate-ewc-spec]`` A :ref:`EWC
+     Globalization Delegate` spec.
 
    INCLUDES:
 
-   - ``[mpc-subsurface-spec]`` *Is a* `Subsurface MPC`_
+   - ``[mpc-subsurface-spec]`` *Is a* :ref:`Subsurface Flow & Energy`
 
  */
 

@@ -304,7 +304,7 @@ TranspirationDistributionRelPermEvaluator::EnsureCompatibility_ToDeps_(State& S)
   // new state!
   if (land_cover_.size() == 0) {
     land_cover_ =
-      getLandCover(S.ICList().sublist("land cover types"),
+      getLandCover(S.GetModelParameters("land cover types"),
                    { "maximum_xylem_capillary_pressure" });
   }
 

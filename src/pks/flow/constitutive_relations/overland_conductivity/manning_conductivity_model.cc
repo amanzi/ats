@@ -10,7 +10,6 @@
 /*
   Evaluates the conductivity of surface flow as a function of ponded
   depth and surface slope using Manning's model.
-
 */
 
 #include "manning_conductivity_model.hh"
@@ -21,7 +20,7 @@ namespace Flow {
 ManningConductivityModel::ManningConductivityModel(Teuchos::ParameterList& plist)
 {
   slope_regularization_ = plist.get<double>("slope regularization epsilon", 1.e-8);
-  manning_exp_ = plist.get<double>("Manning exponent");
+  manning_exp_ = plist.get<double>("Manning exponent", 2./3);
   depth_max_ = plist.get<double>("maximum ponded depth [m]", 1.e8);
 }
 

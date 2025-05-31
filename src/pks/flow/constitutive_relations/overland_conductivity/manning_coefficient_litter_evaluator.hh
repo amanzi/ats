@@ -6,18 +6,21 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-
-/*
-  The manning coefficient with variable litter evaluator is an algebraic evaluator of a given model.
-
-  Generated via evaluator_generator with:
-Manning's coefficient that varies based on litter thickness and ponded depth.
-
-*/
-
 /*!
 
-(missing documentation!)
+Manning's coefficient that varies based on litter thickness and ponded depth.
+
+`"evaluator type`" = `"Manning coefficient, litter`"
+
+.. evaluator-manning-coefficient-litter-spec:
+.. admonition:: evaluator-manning-coefficient-litter-spec
+
+   * `"Manning coefficient parameters`" ``[manning-coefficient-typedinline-spec-list]``
+
+   DEPENDENCIES:
+
+   - `"litter thickness`"
+   - `"ponded depth`"
 
 */
 #ifndef AMANZI_FLOW_MANNING_COEFFICIENT_LITTER_EVALUATOR_HH_

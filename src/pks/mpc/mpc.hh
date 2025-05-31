@@ -7,30 +7,30 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-//! Multi process coupler base class.
+// Multi process coupler base class.
 /*!
 
-A multi process coupler is a PK (process kernel) which coordinates and couples
-several PKs.  Each of these coordinated PKs may be MPCs themselves, or physical
-PKs.  Note this does NOT provide a full implementation of PK -- it does not
-supply the AdvanceStep() method.  Therefore this class cannot be instantiated, but
-must be inherited by derived classes which finish supplying the functionality.
+A multi process coupler is a PK which coordinates and couples several PKs.
+Each of these coordinated PKs may be MPCs themselves, or physical PKs.  Note
+this does NOT provide a full implementation of PK -- it does not supply the
+AdvanceStep() method.  Therefore this class cannot be instantiated, but must be
+inherited by derived classes which finish supplying the functionality.
 Instead, this provides the data structures and methods (which may be overridden
 by derived classes) for managing multiple PKs.
 
 Most of these methods simply loop through the coordinated PKs, calling their
 respective methods.
 
-.. _mpc-spec:
-.. admonition:: mpc-spec
+.. _pk-mpc-spec:
+.. admonition:: pk-mpc-spec
 
-    * `"PKs order`" ``[Array(string)]`` Provide a specific order to the
-      sub-PKs; most methods loop over all sub-PKs, and will call the sub-PK
-      method in this order.
+   * `"PKs order`" ``[Array(string)]`` Provide a specific order to the
+     sub-PKs; most methods loop over all sub-PKs, and will call the sub-PK
+     method in this order.
 
-    INCLUDES:
+   INCLUDES:
 
-    - ``[pk-spec]`` *Is a* PK_.
+   - ``[pk-spec]`` *Is a* :ref:`PK`.
 
 */
 

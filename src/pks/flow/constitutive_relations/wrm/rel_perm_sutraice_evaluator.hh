@@ -4,14 +4,11 @@
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
+  Authors: Bo Gao (gaob@ornl.gov)
 */
-
-//! Evaluates relative permeability using water retention models.
 /*!
 
-Uses a list of regions and water retention models on those regions to evaluate
-relative permeability, typically as a function of liquid saturation.
+Implements the SUTRA Ice model for relative permeability.
 
 Most of the parameters are provided to the WRM model, and not the evaluator.
 Typically these share lists to ensure the same water retention curves, and this
@@ -20,8 +17,10 @@ flow PKs.
 
 Some additional parameters are available.
 
-.. _rel-perm-evaluator-spec
-.. admonition:: rel-perm-evaluator-spec
+`"evaluator type`" = `"relative permeability, SutraICE`"
+
+.. _evaluator-relative-permeability-sutraice-spec:
+.. admonition:: evaluator-relative-permeability-sutraice-spec
 
    * `"use density on viscosity in rel perm`" ``[bool]`` **true**
 
@@ -29,27 +28,34 @@ Some additional parameters are available.
      how the rel perm is calculated on boundary faces.  Note, this may be
      overwritten by upwinding later!  One of:
 
-      - `"boundary pressure`" Evaluates kr of pressure on the boundary face, upwinds normally.
-      - `"interior pressure`" Evaluates kr of the pressure on the interior cell (bad idea).
-      - `"harmonic mean`" Takes the harmonic mean of kr on the boundary face and kr on the interior cell.
-      - `"arithmetic mean`" Takes the arithmetic mean of kr on the boundary face and kr on the interior cell.
+      - `"boundary pressure`" Evaluates kr of pressure on the boundary face,
+        upwinds normally.
+      - `"interior pressure`" Evaluates kr of the pressure on the interior cell
+        (bad idea).
+      - `"harmonic mean`" Takes the harmonic mean of kr on the boundary face
+        and kr on the interior cell.
+      - `"arithmetic mean`" Takes the arithmetic mean of kr on the boundary
+        face and kr on the interior cell.
       - `"one`" Sets the boundary kr to 1.
-      - `"surface rel perm`" Looks for a field on the surface mesh and uses that.
+      - `"surface rel perm`" Looks for a field on the surface mesh and uses
+        that.
 
-   * `"minimum rel perm cutoff`" ``[double]`` **0.** Provides a lower bound on rel perm.
+   * `"minimum rel perm cutoff`" ``[double]`` **0.** Provides a lower bound on
+     rel perm.
 
-   * `"permeability rescaling`" ``[double]`` Typically rho * kr / mu is very big
-     and K_sat is very small.  To avoid roundoff propagation issues, rescaling
-     this quantity by offsetting and equal values is encourage.  Typically 10^7 or so is good.
+   * `"model parameters`" ``[string]`` **WRM parameters**
+     ``[wrm-typedinline-spec-list]`` List (by region) of WRM specs. This will
+     copy `"WRM parameters`" given in `"model parameters`" under state here to
+     evaluate relative permeability. If use `"WRM parameters`", both WRM and
+     relative permeability evaluators use the same set of `"WRM parameters`",
+     which can be van Genuchten or Brooks-Corey. If use a customed name, e.g.,
+     `"relative permeability parameters`", and declare `"relative permeability
+     parameters`" in `"model parameters`" under state, this allows to use
+     different models for WRM (by default through `"WRM parameters`") and
+     relative permeability.
 
-   * `"model parameters`" ``[string]``  **WRM parameters** ``[wrm-typedinline-spec-list]``
-     List (by region) of WRM specs. This will copy `"WRM parameters`" given in `"model parameters`"
-     under state here to evaluate relative permeability. If use `"WRM parameters`", both WRM and
-     relative permeability evaluators use the same set of `"WRM parameters`", which can be van Genuchten
-     or Brooks-Corey. If use a customed name, e.g., `"relative permeability parameters`", and declare
-     `"relative permeability parameters`" in `"model parameters`" under state, this allows to use
-     different models for WRM (by default through `"WRM parameters`") and relative permeability.
-
+   * `"coefficient in drag term of kr`" ``[double]`` **1.0** [-]
+     
    KEYS:
 
    - `"rel perm`"
@@ -59,6 +65,7 @@ Some additional parameters are available.
    - `"viscosity`" (if `"use density on viscosity in rel perm`" == true)
    - `"surface relative permeability`" (if `"boundary rel perm strategy`" == `"surface rel perm`")
 
+     
 Example:
 Using the same set of van Genuchten model paramters for WRM and relative permeability
 

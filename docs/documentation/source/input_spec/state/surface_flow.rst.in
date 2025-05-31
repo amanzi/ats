@@ -1,30 +1,22 @@
-Surface flow evaluators
+Surface Flow Evaluators
 -----------------------
 
-Assorted evaluators used for surface flow, including potential
-surfaces, Manning's conductivity, and their frozen equivalents.
+Evaluators are used in surface flow for things like ponded depth,
+Manning's conductivity, and their frozen equivalents.
 
-Like the subsurface flow evaluators, many of these evaluators show up
-in nearly all ATS simulations.  For real examples, see `ats-demos
-<https://github.com/amanzi/ats-demos>`_
-
-
-Ponded Depth or Water Height
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Ponded Depth
+^^^^^^^^^^^^
 { height_evaluator }
-{ height_model }
 
 Ponded Depth, Frozen
 ^^^^^^^^^^^^^^^^^^^^
 { icy_height_evaluator }
-{ icy_height_model }
 
-Effective, or Smoothed Height
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Smoothed Ponded Depth
+^^^^^^^^^^^^^^^^^^^^^
 { effective_height_evaluator }
-{ effective_height_model }
 
-Unfrozen fraction
+Unfrozen Fraction
 ^^^^^^^^^^^^^^^^^
 { unfrozen_fraction_evaluator }
 { unfrozen_fraction_model }
@@ -33,19 +25,26 @@ Unfrozen Flowing Depth
 ^^^^^^^^^^^^^^^^^^^^^^
 { unfrozen_effective_depth_evaluator }
 
-SurfacePotential
-^^^^^^^^^^^^^^^^^^^
-{ pres_elev_evaluator }
-
-Overland Conductivity, sheet flow
+Overland Conductivity, Sheet Flow
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. _`Overland Conductivity Evaluator`:
 { overland_conductivity_evaluator }
 { manning_conductivity_model }
 
-Overland Conductivity, litter resistance
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Manning Coefficient
+^^^^^^^^^^^^^^^^^^^
+
+The Manning coefficient is most commonly just a piecewise-constant
+function (defined by land cover type or stream order).  In the most
+common case, it is therefore an :ref:`Independent Variable From
+Function`.  However, there are cases where it is useful to define it
+as a function of a dynamic litter layer:
+
 { manning_coefficient_litter_evaluator }
-{ manning_coefficient_litter_model }
+
+**Manning n Models**
+
+{ manning_coefficient_litter_constant_model }
+{ manning_coefficient_litter_variable_model }
 
 

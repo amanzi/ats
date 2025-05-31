@@ -7,14 +7,21 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-//! Internal energy model for air and water vapor.
 /*!
 
-.. _iem-water-vapor-model-spec:
-.. admonition:: iem-water-vapor-model-spec
+Internal energy model for air and water vapor.
 
-    * `"latent heat [J mol^-1]`" ``[double]`` Latent heat of vaporization
-    * `"heat capacity [J mol^-1 K^-1]`" ``[double]`` C_v
+.. math::
+
+   u = (1 + 0.622 \omega) C_v^{air} (T - 273.15) + \omega L_v
+
+.. _iem-water-vapor-spec:
+.. admonition:: iem-water-vapor-spec
+
+   * `"latent heat [J mol^-1]`" ``[double]`` Latent heat of vaporization,
+     :math:`L_v`
+   * `"heat capacity [J mol^-1 K^-1]`" ``[double]`` Heat capacity of air,
+     :math:`C_v^{air}`
 
 */
 

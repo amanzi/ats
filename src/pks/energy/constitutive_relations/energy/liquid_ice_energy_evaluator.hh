@@ -15,7 +15,7 @@ Calculates energy, in [KJ], via the equation:
 .. math::
   E = V * ( \phi (u_l s_l n_l + u_i s_i n_i)  + (1-\phi_0) u_r \rho_r )
 
-Specified with evaluator type: `"liquid+ice energy`"
+`"evaluator type`" = `"liquid+ice energy`"
 
 Note this equation assumes that porosity is compressible, but is based on the
 uncompressed rock grain density (not bulk density).  This means that porosity
@@ -24,8 +24,8 @@ the larger, compressible value when used with the energy in the water.
 
 Note that this ignores energy in the gas phase.
 
-.. _field-evaluator-type-liquid-ice-energy-spec:
-.. admonition:: field-evaluator-type-liquid-ice-energy-spec
+.. _evaluator-liquid-ice-energy-spec:
+.. admonition:: evaluator-liquid-ice-energy-spec
 
    DEPENDENCIES:
 

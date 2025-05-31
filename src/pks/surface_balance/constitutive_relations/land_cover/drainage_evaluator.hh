@@ -34,8 +34,8 @@ Drainage is given by:
 .. math::
    D = max(0, \frac{(\Theta - \Theta_sat)}{\tau})
 
-.. _drainage-evaluator-spec:
-.. admonition:: drainage-evaluator-spec
+.. _evaluator-drainage-spec:
+.. admonition:: evaluator-drainage-spec
 
    * `"drainage timescale [s]`" ``[double]`` **864** Timescale over which drainage occurs.
    * `"saturated specific water content [m^3 H2O / m^2 leaf area]`" ``[double]`` **1e-4**

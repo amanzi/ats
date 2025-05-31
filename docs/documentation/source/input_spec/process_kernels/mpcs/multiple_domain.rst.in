@@ -1,0 +1,40 @@
+Multiple Domain MPCs
+====================
+
+Additionally, MPCs are used to couple across multiple physical
+domains.  This includes for integrated surface-subsurface
+implementations, multiple media, for subgrid models, and other novel
+models across domain sets.
+
+Integrated Hydrology
+--------------------
+{ mpc_coupled_water }
+
+Operator Split Integrated Hydrology
+-----------------------------------
+{ mpc_coupled_water_split_flux }
+
+Integrated Thermal Hydrology
+----------------------------
+{ mpc_permafrost }
+
+Operator Split Integrated Thermal Hydrology
+-------------------------------------------
+{ mpc_permafrost_split_flux }
+
+Integrated Hydrology with Dual Media
+------------------------------------
+{ mpc_coupled_dualmedia_water }
+
+Integrated Transport
+--------------------
+{ mpc_coupled_transport }
+
+Integrated Reactive Transport
+-----------------------------
+{ mpc_coupled_reactivetransport }
+
+
+
+
+

@@ -30,7 +30,6 @@ import subprocess
 import textwrap
 import time
 import traceback
-import distutils.spawn
 import numpy
 import collections
 import configparser
@@ -41,14 +40,14 @@ _aliases = {'surface-water_flux':['surface-mass_flux','surface-mass_flux_next'],
             'water_flux':['mass_flux','mass_flux_next'],
             'saturation_liquid':['prev_saturation_liquid'],
             'free_ion_species':['primary_free_ion_concentration',],
-            'molar_ratio':['molar_mixing_ratio',],
-            'surface-molar_ratio':['surface-molar_mixing_ratio',],
-            'subgrid:9-molar_ratio':['subgrid:9-molar_mixing_ratio',],
-            'subgrid:0-molar_ratio':['subgrid:0-molar_mixing_ratio',],
-            'subgrid_1:9-molar_ratio':['subgrid_1:9-molar_mixing_ratio',],
-            'subgrid_1:0-molar_ratio':['subgrid_1:0-molar_mixing_ratio',],
-            'subgrid_2:9-molar_ratio':['subgrid_2:9-molar_mixing_ratio',],
-            'subgrid_2:0-molar_ratio':['subgrid_2:0-molar_mixing_ratio',],
+            'mole_fraction':['molar_ratio','molar_mixing_ratio',],
+            'surface-mole_fraction':['surface-molar_ratio','surface-molar_mixing_ratio',],
+            'subgrid:9-mole_fraction':['subgrid:9-molar_ratio','subgrid:9-molar_mixing_ratio',],
+            'subgrid:0-mole_fraction':['subgrid:0-molar_ratio','subgrid:0-molar_mixing_ratio',],
+            'subgrid_1:9-mole_fraction':['subgrid_1:9-molar_ratio','subgrid_1:9-molar_mixing_ratio',],
+            'subgrid_1:0-mole_fraction':['subgrid_1:0-molar_ratio','subgrid_1:0-molar_mixing_ratio',],
+            'subgrid_2:9-mole_fraction':['subgrid_2:9-molar_ratio','subgrid_2:9-molar_mixing_ratio',],
+            'subgrid_2:0-mole_fraction':['subgrid_2:0-molar_ratio','subgrid_2:0-molar_mixing_ratio',],
             }
 
 
@@ -1495,7 +1494,7 @@ def check_for_executable(options, testlog):
     if options.executable is None:
         # try to detect from env
         try:
-            executable = distutils.spawn.find_executable("ats")
+            executable = shutil.which("ats")
         except Exception:
             executable = None
         finally:
@@ -1539,7 +1538,7 @@ def check_for_mpiexec(options, testlog):
     if options.mpiexec is None:
         # try to detect from env
         try:
-            mpiexec = distutils.spawn.find_executable("mpiexec")
+            mpiexec = shutil.which("mpiexec")
         except IOError:
             mpiexec = None
     else:

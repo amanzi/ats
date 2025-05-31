@@ -6,19 +6,16 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-
-//! Default implementation of both BDF and Physical PKs.
 /*!
 
-A base class for all PKs that are both physical, in the sense that they
-implement an equation and are not couplers, and BDF, in the sense that they
-support the implicit integration interface.  This largely just supplies a
-default error norm based on error in conservation relative to the extent of the
-conserved quantity.
+PKs that are both Physical and BDF are likely conservation equations.  Given a
+conserved quantity, we can supply a default error norm for conservation.  By
+default, the error norm used by solvers is given by:
 
-By default, the error norm used by solvers is given by:
+:math:`ENORM(u, du) = |du| / ( a_{tol} + r_{tol} * |u| )`
 
-:math:`ENORM(u, du) = |du| / ( a_tol + r_tol * |u| )`
+where :math:`u` is the conserved quantity and :math:`du` is the error in
+conservation.
 
 The defaults here are typically good, or else good defaults are set in the
 code, so usually are not supplied by the user.
@@ -27,33 +24,28 @@ code, so usually are not supplied by the user.
 .. _pk-physical-bdf-default-spec:
 .. admonition:: pk-physical-bdf-default-spec
 
-    * `"conserved quantity key`" ``[string]`` Name of the conserved quantity.
-      Usually a sane default is set by the PK.
+   * `"conserved quantity key`" ``[string]`` Name of the conserved quantity.
+     Usually a sane default is set by the PK.
 
-    * `"max valid change`" ``[double]`` **-1** Sets a limiter on what is a
-      valid change in a single timestep.  Changes larger than this are declared
-      invalid and the timestep shrinks.  By default, any change is valid.
-      Units are the same as the primary variable.
+   * `"absolute error tolerance`" ``[double]`` **1.0** Absolute tolerance,
+     :math:`a_{tol}` in the equation above.  Unit are the same as the conserved
+     quantity.  Note that this default is often overridden by PKs with more
+     physical values, and very rarely are these set by the user.
 
-    * `"absolute error tolerance`" ``[double]`` **1.0** Absolute tolerance,
-      :math:`a_tol` in the equation above.  Unit are the same as the conserved
-      quantity.  Note that this default is often overridden by PKs with more
-      physical values, and very rarely are these set by the user.
+   * `"relative error tolerance`" ``[double]`` **1.0** Relative tolerance,
+     :math:`r_{tol}` in the equation above.  ``[-]`` Note that this default can
+     be overridden by PKs with more physical values, and very rarely are these
+     set by the user.
 
-    * `"relative error tolerance`" ``[double]`` **1.0** Relative tolerance,
-      :math:`r_tol` in the equation above.  ``[-]`` Note that this default can
-      be overridden by PKs with more physical values, and very rarely are these
-      set by the user.
+   * `"flux error tolerance`" ``[double]`` **1.0** Relative tolerance on the
+     flux, or face-based error caused by a mismatch in flux from either side of
+     the face.  Note that this default is often overridden by PKs with more
+     physical values, and very rarely are these set by the user.
 
-    * `"flux error tolerance`" ``[double]`` **1.0** Relative tolerance on the
-      flux.  Note that this default is often overridden by PKs with more physical
-      values, and very rarely are these set by the user.
+   INCLUDES:
 
-    INCLUDES:
-
-    - ``[pk-bdf-default-spec]`` *Is a* `PK: BDF`_
-    - ``[pk-physical-default-spec]`` *Is a* `PK: Physical`_
-
+   - ``[pk-bdf-default-spec]`` *Is a* `PK: BDF`_
+   - ``[pk-physical-default-spec]`` *Is a* `PK: Physical`_
 
 */
 

@@ -12,10 +12,12 @@
 A non-isothermal viscosity model intended for use within a range of
 temperatures from well below freezing to ~100C.
 
-.. _viscosity-evaluator-spec:
-.. admonition:: viscosity-evaluator-spec
+`"evaluator type`" = `"viscosity`"
 
-   * `"viscosity model parameters`" ``[viscosity-typedinline-spec-list]``
+.. _evaluator-viscosity-spec:
+.. admonition:: evaluator-viscosity-spec
+
+   * `"viscosity model parameters`" ``[viscosity-typedinline-spec]``
 
    KEYS:
 

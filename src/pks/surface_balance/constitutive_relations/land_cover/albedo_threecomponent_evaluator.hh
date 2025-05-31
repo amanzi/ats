@@ -6,8 +6,6 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-
-//! Evaluates albedos and emissivities in a three-component subgrid model.
 /*!
 
 Evaluates the albedo and emissivity as an interpolation on the surface
@@ -16,10 +14,10 @@ snow.  Note this internally calculates albedo of snow based upon snow density.
 
 Components are: 0 = land, 1 = ice/water, 2 = snow.
 
-Requires the use of LandCover types, for ground albedo and emissivity.
+`"evaluator type`" = `"subgrid albedos, three components`"
 
-.. _albedo-evaluator-subgrid-spec:
-.. admonition:: albedo-evaluator-subgrid-spec
+.. _evaluator-subgrid-albedos-three-components-spec:
+.. admonition:: evaluator-subgrid-albedos-three-components-spec
 
    * `"albedo ice [-]`" ``[double]`` **0.44**
    * `"albedo water [-]`" ``[double]`` **0.1168**
@@ -37,6 +35,15 @@ Requires the use of LandCover types, for ground albedo and emissivity.
 
    - `"snow density`" **SNOW_DOMAIN-density**
    - `"unfrozen fraction`" **DOMAIN-unfrozen_fraction**
+
+
+.. note::
+
+   This evaluator also uses the :ref:`Land Cover` types.  From that struct, it
+   requires the value of the following parameters:
+
+   - `"emissivity of bare ground [-]`"
+   - `"albedo of bare ground [-]`"
 
 */
 

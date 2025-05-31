@@ -7,18 +7,34 @@
   Authors: Markus Berndt (berndt@lanl.gov)
            Konstantin Lipnikov (lipnikov@lanl.gov)
 */
-
-//! A linear sat-pc curve.
 /*!
 
-  A linear sat-pc curve, plus a constant rel perm, makes the system linear, so
-  nonlinear solver should always converge in one step.
+A linear sat-pc curve, plus a constant rel perm, makes the system linear, so
+the nonlinear solver should always converge in one step.
 
-  No error-checking, so the user is responsible for ensuring that the pressure
-  is always less than atmospheric and within the acceptable range of the slope.
+No error-checking, so the user is responsible for ensuring that the pressure
+is always less than atmospheric and within the acceptable range of the slope.
 
-  Note this is mostly for testing.
+Note this is mostly for testing.
 
+`"WRM type`" = `"linear system`"
+
+.. _wrm-linear-system-spec
+.. admonition:: wrm-linear-system-spec
+
+   * `"saturation at pc=0`" ``[double]`` **1.0**
+
+   ONE OF
+
+   * `"alpha`" ``[double]``  Slope of the linear curve.
+
+   OR
+
+   * `"max pc`" ``[double]``  Capillary pressure at saturation = 0.
+
+   END
+
+  
 */
 
 #ifndef _FLOWRELATIONS_WRM_LINEAR_SYSTEM_

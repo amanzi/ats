@@ -10,8 +10,8 @@
 //! Evaluates shortwave as a function of slope/aspect/etc.
 /*!
 
-.. _incident_shortwave_radiation_model-spec:
-.. admonition:: incident_shortwave_radiation_model-spec
+.. _incident-shortwave-radiation-model-spec:
+.. admonition:: incident-shortwave-radiation-model-spec
 
    * `"latitude [degrees]`" ``[double]`` Latitude of the site.  A single
      typical value is fine for most domains, even relatively large ones

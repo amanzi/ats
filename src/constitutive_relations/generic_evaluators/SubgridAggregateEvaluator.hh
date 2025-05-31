@@ -10,8 +10,8 @@
 //! SubgridAggregateEvaluator restricts a field to the subgrid version of the same field.
 /*!
 
-.. _subgrid-aggregate-evaluator-spec:
-.. admonition:: subgrid-aggregate-evaluator-spec
+.. _evaluator-subgrid-aggregate-spec:
+.. admonition:: evaluator-subgrid-aggregate-spec
 
    * `"source domain name`" ``[string]`` Domain name of the source mesh.
 

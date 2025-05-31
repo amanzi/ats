@@ -76,10 +76,10 @@ EOSIce::DMassDensityDp(std::vector<double>& params)
 void
 EOSIce::InitializeFromPlist_()
 {
-  if (eos_plist_.isParameter("Molar mass of ice [kg/mol]")) {
-    M_ = eos_plist_.get<double>("Molar mass of ice [kg/mol]");
+  if (eos_plist_.isParameter("molar mass [kg mol^-1]")) {
+    M_ = eos_plist_.get<double>("molar mass [kg mol^-1]");
   } else {
-    M_ = eos_plist_.get<double>("Molar mass of ice [g/mol]", 18.0153) * 1e-3;
+    M_ = eos_plist_.get<double>("molar mass [g mol^-1]", 18.0153) * 1e-3;
   }
 };
 

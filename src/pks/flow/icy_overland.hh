@@ -6,18 +6,15 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-
-//! Two-phase overland flow equation.
 /*!
 
 This modifies the diffusion wave equation for overland flow that includes
-freeze-thaw processes.  This class could completely go away, but it does some
-error checking on the input file to make sure freeze-thaw processes are done
-correctly.  In the future this service should be done by a preprocessor
-generating the input file, and this class would go away.
+freeze-thaw processes.
 
-.. _icy-overland-spec:
-.. admonition:: icy-overland-spec
+`"PK type`" = `"overland flow with ice`"
+
+.. _pk-overland-flow-with-ice-spec:
+.. admonition:: pk-overland-flow-with-ice-spec
 
     INCLUDES:
 
