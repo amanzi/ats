@@ -84,7 +84,7 @@ MPCReactiveTransport::cast_sub_pks_()
   AMANZI_ASSERT(transport_pk_ != Teuchos::null);
 
 
-#ifdef ENABLE_ALQUIMIA
+#ifdef ALQUIMIA_ENABLED
   chemistry_pk_ = Teuchos::rcp_dynamic_cast<AmanziChemistry::Alquimia_PK>(sub_pks_[0]);
   AMANZI_ASSERT(chemistry_pk_ != Teuchos::null);
 
