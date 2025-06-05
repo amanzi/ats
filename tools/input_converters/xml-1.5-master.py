@@ -129,20 +129,74 @@ def tensorPerm_(perm):
             perm.setParameter("tensor type", "string", "scalar")
 
 
+def _pkTreeIter(tree, recurse=True):
+    yield tree
+    for el in tree:
+        if el.getName() != "PK type":
+            for pk in _pkTreeIter(el, recurse):
+                yield pk
+            
+
+def coupledFlowTransportMPC(xml):
+    pk_tree = asearch.find_path(xml, ["cycle driver", "PK tree"])
+    pk_list = asearch.find_path(xml, ["PKs",])
+
+    transport_pk_types = ["transport ATS", "surface subsurface transport"]
+    flow_pk_types = ["richards flow", "richards steady state", "overland flow, pressure basis",
+                     "subsurface permafrost", "icy surface", "permafrost model", "coupled water",
+                     "operator split coupled water", "operator split permafrost",]
+    
+    for pk in _pkTreeIter(list(pk_tree)[0]):
+        if pk.getElement("PK type").getValue() == "subcycling MPC":
+            subpk_types = [el.getElement("PK type").getValue() for el in pk if el.getName() != "PK type"]
+            print(f'Found a subcycling MPC with subpk types: {subpk_types}')
+
+            if len(subpk_types) == 2 and \
+               subpk_types[0] in flow_pk_types and \
+               subpk_types[1] in transport_pk_types:
+                print(f'... changing to type "coupled flow and transport"')
+                pk.getElement("PK type").setValue("coupled flow and transport")
+                pk_list.sublist(pk.getName()).getElement("PK type").setValue("coupled flow and transport")
+
+
+def removeTc99(xml):
+    # Tc-99 not a valid name
+    for cnames in asearch.findall_path(xml, ["component names",]):
+        old_names = cnames.getValue()
+        new_names = []
+        for name in cnames.getValue():
+            if name == 'Tc-99':
+                new_names.append('Tracer1')
+            elif '-' in name:
+                new_names.append(name.replace('-', ''))
+            else:
+                new_names.append(name)
+        cnames.setValue(new_names)
+    
+                
+def removeVerboseObject(xml):
+    pm = asearch.parent_map(xml)
+    
+    # let global verbosity control for tests
+    for vo in asearch.findall_path(xml, ["verbose object",]):
+        pm[vo].remove(vo)
+
+
 def fixTransportPK(pk, evals_list):
     if pk.isElement("domain name"):
         domain = pk.getElement("domain name").getValue()
     else:
         domain = "domain"
-
+        
+    # spatial discretization order --> advection spatial discretization order
     if not pk.isElement("advection spatial discretization order") and pk.isElement("spatial discretization order"):
         order = pk.getElement("spatial discretization order")
         order.setName("advection spatial discretization order")
     order = pk.getElement("advection spatial discretization order").getValue()
     if order == 1 and pk.isElement("reconstruction"):
         pk.pop("reconstruction")
-    
 
+    # moves and changes format of molecular diffusion coefficient
     if pk.isElement("molecular diffusion") and not pk.isElement("molecular diffusivity [m^2 s^-1]"):
         md = pk.pop("molecular diffusion")
         if md.isElement("aqueous names"):
@@ -154,20 +208,25 @@ def fixTransportPK(pk, evals_list):
                 for name, val in zip(names, vals):
                     diff.setParameter(name.strip(), "double", val)
 
+    # inverse list in diffusion list
     if pk.isElement("inverse") and pk.isElement("diffusion"):
         inv = pk.pop("inverse")
         pk.sublist("diffusion").append(inv)
     elif pk.isElement("inverse"):
         pk.pop("inverse")
 
+    # internal subcycling is dead
     if pk.isElement("transport subcycling"):
         pk.pop("transport subcycling")
 
+    # runtime diagnostics is dead
     if pk.isElement("runtime diagnostics: regions"):
         pk.pop("runtime diagnostics: regions")
 
     if pk.isElement("material properties"):
         mat_props = pk.pop("material properties").sublist("domain")
+
+        # moves dispersion coefficient to MDM type
         if mat_props.isElement("model"):
             if domain == "domain":
                 disp_key = "dispersion_coefficient"
@@ -175,6 +234,7 @@ def fixTransportPK(pk, evals_list):
                 disp_key = domain + "-dispersion_coefficient"
 
             if not evals_list.isElement(disp_key):
+                all_zero = True
                 disp_list = evals_list.sublist(disp_key)
                 disp_list.setParameter("evaluator type", "string", "dispersion tensor")
                 disp_list2 = disp_list.sublist("mechanical dispersion parameters").sublist(domain)
@@ -189,23 +249,38 @@ def fixTransportPK(pk, evals_list):
                     params_list = mat_props.sublist(f"parameters for {disp_type}")
                     params_list.setName("isotropic parameters")
                     disp_list2.append(params_list)
+
+                    for par in params_list:
+                        if par.getValue() != 0.0:
+                            all_zero = False
                 else:
                     disp_list2.setParameter("mechanical dispersion type", "string", disp_type)
                     params_list = mat_props.sublist(f"parameters for {disp_type}")
                     params_list.setName(f"{disp_type} parameters")
                     disp_list2.append(params_list)
 
+                    for par in params_list:
+                        if par.getValue() != 0.0:
+                            all_zero = False
+
+                if all_zero:
+                    # all params are zero, remove dispersivity compleletely
+                    evals_list.pop(disp_key)
+
+        # moves/reformats tortuosity
         if mat_props.isElement("aqueous tortuosity"):
             pk.sublist("tortuosity [-]").setParameter("aqueous", "double", mat_props.getElement("aqueous tortuosity").getValue())
         if mat_props.isElement("gaseous tortuosity"):
             pk.sublist("tortuosity [-]").setParameter("gaseous", "double", mat_props.getElement("gaseous tortuosity").getValue())
 
+    # component molar masses gets units, moves to sublist
     if pk.isElement("component molar masses"):
         mms = pk.pop("component molar masses")
         names = pk.getElement("component names").getValue()
         for name, mm in zip(names, mms):
             pk.sublist("molar mass [kg mol^-1]").setParameter(name, "double", mm)
 
+    # look for a water_content, define if needed
     if domain == "domain":
         lwc_key = "water_content"
     else:
@@ -225,6 +300,19 @@ def fixTransportPK(pk, evals_list):
             print('adding subsurface quantities for LWC')
             lwc_list.setParameter("dependencies", "Array(string)", ["saturation_liquid", "molar_density_liquid", "porosity", "cell_volume"])
 
+    # boundary conditions->concentration --> bondary conditions->mole fraction
+    bcs_list = pk.sublist('boundary conditions')
+    if bcs_list.isElement('concentration') and not bcs_list.isElement('mole fraction'):
+        bcs_list.sublist('concentration').setName('mole fraction')
+
+    if bcs_list.isElement('mole fraction'):
+        mf = bcs_list.sublist('mole fraction')
+        for sublist in mf:
+            if sublist.isElement('boundary concentration function') and not sublist.isElement('boundary mole fraction function'):
+                sublist.sublist('boundary concentration function').setName('boundary mole fraction function')
+    
+
+            
     # remove dead keys
     def removeDead(keyname, default_names, remove_eval=False):
         if isinstance(default_names, str):
@@ -277,26 +365,29 @@ def fixTransportPK(pk, evals_list):
 
 def fixTransportPKs(xml):
     evals_list = asearch.find_path(xml, ["state", "evaluators"], True)
-    pk_list = asearch.child_by_name(xml, "PKs")
-    for pk in pk_list:
+    pk_tree = asearch.find_path(xml, ["cycle driver", "PK tree"])
+    pk_list = asearch.find_path(xml, ["PKs",])
+
+    for pk in _pkTreeIter(list(pk_tree)[0]):
         pk_type = pk.getElement("PK type")
-        print(pk_type)
 
         if pk_type.getValue() == "transport ATS":
             print("fixing transport pk")
-            fixTransportPK(pk, evals_list)
+            fixTransportPK(pk_list.sublist(pk.getName()), evals_list)
         elif pk_type.getValue() == "transport ats":
             pk_type.setValue("transport ATS")
             print("fixing transport pk")
-            fixTransportPK(pk, evals_list)
+            fixTransportPK(pk_list.sublist(pk.getName()), evals_list)
 
 def initialConditionsList(xml):
     for pk in xml.sublist("PKs"):
         if pk.isElement("initial condition"):
             pk.sublist("initial condition").setName("initial conditions")
-            
-            
+
+
 def update(xml):
+    coupledFlowTransportMPC(xml)
+
     #enforceDtHistory(xml)
     timeStep(xml)
     tensorPerm(xml)
@@ -314,6 +405,14 @@ def update(xml):
 
     # molar mass --> molar mass [kg m^-3]
     molarMass(xml)
+
+    # tc-99 --> tracer
+    removeTc99(xml)
+
+    # verbose object controlled by global verbosity
+    # NOTE: this is useful on tests, but a bad idea to use for user input files
+    # removeVerboseObject(xml)
+    
     
 
 if __name__ == "__main__":
