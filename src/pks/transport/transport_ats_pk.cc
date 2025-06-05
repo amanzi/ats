@@ -1003,57 +1003,80 @@ Transport_ATS::AdvanceAdvectionSources_RK1_(double t_old,
   // distribute vector of concentrations
   // scattering total concentration from master to others
   S_->Get<CompositeVector>(key_, tag_current_).ScatterMasterToGhosted();
-  const Epetra_MultiVector& tcc_old = *S_->Get<CompositeVector>(key_, tag_current_)
-    .ViewComponent("cell", true);
 
-  // old and new water contents -- note these were updated in StableStep
-  const Epetra_MultiVector& lwc_old = *S_->Get<CompositeVector>(lwc_key_, tag_current_)
-    .ViewComponent("cell", false);
+  { // context for Multiply -- on owned cells
+    const Epetra_MultiVector& tcc_old = *S_->Get<CompositeVector>(key_, tag_current_)
+      .ViewComponent("cell", false);
 
-  // populating conserved quantity (unit: molC)
-  // The conserve_qty (M) has `num_components_+2` vectors, the extras for tracking water
-  Epetra_MultiVector& conserve_qty =
-    *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_)
-    .ViewComponent("cell", false);
+    // old and new water contents -- note these were updated in StableStep
+    const Epetra_MultiVector& lwc_old = *S_->Get<CompositeVector>(lwc_key_, tag_current_)
+      .ViewComponent("cell", false);
 
-  // -- M <-- C0 * WC0
-  // -- mol H2O * (mol C / mol H20) --> mol C, the conserved component quantity
-  for (int i = 0; i != num_aqueous_; ++i) {
-    conserve_qty(i)->Multiply(1., *lwc_old(0), *tcc_old(i), 0.);
+    // populating conserved quantity (unit: molC)
+    // The conserve_qty (M) has `num_components_+2` vectors, the extras for tracking water
+    Epetra_MultiVector& conserve_qty =
+      *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_)
+      .ViewComponent("cell", false);
+
+    // -- M <-- C0 * WC0
+    // -- mol H2O * (mol C / mol H20) --> mol C, the conserved component quantity
+    for (int i = 0; i != num_aqueous_; ++i) {
+      conserve_qty(i)->Multiply(1., *lwc_old(0), *tcc_old(i), 0.);
+    }
+    conserve_qty(num_aqueous_)->PutScalar(0.);
+    conserve_qty(num_aqueous_ + 1)->PutScalar(0.);
+    db_->WriteCellVector("qnty (old)", conserve_qty,
+                         S_->GetRecordSet(conserve_qty_key_).subfieldnames());
   }
-  conserve_qty(num_aqueous_)->PutScalar(0.);
-  conserve_qty(num_aqueous_ + 1)->PutScalar(0.);
-  db_->WriteCellVector("qnty (old)", conserve_qty,
-                       S_->GetRecordSet(conserve_qty_key_).subfieldnames());
 
-  // advection: M <-- M + dt * div q * C0
-  if (spatial_order == 1) {
-    AddAdvection_FirstOrderUpwind_(t_old, t_new, tcc_old, conserve_qty);
-  } else if (spatial_order == 2) {
-    AddAdvection_SecondOrderUpwind_(t_old, t_new, tcc_old, conserve_qty);
+  { // context for advection -- on all cells
+    const Epetra_MultiVector& tcc_old = *S_->Get<CompositeVector>(key_, tag_current_)
+      .ViewComponent("cell", true);
+    Epetra_MultiVector& conserve_qty =
+      *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_)
+      .ViewComponent("cell", true);
+
+    // advection: M <-- M + dt * div q * C0
+    if (spatial_order == 1) {
+      AddAdvection_FirstOrderUpwind_(t_old, t_new, tcc_old, conserve_qty);
+    } else if (spatial_order == 2) {
+      AddAdvection_SecondOrderUpwind_(t_old, t_new, tcc_old, conserve_qty);
+    }
+    db_->WriteCellVector("qnty (adv)", conserve_qty,
+                         S_->GetRecordSet(conserve_qty_key_).subfieldnames());
   }
-  db_->WriteCellVector("qnty (adv)", conserve_qty,
-                       S_->GetRecordSet(conserve_qty_key_).subfieldnames());
 
-  // process external sources: M <-- M + dt * Q
-  AddSourceTerms_(t_old, t_new, conserve_qty, 0, num_aqueous_ - 1);
-  db_->WriteCellVector("qnty (src)", conserve_qty,
-                       S_->GetRecordSet(conserve_qty_key_).subfieldnames());
+  { // context for sources
+    Epetra_MultiVector& conserve_qty =
+      *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_)
+      .ViewComponent("cell", false);
 
-  // invert for C1: C1 <-- M / WC1, also deals with dissolution/precipitation
-  // tcc_new, the new solution
-  Epetra_MultiVector& tcc_new = *S_->GetW<CompositeVector>(key_, tag_next_, passwd_)
-    .ViewComponent("cell", false);
+    // process external sources: M <-- M + dt * Q
+    AddSourceTerms_(t_old, t_new, conserve_qty, 0, num_aqueous_ - 1);
+    db_->WriteCellVector("qnty (src)", conserve_qty,
+                         S_->GetRecordSet(conserve_qty_key_).subfieldnames());
+  }
 
-  // solid quantity (unit: molC) stores extra solute mass
-  // solid_qty has `num_components_` vectors only (solute mass)
-  Epetra_MultiVector& solid_qty =
-    *S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, name_)
-    .ViewComponent("cell", false);
+  { // context for inversion
+    // invert for C1: C1 <-- M / WC1, also deals with dissolution/precipitation
+    // tcc_new, the new solution
+    Epetra_MultiVector& tcc_new = *S_->GetW<CompositeVector>(key_, tag_next_, passwd_)
+      .ViewComponent("cell", false);
 
-  InvertTccNew_(conserve_qty, tcc_new, &solid_qty, true);
-  db_->WriteCellVector("mol_ratio (pre-diff)", tcc_new,
-                       S_->GetRecordSet(key_).subfieldnames());
+    // solid quantity (unit: molC) stores extra solute mass
+    // solid_qty has `num_components_` vectors only (solute mass)
+    Epetra_MultiVector& solid_qty =
+      *S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, name_)
+      .ViewComponent("cell", false);
+
+    const Epetra_MultiVector& conserve_qty =
+      *S_->Get<CompositeVector>(conserve_qty_key_, tag_next_)
+      .ViewComponent("cell", false);
+
+    InvertTccNew_(conserve_qty, tcc_new, &solid_qty, true);
+    db_->WriteCellVector("mol_ratio (pre-diff)", tcc_new,
+                         S_->GetRecordSet(key_).subfieldnames());
+  }
 }
 
 
@@ -1071,47 +1094,60 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(double t_old,
   // distribute vector of concentrations
   // scattering total concentration from master to others
   S_->Get<CompositeVector>(key_, tag_current_).ScatterMasterToGhosted();
-  const Epetra_MultiVector& tcc_old = *S_->Get<CompositeVector>(key_, tag_current_)
-    .ViewComponent("cell", true);
 
-  // old and new water contents -- note these were updated in StableStep
-  const Epetra_MultiVector& lwc_old = *S_->Get<CompositeVector>(lwc_key_, tag_current_)
-    .ViewComponent("cell", false);
+  { // context for Multiply -- on owned cells
+    const Epetra_MultiVector& tcc_old = *S_->Get<CompositeVector>(key_, tag_current_)
+      .ViewComponent("cell", false);
 
-  // populating conserved quantity (unit: molC)
-  // The conserve_qty (M) has `num_components_+2` vectors, the extras for tracking water
-  Epetra_MultiVector& conserve_qty =
-    *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_)
-    .ViewComponent("cell", false);
+    // old and new water contents -- note these were updated in StableStep
+    const Epetra_MultiVector& lwc_old = *S_->Get<CompositeVector>(lwc_key_, tag_current_)
+      .ViewComponent("cell", false);
 
-  // -- M <-- C0 * W0
-  // -- mol H2O * (mol C / mol H20) --> mol C, the conserved component quantity
-  for (int i = 0; i != num_aqueous_; ++i) {
-    conserve_qty(i)->Multiply(1., *lwc_old(0), *tcc_old(i), 0.);
+    // populating conserved quantity (unit: molC)
+    // The conserve_qty (M) has `num_components_+2` vectors, the extras for tracking water
+    Epetra_MultiVector& conserve_qty =
+      *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_)
+      .ViewComponent("cell", false);
+
+    // -- M <-- C0 * W0
+    // -- mol H2O * (mol C / mol H20) --> mol C, the conserved component quantity
+    for (int i = 0; i != num_aqueous_; ++i) {
+      conserve_qty(i)->Multiply(1., *lwc_old(0), *tcc_old(i), 0.);
+    }
+    conserve_qty(num_aqueous_)->PutScalar(0.);
+    conserve_qty(num_aqueous_ + 1)->PutScalar(0.);
+    db_->WriteCellVector("qnty (start)", conserve_qty,
+                         S_->GetRecordSet(conserve_qty_key_).subfieldnames());
   }
-  conserve_qty(num_aqueous_)->PutScalar(0.);
-  conserve_qty(num_aqueous_ + 1)->PutScalar(0.);
-  db_->WriteCellVector("qnty (start)", conserve_qty,
-                       S_->GetRecordSet(conserve_qty_key_).subfieldnames());
 
-  // Predictor Step:
-  // -- advection: M <-- M + dt * div q * C0
-  if (spatial_order == 1) {
-    AddAdvection_FirstOrderUpwind_(t_old, t_new, tcc_old, conserve_qty);
-  } else if (spatial_order == 2) {
-    AddAdvection_SecondOrderUpwind_(t_old, t_new, tcc_old, conserve_qty);
+  { // context for advection -- on all cells
+    const Epetra_MultiVector& tcc_old = *S_->Get<CompositeVector>(key_, tag_current_)
+      .ViewComponent("cell", true);
+    Epetra_MultiVector& conserve_qty =
+      *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_)
+      .ViewComponent("cell", true);
+
+    // Predictor Step:
+    // -- advection: M <-- M + dt * div q * C0
+    if (spatial_order == 1) {
+      AddAdvection_FirstOrderUpwind_(t_old, t_new, tcc_old, conserve_qty);
+    } else if (spatial_order == 2) {
+      AddAdvection_SecondOrderUpwind_(t_old, t_new, tcc_old, conserve_qty);
+    }
+    db_->WriteCellVector("qnty (pred adv)", conserve_qty,
+                         S_->GetRecordSet(conserve_qty_key_).subfieldnames());
+
+    // -- process external sources: M <-- M + dt * Q(t0)
+    AddSourceTerms_(t_old, t_new, conserve_qty, 0, num_aqueous_ - 1);
+    db_->WriteCellVector("qnty (pred src)", conserve_qty,
+                         S_->GetRecordSet(conserve_qty_key_).subfieldnames());
   }
-  db_->WriteCellVector("qnty (pred adv)", conserve_qty,
-                       S_->GetRecordSet(conserve_qty_key_).subfieldnames());
-
-  // -- process external sources: M <-- M + dt * Q(t0)
-  AddSourceTerms_(t_old, t_new, conserve_qty, 0, num_aqueous_ - 1);
-  db_->WriteCellVector("qnty (pred src)", conserve_qty,
-                       S_->GetRecordSet(conserve_qty_key_).subfieldnames());
 
   // -- invert for C': C' <-- M / WC1, note no dissolution/precip
-  {
+  { // context for inversion
     Epetra_MultiVector& tcc_new = *S_->GetW<CompositeVector>(key_, tag_next_, passwd_)
+      .ViewComponent("cell", false);
+    const Epetra_MultiVector& conserve_qty = *S_->Get<CompositeVector>(conserve_qty_key_, tag_next_)
       .ViewComponent("cell", false);
 
     InvertTccNew_(conserve_qty, tcc_new, nullptr, false);
@@ -1119,21 +1155,39 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(double t_old,
                        S_->GetRecordSet(key_).subfieldnames());
   }
 
-  // Corrector Step:
-  // -- M <-- M/2 + M0 C0 / 2
-  //      <-- (C0 W0 + dt div q C0 + dt Q0) / 2 + W0 C0 / 2
-  for (int i = 0; i != num_aqueous_; ++i) {
-    conserve_qty(i)->Multiply(0.5, *lwc_old(0), *tcc_old(i), 0.5);
-  }
-  conserve_qty(num_aqueous_)->PutScalar(0.);
-  conserve_qty(num_aqueous_ + 1)->PutScalar(0.);
-  db_->WriteCellVector("qnty (corr start)", conserve_qty,
-                       S_->GetRecordSet(conserve_qty_key_).subfieldnames());
+  { // context for Corrector Step Multiply
+    const Epetra_MultiVector& tcc_old = *S_->Get<CompositeVector>(key_, tag_current_)
+      .ViewComponent("cell", false);
 
-  // -- advect the predicted C'
-  {
-    S_->Get<CompositeVector>(key_, tag_next_).ScatterMasterToGhosted();
+    // old and new water contents -- note these were updated in StableStep
+    const Epetra_MultiVector& lwc_old = *S_->Get<CompositeVector>(lwc_key_, tag_current_)
+      .ViewComponent("cell", false);
+
+    // populating conserved quantity (unit: molC)
+    // The conserve_qty (M) has `num_components_+2` vectors, the extras for tracking water
+    Epetra_MultiVector& conserve_qty =
+      *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_)
+      .ViewComponent("cell", false);
+
+    // -- M <-- M/2 + M0 C0 / 2
+    //      <-- (C0 W0 + dt div q C0 + dt Q0) / 2 + W0 C0 / 2
+    for (int i = 0; i != num_aqueous_; ++i) {
+      conserve_qty(i)->Multiply(0.5, *lwc_old(0), *tcc_old(i), 0.5);
+    }
+
+    conserve_qty(num_aqueous_)->PutScalar(0.);
+    conserve_qty(num_aqueous_ + 1)->PutScalar(0.);
+    db_->WriteCellVector("qnty (corr start)", conserve_qty,
+                         S_->GetRecordSet(conserve_qty_key_).subfieldnames());
+  }
+
+  // scatter updated values
+  S_->Get<CompositeVector>(key_, tag_next_).ScatterMasterToGhosted();
+
+  { // -- advect the predicted C'
     const Epetra_MultiVector& tcc_new = *S_->Get<CompositeVector>(key_, tag_next_)
+      .ViewComponent("cell", true);
+    Epetra_MultiVector& conserve_qty = *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_)
       .ViewComponent("cell", true);
 
     //   M <-- M + dt/2 * div q * C'
@@ -1145,28 +1199,31 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(double t_old,
     }
     db_->WriteCellVector("qnty (corr adv)", conserve_qty,
                          S_->GetRecordSet(conserve_qty_key_).subfieldnames());
-
   }
 
-  // -- add sources at the new time, predicted C'
-  //   M <-- M + dt/2 Q(t1)
-  //     <-- (C0 W0 + dt div q C0 + dt Q(t0)) / 2 + W0 C0 / 2 + dt div q C' / 2 + dt Q(t1) / 2
-  //     <-- C0 W0 + dt * (div q C0 + div q C') / 2 + dt (Q(t0) + Q(t1)) / 2
-  AddSourceTerms_(t_old + dt/2., t_new, conserve_qty, 0, num_aqueous_ - 1);
-  db_->WriteCellVector("qnty (corr src)", conserve_qty,
-                       S_->GetRecordSet(conserve_qty_key_).subfieldnames());
+  { // -- add sources at the new time, predicted C'
+    Epetra_MultiVector& conserve_qty = *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_)
+      .ViewComponent("cell", false);
+    //   M <-- M + dt/2 Q(t1)
+    //     <-- (C0 W0 + dt div q C0 + dt Q(t0)) / 2 + W0 C0 / 2 + dt div q C' / 2 + dt Q(t1) / 2
+    //     <-- C0 W0 + dt * (div q C0 + div q C') / 2 + dt (Q(t0) + Q(t1)) / 2
+    AddSourceTerms_(t_old + dt/2., t_new, conserve_qty, 0, num_aqueous_ - 1);
+    db_->WriteCellVector("qnty (corr src)", conserve_qty,
+                         S_->GetRecordSet(conserve_qty_key_).subfieldnames());
+  }
 
-
-  // -- Invert to get C1, this time with dissolution/solidification
-  {
+  { // -- Invert to get C1, this time with dissolution/solidification
     // solid quantity (unit: molC) stores extra solute mass
     // solid_qty has `num_components_` vectors only (solute mass)
+    const Epetra_MultiVector& conserve_qty = *S_->Get<CompositeVector>(conserve_qty_key_, tag_next_)
+      .ViewComponent("cell", false);
+
     Epetra_MultiVector& solid_qty =
       *S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, name_)
       .ViewComponent("cell", false);
 
     Epetra_MultiVector& tcc_new = *S_->GetW<CompositeVector>(key_, tag_next_, passwd_)
-      .ViewComponent("cell", true);
+      .ViewComponent("cell", false);
 
     InvertTccNew_(conserve_qty, tcc_new, &solid_qty, true);
     db_->WriteCellVector("mol_ratio_new", tcc_new,

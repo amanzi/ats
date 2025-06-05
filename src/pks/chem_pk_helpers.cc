@@ -27,13 +27,13 @@ convertConcentrationToMolFrac(State& S,
         const std::string& passwd)
 {
   const Epetra_MultiVector& tcc_c =
-    *S.Get<CompositeVector>(tcc.first, tcc.second).ViewComponent("cell", true);
+    *S.Get<CompositeVector>(tcc.first, tcc.second).ViewComponent("cell", false);
   Epetra_MultiVector& mol_frac_c =
-    *S.GetW<CompositeVector>(mol_frac.first, mol_frac.second, passwd).ViewComponent("cell", true);
+    *S.GetW<CompositeVector>(mol_frac.first, mol_frac.second, passwd).ViewComponent("cell", false);
 
   S.GetEvaluator(mol_dens.first, mol_dens.second).Update(S, passwd);
   const Epetra_MultiVector& mol_dens_c =
-    *S.Get<CompositeVector>(mol_dens.first, mol_dens.second).ViewComponent("cell", true);
+    *S.Get<CompositeVector>(mol_dens.first, mol_dens.second).ViewComponent("cell", false);
 
   // convert from mole fraction [mol C / mol H20] to [mol C / L]
   int ierr = mol_frac_c.ReciprocalMultiply(1.e3, mol_dens_c, tcc_c, 0.);
@@ -49,13 +49,13 @@ convertMolFracToConcentration(State& S,
         const std::string& passwd)
 {
   const Epetra_MultiVector& mol_frac_c =
-    *S.Get<CompositeVector>(mol_frac.first, mol_frac.second).ViewComponent("cell", true);
+    *S.Get<CompositeVector>(mol_frac.first, mol_frac.second).ViewComponent("cell", false);
   Epetra_MultiVector& tcc_c =
-    *S.GetW<CompositeVector>(tcc.first, tcc.second, passwd).ViewComponent("cell", true);
+    *S.GetW<CompositeVector>(tcc.first, tcc.second, passwd).ViewComponent("cell", false);
 
   S.GetEvaluator(mol_dens.first, mol_dens.second).Update(S, passwd);
   const Epetra_MultiVector& mol_dens_c =
-    *S.Get<CompositeVector>(mol_dens.first, mol_dens.second).ViewComponent("cell", true);
+    *S.Get<CompositeVector>(mol_dens.first, mol_dens.second).ViewComponent("cell", false);
 
   int ierr = tcc_c.Multiply(1.e-3, mol_dens_c, mol_frac_c, 0.);
   AMANZI_ASSERT(!ierr);

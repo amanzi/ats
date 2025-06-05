@@ -97,15 +97,6 @@ MPCCoupledReactiveTransport::Setup()
   coupled_transport_pk_->Setup();
   coupled_chemistry_pk_->Setup();
 
-  // transport will be ghosted, but chemistry is not!
-  S_->Require<CompositeVector, CompositeVectorSpace>(tcc_key_, tag_next_, passwd_)
-    .SetMesh(S_->GetMesh(domain_))
-    ->SetGhosted();
-  S_->Require<CompositeVector, CompositeVectorSpace>(tcc_surf_key_, tag_next_, passwd_)
-    .SetMesh(S_->GetMesh(domain_surf_))
-    ->SetGhosted();
-
-  // mol dens must also be ghosted to allow vector-level operations
   requireEvaluatorAtNext(mol_dens_key_, tag_next_, *S_)
     .SetMesh(S_->GetMesh(domain_))
     ->SetGhosted()
