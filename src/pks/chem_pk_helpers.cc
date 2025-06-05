@@ -36,7 +36,8 @@ convertConcentrationToMolFrac(State& S,
     *S.Get<CompositeVector>(mol_dens.first, mol_dens.second).ViewComponent("cell", true);
 
   // convert from mole fraction [mol C / mol H20] to [mol C / L]
-  mol_frac_c.ReciprocalMultiply(1.e3, mol_dens_c, tcc_c, 0.);
+  int ierr = mol_frac_c.ReciprocalMultiply(1.e3, mol_dens_c, tcc_c, 0.);
+  AMANZI_ASSERT(!ierr);
   changedEvaluatorPrimary(mol_frac.first, mol_frac.second, S);
 }
 
@@ -56,8 +57,8 @@ convertMolFracToConcentration(State& S,
   const Epetra_MultiVector& mol_dens_c =
     *S.Get<CompositeVector>(mol_dens.first, mol_dens.second).ViewComponent("cell", true);
 
-  tcc_c.Multiply(1.e-3, mol_dens_c, mol_frac_c, 0.);
-
+  int ierr = tcc_c.Multiply(1.e-3, mol_dens_c, mol_frac_c, 0.);
+  AMANZI_ASSERT(!ierr);
   changedEvaluatorPrimary(tcc.first, tcc.second, S);
 }
 

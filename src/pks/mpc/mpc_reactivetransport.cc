@@ -70,6 +70,12 @@ MPCReactiveTransport::Setup()
   transport_pk_->Setup();
   chemistry_pk_->Setup();
 
+  // transport will be ghosted, but chemistry is not!
+  S_->Require<CompositeVector, CompositeVectorSpace>(tcc_key_, tag_next_, passwd_)
+    .SetMesh(S_->GetMesh(domain_))
+    ->SetGhosted();
+
+  // mol dens must also be ghosted to allow vector-level operations
   requireEvaluatorAtNext(mol_dens_key_, tag_next_, *S_)
     .SetMesh(S_->GetMesh(domain_))
     ->SetGhosted()
