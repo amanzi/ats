@@ -74,6 +74,8 @@ class SurfCulvertEvaluator : public EvaluatorSecondaryMonotypeCV {
   int Nb_;
   double L_;
   double D_;
+  double L_feet_;
+  double D_feet_;
   double n_;
   double C_;
 
