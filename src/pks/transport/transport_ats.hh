@@ -5,29 +5,11 @@
   provided in the top-level COPYRIGHT file.
 
   Authors: Konstantin Lipnikov (lipnikov@lanl.gov)
-<<<<<<< HEAD
-=======
            Daniil Svyatsky (dasvyat@lanl.gov)
->>>>>>> master
            Ethan Coon (coonet@ornl.gov)
 */
 /*!
 
-<<<<<<< HEAD
-The advection-dispersion equation for component *i* in partially saturated
-porous media or surface water may be written as
-
-.. math::
-  \frac{\partial (\Theta C_i)}{\partial t} = - \boldsymbol{\nabla} \cdot (\boldsymbol{q} C_i)
-  + \boldsymbol{\nabla} \cdot (\Theta \, (\boldsymbol{D^*}_l + \tau \boldsymbol{D}_i) \boldsymbol{\nabla} C_i) + Q_s,
-
-This PK solves for transport of chemical species in water.  It may optionally
-be paired with a PK for reactions, typically in an operator-split form, to
-solve reactive transport.
-
-`"PK type`" = `"transport ATS`"
-
-=======
 This PK solves for transport of chemical species in water.  It may optionally
 be paired with a PK for reactions, typically in an operator-split form, to
 solve reactive transport.
@@ -48,19 +30,15 @@ variable-density problems.  Note that the two are related:
 
 .. math::
    C_i = n_l \chi_i
->>>>>>> master
 
 for molar density of liquid :math:`n_l`.
 
-<<<<<<< HEAD
-   * `"PK type`" ``[string]`` **"transport ATS"**
-=======
 For reactive transport problems, both concentration and mole fraction are
 output in the visualization file.  For transport-only problems, concentration
 may be output by adding a total component concentration evaluator that
 multiplies the two quantities using an `"evaluator type`" = `"multiplicative
 evaluator`".
->>>>>>> master
+
 
 `"PK type`" = `"transport ATS`"
 
@@ -80,58 +58,28 @@ evaluator`".
 
    * `"boundary conditions`" ``[transport-bc-spec]`` Boundary conditions for
      transport are dependent on the boundary conditions for flow. See
-<<<<<<< HEAD
-     `Transport-specific Boundary Conditions`_
 
-   * `"molecular diffusivity [m^2 s^-1]`" ``[molecular-diffusivity-spec]``
-
-   * `"tortuosity [-]`" ``[tortuosity-spec]``
-=======
      :ref:`Transport-specific Boundary Conditions`
 
    * `"molecular diffusivity [m^2 s^-1]`" ``[molecular-diffusivity-spec]`` See
      below.
 
    * `"tortuosity [-]`" ``[tortuosity-spec]`` See below.
->>>>>>> master
 
    * `"source terms`" ``[transport-source-spec-list]`` Provides solute source.
 
    Math and solver algorithm options:
 
-<<<<<<< HEAD
-   * `"diffusion`" ``[pde-diffusion-spec]`` Diffusion drives the distribution.
-     Typically we use finite volume here, but mimetic schemes may be used.  See
-     PDE_Diffusion_
-=======
    * `"diffusion`" ``[pde-diffusion-typedinline-spec]`` Diffusion drives the
      distribution.  Typically we use finite volume here, but mimetic schemes
      may be used.  See :ref:`Diffusion`
->>>>>>> master
+
 
    * `"diffusion preconditioner`" ``[pde-diffusion-typedinline-spec]`` Inverse
      of the above.  Likely only Jacobian term options are needed here, as the
      others default to the same as the `"diffusion`" list.  See
      :ref:`Diffusion`.
 
-<<<<<<< HEAD
-   * `"inverse`" ``[inverse-typed-spec]`` Inverse_ method for the
-     diffusion-dispersion solve.
-
-   * `"cfl`" [double] Timestep size limiter, a number less than 1. Default value is 1.
-
-   * `"advection spatial discretization order`" [int] defines accuracy of the
-     spatial discretization in the advection term.  It permits values 1
-     or 2. Default value is 1 (donor upwind) but 2 (a limiter scheme) is much
-     less numerically diffusive, and recommended for most cases.
-
-   * `"temporal discretization order`" [int] defines accuracy of temporal discretization.
-     It permits values 1 (forward Euler) and 2 (a Runga-Kutta scheme).
-
-   * `"reconstruction`" [reconstruction-spec] collects reconstruction
-     parameters for use in reconstructing the velocity field for 2nd order
-     advection schemes.
-=======
    * `"inverse`" ``[inverse-typed-spec]`` :ref:`Inverse` method for the
      diffusion-dispersion solve.  See :ref:`Inverse`.
 
@@ -150,23 +98,10 @@ evaluator`".
    * `"reconstruction`" ``[reconstruction-spec]`` collects reconstruction
      parameters for use in reconstructing the velocity field for 2nd order
      advection schemes.  See :ref:`Reconstructions`.
->>>>>>> master
 
    KEYS
    - `"primary variable`" **molar_ratio**
 
-<<<<<<< HEAD
-   - `"saturation liquid`" This variable is a multiplier in in the
-      accumulation term. For subsurface transport, this will typically be the
-      saturation (`"saturation_liquid`"). For surface transport, this will
-      typically be the ponded depth (`"ponded_depth`").
-
-   - `"molar density liquid`"  Transport is solved
-      for concentrations in units of mol fractions. Molar density is needed for conversion.
-
-   - `"water flux`" The face-based water flux in [mol H2O s^-1].
-
-=======
    - `"primary variable`" **"mole_fraction"** [mol C mol H2O^-1]
    - `"liquid water content`" **"water_content"** This variable is a multiplier
      in in the accumulation term. This is often just `"water_content`", but
@@ -175,7 +110,6 @@ evaluator`".
      surface.
    - `"molar density liquid`" [mol H2O m^-3]
    - `"water flux`" The face-based water flux in [mol H2O s^-1].
->>>>>>> master
    - `"water source`" Defines the water injection rate [mol H2O m^-2 s^-1] in
      surface and [mol H2O m^-3 s^-1] in subsurface) which applies to
      concentrations specified by the `"geochemical conditions`".  Note that if
@@ -194,17 +128,11 @@ evaluator`".
         molar density of water [mol m^-3]
 
 
-<<<<<<< HEAD
-.. _molecular-diffusivity-spec:
-.. admonition:: molecular-diffusivity-spec
-
-=======
 Note, this is not dispersion, but strictly isotropic diffusion.        
 
 .. _molecular-diffusivity-spec:
 .. admonition:: molecular-diffusivity-spec
 
->>>>>>> master
    For each aqueous component, a single value is provided for molecular diffusivity, e.g.
 
    `"COMPONENT_NAME`" ``[double]`` value [m^2 s^-1]
@@ -217,13 +145,7 @@ Note, this is not dispersion, but strictly isotropic diffusion.
      diffusivity of liquid solutes, [-].
 
    * `"gaseous`" ``[double]`` Defines tortuosity for calculating
-<<<<<<< HEAD
-     diffusivity of gas solutes, [-].
-=======
      diffusivity of gas solutes, [-].  Not currently implemented!
->>>>>>> master
-
-
 .. _transport-source-spec:
 .. admonition:: transport-source-spec
 
