@@ -39,7 +39,6 @@ may be output by adding a total component concentration evaluator that
 multiplies the two quantities using an `"evaluator type`" = `"multiplicative
 evaluator`".
 
-
 `"PK type`" = `"transport ATS`"
 
 .. _pk-transport-ats-spec:
@@ -100,8 +99,6 @@ evaluator`".
      advection schemes.  See :ref:`Reconstructions`.
 
    KEYS
-   - `"primary variable`" **molar_ratio**
-
    - `"primary variable`" **"mole_fraction"** [mol C mol H2O^-1]
    - `"liquid water content`" **"water_content"** This variable is a multiplier
      in in the accumulation term. This is often just `"water_content`", but

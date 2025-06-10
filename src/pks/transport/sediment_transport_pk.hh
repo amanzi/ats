@@ -70,7 +70,8 @@ public:
 
  protected:
 
-  void SetupTransport_() override;
+  void SetupPhysicalEvaluators_() override;
+  // void AdvanceDispersionDiffusion_(double t_old, double t_new) override; 
   void AddSourceTerms_(double t0, double t1,
         Epetra_MultiVector& conserve_qty,
         int n0,
