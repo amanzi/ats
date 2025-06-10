@@ -101,7 +101,6 @@ MPCCoupledReactiveTransport::Setup()
     .SetMesh(S_->GetMesh(domain_))
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-
   requireEvaluatorAtNext(mol_dens_surf_key_, tag_next_, *S_)
     .SetMesh(S_->GetMesh(domain_surf_))
     ->SetGhosted()
