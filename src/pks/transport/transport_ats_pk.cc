@@ -113,7 +113,7 @@ Transport_ATS::parseParameterList()
 
   // keys, dependencies, etc
   // -- flux -- only needed at new time, evaluator controlled elsewhere
-  flux_key_ = Keys::readKey(*plist_, domain_, "water flux", "water_flux");
+  water_flux_key_ = Keys::readKey(*plist_, domain_, "water flux", "water_flux");
 
   mass_flux_advection_key_ = Keys::readKey(*plist_, domain_, "mass flux advection", "mass_flux_advection");
   requireEvaluatorAtNext(mass_flux_advection_key_, tag_next_, *S_, name_);
@@ -524,7 +524,7 @@ Transport_ATS::SetupPhysicalEvaluators_()
   S_->GetRecordSetW(key_).set_subfieldnames(component_names_);
 
   // -- water flux
-  requireEvaluatorAtNext(flux_key_, tag_next_, *S_)
+  requireEvaluatorAtNext(water_flux_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);
@@ -719,8 +719,8 @@ Transport_ATS::ComputeStableTimeStep_()
   int ncells_owned = S_->GetMesh(domain_)->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
   // flux at next tag
-  S_->GetEvaluator(flux_key_, tag_next_).Update(*S_, name_);
-  const CompositeVector& flux_cv = S_->Get<CompositeVector>(flux_key_, tag_next_);
+  S_->GetEvaluator(water_flux_key_, tag_next_).Update(*S_, name_);
+  const CompositeVector& flux_cv = S_->Get<CompositeVector>(water_flux_key_, tag_next_);
   flux_cv.ScatterMasterToGhosted();
   const Epetra_MultiVector& flux = *flux_cv.ViewComponent("face", true);
 
@@ -826,7 +826,7 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
     S_->GetPtr<CompositeVector>(lwc_key_, tag_next_).ptr(),
   };
   db_->WriteVectors(vnames, vecs);
-  db_->WriteVector("mol_ratio_old",
+  db_->WriteVector("mol_frac_old",
                    S_->GetPtr<CompositeVector>(key_, tag_current_).ptr(),
                    true,
                    S_->GetRecordSet(key_).subfieldnames());
@@ -884,7 +884,7 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   const Epetra_MultiVector& tcc_new = *S_->Get<CompositeVector>(key_, tag_next_)
     .ViewComponent("cell");
   ChangedSolutionPK(tag_next_);
-  db_->WriteVector("mol_ratio_new",
+  db_->WriteVector("mol_frac_new",
                    S_->GetPtr<CompositeVector>(key_, tag_next_).ptr(),
                    true,
                    S_->GetRecordSet(key_).subfieldnames());
@@ -1049,8 +1049,10 @@ Transport_ATS::AdvanceAdvectionSources_RK1_(
     *S_->GetW<CompositeVector>(mass_flux_advection_key_, tag_next_, name_)
     .ViewComponent("face", false);  
 
-  // Mass <-- Concentration * water content
+  // Compute mass from concentration and water content: Mass <-- Concentration * water content 
   // conserved component quantity [mol C] = (mol C / mol H20) * mol H2O
+  // Note that: this calculation uses the "old" (previous time step) values to determine the
+  // initial mass of the conserved component quantity.
   for (int i = 0; i != num_aqueous_; ++i) {
     conserve_qty(i)->Multiply(1., *lwc_old(0), *tcc_old(i), 0.);
   }
@@ -1087,7 +1089,7 @@ Transport_ATS::AdvanceAdvectionSources_RK1_(
     .ViewComponent("cell", false);
 
   InvertTccNew_(conserve_qty, tcc_new, &solid_qty, true);
-  db_->WriteCellVector("mol_ratio (pre-diff)", tcc_new,
+  db_->WriteCellVector("mol_frac (pre-diff)", tcc_new,
                        S_->GetRecordSet(key_).subfieldnames());
 }
 
@@ -1155,7 +1157,7 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(
       .ViewComponent("cell", false);
 
     InvertTccNew_(conserve_qty, tcc_new, nullptr, false);
-    db_->WriteCellVector("mol_ratio (pred)", tcc_new,
+    db_->WriteCellVector("mol_frac (pred)", tcc_new,
                        S_->GetRecordSet(key_).subfieldnames());
   }
 
@@ -1209,7 +1211,7 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(
       .ViewComponent("cell", true);
 
     InvertTccNew_(conserve_qty, tcc_new, &solid_qty, true);
-    db_->WriteCellVector("mol_ratio_new", tcc_new,
+    db_->WriteCellVector("mol_frac_new", tcc_new,
                          S_->GetRecordSet(key_).subfieldnames());
   }
 }
@@ -1278,8 +1280,8 @@ Transport_ATS::IdentifyUpwindCells_()
   upwind_cell_->PutValue(-1);
   downwind_cell_->PutValue(-1);
 
-  S_->Get<CompositeVector>(flux_key_, tag_next_).ScatterMasterToGhosted("face");
-  const Epetra_MultiVector& flux = *S_->Get<CompositeVector>(flux_key_, tag_next_).ViewComponent("face", true);
+  S_->Get<CompositeVector>(water_flux_key_, tag_next_).ScatterMasterToGhosted("face");
+  const Epetra_MultiVector& flux = *S_->Get<CompositeVector>(water_flux_key_, tag_next_).ViewComponent("face", true);
 
   // identify upwind and downwind cell of each face
   for (int c = 0; c != ncells_all; ++c) {

@@ -325,7 +325,7 @@ class Transport_ATS : public PK_Physical_Default {
  protected:
 
   // dependencies
-  Key flux_key_; // advecting water flux [mol / s] on faces
+  Key water_flux_key_; // advecting water flux [mol / s] on faces
   Key lwc_key_; // liquid water content [mol]
   Key cv_key_;
 

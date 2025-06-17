@@ -38,14 +38,14 @@ Transport_ATS::AddAdvection_FirstOrderUpwind_(
   Epetra_MultiVector& c_qty,  // component quantity in a cell [mols C]
   Epetra_MultiVector& cq_flux)  // component flux across a face [mols C / s]
 {
-  double dt = t_new - t_old;  // time step [s]
+  double dt = t_new - t_old;  // timestep [s]
 
   // total number of faces in the domain
   int nfaces_all =
     mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::ALL);
   
-    // get water flux (flux_key_) for each face at next time step (tag_next_)
-  const Epetra_MultiVector& flux = *S_->Get<CompositeVector>(flux_key_, tag_next_)
+    // get water flux (water_flux_key_) for each face at next timestep (tag_next_)
+  const Epetra_MultiVector& flux = *S_->Get<CompositeVector>(water_flux_key_, tag_next_)
     .ViewComponent("face", true);
 
   // advance all components at once
@@ -162,7 +162,7 @@ Transport_ATS::AddAdvection_SecondOrderUpwind_(
   Epetra_Vector& cq_flux,
   int component)
 {
-  double dt = t_new - t_old;  // time step [s]
+  double dt = t_new - t_old;  // timestep [s]
 
   // number of faces owned by this processor
   // and total number of faces in the domain
@@ -180,7 +180,7 @@ Transport_ATS::AddAdvection_SecondOrderUpwind_(
   auto& bc_model = adv_bcs_->bc_model();
   auto& bc_value = adv_bcs_->bc_value();
 
-  auto flux = S_->Get<CompositeVector>(flux_key_, tag_next_).ViewComponent("face", true);
+  auto flux = S_->Get<CompositeVector>(water_flux_key_, tag_next_).ViewComponent("face", true);
   limiter_->SetFlux(flux);
   limiter_->ApplyLimiter(tcc_rcp, 0, lifting_, bc_model, bc_value);
 
