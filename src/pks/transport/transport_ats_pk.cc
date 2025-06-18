@@ -898,11 +898,10 @@ Transport_ATS ::AdvanceDispersionDiffusion_(double t_old, double t_new)
   if (!has_diffusion_ && !has_dispersion_) return;
   double dt = t_new - t_old;
 
-  // Get tcc_cvs as composite vectors (CVS). This includes both cell and face components.
-  // The face component will used to compute the diffusive mass fluxes in UpdateFlux().
   // The tcc_new is the new tcc viewed as a cell component from the CVS
-  Teuchos::RCP<CompositeVector> tcc_cvs = S_->GetPtrW<CompositeVector>(key_, tag_next_, passwd_);
-  Epetra_MultiVector& tcc_new = *tcc_cvs->ViewComponent("cell", false);
+  // The face component will used to compute the diffusive mass fluxes in UpdateFlux()
+  Epetra_MultiVector& tcc_new = *S_->GetPtrW<CompositeVector>(key_, tag_next_, passwd_)
+    ->ViewComponent("cell", false);
 
   // needed for diffusion coefficent and for accumulation term
   const Epetra_MultiVector& lwc = *S_->Get<CompositeVector>(lwc_key_, tag_next_)
@@ -980,7 +979,7 @@ Transport_ATS ::AdvanceDispersionDiffusion_(double t_old, double t_new)
 
     // get diffusive mass fluxes
     Teuchos::RCP<CompositeVector> cq_flux = S_->GetPtrW<CompositeVector>(mass_flux_diffusion_key_, tag_next_, name_);    
-    diff_op_->UpdateFlux(tcc_cvs.ptr(), cq_flux.ptr());
+    diff_op_->UpdateFlux(diff_sol_.ptr(), cq_flux.ptr());
 
     // -- apply the inverse
     CompositeVector& rhs = *diff_global_op_->rhs();
