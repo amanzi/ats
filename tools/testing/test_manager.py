@@ -1710,3 +1710,33 @@ def setup_testlog(txtwrap, silence=False):
 
     return testlog
 
+
+def find_last_logfile():
+    """
+    Finds the last-in-time logfile from the LOGS directory.
+    """
+    logfiles = [l for l in os.listdir("LOGS") if l.startswith('ats-tests-') \
+                and l.endswith('.testlog')]
+    return os.path.join('LOGS', max(logfiles))
+
+
+def find_failed(logfile):
+    """
+    Given a logfile, searches for all failed tests.
+
+    Failed tests will include an entry of the form:
+
+    FAIL : TESTNAME : ...
+
+    or
+
+    ERROR : TESTNAME : ...
+    """
+    with open(logfile, 'r') as fid:
+        failed = set(l.split(':')[1].strip() for l in fid \
+                     if l.strip().startswith(('FAIL','ERROR')))
+    return list(failed)
+    
+    
+    
+    
