@@ -378,7 +378,7 @@ double
 MPCCoupledWater::ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const TreeVector> res)
 {
   // move the surface face residual onto the surface cell.
-  auto res2 = Teuchos::rcp(new TreeVector(*res, INIT_MODE_COPY));
+  auto res2 = Teuchos::rcp(new TreeVector(*res));
   auto& res_face = *res2->SubVector(0)->Data()->ViewComponent("face", false);
   auto& res_surf_cell = *res2->SubVector(1)->Data()->ViewComponent("cell", false);
   const auto& u_surf_cell = *u->SubVector(1)->Data()->ViewComponent("cell", false);
