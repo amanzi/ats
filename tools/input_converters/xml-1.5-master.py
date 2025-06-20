@@ -285,7 +285,7 @@ def _createTransportSource_FirstOrderExchange(in_source, out_source, evals_list,
 
     lwc_suffix = _readSuffix(in_source, domain, "liquid water content", "water_content")
     exchange_suffix = _readSuffix(in_source, domain, "exchanged quantity", "mole_fraction")
-    out_source.setParameter("multiplicative dependences", "Array(string)", [alpha_suffix, lwc_suffix, exchange_suffix])
+    out_source.setParameter("multiplicative dependencies", "Array(string)", [alpha_suffix, lwc_suffix, exchange_suffix])
     out_source.setParameter("reciprocal dependencies", "Array(string)", ["cell_volume",])
     out_source.setParameter("coefficient", "double", -1.0)
 
@@ -381,6 +381,8 @@ def fixTransportPK_Source(pk, evals_list, domain, components):
             total_source_list = evals_list.sublist(f'{domain}-component_source')
             total_source_list.setParameter("evaluator type", "string", "additive evaluator")
             total_source_list.setParameter("dependency suffixes", "Array(string)", sources)
+
+            pk.setParameter("source key suffix", "string", "component_source")
 
 
 def fixTransportPK_Dead(pk):

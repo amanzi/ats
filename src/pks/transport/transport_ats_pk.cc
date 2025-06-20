@@ -554,6 +554,14 @@ Transport_ATS::SetupPhysicalEvaluators_()
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_components_);
   S_->GetRecordSetW(solid_residue_mass_key_).set_subfieldnames(subfield_names);
 
+  // source term -- at next to match regression tests -- should this be at current?
+  if (!source_key_.empty()) {
+    requireEvaluatorAtNext(source_key_, tag_next_, *S_)
+      .SetMesh(mesh_)
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_aqueous_);
+    S_->GetRecordSetW(source_key_).set_subfieldnames(subfield_names);
+  }
+
   // This vector stores the conserved amount (in mols) of num_components_
   // transported solutes, plus two for water.
   //
@@ -584,14 +592,6 @@ Transport_ATS::SetupPhysicalEvaluators_()
     ->SetGhosted(true)
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_aqueous_ + 2);
   S_->GetRecordSetW(conserve_qty_key_).set_subfieldnames(subfield_names);
-
-  // source term -- at next to match regression tests -- should this be at current?
-  if (!source_key_.empty()) {
-    requireEvaluatorAtNext(source_key_, tag_next_, *S_)
-      .SetMesh(mesh_)
-      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_aqueous_ + 2);
-    S_->GetRecordSetW(source_key_).set_subfieldnames(subfield_names);
-  }
 }
 
 
