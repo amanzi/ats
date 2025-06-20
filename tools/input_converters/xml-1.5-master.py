@@ -15,7 +15,7 @@ else:
 from amanzi_xml.utils import search as asearch
 from amanzi_xml.utils import io as aio
 from amanzi_xml.utils import errors as aerrors
-from amanzi_xml.common import parameter, parameter_list
+from amanzi_xml.common import parameter, parameter_list, comment
 import fix_chemistry_ts_control
 
 def moveLC(xml):
@@ -36,7 +36,12 @@ def molarMass(xml):
         
 
 def enforceDtHistory(xml):
-    """Find and revert the timestep from file option, moving it to the cycle driver list."""
+    """Find and revert the timestep from file option, moving it to the cycle driver list.
+
+    Note, this was intermediary -- this changed a few times and is not
+    relevant to users, only regression tests.
+
+    """
     ti_file_pars = None
     for ti in asearch.findall_name(xml, "time integrator"):
         if asearch.child_by_name(ti, "timestep controller type").getValue() == "from file":
@@ -168,13 +173,22 @@ def removeTc99(xml):
             if name == 'Tc-99':
                 new_names.append('Tracer1')
             elif '-' in name:
-                new_names.append(name.replace('-', ''))
+                # - is ok at the end, e.g. HCO3-, but not in the middle, e.g. Tc-99
+                count = 0
+                while name.endswith('-'):
+                    count += 1
+                    name = name[:-1]
+
+                new_name = name.replace('-', '')
+                new_name = new_name + '-'*count
+                new_names.append(new_name)
             else:
                 new_names.append(name)
         cnames.setValue(new_names)
     
                 
 def removeVerboseObject(xml):
+    """This is only for regression tests -- should not override user."""
     pm = asearch.parent_map(xml)
     
     # let global verbosity control for tests
@@ -182,7 +196,257 @@ def removeVerboseObject(xml):
         pm[vo].remove(vo)
 
 
+def _getKey(domain, key):
+    if domain == '' or domain == 'domain':
+        return key
+    else:
+        return '-'.join([domain, key])
+
+def _getVarName(key):
+    if '-' not in key:
+        return key
+    else:
+        return key.split('-')[1]
+    
+        
+def _readSuffix(plist, domain_name, varname, default=None):
+    if plist.isElement(f"{varname} key suffix"):
+        return plist.getElement(f"{varname} suffix").getValue()
+    elif plist.isElement(f"{varname} key"):
+        return _getVarName(plist.getElement(f"{varname} key"))
+    else:
+        return default
+    
+
+def _createTransportSource_Simple(in_source, out_source, components, dist_method):
+    """Constructs an evaluator for function"""
+    # check the submodel -- only support rate for now?
+    if in_source.isElement("submodel"):
+        submodel = in_source.getElement("submodel").getValue()
+    else:
+        submodel = "rate"
+
+    if submodel != "rate":
+        raise RuntimeError(f"Cannot fix transport source: {in_source.name()} -- do not support Simple/Volume submodel {submodel}")
+
+    # set the evaluator type
+    out_source.setParameter("evaluator type", "string", "independent variable")
+    out_source.setParameter("spatial distribution method", "string", dist_method);
+
+    out_source_entry = out_source.sublist("function").sublist(in_source.getName())
+    
+    # pass all parameters from in list to out list
+    skip = ["submodel"]
+    [out_source_entry.append(par) for par in in_source if par.getName() not in skip]
+    out_source_entry.sublist("source function").setName("function")
+
+    # make it a cell function
+    out_source_entry.insert(1, parameter.StringParameter("component", "cell"))
+
+    # check that num_components and num_dofs match those in PK list (if they exist)
+    if components is not None:
+        components = [c.strip() for c in components]
+        
+        # check that this matches the source
+        if out_source_entry.isElement("component names"):
+            func_comps = out_source_entry.getElement("component names").getValue()
+            if len(func_comps) != len(components):
+                # try to remap the components to a full-dof vector set of components
+                mapping = dict()
+                for i,comp in enumerate(func_comps):
+                    mapping[comp] = (i, components.index(comp))
+
+                # if that was  successful, remap the DoFs
+                asearch.find_path(out_source_entry, ["number of dofs",]).setValue(len(components))
+                for c in mapping.keys():
+                    func_i, pk_i = mapping[c]
+                    func_i_list = asearch.find_path(out_source_entry, [f"dof {func_i+1} function",])
+                    func_i_list.setName(f"dof {pk_i+1} function")
+
+        n_dofs = 1
+        if out_source_entry.sublist("function").isElement("number of dofs"):
+            n_dofs = out_source_entry.sublist("function").getElement("number of dofs").getValue()
+
+        if n_dofs != len(components):
+            raise RuntimeError(f"Cannot fix transport source: {in_source.name()} -- number of function DoFs ({n_dofs})"
+                               f" does not match num components from PK ({len(components)}).")
+    return 
+
+
+def _createTransportSource_FirstOrderExchange(in_source, out_source, evals_list, domain):
+    out_source.setParameter("evaluator type", "string", "multiplicative reciprocal")
+
+    # first order exchange flux = - alpha * Theta * X / CV
+    n = 0
+    alpha_suffix = f"exchange_coefficient_{n}"
+    while evals_list.isElement(_getKey(domain, alpha_suffix)):
+        n = n + 1
+        alpha_suffix = f"exchange_coefficient_{n}"
+
+    lwc_suffix = _readSuffix(in_source, domain, "liquid water content", "water_content")
+    exchange_suffix = _readSuffix(in_source, domain, "exchanged quantity", "mole_fraction")
+    out_source.setParameter("multiplicative dependences", "Array(string)", [alpha_suffix, lwc_suffix, exchange_suffix])
+    out_source.setParameter("reciprocal dependencies", "Array(string)", ["cell_volume",])
+    out_source.setParameter("coefficient", "double", -1.0)
+
+    # alpha -- always constant in time?
+    alpha_eval_list = evals_list.sublist(_getKey(domain, alpha_suffix))
+    alpha_eval_list.setParameter("evaluator type", "string", "independent variable")
+    alpha_eval_list.setParameter("constant in time", "bool", True)
+
+    func_list = in_source.sublist("source function").sublist("function")
+    regions = in_source.getElement("regions")
+    entry_list = alpha_eval_list.sublist("function").sublist("entry")
+    entry_list.append(regions)
+    entry_list.setParameter("component", "string", "cell")
+    entry_list.append(func_list)
+
+    return
+                        
+
+
+        
+def _fixTransportPK_OneSource(source_term, pk, evals_list, domain, components):
+    """Move ONE source terms from PK to evaluators."""
+
+    # try to come up with a reasonable name for the field
+    name = source_term.getName().lower()
+    if name.startswith(f'{domain}-'):
+        name = name[len(domain)+1:]
+    
+    name = name.replace(':', '_').replace('-', '_').replace(' ', '_').replace('@','_')
+    while '__' in name:
+        name = name.replace('__', '_')
+    if 'source' not in name:
+        name = name + "_source"
+
+    suffix = name
+    if domain != '' and domain != "domain":
+        name = f"{domain}-{name}"
+
+    # check the model and call the right function
+    model = source_term.getElement("spatial distribution method").getValue()
+    if model == "volume" or model == "none":
+        # create the eval list
+        new_source = evals_list.sublist(name)
+        source_term.pop("spatial distribution method")
+        _createTransportSource_Simple(source_term, new_source, components, model)
+    elif model == "first order exchange":
+        # create the eval list
+        new_source = evals_list.sublist(name)
+        source_term.pop("spatial distribution method")
+        _createTransportSource_FirstOrderExchange(source_term, new_source, evals_list, domain)
+
+    elif model == "domain coupling":
+        raise RuntimeError(f"Transport source {source_term.getName()} is a 'domain coupling' source -- "
+                           "this should get written by an MPC -- do you really need to provide it?")
+    else:
+        return None
+        #raise NotImplementedError(f"Transport source {source_term.getName()} of type \"{model}\" is not yet implemented... FIXME")
+
+    return suffix
+
+
+def fixTransportPK_Source(pk, evals_list, domain, components):
+    """Moves source terms from PK to evaluators, like all other ATS PKs."""
+    sources = []
+    
+    if pk.isElement("source terms"):
+        source_terms = pk.sublist("source terms").sublist("component mass source")
+
+        # each entry is a separate source
+        for source_term in list(source_terms):
+            if not isinstance(source_term, comment.Comment):
+                res = _fixTransportPK_OneSource(source_term, pk, evals_list, domain, components)
+                if res is not None:
+                    sources.append(res)
+                    source_terms.remove(source_term)
+
+        # clean up empty lists
+        if len(source_terms) == 0:
+            pk.sublist("source terms").remove(source_terms)
+        if len(pk.sublist("source terms")) == 0:
+            pk.pop("source terms")
+            
+    if len(sources) > 0:
+        pk.setParameter("source term", 'bool', True)
+            
+        if len(sources) == 1:
+            # if only one source, name it for the PK
+            pk.setParameter("source key suffix", "string", sources[0])
+        else:
+            # if more than one source, we have to create an additive
+            # evaluator to sum the sources
+            assert not evals_list.isElement(f'{domain}-component_source')
+            total_source_list = evals_list.sublist(f'{domain}-component_source')
+            total_source_list.setParameter("evaluator type", "string", "additive evaluator")
+            total_source_list.setParameter("dependency suffixes", "Array(string)", sources)
+
+
+def fixTransportPK_Dead(pk):
+    """Removes dead options from transport PK list."""
+    # internal subcycling is dead
+    if pk.isElement("transport subcycling"):
+        pk.pop("transport subcycling")
+
+    # runtime diagnostics is dead
+    if pk.isElement("runtime diagnostics: regions"):
+        pk.pop("runtime diagnostics: regions")
+
+    # remove dead keys
+    def removeDead(keyname, default_names, remove_eval=False):
+        if isinstance(default_names, str):
+            default_names = [default_names,]
+        keyname_key = keyname + " key"
+
+        if pk.isElement(keyname_key):
+            key = pk.getElement(keyname_key).getValue()
+            if key in default_names:
+                pk.pop(keyname_key)
+                if remove_eval and evals_list.isElement(key):
+                    evals_list.pop(key)
+
+        keyname_key = keyname_key + " suffix"
+        default_names = [dn.split('-')[-1] for dn in default_names]
+        if pk.isElement(keyname_key):
+            key = pk.getElement(keyname_key).getValue()
+            if key in default_names:
+                pk.pop(keyname_key)
+
+    removeDead("porosity", ["porosity",])
+    removeDead("porosity", ["surface-porosity", "surface-one"], True)
+    removeDead("molar density liquid", ["surface-molar_density_liquid", "molar_density_liquid"])
+    removeDead("saturation", ["surface-saturation_liquid", "surface-ponded_depth", "saturation_liquid"])
+    removeDead("saturation liquid", ["surface-saturation_liquid", "surface-ponded_depth", "saturation_liquid"])
+    removeDead("flux", ["surface-water_flux", "water_flux"])
+    removeDead("water flux", ["surface-water_flux", "water_flux"])
+    if pk.isElement("flux_key"):
+        pk.pop("flux_key")
+    if pk.isElement("molar_density_key"):
+        pk.pop("molar_density_key")
+
+    if pk.isElement("number of liquid components"):
+        pk.pop("number of liquid components")
+    if pk.isElement("number of gaseous components") and pk.getElement("number of gaseous components").getValue() == 0:
+        pk.pop("number of gaseous components")
+    if pk.isElement("number of aqueous components") and pk.isElement("component names") and \
+       pk.getElement("number of aqueous components").getValue() == len(pk.getElement("component names").getValue()):
+        pk.pop("number of aqueous components")
+    if pk.isElement("PK origin"):
+        pk.pop("PK origin")
+    if pk.isElement("solver"):
+        pk.pop("solver")
+
+    if pk.isElement("physical models and assumptions"):
+        pk.pop("physical models and assumptions")
+    if pk.isElement("flow mode"):
+        pk.pop("flow mode")
+
+
 def fixTransportPK(pk, evals_list):
+    """Many changes to transport PK input spec..."""
+
+    # get the domain
     if pk.isElement("domain name"):
         domain = pk.getElement("domain name").getValue()
     else:
@@ -194,6 +458,7 @@ def fixTransportPK(pk, evals_list):
         order.setName("advection spatial discretization order")
     order = pk.getElement("advection spatial discretization order").getValue()
     if order == 1 and pk.isElement("reconstruction"):
+        # this is unused for order 1, remove it
         pk.pop("reconstruction")
 
     # moves and changes format of molecular diffusion coefficient
@@ -215,14 +480,7 @@ def fixTransportPK(pk, evals_list):
     elif pk.isElement("inverse"):
         pk.pop("inverse")
 
-    # internal subcycling is dead
-    if pk.isElement("transport subcycling"):
-        pk.pop("transport subcycling")
-
-    # runtime diagnostics is dead
-    if pk.isElement("runtime diagnostics: regions"):
-        pk.pop("runtime diagnostics: regions")
-
+    # rehome material properties
     if pk.isElement("material properties"):
         mat_props = pk.pop("material properties").sublist("domain")
 
@@ -310,60 +568,20 @@ def fixTransportPK(pk, evals_list):
         for sublist in mf:
             if sublist.isElement('boundary concentration function') and not sublist.isElement('boundary mole fraction function'):
                 sublist.sublist('boundary concentration function').setName('boundary mole fraction function')
+
+    # remove dead options
+    fixTransportPK_Dead(pk)
+
+    # source terms are now evaluators
+    if pk.isElement("component names"):
+        components = pk.getElement("component names").getValue()
+    else:
+        components = None
+    fixTransportPK_Source(pk, evals_list, domain, components)
     
 
-            
-    # remove dead keys
-    def removeDead(keyname, default_names, remove_eval=False):
-        if isinstance(default_names, str):
-            default_names = [default_names,]
-        keyname_key = keyname + " key"
-
-        if pk.isElement(keyname_key):
-            key = pk.getElement(keyname_key).getValue()
-            if key in default_names:
-                pk.pop(keyname_key)
-                if remove_eval and evals_list.isElement(key):
-                    evals_list.pop(key)
-
-        keyname_key = keyname_key + " suffix"
-        default_names = [dn.split('-')[-1] for dn in default_names]
-        if pk.isElement(keyname_key):
-            key = pk.getElement(keyname_key).getValue()
-            if key in default_names:
-                pk.pop(keyname_key)
-
-    removeDead("porosity", ["porosity",])
-    removeDead("porosity", ["surface-porosity", "surface-one"], True)
-    removeDead("molar density liquid", ["surface-molar_density_liquid", "molar_density_liquid"])
-    removeDead("saturation", ["surface-saturation_liquid", "surface-ponded_depth", "saturation_liquid"])
-    removeDead("saturation liquid", ["surface-saturation_liquid", "surface-ponded_depth", "saturation_liquid"])
-    removeDead("flux", ["surface-water_flux", "water_flux"])
-    removeDead("water flux", ["surface-water_flux", "water_flux"])
-    if pk.isElement("flux_key"):
-        pk.pop("flux_key")
-    if pk.isElement("molar_density_key"):
-        pk.pop("molar_density_key")
-
-    if pk.isElement("number of liquid components"):
-        pk.pop("number of liquid components")
-    if pk.isElement("number of gaseous components") and pk.getElement("number of gaseous components").getValue() == 0:
-        pk.pop("number of gaseous components")
-    if pk.isElement("number of aqueous components") and pk.isElement("component names") and \
-       pk.getElement("number of aqueous components").getValue() == len(pk.getElement("component names").getValue()):
-        pk.pop("number of aqueous components")
-    if pk.isElement("PK origin"):
-        pk.pop("PK origin")
-    if pk.isElement("solver"):
-        pk.pop("solver")
-
-    if pk.isElement("physical models and assumptions"):
-        pk.pop("physical models and assumptions")
-    if pk.isElement("flow mode"):
-        pk.pop("flow mode")
-
-
 def fixTransportPKs(xml):
+    """Searches for all transport PKs and calls fixTransportPK"""
     evals_list = asearch.find_path(xml, ["state", "evaluators"], True)
     pk_tree = asearch.find_path(xml, ["cycle driver", "PK tree"])
     pk_list = asearch.find_path(xml, ["PKs",])
@@ -379,13 +597,16 @@ def fixTransportPKs(xml):
             print("fixing transport pk")
             fixTransportPK(pk_list.sublist(pk.getName()), evals_list)
 
+            
 def initialConditionsList(xml):
+    """'initial condition' --> 'initial conditions'"""
     for pk in xml.sublist("PKs"):
         if pk.isElement("initial condition"):
             pk.sublist("initial condition").setName("initial conditions")
 
 
 def update(xml):
+    """This function always exists, and calls all other fix functions, allowing __main__ to be the same."""
     coupledFlowTransportMPC(xml)
 
     #enforceDtHistory(xml)

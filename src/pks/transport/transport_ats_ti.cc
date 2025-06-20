@@ -346,11 +346,25 @@ Transport_ATS::InvertTccNew_(const Epetra_MultiVector& conserve_qty,
 void
 Transport_ATS::AddSourceTerms_(double t0,
         double t1,
-        Epetra_MultiVector& conserve_qty,
-        int n0,
-        int n1)
+        Epetra_MultiVector& conserve_qty)
 {
   // note: conserve_qty is OWNED vector
+
+  // First add evaluator-based sources
+  if (!source_key_.empty()) {
+    S_->GetEvaluator(source_key_, tag_next_).Update(*S_, name_);
+    const Epetra_MultiVector& Q_c = *S_->Get<CompositeVector>(source_key_, tag_next_).ViewComponent("cell", false);
+    const Epetra_MultiVector& cv = *S_->Get<CompositeVector>(cv_key_, tag_next_).ViewComponent("cell", false);
+    std::cout << "Source: " << Q_c[0][0] << ", " << Q_c[1][0] << std::endl;
+    std::cout << "CQ: " << conserve_qty[0][0] << ", " << conserve_qty[1][0] << std::endl;
+
+    int ierr = conserve_qty.Multiply(t1 - t0, cv, Q_c, 1.0);
+    AMANZI_ASSERT(!ierr);
+    std::cout << "CQ: " << conserve_qty[0][0] << ", " << conserve_qty[1][0] << std::endl;
+  }
+
+  // next add DomainFunction-based sources, which are particularly useful from
+  // more complex, hard-coded sources that need to be visualized.
   int nsrcs = srcs_.size();
 
   for (int m = 0; m < nsrcs; m++) {
@@ -362,14 +376,14 @@ Transport_ATS::AddSourceTerms_(double t0,
       std::vector<double>& values = it->second;
 
       if (c < conserve_qty.MyLength()) {
-        if (srcs_[m]->getType() == DomainFunction_kind::COUPLING && n0 == 0) {
+        if (srcs_[m]->getType() == DomainFunction_kind::COUPLING) {
           AMANZI_ASSERT(values.size() == num_aqueous_ + 1);
           conserve_qty[num_aqueous_][c] += values[num_aqueous_];
         }
 
         for (int k = 0; k < tcc_index.size(); ++k) {
           int i = tcc_index[k];
-          if (i < n0 || i > n1) continue;
+          if (i > num_aqueous_) continue;
 
           int imap = i;
           double value = mesh_->getCellVolume(c) * values[k];
