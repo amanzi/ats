@@ -164,6 +164,12 @@ Transport_ATS::parseParameterList()
     Exceptions::amanzi_throw(msg);
   }
 
+  // source terms
+  is_source_term_ = plist_->get<bool>("source term", false);
+  if (is_source_term_) {
+    source_key_ = Keys::readKey(*plist_, domain_, "source", "component_source");
+  }
+
   db_ = Teuchos::rcp(new Debugger(mesh_, name_, *plist_));
 }
 
@@ -288,9 +294,6 @@ Transport_ATS::SetupTransport_()
     diff_sol_ = Teuchos::rcp(new CompositeVector(cvs));
   }
 
-
-  // NOTE: these to go away! ETC
-  //
   // source term setup
   // --------------------------------------------------------------------------------
   if (plist_->isSublist("source terms")) {
@@ -537,7 +540,7 @@ Transport_ATS::SetupPhysicalEvaluators_()
     requireEvaluatorAtCurrent(molar_dens_key_, tag_current_, *S_);
   }
 
-  // CellVolume it may not be used in this PK, but having it makes vis nicer
+  // cell volume
   requireEvaluatorAtNext(cv_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
@@ -581,6 +584,14 @@ Transport_ATS::SetupPhysicalEvaluators_()
     ->SetGhosted(true)
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_aqueous_ + 2);
   S_->GetRecordSetW(conserve_qty_key_).set_subfieldnames(subfield_names);
+
+  // source term -- at next to match regression tests -- should this be at current?
+  if (!source_key_.empty()) {
+    requireEvaluatorAtNext(source_key_, tag_next_, *S_)
+      .SetMesh(mesh_)
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_aqueous_ + 2);
+    S_->GetRecordSetW(source_key_).set_subfieldnames(subfield_names);
+  }
 }
 
 
@@ -596,10 +607,7 @@ Transport_ATS::Initialize()
   // initialize missed fields
   InitializeFields_();
 
-  // Move to Setup() with other sources? --ETC
-  //
-  // This must be called after S_->setup() since "water_source" data not
-  // created before this step. --PL
+  // geochemical sources can now be set up
   if (plist_->isSublist("source terms")) {
     auto sources_list = Teuchos::sublist(plist_, "source terms");
     if (sources_list->isSublist("geochemical")) {
@@ -629,6 +637,8 @@ Transport_ATS::Initialize()
   }
 
   // can also now setup the joint diffusion/dispersion workspace tensor
+  //
+  // This cannot be done in setup because it needs the rank? --ETC
   int D_rank = -1;
   int D_dim = mesh_->getSpaceDimension();
   if (has_diffusion_) D_rank = 1; // scalar
@@ -1052,7 +1062,7 @@ Transport_ATS::AdvanceAdvectionSources_RK1_(double t_old,
       .ViewComponent("cell", false);
 
     // process external sources: M <-- M + dt * Q
-    AddSourceTerms_(t_old, t_new, conserve_qty, 0, num_aqueous_ - 1);
+    AddSourceTerms_(t_old, t_new, conserve_qty);
     db_->WriteCellVector("qnty (src)", conserve_qty,
                          S_->GetRecordSet(conserve_qty_key_).subfieldnames());
   }
@@ -1138,7 +1148,7 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(double t_old,
                          S_->GetRecordSet(conserve_qty_key_).subfieldnames());
 
     // -- process external sources: M <-- M + dt * Q(t0)
-    AddSourceTerms_(t_old, t_new, conserve_qty, 0, num_aqueous_ - 1);
+    AddSourceTerms_(t_old, t_new, conserve_qty);
     db_->WriteCellVector("qnty (pred src)", conserve_qty,
                          S_->GetRecordSet(conserve_qty_key_).subfieldnames());
   }
@@ -1207,7 +1217,7 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(double t_old,
     //   M <-- M + dt/2 Q(t1)
     //     <-- (C0 W0 + dt div q C0 + dt Q(t0)) / 2 + W0 C0 / 2 + dt div q C' / 2 + dt Q(t1) / 2
     //     <-- C0 W0 + dt * (div q C0 + div q C') / 2 + dt (Q(t0) + Q(t1)) / 2
-    AddSourceTerms_(t_old + dt/2., t_new, conserve_qty, 0, num_aqueous_ - 1);
+    AddSourceTerms_(t_old + dt/2., t_new, conserve_qty);
     db_->WriteCellVector("qnty (corr src)", conserve_qty,
                          S_->GetRecordSet(conserve_qty_key_).subfieldnames());
   }

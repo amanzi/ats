@@ -295,9 +295,7 @@ class Transport_ATS : public PK_Physical_Default {
 
   void AddSourceTerms_(double t_old,
                        double t_new,
-                       Epetra_MultiVector& conserve_qty,
-                       int n0,
-                       int n1);
+                       Epetra_MultiVector& conserve_qty);
 
   void InvertTccNew_(const Epetra_MultiVector& conserve_qty,
                      Epetra_MultiVector& tcc,
@@ -324,6 +322,8 @@ class Transport_ATS : public PK_Physical_Default {
   // dependencies
   Key flux_key_; // advecting water flux [mol / s] on faces
   Key lwc_key_; // liquid water content [mol]
+  Key source_key_;
+  bool is_source_term_;
   Key cv_key_;
 
   // workspace
