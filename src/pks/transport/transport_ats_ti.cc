@@ -349,18 +349,25 @@ Transport_ATS::AddSourceTerms_(double t0,
         Epetra_MultiVector& conserve_qty)
 {
   // note: conserve_qty is OWNED vector
+  double dt = t1 - t0;
 
   // First add evaluator-based sources
   if (!source_key_.empty()) {
     S_->GetEvaluator(source_key_, tag_next_).Update(*S_, name_);
     const Epetra_MultiVector& Q_c = *S_->Get<CompositeVector>(source_key_, tag_next_).ViewComponent("cell", false);
     const Epetra_MultiVector& cv = *S_->Get<CompositeVector>(cv_key_, tag_next_).ViewComponent("cell", false);
-    std::cout << "Source: " << Q_c[0][0] << ", " << Q_c[1][0] << std::endl;
-    std::cout << "CQ: " << conserve_qty[0][0] << ", " << conserve_qty[1][0] << std::endl;
+    // std::cout << "Source: " << Q_c[0][0] << ", " << Q_c[1][0] << std::endl;
+    // std::cout << "CQ: " << conserve_qty[0][0] << ", " << conserve_qty[1][0] << std::endl;
 
-    int ierr = conserve_qty.Multiply(t1 - t0, cv, Q_c, 1.0);
-    AMANZI_ASSERT(!ierr);
-    std::cout << "CQ: " << conserve_qty[0][0] << ", " << conserve_qty[1][0] << std::endl;
+    AMANZI_ASSERT(conserve_qty.MyLength() == cv.MyLength());
+    AMANZI_ASSERT(conserve_qty.MyLength() == Q_c.MyLength());
+    AMANZI_ASSERT(conserve_qty.NumVectors() == Q_c.NumVectors() + 2);
+    for (unsigned i = 0; i != Q_c.NumVectors(); ++i) {
+      for (unsigned c = 0; c != Q_c.MyLength(); ++c) {
+        conserve_qty[i][c] += dt * cv[0][c] * Q_c[i][c];
+      }
+    }
+    // std::cout << "CQ: " << conserve_qty[0][0] << ", " << conserve_qty[1][0] << std::endl;
   }
 
   // next add DomainFunction-based sources, which are particularly useful from
@@ -384,10 +391,7 @@ Transport_ATS::AddSourceTerms_(double t0,
         for (int k = 0; k < tcc_index.size(); ++k) {
           int i = tcc_index[k];
           if (i > num_aqueous_) continue;
-
-          int imap = i;
-          double value = mesh_->getCellVolume(c) * values[k];
-          conserve_qty[imap][c] += (t1 - t0) * value;
+          conserve_qty[i][c] += dt * mesh_->getCellVolume(c) * values[k];
         }
       }
     }

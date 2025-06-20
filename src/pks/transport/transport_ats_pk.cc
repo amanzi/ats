@@ -564,6 +564,14 @@ Transport_ATS::SetupPhysicalEvaluators_()
   S_->GetRecordSetW(mass_flux_advection_key_).set_subfieldnames(subfield_names);
   S_->GetRecordSetW(mass_flux_diffusion_key_).set_subfieldnames(subfield_names);
 
+  // source term -- at next to match regression tests -- should this be at current?
+  if (!source_key_.empty()) {
+    requireEvaluatorAtNext(source_key_, tag_next_, *S_)
+      .SetMesh(mesh_)
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_aqueous_);
+    S_->GetRecordSetW(source_key_).set_subfieldnames(subfield_names);
+  }
+
   // This vector stores the conserved amount (in mols) of num_components_
   // transported solutes, plus two for water.
   //
