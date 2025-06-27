@@ -116,9 +116,12 @@ SurfCulvertEvaluator::Evaluate_(const State& S, const std::vector<CompositeVecto
   double h_o = std::max(h_up_feet - h_down_feet, 0.0001);
   double k = 1.5 + (29.0 * n_ * n_ * L_) / std::pow(R, 1.33);
   double Q_outlet = Nb_ * C_ * A * std::sqrt((2.0 * g * h_o) / k);
-
   double Q_cfs = (Q_inlet * Q_outlet) / std::sqrt(Q_inlet * Q_inlet + Q_outlet * Q_outlet + 1e-12);
+  std::cout << "Q_inlet: " << Q_inlet << std::endl;
+  std::cout << "Q_outlet: " << Q_outlet << std::endl;
+  std::cout << "Q_cfs: " << Q_cfs << std::endl;
   double Q = Q_cfs * 0.028316847; // convert to m^3/s
+  std::cout << "Q: " << Q << std::endl;
 
   double available_water_mol = 0.0;
   for (auto c : inlet_id_list) {
