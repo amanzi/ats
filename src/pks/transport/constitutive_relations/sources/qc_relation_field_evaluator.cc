@@ -81,7 +81,7 @@ QCRelationFieldEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
       surf_src[0][c] = source_mass * field_flow * 1.0;
     } else {
       // negative flux means sink, concentration is the same as the current concentration
-      surf_src[0][c] = tcc_current * (-field_flow) * 1.0;
+      surf_src[0][c] = tcc_current * field_flow * 1.0;
     }    
   }
 }

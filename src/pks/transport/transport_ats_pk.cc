@@ -1231,6 +1231,7 @@ Transport_ATS::AdvanceDonorUpwind_(double dt_cycle)
     *S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, name_).ViewComponent("cell", false);
 
   for (int c = 0; c < conserve_qty.MyLength(); c++) {
+    double cell_vol = mesh_->getCellVolume(c);
     double vol_phi_ws_den =
       mesh_->getCellVolume(c) * phi[0][c] * (*ws_prev_)[0][c] * (*mol_dens_prev_)[0][c];
     (conserve_qty)[num_components_ + 1][c] = vol_phi_ws_den;
@@ -1351,6 +1352,17 @@ Transport_ATS::AdvanceDonorUpwind_(double dt_cycle)
     ComputeAddSourceTerms_(time, dt_, conserve_qty, 0, num_aqueous_ - 1);
   }
   db_->WriteCellVector("cons (src)", conserve_qty);
+
+  // if (plist_->isParameter("debug transport")) {
+  //   int dcs = plist_->get<int>("debug transport");
+  //   if ((vo_->os_OK(Teuchos::VERB_MEDIUM)) && (dcs == 1)) {
+  //     for (int i = 0; i < num_advect_; i++) {
+  //       for (int c = 0; c < conserve_qty.MyLength(); c++) {
+  //         *vo_->os() << "CONS_QTY:  " << i << "  |  " << c << "  |  " << conserve_qty[i][c] << std::endl;    
+  //       }
+  //     }
+  //   }
+  // }
 
   // recover concentration from new conservative state
   for (int c = 0; c < conserve_qty.MyLength(); c++) {

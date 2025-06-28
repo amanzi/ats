@@ -60,6 +60,7 @@ QCRelationOverlandEvaluator::Evaluate_(const State& S, const std::vector<Composi
   // mesh.getFaceCells(f).size() == 1: Face on the river bank connecting overland and river cells (use)
   // mesh.getFaceCells(f).size() == 2: Internal face connecting two river cells (ignore)
   for (AmanziMesh::Entity_ID c = 0; c != ncells; ++c) {
+    AmanziGeometry::Point centroid = mesh.getCellCentroid(c);
     double total_external_flux = 0;
     const auto& [faces, dirs] = mesh.getCellFacesAndDirections(c);
     int nfaces = faces.size();
@@ -67,13 +68,23 @@ QCRelationOverlandEvaluator::Evaluate_(const State& S, const std::vector<Composi
     for (int i = 0; i < nfaces; i++) {
       int f = faces[i];     // get each face of the cell
       double dir = dirs[i]; // 1: water goes out of the cell; -1: water goes into the cell
-      std::cout <<  "c: " << c <<  "i: " << i << "f: " << f << " dir: " << dir << std::endl << std::flush;
-      if (mesh.getFaceCells(f).size() == 1) {
-        // external faces which contributes sinks/sources
+      // std::cout 
+      // << "centroid: " << std::fixed << std::setprecision(1) << std::setw(6) << centroid[0] << ", " << std::setw(6) << centroid[1]
+      // << "\t c: " << std::setw(3) << c 
+      // << "\t i: " << std::setw(2) << i 
+      // << "\t f: " << std::setw(4) << f 
+      // << "\t direction: " << std::setw(3) << std::showpos << dir 
+      // << "\t FaceCells: " << std::setw(2) << mesh.getFaceCells(f).size() 
+      // << "\t water: " << std::fixed << std::setprecision(1) << std::setw(6) << water_from_field[0][f] 
+      // << std::endl << std::flush;
+      
+      if ((mesh.getFaceCells(f).size() == 1) && (dir == -1)) {
+        // External faces are adjacent to only one cell (size() == 1).
+        // Flux through these faces represents sources or sinks to/from the overland flow.        
+        // dir == -1 
         total_external_flux += water_from_field[0][f] * (-dir);
-      }
+      }  
     }
-    
     // current concentration
     double tcc_current = tcc[0][c];
 
@@ -90,9 +101,14 @@ QCRelationOverlandEvaluator::Evaluate_(const State& S, const std::vector<Composi
       surf_src[0][c] = source_transport * total_flux_meter * 1.0;
     } else {
       // negative flux means sink, concentration is the same as the current concentration
-      surf_src[0][c] = tcc_current * -total_flux_meter * 1.0;
+      surf_src[0][c] = tcc_current * total_flux_meter * 1.0;
     }
+    // std::cout << std::endl << std::flush;
 
+    // std::cout << std::fixed << std::setprecision(8) << std::setw(8) << "-- total_flux_meter:" << total_flux_meter 
+    // << std::fixed << std::setprecision(2) << std::setw(6) << "\t source transport:" << source_transport 
+    // << std::fixed << std::setprecision(8) << std::setw(8) << "\t surf_src:" << surf_src[0][c]
+    // << std::endl << std::flush;
     
   }
 }
