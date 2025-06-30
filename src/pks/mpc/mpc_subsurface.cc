@@ -688,7 +688,7 @@ MPCSubsurface::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up,
       // -- update the local matrices, div h * kr grad
       ddivhq_dp_->UpdateMatrices(Teuchos::null, Teuchos::null);
       // -- determine the advective fluxes, q_a = h * kr grad p
-      CompositeVector adv_flux(*flux, INIT_MODE_ZERO);
+      CompositeVector adv_flux(flux->Map(), init_mode_default);
       Teuchos::Ptr<CompositeVector> adv_flux_ptr(&adv_flux);
       ddivhq_dp_->UpdateFlux(up->SubVector(0)->Data().ptr(), adv_flux_ptr);
       // -- add in components div (d h*kr / dp) grad q_a / (h*kr)
