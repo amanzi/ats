@@ -175,11 +175,6 @@ SurfPumpEvaluator::Evaluate_(const State& S,
     // pass
   }
 
-  // Print the value of avg_pe_inlet
-  std::cout << "stage inlet: " << avg_pe_inlet << std::endl;
-  std::cout << "pump status: " << pump_on << std::endl;
-
-
   // Calculate pumpflow rate and distribute sources and sinks 
   double Q_max;
   double Q;
