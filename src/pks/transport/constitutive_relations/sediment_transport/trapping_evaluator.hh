@@ -42,7 +42,7 @@ class TrappingRateEvaluator : public EvaluatorSecondaryMonotypeCV {
   Key velocity_key_;
   Key sediment_key_;
   Key ponded_depth_key_;
-  Key biomass_key_;
+  Key stem_diameter_key_, stem_height_key_, stem_density_key_;
   double sediment_density_;
 
   static Utils::RegisteredFactory<Evaluator, TrappingRateEvaluator> factory_;

@@ -6,8 +6,7 @@
 
 
 # collect all sources
-list(APPEND subdirs sources)
-#list(APPEND subdirs sources sediment_transport)
+list(APPEND subdirs sources sediment_transport)
 
 set(ats_transport_relations_src_files "")
 set(ats_transport_relations_inc_files "")
