@@ -136,11 +136,11 @@ MPCFlowTransport::parseParameterList()
         flux_list.set<std::string>("target", Keys::getKey("surface-water_flux", flow_next_tag, true));
       }
 
-      // velocity for dispersivity
-      Teuchos::ParameterList& velo_list = S_->GetEvaluatorList(Keys::getKey("surface-water_velocity", transport_next_tag));
+      // velocity for evaluators
+      Teuchos::ParameterList& velo_list = S_->GetEvaluatorList(Keys::getKey("surface-velocity", transport_next_tag));
       if (!velo_list.isParameter("evaluator type")) {
         velo_list.set<std::string>("evaluator type", "alias");
-        velo_list.set<std::string>("target", Keys::getKey("surface-water_velocity", flow_next_tag, true));
+        velo_list.set<std::string>("target", Keys::getKey("surface-velocity", flow_next_tag, true));
       }
 
       // set the liquid water content as an interpolated field

@@ -213,20 +213,12 @@ class Operator;
 
 namespace Transport {
 
-// ummm -- why does this not use TreeVector? --ETC
 class Transport_ATS : public PK_Physical_Default {
  public:
   Transport_ATS(Teuchos::ParameterList& pk_tree,
                 const Teuchos::RCP<Teuchos::ParameterList>& glist,
                 const Teuchos::RCP<State>& S,
                 const Teuchos::RCP<TreeVector>& solution);
-
-  Transport_ATS(const Teuchos::RCP<Teuchos::ParameterList>& glist,
-                Teuchos::RCP<State> S,
-                const std::string& pk_list_name,
-                std::vector<std::string>& component_names);
-
-  ~Transport_ATS() = default;
 
   void parseParameterList() override;
 
@@ -266,8 +258,8 @@ class Transport_ATS : public PK_Physical_Default {
   // -- setup/initialize helper functions
   void InitializeFields_();
 
-  void SetupTransport_();
-  void SetupPhysicalEvaluators_();
+  virtual void SetupTransport_ ();
+  virtual void SetupPhysicalEvaluators_();
 
   // -- advance members -- portions of the operator
   void AdvanceAdvectionSources_RK1_(double t_old, double t_new, int spatial_order);
@@ -296,7 +288,7 @@ class Transport_ATS : public PK_Physical_Default {
           Epetra_Vector& f,
           int component);
 
-  void AddSourceTerms_(double t_old,
+  virtual void AddSourceTerms_(double t_old,
                        double t_new,
                        Epetra_MultiVector& conserve_qty);
 
