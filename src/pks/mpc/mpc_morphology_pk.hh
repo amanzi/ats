@@ -50,8 +50,6 @@ class Morphology_PK : public MPCFlowTransport {
   virtual void parseParameterList();
   // -- dt is the minimum of the sub pks
   virtual double get_dt();
-  //virtual void set_dt(double dt);
-  virtual void set_tags(const Tag& current, const Tag& next);
   virtual void Setup();
   virtual void Initialize();
 

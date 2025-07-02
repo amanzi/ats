@@ -24,101 +24,60 @@ Morphology_PK::Morphology_PK(Teuchos::ParameterList& pk_tree_or_fe_list,
                              const Teuchos::RCP<TreeVector>& soln)
   : PK(pk_tree_or_fe_list, global_list, S, soln),
     MPCFlowTransport(pk_tree_or_fe_list, global_list, S, soln)
-{
-  // Create verbosity object.
-  vo_ = Teuchos::null;
-  Teuchos::ParameterList vlist;
-  vlist.sublist("verbose object") = plist_->sublist("verbose object");
-  vo_ = Teuchos::rcp(new VerboseObject("Morphology_PK", vlist));
-  domain_ = plist_->get<std::string>("domain name", "domain");
-  name_ = "morphology pk";
-
-  Teuchos::Array<std::string> pk_order = plist_->get<Teuchos::Array<std::string>>("PKs order");
-}
+{}
 
 
 void
-Morphology_PK::set_tags(const Tag& current, const Tag& next)
+Morphology_PK::parseParameterList()
 {
-
-  MPCFlowTransport::set_tags(current, next);
-
-}
-
-void
-Morphology_PK::parseParameterList(){
-
   MPCFlowTransport::parseParameterList();
 
-  elevation_increase_key_ = Keys::getKey(domain_, "deformation");
+  elevation_increase_key_ = Keys::readKey(*plist_, domain_, "deformation", "deformation");
   porosity_key_ = Keys::readKey(*plist_, domain_, "soil porosity", "soil_porosity");
   elev_key_ = Keys::readKey(*plist_, domain_, "elevation", "elevation");
+  dens_key_ = Keys::readKey(*plist_, domain_, "mass density liquid", "mass_density_liquid");
+  velo_key_ = Keys::readKey(*plist_, domain_, "velocity", "velocity");
+
+  biomass_key_ = Keys::readKey(*plist_, domain_, "biomass", "biomass");
+  stem_density_key_ = Keys::readKey(*plist_, domain_, "stem density", "stem_density");
+  stem_height_key_ = Keys::readKey(*plist_, domain_, "stem height", "stem_height");
+  stem_diameter_key_ = Keys::readKey(*plist_, domain_, "stem diameter", "stem_diameter");
+  plant_area_key_ = Keys::readKey(*plist_, domain_, "plant area", "plant_area");
 
   auto [flow_current_tag, flow_next_tag] = tags_[0];
   auto [transport_current_tag, transport_next_tag] = tags_[1];
 
-  Teuchos::ParameterList& dens_list_next = S_->GetEvaluatorList(Keys::getKey("surface-mass_density_liquid", transport_next_tag));
+  Teuchos::ParameterList& dens_list_next = S_->GetEvaluatorList(Keys::getKey(dens_key_, transport_next_tag));
   if (!dens_list_next.isParameter("evaluator type")) {
     dens_list_next.set<std::string>("evaluator type", "temporal interpolation");
     dens_list_next.set<std::string>("current tag", flow_current_tag.get());
     dens_list_next.set<std::string>("next tag", flow_next_tag.get());
   }
 
-  Teuchos::ParameterList& sat_list_next = S_->GetEvaluatorList(Keys::getKey("surface-ponded_depth", transport_next_tag));
-  if (!sat_list_next.isParameter("evaluator type")) {
-    sat_list_next.set<std::string>("evaluator type", "temporal interpolation");
-    sat_list_next.set<std::string>("current tag", flow_current_tag.get());
-    sat_list_next.set<std::string>("next tag", flow_next_tag.get());
-  }
-
-  Teuchos::ParameterList& velo_list = S_->GetEvaluatorList(Keys::getKey("surface-velocity", transport_next_tag));
+  Teuchos::ParameterList& velo_list = S_->GetEvaluatorList(Keys::getKey(velo_key_, transport_next_tag));
   if (!velo_list.isParameter("evaluator type")) {
     velo_list.set<std::string>("evaluator type", "alias");
-    velo_list.set<std::string>("target", Keys::getKey("surface-velocity", flow_next_tag, true));
+    velo_list.set<std::string>("target", Keys::getKey(velo_key_, flow_next_tag, true));
   }
 
-  // Teuchos::ParameterList& elev_inc_list = S_->GetEvaluatorList(Keys::getKey(elevation_increase_key_, transport_next_tag));
-  // if (!elev_inc_list.isParameter("evaluator type")) {
-  //   elev_inc_list.set<std::string>("evaluator type", "alias");
-  //   elev_inc_list.set<std::string>("target", Keys::getKey(elevation_increase_key_, flow_next_tag, true));
-  // }
-
-  dt_MPC_ = plist_->get<double>("dt MPC", 31557600);
   MSF_ = plist_->get<double>("morphological scaling factor", 1);
 
   mesh_ = S_->GetDeformableMesh(domain_);
-  if (domain_ == "surface") {
-    domain_3d_ = "surface_3d";
-    domain_ss_ = "domain";
 
-    vertex_coord_key_3d_ = Keys::getKey(domain_3d_, "vertex_coordinates");
-    vertex_coord_key_ss_ = Keys::getKey(domain_ss_, "vertex_coordinates");
+  domain_3d_ = Keys::readDomainHint(*plist_, domain_, "surface", "surface_3d");
+  domain_ss_ = Keys::readDomainHint(*plist_, domain_, "surface", "domain");
 
-    surf3d_mesh_ = S_->GetDeformableMesh(domain_ + "_3d");
-    mesh_ss_ = S_->GetDeformableMesh(domain_ss_);
-  }
+  vertex_coord_key_3d_ = Keys::readKey(*plist_, domain_3d_, "vertex coordinates", "vertex_coordinates");
+  vertex_coord_key_ss_ = Keys::readKey(*plist_, domain_ss_, "vertex coordinates", "vertex_coordinates");
 
-  if (!S_->FEList().isSublist(elev_key_)){
-    S_->GetEvaluatorList(elev_key_).set("evaluator type", "meshed elevation");
-  }
-  S_->GetEvaluatorList(elev_key_).set("dynamic mesh", true);
-  S_->GetEvaluatorList(elev_key_).set("deformation indicator", elevation_increase_key_);
+  surf3d_mesh_ = S_->GetDeformableMesh(domain_3d_);
+  mesh_ss_ = S_->GetDeformableMesh(domain_ss_);
 
-}
-
-
-// -----------------------------------------------------------------------------
-// Calculate the min of sub PKs timestep sizes.
-// -----------------------------------------------------------------------------
-double
-Morphology_PK::get_dt()
-{
-  if (dt_MPC_ < 0) {
-    double dt = Amanzi::MPCFlowTransport::get_dt();
-    set_dt(dt);
-    return dt;
-  } else {
-    return dt_MPC_;
+  if (!S_->HasEvaluatorList(elev_key_)) {
+    Teuchos::ParameterList& elev_list = S_->GetEvaluatorList(elev_key_);
+    elev_list.set("evaluator type", "meshed elevation");
+    elev_list.set("dynamic mesh", true);
+    elev_list.set("deformation indicator", elevation_increase_key_);
   }
 }
 
@@ -126,75 +85,49 @@ Morphology_PK::get_dt()
 void
 Morphology_PK::Setup()
 {
-
   auto [flow_current_tag, flow_next_tag] = tags_[0];
   auto [transport_current_tag, transport_next_tag] = tags_[1];
 
   Amanzi::MPCFlowTransport::Setup();
 
-  // create storage for the vertex coordinates
-  // we need to checkpoint those to be able to create
-  // the deformed mesh after restart
-  std::vector<AmanziMesh::Entity_kind> location(1);
-  std::vector<int> num_dofs(1);
-  std::vector<std::string> name(1);
-
-  int dim = mesh_->getSpaceDimension();
-  location[0] = AmanziMesh::NODE;
-  num_dofs[0] = dim;
-  name[0] = "node";
-
-  S_->Require<CompositeVector, CompositeVectorSpace>(elevation_increase_key_, Tags::NEXT, elevation_increase_key_)
+  requireEvaluatorAssign( elevation_increase_key_, tag_next_, *S_, elevation_increase_key_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
-  requireEvaluatorAssign( elevation_increase_key_, Tags::NEXT, *S_, elevation_increase_key_);
 
-
-  S_->Require<CompositeVector, CompositeVectorSpace>(porosity_key_, Tags::NEXT, porosity_key_)
+  requireEvaluatorAssign(porosity_key_, tag_next_, *S_, porosity_key_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
-  requireEvaluatorAssign(porosity_key_, Tags::NEXT, *S_, porosity_key_);
 
-  int num_veg_species = plist_->get<int>("number of vegitation species", 1);
-  Key biomass_key = Keys::getKey(domain_, "biomass");
-  Key stem_density_key = Keys::getKey(domain_, "stem_density");
-  Key stem_height_key = Keys::getKey(domain_, "stem_height");
-  Key stem_diameter_key = Keys::getKey(domain_, "stem_diameter");
-  Key plant_area_key = Keys::getKey(domain_, "plant_area");
+  int num_veg_species = plist_->get<int>("number of vegetation species", 1);
 
-  location[0] = AmanziMesh::CELL;
-  num_dofs[0] = num_veg_species;
-  name[0] = "cell";
-
-  requireEvaluatorAtNext(biomass_key, Tags::NEXT, *S_)
+  requireEvaluatorAtNext(biomass_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponents(name, location, num_dofs);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_veg_species);
 
-  requireEvaluatorAtNext(plant_area_key, Tags::NEXT, *S_)
+  requireEvaluatorAtNext(plant_area_key, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponents(name, location, num_dofs);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_veg_species);
 
-  requireEvaluatorAtNext(stem_diameter_key, Tags::NEXT, *S_)
+  requireEvaluatorAtNext(stem_diameter_key, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponents(name, location, num_dofs);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_veg_species);
 
-  requireEvaluatorAtNext(stem_height_key, Tags::NEXT, *S_)
+  requireEvaluatorAtNext(stem_height_key, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponents(name, location, num_dofs);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_veg_species);
 
-  requireEvaluatorAtNext(stem_density_key, Tags::NEXT, *S_)
+  requireEvaluatorAtNext(stem_density_key, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponents(name, location, num_dofs);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_veg_species);
 
-  S_->Require<double>("msl", Tags::NEXT);
-
+  S_->Require<double>("msl", tag_next_);
 }
 
  void
@@ -202,15 +135,9 @@ Morphology_PK::Setup()
 {
   Amanzi::MPCFlowTransport::Initialize();
 
-  // initialize the vertex coordinate of existing meshes
-
-  // if (S_->HasRecord(vertex_coord_key_, Tags::NEXT)) Initialize_MeshVertices_(S_.ptr(), mesh_, vertex_coord_key_, Tags::NEXT);
-  // if (S_->HasRecord(vertex_coord_key_3d_, Tags::NEXT)) Initialize_MeshVertices_(S_.ptr(), surf3d_mesh_, vertex_coord_key_3d_, Tags::NEXT);
-  // if (S_->HasRecord(vertex_coord_key_ss_, Tags::NEXT)) Initialize_MeshVertices_(S_.ptr(), mesh_ss_, vertex_coord_key_ss_, Tags::NEXT);
-
-  if (S_->HasRecord(elevation_increase_key_, Tags::NEXT)) {
-    S_->GetW<CompositeVector>(elevation_increase_key_, Tags::NEXT, elevation_increase_key_).PutScalar(0.);
-    S_->GetRecordW(elevation_increase_key_, Tags::NEXT, elevation_increase_key_).set_initialized();
+  if (S_->HasRecord(elevation_increase_key_, tag_next_)) {
+    S_->GetW<CompositeVector>(elevation_increase_key_, tag_next_, elevation_increase_key_).PutScalar(0.);
+    S_->GetRecordW(elevation_increase_key_, tag_next_, elevation_increase_key_).set_initialized();
   }
 
   flow_pk_ = Teuchos::rcp_dynamic_cast<PK_BDF_Default>(sub_pks_[0]);
@@ -218,11 +145,12 @@ Morphology_PK::Setup()
 
 
   const Epetra_MultiVector& dz =
-    *S_->Get<CompositeVector>(elevation_increase_key_, Tags::NEXT).ViewComponent("cell", false);
+    *S_->Get<CompositeVector>(elevation_increase_key_, tag_next_).ViewComponent("cell", false);
 
   dz_accumul_ = Teuchos::rcp(new Epetra_MultiVector(dz));
   dz_accumul_->PutScalar(0.);
 }
+
 
 void
 Morphology_PK::CommitStep(double t_old, double t_new, const Tag& tag)
@@ -232,12 +160,13 @@ Morphology_PK::CommitStep(double t_old, double t_new, const Tag& tag)
   Key elev_key = Keys::readKey(*plist_, domain_, "elevation", "elevation");
   Key slope_key = Keys::readKey(*plist_, domain_, "slope magnitude", "slope_magnitude");
 
-  bool chg = S_->GetEvaluator(elev_key, Tags::NEXT).Update(*S_, name_);
+  bool chg = S_->GetEvaluator(elev_key, tag_next_).Update(*S_, name_);
 
 
   Key biomass_key = Keys::getKey(domain_, "biomass");
-  chg = S_->GetEvaluator(biomass_key, Tags::NEXT).Update(*S_, name_);
+  chg = S_->GetEvaluator(biomass_key, tag_next_).Update(*S_, name_);
 }
+
 
 // -----------------------------------------------------------------------------
 // Advance each sub-PK individually, returning a failure as soon as possible.
@@ -248,32 +177,26 @@ Morphology_PK::AdvanceStep(double t_old, double t_new, bool reinit)
   bool fail = false;
   Teuchos::OSTab tab = vo_->getOSTab();
 
-  //Key elev_key = Keys::readKey(*plist_, domain_, "elevation", "elevation");
-  Epetra_MultiVector& dz =
-    *S_->GetW<CompositeVector>(elevation_increase_key_, Tags::NEXT, elevation_increase_key_).ViewComponent("cell", false);
-  dz.PutScalar(0.);
-
+  S_->GetW<CompositeVector>(elevation_increase_key_, tag_next_, elevation_increase_key_).PutScalar(0.);
   fail = Amanzi::MPCFlowTransport::AdvanceStep(t_old, t_new, reinit);
 
   if (!fail) {
-
+    const Epetra_MultiVector& dz = S_->Get<CompositeVector>(elevation_increase_key_, tag_next_, elevation_increase_key_)
+      .ViewComponent("cell", false);
     double max_dz, min_dz;
     dz.MinValue(&min_dz);
     dz.MaxValue(&max_dz);
 
     dz.Scale(MSF_);
 
-    if (vo_->getVerbLevel() >= Teuchos::VERB_HIGH)
+    if (vo_->os_OK(Teuchos::VERB_HIGH))
       *vo_->os() << "Deformation min " << min_dz << " max " << max_dz << "\n";
 
-    //    dz_accumul_->Update(1, dz, 1);
-    Update_MeshVertices_(S_.ptr(), Tags::NEXT);
-
+    Update_MeshVertices_(S_.ptr(), tag_next_);
   }
-
   return fail;
-
 }
+
 
 void
 Morphology_PK::Initialize_MeshVertices_(const Teuchos::Ptr<State>& S,
