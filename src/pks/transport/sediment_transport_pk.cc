@@ -58,14 +58,9 @@ SedimentTransport_PK::parseParameterList()
   sd_erosion_key_ =  Keys::readKey(*plist_, domain_, "erosion rate", "erosion_rate");
   sd_organic_key_ =  Keys::readKey(*plist_, domain_, "organic rate", "organic_rate");
 
-  biomass_key_ =  Keys::readKey(*plist_, domain_, "biomass", "biomass");
-  plant_area_key_ = Keys::getKey(domain_, "plant_area");
-  stem_diameter_key_ = Keys::getKey(domain_, "stem_diameter");
-  stem_height_key_ = Keys::getKey(domain_, "stem_height");
-  stem_density_key_ = Keys::getKey(domain_, "stem_density");
-
-  //horiz_mixing_key_ = Keys::readKey(*plist_, domain_, "horizontal mixing", "horizontal_mixing");
   elevation_increase_key_ = Keys::readKey(*plist_, domain_, "deformation", "deformation");
+  requireEvaluatorAtNext(elevation_increase_key_, tag_next_, *S_, name_);
+
   porosity_key_ = Keys::readKey(*plist_, domain_, "soil porosity", "soil_porosity");
 
   has_dispersion_ = false;
@@ -123,21 +118,15 @@ SedimentTransport_PK::parseParameterList()
     msg << "Transport_ATS: \"temporal discretization order\" must be 1 or 2, not " << temporal_disc_order_;
     Exceptions::amanzi_throw(msg);
   }
-
-  //sediment_density_ = plist_->get<double>("sediment density [kg m^-3]");
-
-  db_ = Teuchos::rcp(new Debugger(mesh_, name_, *plist_));
-
 }
 
 
 void
-SedimentTransport_PK::SetupPhysicalEvaluators_(){
-
+SedimentTransport_PK::SetupPhysicalEvaluators_()
+{
   Transport_ATS::SetupPhysicalEvaluators_();
 
   // setup sediment transport sources
-
   requireEvaluatorAtNext(sd_organic_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
@@ -158,34 +147,21 @@ SedimentTransport_PK::SetupPhysicalEvaluators_(){
     ->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  requireEvaluatorAtNext(biomass_key_, Tags::NEXT, *S_)
-    .SetMesh(mesh_)
-    ->SetGhosted(true)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+  S_->Require<double>("sediment_density", tag_next_);
 
-  requireEvaluatorAtNext(plant_area_key_, Tags::NEXT, *S_)
-    .SetMesh(mesh_)
-    ->SetGhosted(true)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+  if (!elevation_increase_key_.empty()) {
+    // note, these are done at the OUTER step, hard-coded to NEXT because dz is
+    // accumulated through the inner steps, then applied to the mesh at the
+    // outer step.
+    requireEvaluatorAtNext(elevation_increase_key_, tag_next_, *S_, name_)
+      .SetMesh(mesh_)
+      ->SetGhosted()
+      ->SetComponent("cell", AmanziMesh::CELL, 1);
 
-  requireEvaluatorAtNext(stem_diameter_key_, Tags::NEXT, *S_)
-    .SetMesh(mesh_)
-    ->SetGhosted(true)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
-
-  requireEvaluatorAtNext(stem_height_key_, Tags::NEXT, *S_)
-    .SetMesh(mesh_)
-    ->SetGhosted(true)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
-
-  requireEvaluatorAtNext(stem_density_key_, Tags::NEXT, *S_)
-    .SetMesh(mesh_)
-    ->SetGhosted(true)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
-
-  S_->Require<double>("msl", Tags::NEXT);
-  S_->Require<double>("sediment_density", Tags::NEXT);
-
+    requireEvaluatorAtNext(porosity_key_, tag_next_, *S_)
+      .SetMesh(mesh_)
+      ->AddComponent("cell", AmanziMesh::CELL, 1);
+  }
 }
 
 /* ******************************************************************
@@ -221,7 +197,6 @@ SedimentTransport_PK::Initialize()
     *vo_->os() << "cfl=" << cfl_ << " spatial/temporal discretization: " << adv_spatial_disc_order_
                << " " << temporal_disc_order_ << std::endl << std::endl;
   }
-
 }
 
 
@@ -230,23 +205,20 @@ SedimentTransport_PK::AddSourceTerms_(double t0,
         double t1,
         Epetra_MultiVector& conserve_qty)
 {
-  double mass1 = 0., mass2 = 0., add_mass = 0., tmp1;
-  bool chg;
-
   int ncells_owned =
     mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
-  sediment_density_ = S_->Get<double>("sediment_density", Tags::NEXT);
+  sediment_density_ = S_->Get<double>("sediment_density", tag_next_);
 
-  chg = S_->GetEvaluator(sd_trapping_key_, tag_next_).Update(*S_, sd_trapping_key_);
+  bool change1 = S_->GetEvaluator(sd_trapping_key_, tag_next_).Update(*S_, sd_trapping_key_);
   const Epetra_MultiVector& Q_dt =
     *S_->GetPtr<CompositeVector>(sd_trapping_key_, tag_next_)->ViewComponent("cell", false);
 
-  chg = S_->GetEvaluator(sd_settling_key_, tag_next_).Update(*S_, sd_settling_key_);
+  bool change2 = S_->GetEvaluator(sd_settling_key_, tag_next_).Update(*S_, sd_settling_key_);
   const Epetra_MultiVector& Q_ds =
     *S_->GetPtr<CompositeVector>(sd_settling_key_, tag_next_)->ViewComponent("cell", false);
 
-  chg = S_->GetEvaluator(sd_erosion_key_, tag_next_).Update(*S_, sd_erosion_key_);
+  bool change3 = S_->GetEvaluator(sd_erosion_key_, tag_next_).Update(*S_, sd_erosion_key_);
   const Epetra_MultiVector& Q_e =
     *S_->GetPtr<CompositeVector>(sd_erosion_key_, tag_next_)->ViewComponent("cell", false);
 
@@ -256,21 +228,31 @@ SedimentTransport_PK::AddSourceTerms_(double t0,
   }
 
 
-  if (S_->HasRecordSet(elevation_increase_key_)) {
-    chg = S_->GetEvaluator(sd_organic_key_, tag_next_).Update(*S_, sd_organic_key_);
-    const Epetra_MultiVector& Q_db =
-      *S_->GetPtr<CompositeVector>(sd_organic_key_, tag_next_)->ViewComponent("cell", false);
+  if (!elevation_increase_key_.empty()) {
+    {
+      bool change4 = S_->GetEvaluator(sd_organic_key_, tag_next_).Update(*S_, sd_organic_key_);
+      const Epetra_MultiVector& Q_db =
+        *S_->GetPtr<CompositeVector>(sd_organic_key_, tag_next_)->ViewComponent("cell", false);
 
-    Epetra_MultiVector& dz = *S_->GetW<CompositeVector>(elevation_increase_key_, Tags::NEXT, elevation_increase_key_)
-      .ViewComponent("cell", false);
+      // Poro and DZ are hard-coded as the NEXT tag -- this should be the outer step's NEXT tag.
+      const Epetra_MultiVector& poro =
+        *S_->Get<CompositeVector>(porosity_key_, tag_next_).ViewComponent("cell", false);
 
-    const Epetra_MultiVector& poro =
-      *S_->Get<CompositeVector>(porosity_key_, Tags::NEXT).ViewComponent("cell", false);
+      // NOTE: we do note zero this out here, because it gets accumulated across the outer step size
+      Epetra_MultiVector& dz = *S_->GetW<CompositeVector>(elevation_increase_key_, tag_next_, name_)
+        .ViewComponent("cell", false);
+      // dz.PutScalar(0.);
 
-    for (int c = 0; c < ncells_owned; c++) {
-      dz[0][c] += ((1. / sediment_density_) * ((Q_dt[0][c] + Q_ds[0][c]) - Q_e[0][c]) + Q_db[0][c]) *
-        (t1 - t0) / (1 - poro[0][c]);
+      for (int c = 0; c < ncells_owned; c++) {
+        dz[0][c] += ((1. / sediment_density_) * ((Q_dt[0][c] + Q_ds[0][c]) - Q_e[0][c]) + Q_db[0][c]) *
+          (t1 - t0) / (1 - poro[0][c]);
+      }
     }
+
+    // do NOT mark this as changed here, as that would also recompute the mesh
+    // despite no deformation in the inner step
+    // changedEvaluatorPrimary(elevation_increase_key_, tag_next_, *S_);
+    db_->WriteVector("dz", S_->GetPtr<CompositeVector>(elevation_increase_key_, tag_next_).ptr());
   }
 
 }

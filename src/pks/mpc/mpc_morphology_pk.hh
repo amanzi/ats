@@ -44,51 +44,26 @@ class Morphology_PK : public MPCFlowTransport {
                 const Teuchos::RCP<Teuchos::ParameterList>& global_list,
                 const Teuchos::RCP<State>& S,
                 const Teuchos::RCP<TreeVector>& soln);
-  ~Morphology_PK() {}
 
   // PK methods
-  virtual void parseParameterList();
-  // -- dt is the minimum of the sub pks
-  virtual double get_dt();
-  virtual void Setup();
-  virtual void Initialize();
+  void parseParameterList() override;
+  void Setup() override;
+  void CommitStep(double t_old, double t_new, const Tag& tag) override;
 
   // -- advance each sub pk from t_old to t_new.
-  virtual bool AdvanceStep(double t_old, double t_new, bool reinit = false);
-
-  virtual void CommitStep(double t_old, double t_new, const Tag& tag);
-
-  std::string name() { return name_; }
+  virtual bool AdvanceStep(double t_old, double t_new, bool reinit = false) override;
 
  protected:
-  void Initialize_MeshVertices_(const Teuchos::Ptr<State>& S,
-                                Teuchos::RCP<const AmanziMesh::Mesh> mesh,
-                                Key vert_field_key, const Amanzi::Tag field_tag);
-
   void Update_MeshVertices_(const Teuchos::Ptr<State>& S, const Tag& tag);
 
-  //void FlowAnalyticalSolution_(const Teuchos::Ptr<State>& S, double time);
-
   Key domain_, domain_3d_, domain_ss_;
-  Key vertex_coord_key_, vertex_coord_key_3d_, vertex_coord_key_ss_;
-  Key elevation_increase_key_, porosity_key_, elev_key_;
+  Teuchos::RCP<AmanziMesh::Mesh> mesh_, mesh_3d_, mesh_ss_;
 
-  Teuchos::RCP<Epetra_MultiVector> dz_accumul_;
+  Key vertex_coord_key_;
+  Key elevation_increase_key_;
+  Key dens_key_, pd_key_; // used in transport's subcycled quantites, need interpolations
 
-  Teuchos::RCP<PK_BDF_Default> flow_pk_;
-  Teuchos::RCP<PK> sed_transport_pk_;
-
-  double master_dt_, slave_dt_;
-  double dt_MPC_, dt_sample_;
   double MSF_; // morphology scaling factor
-
-  Teuchos::RCP<AmanziMesh::Mesh> mesh_, surf3d_mesh_, mesh_ss_;
-  Teuchos::RCP<EvaluatorPrimaryCV> deform_eval_;
-  Key erosion_rate_;
-
-  // debugger for dumping vectors
-  Teuchos::RCP<Debugger> flow_db_;
-  Teuchos::RCP<Debugger> trans_db_;
 
   // factory registration
   static RegisteredPKFactory<Morphology_PK> reg_;

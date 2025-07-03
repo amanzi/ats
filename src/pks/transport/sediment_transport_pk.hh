@@ -119,7 +119,7 @@ public:
 
   Key sd_trapping_key_, sd_settling_key_, sd_erosion_key_, horiz_mixing_key_,  sd_organic_key_;
   Key elevation_increase_key_;
-  Key biomass_key_, porosity_key_;
+  Key porosity_key_;
   Key plant_area_key_, stem_diameter_key_, stem_height_key_, stem_density_key_;
 
  private:

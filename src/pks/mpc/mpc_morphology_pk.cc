@@ -32,53 +32,53 @@ Morphology_PK::parseParameterList()
 {
   MPCFlowTransport::parseParameterList();
 
+  domain_ = plist_->get<std::string>("domain name");
   elevation_increase_key_ = Keys::readKey(*plist_, domain_, "deformation", "deformation");
-  porosity_key_ = Keys::readKey(*plist_, domain_, "soil porosity", "soil_porosity");
-  elev_key_ = Keys::readKey(*plist_, domain_, "elevation", "elevation");
-  dens_key_ = Keys::readKey(*plist_, domain_, "mass density liquid", "mass_density_liquid");
-  velo_key_ = Keys::readKey(*plist_, domain_, "velocity", "velocity");
 
-  biomass_key_ = Keys::readKey(*plist_, domain_, "biomass", "biomass");
-  stem_density_key_ = Keys::readKey(*plist_, domain_, "stem density", "stem_density");
-  stem_height_key_ = Keys::readKey(*plist_, domain_, "stem height", "stem_height");
-  stem_diameter_key_ = Keys::readKey(*plist_, domain_, "stem diameter", "stem_diameter");
-  plant_area_key_ = Keys::readKey(*plist_, domain_, "plant area", "plant_area");
-
-  auto [flow_current_tag, flow_next_tag] = tags_[0];
-  auto [transport_current_tag, transport_next_tag] = tags_[1];
-
-  Teuchos::ParameterList& dens_list_next = S_->GetEvaluatorList(Keys::getKey(dens_key_, transport_next_tag));
-  if (!dens_list_next.isParameter("evaluator type")) {
-    dens_list_next.set<std::string>("evaluator type", "temporal interpolation");
-    dens_list_next.set<std::string>("current tag", flow_current_tag.get());
-    dens_list_next.set<std::string>("next tag", flow_next_tag.get());
-  }
-
-  Teuchos::ParameterList& velo_list = S_->GetEvaluatorList(Keys::getKey(velo_key_, transport_next_tag));
-  if (!velo_list.isParameter("evaluator type")) {
-    velo_list.set<std::string>("evaluator type", "alias");
-    velo_list.set<std::string>("target", Keys::getKey(velo_key_, flow_next_tag, true));
-  }
-
-  MSF_ = plist_->get<double>("morphological scaling factor", 1);
-
-  mesh_ = S_->GetDeformableMesh(domain_);
-
-  domain_3d_ = Keys::readDomainHint(*plist_, domain_, "surface", "surface_3d");
-  domain_ss_ = Keys::readDomainHint(*plist_, domain_, "surface", "domain");
-
-  vertex_coord_key_3d_ = Keys::readKey(*plist_, domain_3d_, "vertex coordinates", "vertex_coordinates");
-  vertex_coord_key_ss_ = Keys::readKey(*plist_, domain_ss_, "vertex coordinates", "vertex_coordinates");
-
-  surf3d_mesh_ = S_->GetDeformableMesh(domain_3d_);
-  mesh_ss_ = S_->GetDeformableMesh(domain_ss_);
-
-  if (!S_->HasEvaluatorList(elev_key_)) {
-    Teuchos::ParameterList& elev_list = S_->GetEvaluatorList(elev_key_);
+  Key elev_key = Keys::readKey(*plist_, domain_, "elevation", "elevation");
+  if (!S_->HasEvaluatorList(elev_key)) {
+    Teuchos::ParameterList& elev_list = S_->GetEvaluatorList(elev_key);
     elev_list.set("evaluator type", "meshed elevation");
     elev_list.set("dynamic mesh", true);
     elev_list.set("deformation indicator", elevation_increase_key_);
   }
+
+  auto [flow_current_tag, flow_next_tag] = tags_[0];
+  auto [transport_current_tag, transport_next_tag] = tags_[1];
+
+  dens_key_ = Keys::readKey(*plist_, domain_, "mass density liquid", "mass_density_liquid");
+  pd_key_ = Keys::readKey(*plist_, domain_, "ponded depth", "ponded_depth");
+  // if subcycling transport, need an interpolation eval for density
+  if (flow_next_tag != transport_next_tag) {
+    // flow's current is a copy
+    requireEvaluatorAtCurrent(dens_key_, flow_current_tag, *S_, name_);
+    requireEvaluatorAtCurrent(pd_key_, flow_current_tag, *S_, name_);
+
+    // transport's next is an interpolation
+    Teuchos::ParameterList& dens_list_next = S_->GetEvaluatorList(Keys::getKey(dens_key_, transport_next_tag));
+    if (!dens_list_next.isParameter("evaluator type")) {
+      dens_list_next.set<std::string>("evaluator type", "temporal interpolation");
+      dens_list_next.set<std::string>("current tag", flow_current_tag.get());
+      dens_list_next.set<std::string>("next tag", flow_next_tag.get());
+    }
+    Teuchos::ParameterList& pd_list_next = S_->GetEvaluatorList(Keys::getKey(pd_key_, transport_next_tag));
+    if (!pd_list_next.isParameter("evaluator type")) {
+      pd_list_next.set<std::string>("evaluator type", "temporal interpolation");
+      pd_list_next.set<std::string>("current tag", flow_current_tag.get());
+      pd_list_next.set<std::string>("next tag", flow_next_tag.get());
+    }
+  }
+
+  MSF_ = plist_->get<double>("morphological scaling factor", 1);
+
+  domain_3d_ = Keys::readDomainHint(*plist_, domain_, "surface", "surface_3d");
+  domain_ss_ = Keys::readDomainHint(*plist_, domain_, "surface", "domain");
+
+  vertex_coord_key_ = Keys::readKey(*plist_, domain_3d_, "vertex coordinates", "vertex_coordinates");
+
+  mesh_ = S_->GetDeformableMesh(domain_);
+  mesh_3d_ = S_->GetDeformableMesh(domain_3d_);
+  mesh_ss_ = S_->GetDeformableMesh(domain_ss_);
 }
 
 
@@ -90,81 +90,15 @@ Morphology_PK::Setup()
 
   Amanzi::MPCFlowTransport::Setup();
 
-  requireEvaluatorAssign( elevation_increase_key_, tag_next_, *S_, elevation_increase_key_)
+  requireEvaluatorAtNext(elevation_increase_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
-  requireEvaluatorAssign(porosity_key_, tag_next_, *S_, porosity_key_)
-    .SetMesh(mesh_)
+  S_->Require<CompositeVector, CompositeVectorSpace>(vertex_coord_key_, tag_next_, vertex_coord_key_)
+    .SetMesh(mesh_3d_)
     ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
-
-  int num_veg_species = plist_->get<int>("number of vegetation species", 1);
-
-  requireEvaluatorAtNext(biomass_key_, tag_next_, *S_)
-    .SetMesh(mesh_)
-    ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_veg_species);
-
-  requireEvaluatorAtNext(plant_area_key, tag_next_, *S_)
-    .SetMesh(mesh_)
-    ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_veg_species);
-
-  requireEvaluatorAtNext(stem_diameter_key, tag_next_, *S_)
-    .SetMesh(mesh_)
-    ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_veg_species);
-
-  requireEvaluatorAtNext(stem_height_key, tag_next_, *S_)
-    .SetMesh(mesh_)
-    ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_veg_species);
-
-  requireEvaluatorAtNext(stem_density_key, tag_next_, *S_)
-    .SetMesh(mesh_)
-    ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_veg_species);
-
-  S_->Require<double>("msl", tag_next_);
-}
-
- void
- Morphology_PK::Initialize()
-{
-  Amanzi::MPCFlowTransport::Initialize();
-
-  if (S_->HasRecord(elevation_increase_key_, tag_next_)) {
-    S_->GetW<CompositeVector>(elevation_increase_key_, tag_next_, elevation_increase_key_).PutScalar(0.);
-    S_->GetRecordW(elevation_increase_key_, tag_next_, elevation_increase_key_).set_initialized();
-  }
-
-  flow_pk_ = Teuchos::rcp_dynamic_cast<PK_BDF_Default>(sub_pks_[0]);
-  sed_transport_pk_ = sub_pks_[1];
-
-
-  const Epetra_MultiVector& dz =
-    *S_->Get<CompositeVector>(elevation_increase_key_, tag_next_).ViewComponent("cell", false);
-
-  dz_accumul_ = Teuchos::rcp(new Epetra_MultiVector(dz));
-  dz_accumul_->PutScalar(0.);
-}
-
-
-void
-Morphology_PK::CommitStep(double t_old, double t_new, const Tag& tag)
-{
-  Amanzi::MPCFlowTransport::CommitStep(t_old, t_new, tag);
-
-  Key elev_key = Keys::readKey(*plist_, domain_, "elevation", "elevation");
-  Key slope_key = Keys::readKey(*plist_, domain_, "slope magnitude", "slope_magnitude");
-
-  bool chg = S_->GetEvaluator(elev_key, tag_next_).Update(*S_, name_);
-
-
-  Key biomass_key = Keys::getKey(domain_, "biomass");
-  chg = S_->GetEvaluator(biomass_key, tag_next_).Update(*S_, name_);
+    ->SetComponent("node", AmanziMesh::Entity_kind::NODE, mesh_3d_->getSpaceDimension());
 }
 
 
@@ -177,17 +111,14 @@ Morphology_PK::AdvanceStep(double t_old, double t_new, bool reinit)
   bool fail = false;
   Teuchos::OSTab tab = vo_->getOSTab();
 
-  S_->GetW<CompositeVector>(elevation_increase_key_, tag_next_, elevation_increase_key_).PutScalar(0.);
   fail = Amanzi::MPCFlowTransport::AdvanceStep(t_old, t_new, reinit);
 
   if (!fail) {
-    const Epetra_MultiVector& dz = S_->Get<CompositeVector>(elevation_increase_key_, tag_next_, elevation_increase_key_)
+    const Epetra_MultiVector& dz = *S_->Get<CompositeVector>(elevation_increase_key_, tag_next_)
       .ViewComponent("cell", false);
     double max_dz, min_dz;
     dz.MinValue(&min_dz);
     dz.MaxValue(&max_dz);
-
-    dz.Scale(MSF_);
 
     if (vo_->os_OK(Teuchos::VERB_HIGH))
       *vo_->os() << "Deformation min " << min_dz << " max " << max_dz << "\n";
@@ -197,121 +128,127 @@ Morphology_PK::AdvanceStep(double t_old, double t_new, bool reinit)
   return fail;
 }
 
-
-void
-Morphology_PK::Initialize_MeshVertices_(const Teuchos::Ptr<State>& S,
-                                        Teuchos::RCP<const AmanziMesh::Mesh> mesh,
-                                        Key vert_field_key, Tag field_tag)
-{
-  // spatial dimension
-  int dim = mesh->getSpaceDimension();
-  Amanzi::AmanziGeometry::Point coords(dim);
-  // number of vertices
-  int nV = mesh->getNumEntities(Amanzi::AmanziMesh::Entity_kind::NODE, Amanzi::AmanziMesh::Parallel_kind::OWNED);
-
-  Epetra_MultiVector& vc =
-    *S->GetPtrW<CompositeVector>(vert_field_key, field_tag, "state")->ViewComponent("node", false);
-
-  // search the id of the mid point on the top
-  for (int iV = 0; iV < nV; iV++) {
-    // get the coords of the node
-    coords = mesh->getNodeCoordinate(iV);
-    for (int s = 0; s < dim; ++s) { vc[s][iV] = coords[s]; }
-  }
-
-  S->GetPtrW<CompositeVector>(vert_field_key, field_tag, "state")->ScatterMasterToGhosted("node");
-  S->GetRecordW(vert_field_key, field_tag, "state").set_initialized();
-}
-
 void
 Morphology_PK::Update_MeshVertices_(const Teuchos::Ptr<State>& S, const Tag& tag)
 {
-  // spatial dimension
-  int dim = mesh_ss_->getSpaceDimension();
-  Amanzi::AmanziGeometry::Point coords(dim);
-  // number of vertices
+  // DEBUG --ETC -- check that the deformation works, and z gets updated
+  {
+    const Epetra_MultiVector& new_z = *S_->Get<CompositeVector>("surface-elevation", tag_next_).ViewComponent("cell", false);
+    std::cout << "ETC: old_z[299] = " << new_z[0][299] << std::endl;
+    auto cc = mesh_3d_->getCellCentroid(299);
+    std::cout << "ETC: old cell centroid surf_3d = " << cc[2] << std::endl;
 
-  Epetra_MultiVector& vc =
-    *S->GetPtrW<CompositeVector>(vertex_coord_key_ss_, tag, vertex_coord_key_ss_)->ViewComponent("node", true);
+    auto cnodes = mesh_->getCellNodes(299);
+    for (auto& n : cnodes) {
+      std::cout << "ETC:   - old_node_z[" << n << "] = " << mesh_3d_->getNodeCoordinate(n)[2] << std::endl;
+    }
+  }
+  // DEBUG --ETC -- check that the deformation works, and z gets updated
 
-  Epetra_MultiVector& vc_surf_3d =
-    *S->GetPtrW<CompositeVector>(vertex_coord_key_3d_, tag, vertex_coord_key_3d_)->ViewComponent("node", true);
 
+  S->Get<CompositeVector>(elevation_increase_key_, tag).ScatterMasterToGhosted("cell");
+  { // This is done in a context to avoid problems with the scatter and views
+    const Epetra_MultiVector& dz =
+      *S->Get<CompositeVector>(elevation_increase_key_, tag).ViewComponent("cell", true);
 
-  const Epetra_MultiVector& dz =
-    *S->Get<CompositeVector>(elevation_increase_key_, tag).ViewComponent("cell");
+    // NOTE: this will get much cleaner in Tpetra, where the view and the
+    // vector can share the same memory!  For now we need the view for the
+    // deform() call, and the vector for the scatter.
+    //
+    // NOTE that this only needs to exist on the surface mesh, but needs to be
+    // the 3d coordinates.
+    Epetra_MultiVector& vc =
+      *S->GetW<CompositeVector>(vertex_coord_key_, tag, vertex_coord_key_).ViewComponent("node", false);
 
-  int nsurf_cells = dz.MyLength();
-  int nsurfnodes = surf3d_mesh_->getNumEntities(AmanziMesh::Entity_kind::NODE,
-                                                       AmanziMesh::Parallel_kind::ALL);
-  int nnodes = mesh_ss_->getNumEntities(AmanziMesh::Entity_kind::NODE,
-                                                       AmanziMesh::Parallel_kind::ALL);
-
-  AmanziMesh::Entity_ID_View surface_nodeids("surface_nodeids", nsurfnodes);
-  AmanziMesh::Point_View surface_newpos("surface_newpos", nsurfnodes);
-  AmanziMesh::Entity_ID_View nodeids("nodeids", nnodes);
-  AmanziMesh::Point_View newpos("newpos", nnodes);
-
-  for (int c = 0; c < nsurf_cells; c++) {
-    AmanziMesh::Entity_ID domain_face;
-    domain_face = mesh_->getEntityParent(AmanziMesh::CELL, c);
-
-    auto nodes = mesh_ss_->getFaceNodes(domain_face);
-    int nnodes = nodes.size();
-    for (int i = 0; i < nnodes; i++) {
-      mesh_ss_->getNodeCoordinate(nodes[i]);
-      mesh_ss_->getNodeCells(nodes[i]);
-      auto cells = mesh_ss_->getNodeCells(nodes[i]);
-      int nsize = cells.size();
-
-      vc[2][nodes[i]] += dz[0][c] / nsize;
+    for (int c = 0; c != dz.MyLength(); ++c) {
+      auto surf_nodes = mesh_->getCellNodes(c);
+      for (auto& n : surf_nodes) {
+        if (n < vc.MyLength()) {
+          int ncells = mesh_->getNodeCells(n, AmanziMesh::Parallel_kind::ALL).size();
+          vc[2][n] += MSF_ * dz[0][c] / ncells;
+        }
+      }
     }
   }
 
-  S_->GetPtrW<CompositeVector>(vertex_coord_key_ss_, tag, vertex_coord_key_ss_)->ScatterMasterToGhosted("node");
+  S_->Get<CompositeVector>(vertex_coord_key_, tag).ScatterMasterToGhosted("node");
 
-  for (int i=0; i<nnodes; ++i){
-    nodeids[i] = i;
-    coords = mesh_ss_->getNodeCoordinate(i);
-    coords[2] = vc[2][i];
-    newpos[i] = coords;
-  }
+  { // now that we have scattered, move the coordinates to a view and deform
+    //
+    // NOTE: must deform the ghost nodes as well as owned nodes!
+    const Epetra_MultiVector& vc =
+      *S->Get<CompositeVector>(vertex_coord_key_, tag).ViewComponent("node", true);
 
-  AmanziMesh::deform(*mesh_ss_, nodeids, newpos);
+    // NOTE: nodeids will be subsurface mesh node ids!
+    AmanziMesh::Entity_ID_View nodeids("nodeids", vc.MyLength());
+    AmanziMesh::Entity_ID_View nodeids_surf("nodeids_surf", vc.MyLength());
+    AmanziMesh::Mesh::Point_View newpos("newpos", vc.MyLength());
 
-
-  for (int c = 0; c < nsurf_cells; c++) {
-    AmanziMesh::Entity_ID domain_face;
-
-    auto nodes = surf3d_mesh_->getFaceNodes(c);
-    int nnodes = nodes.size();
-    for (int i = 0; i < nnodes; i++) {
-      coords = surf3d_mesh_->getNodeCoordinate(nodes[i]);
-      auto cells = surf3d_mesh_->getNodeCells(nodes[i]);
-      int nsize = cells.size();
-      //coords[2] += dz / nsize;
-      vc_surf_3d[2][nodes[i]] += dz[0][c]/ nsize;
-
+    AmanziMesh::cEntity_ID_View parent_ids = mesh_->getEntityParents(AmanziMesh::Entity_kind::NODE);
+    for (int n = 0; n != vc.MyLength(); ++n) {
+      AmanziMesh::Entity_ID ss_node = parent_ids[n];
+      nodeids_surf[n] = n;
+      nodeids[n] = ss_node;
+      AmanziGeometry::Point p(vc[0][n], vc[1][n], vc[2][n]);
+      newpos[n] = p;
     }
+
+    AmanziMesh::deform(*mesh_ss_, nodeids, newpos);
+    AmanziMesh::deform(*mesh_3d_, nodeids_surf, newpos);
+
+    // zero out the dz field to reset for the next step
+    S_->GetW<CompositeVector>(elevation_increase_key_, tag_next_,
+            sub_pks_[1]->name()).PutScalar(0.);
+
+    // mark the indicator field as changed now to force recomputation of
+    // dependencies on deformed mesh
+    changedEvaluatorPrimary(elevation_increase_key_, tag_next_, *S_);
   }
 
-  S_->GetPtrW<CompositeVector>(vertex_coord_key_3d_, tag, vertex_coord_key_3d_)->ScatterMasterToGhosted("node");
 
-  for (int i=0; i<nsurfnodes; ++i){
-    surface_nodeids[i] = i;
-    coords = surf3d_mesh_->getNodeCoordinate(i);
-    coords[2] = vc_surf_3d[2][i];
-    surface_newpos[i] = coords;
+
+  // DEBUG --ETC -- check that the deformation works, and z gets updated
+  {
+    const Epetra_MultiVector& dz =
+      *S->Get<CompositeVector>(elevation_increase_key_, tag).ViewComponent("cell", true);
+    std::cout << "ETC: dz = " << dz[0][299] << std::endl;
+
+    const Epetra_MultiVector& vc =
+      *S->Get<CompositeVector>(vertex_coord_key_, tag).ViewComponent("node", true);
+
+    auto cnodes = mesh_->getCellNodes(299);
+    for (auto& n : cnodes) {
+      std::cout << "ETC:   - new_vector_node_z[" << n << "] = " << vc[2][n] << std::endl;
+    }
+    for (auto& n : cnodes) {
+      std::cout << "ETC:   - new_node_z[" << n << "] = " << mesh_3d_->getNodeCoordinate(n)[2] << std::endl;
+    }
+
+    auto cc = mesh_3d_->getCellCentroid(299);
+    std::cout << "ETC: cell centroid surf_3d = " << cc[2] << std::endl;
+
+    auto fc = mesh_ss_->getFaceCentroid(mesh_->getEntityParent(AmanziMesh::Entity_kind::CELL, 299));
+    std::cout << "ETC: face centroid ss_3d = " << fc[2] << std::endl;
+
+    S_->GetEvaluator("surface-elevation", tag).Update(*S_, "ethan testing");
+    const Epetra_MultiVector& new_z = *S_->Get<CompositeVector>("surface-elevation", tag).ViewComponent("cell", false);
+    std::cout << "ETC: new_z = " << new_z[0][299] << std::endl;
   }
-
-  // AmanziMesh::deform(*surf3d_mesh_, surface_nodeids, surface_newpos);
-
-  deform_eval_ =
-     Teuchos::rcp_dynamic_cast<EvaluatorPrimaryCV>(S_->GetEvaluatorPtr(elevation_increase_key_, tag));
-  deform_eval_->SetChanged();
-
-
+  // DEBUG --ETC -- check that the deformation works, and z gets updated
 }
+
+
+void
+Morphology_PK::CommitStep(double t_old, double t_new, const Tag& tag)
+{
+  MPCFlowTransport::CommitStep(t_old, t_new, tag);
+
+  // also save our flow quantities, needed for interpolation
+  auto [flow_current_tag, flow_next_tag] = tags_[0];
+  assign(dens_key_, flow_current_tag, flow_next_tag, *S_);
+  assign(pd_key_, flow_current_tag, flow_next_tag, *S_);
+}
+
 
 
 } // namespace Amanzi
