@@ -62,7 +62,9 @@ SurfPumpEvaluator::SurfPumpEvaluator(Teuchos::ParameterList& plist)
 
   // need an extra flag stored in state to indiciate, from
   // timestep-to-timestep, that the pump is on or off.
-  pump_on_key_ = Keys::readKey(plist, domain, "pump on", my_keys_.front().first+"_pump_on_flag");
+  // pump_on_key_ = Keys::readKey(plist, domain, "pump on", my_keys_.front().first+"_pump_on_flag");
+  
+  pump_on_key_ = Keys::readKey(plist, domain, "pump on", Keys::getVarName(my_keys_.front().first)+"_pump_on_flag");
 
   pump_outlet_region_ = plist.get<std::string>("pump outlet region", "");
   pump_inlet_region_ = plist.get<std::string>("pump inlet region");
@@ -181,27 +183,7 @@ SurfPumpEvaluator::Evaluate_(const State& S,
   if (pump_on) {
       double head_diff = std::max(max_elev_pumpline_, avg_pe_outlet) - avg_pe_inlet;
       Q_max = (*Q_pump_)(std::vector<double>{head_diff}); // m^3/s
-
-      // // Downregulation factor
-      // double h0 = 2 * (stage_on_ - avg_elev_inlet);
-      // double G;
-
-      // if (avg_pd_inlet > h0) {
-      //     G = 1.0;
-      // } else if (avg_pd_inlet > 0 && avg_pd_inlet <= h0) {
-      //     G = avg_pd_inlet / h0; // Linear interpolation from 0 to 1
-      // } else {
-      //     G = 0.0;
-      // }
-      Q = Q_max; //* G;
-
-      // Print the value of avg_pe_inlet
-      std::cout << "avg_pd_inlet: " << avg_pd_inlet << std::endl;
-      std::cout << "avg_elev_inlet: " << avg_elev_inlet << std::endl;
-      // std::cout << "h0: " << h0 << std::endl;
-
-      std::cout << "Q_max: " << Q_max << std::endl;
-      std::cout << "Q: " << Q << std::endl;
+      Q = Q_max;
 
       // sink distribution proportional to available water
       double sum_wc_l = 0;
