@@ -59,9 +59,17 @@ class MPCFlowTransport : public MPCSubcycled {
                    const Teuchos::RCP<State>& S,
                    const Teuchos::RCP<TreeVector>& soln)
     : PK(pk_tree, global_list, S, soln),
-      MPCSubcycled(pk_tree, global_list, S, soln) {}
+      MPCSubcycled(pk_tree, global_list, S, soln),
+      chemistry_(false),
+      surface_(false),
+      subsurface_(false)
+    {}
 
   void parseParameterList() override;
+  void CommitStep(double t_old, double t_new, const Tag& tag) override;
+
+ protected:
+  bool chemistry_, surface_, subsurface_;
 
  private:
   // factory registration

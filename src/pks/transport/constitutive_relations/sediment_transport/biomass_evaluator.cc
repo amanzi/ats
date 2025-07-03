@@ -152,12 +152,12 @@ BiomassEvaluator::Evaluate_(const State& S,
   Epetra_MultiVector& stem_diameter = *results[3]->ViewComponent("cell");
   Epetra_MultiVector& plant_area = *results[4]->ViewComponent("cell");
   Tag tag = my_keys_.front().second;
-  
+
   const Epetra_MultiVector& elev = *S.GetPtr<CompositeVector>(elev_key_, tag)->ViewComponent("cell", false);
 
   int ncells = biomass.MyLength();
 
-  double MSL = S.Get<double>("msl", Tags::NEXT);
+  double MSL = S.Get<double>("msl", tag);
 
   for (int n = 0; n < nspecies_; n++) {
     AMANZI_ASSERT((zmax[n] - zmin[n]) > 1e-6);
