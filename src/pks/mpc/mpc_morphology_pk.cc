@@ -131,21 +131,6 @@ Morphology_PK::AdvanceStep(double t_old, double t_new, bool reinit)
 void
 Morphology_PK::Update_MeshVertices_(const Teuchos::Ptr<State>& S, const Tag& tag)
 {
-  // DEBUG --ETC -- check that the deformation works, and z gets updated
-  {
-    const Epetra_MultiVector& new_z = *S_->Get<CompositeVector>("surface-elevation", tag_next_).ViewComponent("cell", false);
-    std::cout << "ETC: old_z[299] = " << new_z[0][299] << std::endl;
-    auto cc = mesh_3d_->getCellCentroid(299);
-    std::cout << "ETC: old cell centroid surf_3d = " << cc[2] << std::endl;
-
-    auto cnodes = mesh_->getCellNodes(299);
-    for (auto& n : cnodes) {
-      std::cout << "ETC:   - old_node_z[" << n << "] = " << mesh_3d_->getNodeCoordinate(n)[2] << std::endl;
-    }
-  }
-  // DEBUG --ETC -- check that the deformation works, and z gets updated
-
-
   S->Get<CompositeVector>(elevation_increase_key_, tag).ScatterMasterToGhosted("cell");
   { // This is done in a context to avoid problems with the scatter and views
     const Epetra_MultiVector& dz =
@@ -204,37 +189,6 @@ Morphology_PK::Update_MeshVertices_(const Teuchos::Ptr<State>& S, const Tag& tag
     // dependencies on deformed mesh
     changedEvaluatorPrimary(elevation_increase_key_, tag_next_, *S_);
   }
-
-
-
-  // DEBUG --ETC -- check that the deformation works, and z gets updated
-  {
-    const Epetra_MultiVector& dz =
-      *S->Get<CompositeVector>(elevation_increase_key_, tag).ViewComponent("cell", true);
-    std::cout << "ETC: dz = " << dz[0][299] << std::endl;
-
-    const Epetra_MultiVector& vc =
-      *S->Get<CompositeVector>(vertex_coord_key_, tag).ViewComponent("node", true);
-
-    auto cnodes = mesh_->getCellNodes(299);
-    for (auto& n : cnodes) {
-      std::cout << "ETC:   - new_vector_node_z[" << n << "] = " << vc[2][n] << std::endl;
-    }
-    for (auto& n : cnodes) {
-      std::cout << "ETC:   - new_node_z[" << n << "] = " << mesh_3d_->getNodeCoordinate(n)[2] << std::endl;
-    }
-
-    auto cc = mesh_3d_->getCellCentroid(299);
-    std::cout << "ETC: cell centroid surf_3d = " << cc[2] << std::endl;
-
-    auto fc = mesh_ss_->getFaceCentroid(mesh_->getEntityParent(AmanziMesh::Entity_kind::CELL, 299));
-    std::cout << "ETC: face centroid ss_3d = " << fc[2] << std::endl;
-
-    S_->GetEvaluator("surface-elevation", tag).Update(*S_, "ethan testing");
-    const Epetra_MultiVector& new_z = *S_->Get<CompositeVector>("surface-elevation", tag).ViewComponent("cell", false);
-    std::cout << "ETC: new_z = " << new_z[0][299] << std::endl;
-  }
-  // DEBUG --ETC -- check that the deformation works, and z gets updated
 }
 
 
