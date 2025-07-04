@@ -282,14 +282,17 @@ class Transport_ATS : public PK_Physical_Default {
   void AddAdvection_FirstOrderUpwind_(double t_old,
           double t_new,
           const Epetra_MultiVector& tcc,
+          Epetra_MultiVector& conserve_qty,
           Epetra_MultiVector& f);
   void AddAdvection_SecondOrderUpwind_(double t_old,
           double t_new,
           const Epetra_MultiVector& tcc,
+          Epetra_MultiVector& conserve_qty,
           Epetra_MultiVector& f);
   void AddAdvection_SecondOrderUpwind_(double t_old,
           double t_new,
           const Epetra_Vector& tcc,
+          Epetra_Vector& conserve_qty,          
           Epetra_Vector& f,
           int component);
 
@@ -322,7 +325,7 @@ class Transport_ATS : public PK_Physical_Default {
  protected:
 
   // dependencies
-  Key flux_key_; // advecting water flux [mol / s] on faces
+  Key water_flux_key_; // advecting water flux [mol / s] on faces
   Key lwc_key_; // liquid water content [mol]
   Key cv_key_;
 
@@ -330,6 +333,8 @@ class Transport_ATS : public PK_Physical_Default {
   Key solid_residue_mass_key_; // residue -- mass that was left behind by water
                                // sinks that do not carry aqueous species, e.g. freezing or evaporation
   Key conserve_qty_key_;
+  Key mass_flux_advection_key_;
+  Key mass_flux_diffusion_key_;
   Key dispersion_tensor_key_;
 
   // component information
