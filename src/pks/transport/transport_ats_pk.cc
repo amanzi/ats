@@ -593,6 +593,27 @@ Transport_ATS::SetupPhysicalEvaluators_()
   // Examples of this include evaporation, freezing of liquid --> solid water,
   // etc.
   //
+  // solute mass advective flux
+  requireEvaluatorAtNext(mass_flux_advection_key_, tag_next_, *S_)
+    .SetMesh(mesh_)
+    ->SetGhosted(true)
+    ->SetComponent("face", AmanziMesh::Entity_kind::FACE, num_aqueous_);
+  S_->GetRecordSetW(mass_flux_advection_key_).set_subfieldnames(subfield_names);
+
+  // solute mass diffusive flux
+  requireEvaluatorAtNext(mass_flux_diffusion_key_, tag_next_, *S_)
+    .SetMesh(mesh_)
+    ->SetGhosted(true)
+    ->SetComponent("face", AmanziMesh::Entity_kind::FACE, num_aqueous_);
+  S_->GetRecordSetW(mass_flux_diffusion_key_).set_subfieldnames(subfield_names);
+
+  // source term -- at next to match regression tests -- should this be at current?
+  if (!source_key_.empty()) {
+    requireEvaluatorAtNext(source_key_, tag_next_, *S_)
+      .SetMesh(mesh_)
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_aqueous_);
+    S_->GetRecordSetW(source_key_).set_subfieldnames(subfield_names);
+  }
 
   // Note that component_names includes secondaries, but we only need primaries
   subfield_names.emplace_back("H2O_sources_implicit");
@@ -603,25 +624,6 @@ Transport_ATS::SetupPhysicalEvaluators_()
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_aqueous_ + 2);
   S_->GetRecordSetW(conserve_qty_key_).set_subfieldnames(subfield_names);
 
-  // solute mass advective flux
-  requireEvaluatorAtNext(mass_flux_advection_key_, tag_next_, *S_)
-    .SetMesh(mesh_)
-    ->SetGhosted(true)
-    ->SetComponent("face", AmanziMesh::Entity_kind::FACE, num_aqueous_);
-
-  // solute mass diffusive flux
-  requireEvaluatorAtNext(mass_flux_diffusion_key_, tag_next_, *S_)
-    .SetMesh(mesh_)
-    ->SetGhosted(true)
-    ->SetComponent("face", AmanziMesh::Entity_kind::FACE, num_aqueous_);
-
-  // source term -- at next to match regression tests -- should this be at current?
-  if (!source_key_.empty()) {
-    requireEvaluatorAtNext(source_key_, tag_next_, *S_)
-      .SetMesh(mesh_)
-      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_aqueous_ + 2);
-    S_->GetRecordSetW(source_key_).set_subfieldnames(subfield_names);
-  }
 }
 
 
