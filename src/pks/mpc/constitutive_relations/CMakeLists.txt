@@ -18,6 +18,7 @@ set(ats_mpc_relations_src_files
   liquid_ice_model.cc
   permafrost_model.cc
   surface_ice_model.cc
+  EvaluatorSubgridReturn.cc
  )
 
 set(ats_mpc_relations_inc_files
@@ -27,6 +28,7 @@ set(ats_mpc_relations_inc_files
   permafrost_model.hh
   surface_ice_model.hh
   #thermal_richards_model.hh
+  EvaluatorSubgridReturn.hh
   )
 
 

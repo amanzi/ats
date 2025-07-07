@@ -33,7 +33,6 @@ def viscosityRelationType(xml):
 def molarMass(xml):
     for par in asearch.findall_path(xml, ["state", "evaluators", "molar mass"]):
         par.setName("molar mass [kg mol^-1]")
-        
 
 def enforceDtHistory(xml):
     """Find and revert the timestep from file option, moving it to the cycle driver list.
@@ -60,6 +59,7 @@ def enforceDtHistory(xml):
         cycle_driver_list = asearch.child_by_name(xml, "cycle driver")
         tsm_list = cycle_driver_list.sublist("timestep manager")
         tsm_list.setParameter("prescribed timesteps file name", "string", asearch.child_by_name(ti_file_pars, "file name").getValue())
+
 
 def timeStep(xml):
     """Many parameters changed "time step" --> "timestep" """
@@ -103,6 +103,7 @@ def tensorPerm(xml):
         if ename == "permeability" or ename.endswith("-permeability"):
             tensorPerm_(eval_list)
 
+
 def tensorPerm_(perm):
     # set the type to tensor
     ptype = perm.getElement("evaluator type")
@@ -140,7 +141,7 @@ def _pkTreeIter(tree, recurse=True):
         if el.getName() != "PK type":
             for pk in _pkTreeIter(el, recurse):
                 yield pk
-            
+
 
 def coupledFlowTransportMPC(xml):
     pk_tree = asearch.find_path(xml, ["cycle driver", "PK tree"])
@@ -185,8 +186,8 @@ def removeTc99(xml):
             else:
                 new_names.append(name)
         cnames.setValue(new_names)
-    
                 
+
 def removeVerboseObject(xml):
     """This is only for regression tests -- should not override user."""
     pm = asearch.parent_map(xml)
@@ -273,20 +274,16 @@ def _createTransportSource_Simple(in_source, out_source, components, dist_method
     return 
 
 
-def _createTransportSource_FirstOrderExchange(in_source, out_source, evals_list, domain):
+
+
+def _createTransportSource_FirstOrderExchange(in_source, out_source, evals_list, domain, alpha_suffix):
     out_source.setParameter("evaluator type", "string", "multiplicative reciprocal")
 
     # first order exchange flux = - alpha * Theta * X / CV
-    n = 0
-    alpha_suffix = f"exchange_coefficient_{n}"
-    while evals_list.isElement(_getKey(domain, alpha_suffix)):
-        n = n + 1
-        alpha_suffix = f"exchange_coefficient_{n}"
-
     lwc_suffix = _readSuffix(in_source, domain, "liquid water content", "water_content")
     exchange_suffix = _readSuffix(in_source, domain, "exchanged quantity", "mole_fraction")
-    out_source.setParameter("multiplicative dependencies", "Array(string)", [alpha_suffix, lwc_suffix, exchange_suffix])
-    out_source.setParameter("reciprocal dependencies", "Array(string)", ["cell_volume",])
+    out_source.setParameter("multiplicative dependency key suffixes", "Array(string)", [alpha_suffix, lwc_suffix, exchange_suffix])
+    out_source.setParameter("reciprocal dependency key suffixes", "Array(string)", ["cell_volume",])
     out_source.setParameter("coefficient", "double", -1.0)
 
     # alpha -- always constant in time?
@@ -300,13 +297,26 @@ def _createTransportSource_FirstOrderExchange(in_source, out_source, evals_list,
     entry_list.append(regions)
     entry_list.setParameter("component", "string", "cell")
     entry_list.append(func_list)
-
     return
                         
 
+def _createTransportSource_SubgridReturn(in_source, out_source):
+    out_source.setParameter("evaluator type", "string", "subgrid return")
 
+    if in_source.sublist("source function").isElement("subgrid domain set"):
+        subgrid_ds_name = in_source.sublist("source function").getElement("subgrid domain set").getValue()
+    else:
+        subgrid_ds_name = "subgrid"
+    mol_frac_suffix = in_source.sublist("source function").getElement("subgrid field suffix").getValue()
+    out_source.setParameter("subgrid domain set", "string", subgrid_ds_name)
+    out_source.setParameter("subgrid field suffix", "string", mol_frac_suffix)
+
+    exchange_coef_suffix = f"exchange_coefficient_{subgrid_ds_name}"
+    out_source.setParameter("exchange coefficient key suffix", "string", exchange_coef_suffix)
+    return exchange_coef_suffix, subgrid_ds_name
+    
         
-def _fixTransportPK_OneSource(source_term, pk, evals_list, domain, components):
+def _fixTransportPK_OneSource(source_term, pk, evals_list, domain, **kwargs):
     """Move ONE source terms from PK to evaluators."""
 
     # try to come up with a reasonable name for the field
@@ -317,7 +327,7 @@ def _fixTransportPK_OneSource(source_term, pk, evals_list, domain, components):
     name = name.replace(':', '_').replace('-', '_').replace(' ', '_').replace('@','_')
     while '__' in name:
         name = name.replace('__', '_')
-    if 'source' not in name:
+    if 'source' not in name and 'sink' not in name and 'return' not in name:
         name = name + "_source"
 
     suffix = name
@@ -330,21 +340,23 @@ def _fixTransportPK_OneSource(source_term, pk, evals_list, domain, components):
         # create the eval list
         new_source = evals_list.sublist(name)
         source_term.pop("spatial distribution method")
-        _createTransportSource_Simple(source_term, new_source, components, model)
+        ret = _createTransportSource_Simple(source_term, new_source, kwargs["components"], model)
+
     elif model == "first order exchange":
-        # create the eval list
         new_source = evals_list.sublist(name)
-        source_term.pop("spatial distribution method")
-        _createTransportSource_FirstOrderExchange(source_term, new_source, evals_list, domain)
+        ret = _createTransportSource_FirstOrderExchange(source_term, new_source, evals_list, domain, kwargs['alpha_suffix'])
+        
+    elif model == "subgrid return":
+        new_source = evals_list.sublist(name)
+        ret = _createTransportSource_SubgridReturn(source_term, new_source)
 
     elif model == "domain coupling":
         raise RuntimeError(f"Transport source {source_term.getName()} is a 'domain coupling' source -- "
                            "this should get written by an MPC -- do you really need to provide it?")
     else:
         return None
-        #raise NotImplementedError(f"Transport source {source_term.getName()} of type \"{model}\" is not yet implemented... FIXME")
 
-    return suffix
+    return suffix, ret
 
 
 def fixTransportPK_Source(pk, evals_list, domain, components):
@@ -357,11 +369,38 @@ def fixTransportPK_Source(pk, evals_list, domain, components):
         # each entry is a separate source
         for source_term in list(source_terms):
             if not isinstance(source_term, comment.Comment):
-                res = _fixTransportPK_OneSource(source_term, pk, evals_list, domain, components)
-                if res is not None:
-                    sources.append(res)
+                model = source_term.getElement("spatial distribution method").getValue()
+
+                if model not in ["first order exchange", "subgrid return"]:
+                    res = _fixTransportPK_OneSource(source_term, pk, evals_list, domain,
+                                                    components=components)
+                    if res is not None:
+                        sources.append(res[0])
+                        source_terms.remove(source_term)
+
+        # second pass for subgrid return + first order exchange
+        for source_term in list(source_terms):
+            if not isinstance(source_term, comment.Comment):
+                model = source_term.getElement("spatial distribution method").getValue()
+                if model == "subgrid return":
+                    # do the subgrid return
+                    suffix, (exchange_coef, domain_set) = _fixTransportPK_OneSource(source_term, pk, evals_list, domain)
+                    sources.append(suffix)
                     source_terms.remove(source_term)
 
+                    # find the corresponding first order exchange
+                    found = False
+                    for source_term2 in list(source_terms):
+                        if not isinstance(source_term2, comment.Comment):
+                            model = source_term2.getElement("spatial distribution method").getValue()
+                            if model == "first order exchange" and domain_set in source_term2.getName().lower():
+                                found = True
+                                suffix = _fixTransportPK_OneSource(source_term2, pk, evals_list, domain, alpha_suffix=exchange_coef)
+                                sources.append(suffix[0])
+                                source_terms.remove(source_term2)
+                    if not found:
+                        raise RuntimeError(f"Cannot find corresponding first order exchange flux for return flux named \"{source_term}\"")
+                                
         # clean up empty lists
         if len(source_terms) == 0:
             pk.sublist("source terms").remove(source_terms)
