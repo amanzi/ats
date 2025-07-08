@@ -80,6 +80,7 @@ class QCRelationFieldEvaluator : public EvaluatorSecondaryMonotypeCV {
   Key domain_;
   Key cv_key_;
   Key molar_density_key_;
+  Key tcc_key_;
   Key field_src_key_;
   bool extensive_;
   Teuchos::RCP<Function> QC_curve_;
