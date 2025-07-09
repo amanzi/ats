@@ -177,8 +177,8 @@ jobs:
           password: ${{secrets.DOCKERHUB_PASSWORD}}
       - name: Pull images (remove with artifacts??)
         run: |
-          docker pull ${{secrets.DOCKERHUB_USERNAME}}/ats:${{env.AMANZI_BRANCH_TAG}}-arm64-latest
-          docker pull ${{secrets.DOCKERHUB_USERNAME}}/ats:${{env.AMANZI_BRANCH_TAG}}-amd64-latest
+          docker pull ${{secrets.DOCKERHUB_USERNAME}}/ats:${{env.ATS_BRANCH_TAG}}-arm64-latest
+          docker pull ${{secrets.DOCKERHUB_USERNAME}}/ats:${{env.ATS_BRANCH_TAG}}-amd64-latest
       - name: Edit manifest
         run: |
           docker manifest create ${{secrets.DOCKERHUB_USERNAME}}/ats:${{env.ATS_BRANCH_TAG}}-latest \
