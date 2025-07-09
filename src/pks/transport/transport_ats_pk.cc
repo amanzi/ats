@@ -170,6 +170,12 @@ Transport_ATS::parseParameterList()
     Exceptions::amanzi_throw(msg);
   }
 
+  // source terms
+  is_source_term_ = plist_->get<bool>("source term", false);
+  if (is_source_term_) {
+    source_key_ = Keys::readKey(*plist_, domain_, "source", "component_source");
+  }
+
   db_ = Teuchos::rcp(new Debugger(mesh_, name_, *plist_));
 }
 
@@ -294,9 +300,6 @@ Transport_ATS::SetupTransport_()
     diff_sol_ = Teuchos::rcp(new CompositeVector(cvs));
   }
 
-
-  // NOTE: these to go away! ETC
-  //
   // source term setup
   // --------------------------------------------------------------------------------
   if (plist_->isSublist("source terms")) {
@@ -544,7 +547,7 @@ Transport_ATS::SetupPhysicalEvaluators_()
     requireEvaluatorAtCurrent(molar_dens_key_, tag_current_, *S_);
   }
 
-  // CellVolume it may not be used in this PK, but having it makes vis nicer
+  // cell volume
   requireEvaluatorAtNext(cv_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
@@ -560,6 +563,14 @@ Transport_ATS::SetupPhysicalEvaluators_()
   S_->GetRecordSetW(solid_residue_mass_key_).set_subfieldnames(subfield_names);
   S_->GetRecordSetW(mass_flux_advection_key_).set_subfieldnames(subfield_names);
   S_->GetRecordSetW(mass_flux_diffusion_key_).set_subfieldnames(subfield_names);
+
+  // source term -- at next to match regression tests -- should this be at current?
+  if (!source_key_.empty()) {
+    requireEvaluatorAtNext(source_key_, tag_next_, *S_)
+      .SetMesh(mesh_)
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_aqueous_);
+    S_->GetRecordSetW(source_key_).set_subfieldnames(subfield_names);
+  }
 
   // This vector stores the conserved amount (in mols) of num_components_
   // transported solutes, plus two for water.
@@ -582,6 +593,27 @@ Transport_ATS::SetupPhysicalEvaluators_()
   // Examples of this include evaporation, freezing of liquid --> solid water,
   // etc.
   //
+  // solute mass advective flux
+  requireEvaluatorAtNext(mass_flux_advection_key_, tag_next_, *S_)
+    .SetMesh(mesh_)
+    ->SetGhosted(true)
+    ->SetComponent("face", AmanziMesh::Entity_kind::FACE, num_aqueous_);
+  S_->GetRecordSetW(mass_flux_advection_key_).set_subfieldnames(subfield_names);
+
+  // solute mass diffusive flux
+  requireEvaluatorAtNext(mass_flux_diffusion_key_, tag_next_, *S_)
+    .SetMesh(mesh_)
+    ->SetGhosted(true)
+    ->SetComponent("face", AmanziMesh::Entity_kind::FACE, num_aqueous_);
+  S_->GetRecordSetW(mass_flux_diffusion_key_).set_subfieldnames(subfield_names);
+
+  // source term -- at next to match regression tests -- should this be at current?
+  if (!source_key_.empty()) {
+    requireEvaluatorAtNext(source_key_, tag_next_, *S_)
+      .SetMesh(mesh_)
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_aqueous_);
+    S_->GetRecordSetW(source_key_).set_subfieldnames(subfield_names);
+  }
 
   // Note that component_names includes secondaries, but we only need primaries
   subfield_names.emplace_back("H2O_sources_implicit");
@@ -592,17 +624,6 @@ Transport_ATS::SetupPhysicalEvaluators_()
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_aqueous_ + 2);
   S_->GetRecordSetW(conserve_qty_key_).set_subfieldnames(subfield_names);
 
-  // solute mass advective flux
-  requireEvaluatorAtNext(mass_flux_advection_key_, tag_next_, *S_)
-    .SetMesh(mesh_)
-    ->SetGhosted(true)
-    ->SetComponent("face", AmanziMesh::Entity_kind::FACE, num_aqueous_);  
-  
-  // solute mass diffusive flux
-  requireEvaluatorAtNext(mass_flux_diffusion_key_, tag_next_, *S_)
-    .SetMesh(mesh_)
-    ->SetGhosted(true)
-    ->SetComponent("face", AmanziMesh::Entity_kind::FACE, num_aqueous_);  
 }
 
 
@@ -618,10 +639,7 @@ Transport_ATS::Initialize()
   // initialize missed fields
   InitializeFields_();
 
-  // Move to Setup() with other sources? --ETC
-  //
-  // This must be called after S_->setup() since "water_source" data not
-  // created before this step. --PL
+  // geochemical sources can now be set up
   if (plist_->isSublist("source terms")) {
     auto sources_list = Teuchos::sublist(plist_, "source terms");
     if (sources_list->isSublist("geochemical")) {
@@ -651,6 +669,8 @@ Transport_ATS::Initialize()
   }
 
   // can also now setup the joint diffusion/dispersion workspace tensor
+  //
+  // This cannot be done in setup because it needs the rank? --ETC
   int D_rank = -1;
   int D_dim = mesh_->getSpaceDimension();
   if (has_diffusion_) D_rank = 1; // scalar
@@ -979,7 +999,7 @@ Transport_ATS ::AdvanceDispersionDiffusion_(double t_old, double t_new)
     diff_op_->ApplyBCs(true, true, true);
 
     // get diffusive mass fluxes
-    Teuchos::RCP<CompositeVector> cq_flux = S_->GetPtrW<CompositeVector>(mass_flux_diffusion_key_, tag_next_, name_);    
+    Teuchos::RCP<CompositeVector> cq_flux = S_->GetPtrW<CompositeVector>(mass_flux_diffusion_key_, tag_next_, name_);
 
     // get a sliced vector of the ith component
     Teuchos::RCP<CompositeVector> cq_flux_i = cq_flux->GetVector(i);
@@ -1051,7 +1071,7 @@ Transport_ATS::AdvanceAdvectionSources_RK1_(
       *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_)
       .ViewComponent("cell", false);
 
-    // Compute mass from concentration and water content: Mass <-- Concentration * water content 
+    // Compute mass from concentration and water content: Mass <-- Concentration * water content
     // conserved component quantity [mol C] = (mol C / mol H20) * mol H2O
     // Note that: this calculation uses the "old" (previous time step) values to determine the
     // initial mass of the conserved component quantity.
@@ -1061,7 +1081,7 @@ Transport_ATS::AdvanceAdvectionSources_RK1_(
     conserve_qty(num_aqueous_)->PutScalar(0.);
     conserve_qty(num_aqueous_ + 1)->PutScalar(0.);
     db_->WriteCellVector("qnty (old)", conserve_qty,
-                         S_->GetRecordSet(conserve_qty_key_).subfieldnames());    
+                         S_->GetRecordSet(conserve_qty_key_).subfieldnames());
   }
 
   { // context for advection -- on all cells
@@ -1071,9 +1091,9 @@ Transport_ATS::AdvanceAdvectionSources_RK1_(
       *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_)
       .ViewComponent("cell", true);
     // populating solute mass flux (unit: molC/s)
-    Epetra_MultiVector& mass_flux_advection = 
+    Epetra_MultiVector& mass_flux_advection =
       *S_->GetW<CompositeVector>(mass_flux_advection_key_, tag_next_, name_)
-      .ViewComponent("face", false);  
+      .ViewComponent("face", false);
 
     // advection: M <-- M + dt * div q * C0
     if (spatial_order == 1) {
@@ -1093,7 +1113,7 @@ Transport_ATS::AdvanceAdvectionSources_RK1_(
       .ViewComponent("cell", false);
 
     // process external sources: M <-- M + dt * Q
-    AddSourceTerms_(t_old, t_new, conserve_qty, 0, num_aqueous_ - 1);
+    AddSourceTerms_(t_old, t_new, conserve_qty);
     db_->WriteCellVector("qnty (src)", conserve_qty,
                           S_->GetRecordSet(conserve_qty_key_).subfieldnames());
   }
@@ -1158,7 +1178,7 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(
       conserve_qty(num_aqueous_)->PutScalar(0.);
       conserve_qty(num_aqueous_ + 1)->PutScalar(0.);
       db_->WriteCellVector("qnty (start)", conserve_qty,
-                          S_->GetRecordSet(conserve_qty_key_).subfieldnames());  
+                          S_->GetRecordSet(conserve_qty_key_).subfieldnames());
   }
 
   { // context for advection -- on all cells
@@ -1167,10 +1187,10 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(
     Epetra_MultiVector& conserve_qty =
       *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_)
       .ViewComponent("cell", true);
-    // populating solute mass flux (unit: molC/s)      
-    Epetra_MultiVector& mass_flux_advection = 
+    // populating solute mass flux (unit: molC/s)
+    Epetra_MultiVector& mass_flux_advection =
       *S_->GetW<CompositeVector>(mass_flux_advection_key_, tag_next_, name_)
-      .ViewComponent("face", false);  
+      .ViewComponent("face", false);
 
     // Predictor Step:
     // -- advection: M <-- M + dt * div q * C0
@@ -1180,10 +1200,10 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(
       AddAdvection_SecondOrderUpwind_(t_old, t_new, tcc_old, conserve_qty, mass_flux_advection);
     }
     db_->WriteCellVector("qnty (pred adv)", conserve_qty,
-                         S_->GetRecordSet(conserve_qty_key_).subfieldnames());  
+                         S_->GetRecordSet(conserve_qty_key_).subfieldnames());
 
     // -- process external sources: M <-- M + dt * Q(t0)
-    AddSourceTerms_(t_old, t_new, conserve_qty, 0, num_aqueous_ - 1);
+    AddSourceTerms_(t_old, t_new, conserve_qty);
     db_->WriteCellVector("qnty (pred src)", conserve_qty,
                          S_->GetRecordSet(conserve_qty_key_).subfieldnames());
   }
@@ -1234,9 +1254,9 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(
       .ViewComponent("cell", true);
     Epetra_MultiVector& conserve_qty = *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_)
       .ViewComponent("cell", true);
-    Epetra_MultiVector& mass_flux_advection = 
+    Epetra_MultiVector& mass_flux_advection =
       *S_->GetW<CompositeVector>(mass_flux_advection_key_, tag_next_, name_)
-      .ViewComponent("face", false);  
+      .ViewComponent("face", false);
 
     //   M <-- M + dt/2 * div q * C'
     //     <-- (C0 W0 + dt div q C0 + dt Q0) / 2 + W0 C0 / 2 + dt div q C' / 2
@@ -1255,7 +1275,7 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(
     //   M <-- M + dt/2 Q(t1)
     //     <-- (C0 W0 + dt div q C0 + dt Q(t0)) / 2 + W0 C0 / 2 + dt div q C' / 2 + dt Q(t1) / 2
     //     <-- C0 W0 + dt * (div q C0 + div q C') / 2 + dt (Q(t0) + Q(t1)) / 2
-    AddSourceTerms_(t_old + dt/2., t_new, conserve_qty, 0, num_aqueous_ - 1);
+    AddSourceTerms_(t_old + dt/2., t_new, conserve_qty);
     db_->WriteCellVector("qnty (corr src)", conserve_qty,
                          S_->GetRecordSet(conserve_qty_key_).subfieldnames());
   }

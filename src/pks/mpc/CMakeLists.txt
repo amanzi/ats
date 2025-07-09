@@ -193,6 +193,12 @@ register_evaluator_with_factory(
   LISTNAME   ATS_MPC_REG
   )
 
+register_evaluator_with_factory(
+  HEADERFILE constitutive_relations/EvaluatorSubgridReturn_reg.hh
+  LISTNAME   ATS_MPC_REG
+  )
+
+  
 # register_evaluator_with_factory(
 #   HEADERFILE biomass_evaluator_reg.hh
 #   LISTNAME ATS_MPC_REG
