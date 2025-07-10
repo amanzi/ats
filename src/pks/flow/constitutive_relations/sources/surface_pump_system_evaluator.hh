@@ -12,20 +12,21 @@
 /*!
 
 This evaluator models stage-based pump station model inside 2D flow area. 
-Pump stations can be used to move water between any combination of river reaches, storage areaes or catchment regions. 
+Pump stations can be used to move water between any combination of river reaches, storage areas or catchment regions. 
 Based on pump on-off conditions and pump-operation curve, water is moved from pump-inlet to -outlet region instantly.
 
+`"evaluator type`" = `"pump system`"
 
-.. _surface-pump_system-spec:
-.. admonition:: surface-pump_system-spec
+.. _evaluator-surface-pump-system-spec:
+.. admonition:: evaluator-surface-pump-system-spec
 
-   * `"pump inlet region`" ``[str]`` Region of cells from which pump flow is taken out.
-   * `"pump outlet region`" ``[str]`` Region of cells from which pump flow is taken out (optional).
+   * `"pump inlet region`" ``[str]`` Region of cells where pump flow is taken out.
+   * `"pump outlet region`" ``[str]`` Region of cells where pump flow is introduced (optional).
    * `"on off reference region`" ``[str]`` Region used to determine when the pump should turn on or off (optional). Defaults to "pump inlet region".
-   * `"pump start at stage`" ``[double]`` The water surface elevation that should trigger the pump turning on.
-   * `"pump stop at stage`" ``[double]`` The water surface elevation that should shut the pump down.
-   * `"maximum pumpline elevation`" ``[double]`` Allows the user to enter the highest elevation in the  pump line. E.g., pumping water over top of a levee.
-   * `"pump efficiency  curve`" ``[function]`` This is a function/table of head and flow. Head here is head difference between outlet and inlet (or head by which the water is to be lifted).
+   * `"pump start at stage`" ``[double]`` The water surface elevation that should trigger the pump start.
+   * `"pump stop at stage`" ``[double]`` The water surface elevation that should trigger the pump stop. 
+   * `"maximum pumpline elevation`" ``[double]`` Allows the user to enter the highest elevation in the pump line. E.g., pumping water over top of a levee.
+   * `"function`" ``[function-tabular]`` This is a function/table of head and pump flow. Here, head is head difference between outlet and inlet (or head by which the water is to be lifted).
 
    KEYS:
    - `"cell volume`" **DOMAIN-cell_volume** 
@@ -35,6 +36,26 @@ Based on pump on-off conditions and pump-operation curve, water is moved from pu
    - `"water content`" **DOMAIN-water_content** 
    - `"molar liquid density`" **DOMAIN-molar_density_liquid** 
    - `"pump on`" **DOMAIN-pump_on_flag** status of pump
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="surface-pump_flow" type="ParameterList">
+    <Parameter name="evaluator type" type="string" value="pump system"/>
+    <Parameter name="pump inlet region" type="string" value="outlet pump intake area"/>
+    <Parameter name="pump start at stage" type="double" value="8.18"/>
+    <Parameter name="pump stop at stage" type="double" value="8.16"/>
+    <Parameter name="maximum pumpline elevation" type="double" value="8.4"/>
+    <ParameterList name="function" type="ParameterList">
+      <ParameterList name="function-tabular" type="ParameterList">
+        <Parameter name="x values" type="Array(double)" value="{0.0, 0.01, 0.05, 0.1, 0.14, 0.1740954, 0.21, 0.225, 0.235, 0.24}"/>
+        <Parameter name="y values" type="Array(double)" value="{0.3, 0.3, 0.28, 0.23, 0.18, 0.1352119, 0.076, 0.045, 0.02, 0.0}"/>
+        <Parameter name="forms" type="Array(string)" value="{linear, linear, linear, linear, linear, linear, linear, linear, linear}"/>
+      </ParameterList>
+    </ParameterList>
+  </ParameterList>
+
 */
 
 #pragma once
