@@ -20,7 +20,7 @@ namespace Amanzi {
 namespace Flow {
 namespace Relations {
 
-// Helper function to compute area-weighted average
+// Helper function to compute area-weighted average of a variable over a set of mesh entities
 inline double
 computeAreaWeightedAverage(const AmanziMesh::Mesh& mesh,
                           const Amanzi::AmanziMesh::MeshCache<Amanzi::MemSpace_kind::HOST>::cEntity_ID_View& entity_list,
@@ -38,12 +38,13 @@ computeAreaWeightedAverage(const AmanziMesh::Mesh& mesh,
 }
 
 
+// Constructor: Set up dependencies and culvert parameters
 SurfCulvertEvaluator::SurfCulvertEvaluator(Teuchos::ParameterList& plist) : EvaluatorSecondaryMonotypeCV(plist)
 {
   domain_ = Keys::getDomain(my_keys_.front().first);
   auto tag = my_keys_.front().second;
 
-  // dependencies
+  // Set up dependencies for required field variables
   cv_key_ = Keys::readKey(plist, domain_, "cell volume", "cell_volume");
   dependencies_.insert(KeyTag{ cv_key_, tag });
 
@@ -62,6 +63,7 @@ SurfCulvertEvaluator::SurfCulvertEvaluator(Teuchos::ParameterList& plist) : Eval
   liq_den_key_ = Keys::readKey(plist, domain_, "molar density liquid", "molar_density_liquid");
   dependencies_.insert(KeyTag{ liq_den_key_, tag });
 
+  // Read culvert configuration parameters
   culvert_inlet_region_ = plist.get<std::string>("culvert inlet region");
   culvert_outlet_region_ = plist.get<std::string>("culvert outlet region");
   Nb_ = plist.get<int>("number of barrels", 1);
@@ -76,6 +78,8 @@ SurfCulvertEvaluator::Evaluate_(const State& S, const std::vector<CompositeVecto
 {
   Tag tag = my_keys_.front().second;
   double dt = S.Get<double>("dt", tag);
+  
+  // Get required field variables
   const auto& cv = *S.Get<CompositeVector>(cv_key_, tag).ViewComponent("cell", false);
   const auto& pd = *S.Get<CompositeVector>(pd_key_, tag).ViewComponent("cell", false);
   const auto& liq_den = *S.Get<CompositeVector>(liq_den_key_, tag).ViewComponent("cell", false);
@@ -86,33 +90,54 @@ SurfCulvertEvaluator::Evaluate_(const State& S, const std::vector<CompositeVecto
   auto& surf_src = *result[0]->ViewComponent("cell");
   const AmanziMesh::Mesh& mesh = *result[0]->Mesh();
 
+  // Get mesh entities for inlet and outlet regions
   auto inlet_id_list = mesh.getSetEntities(
     culvert_inlet_region_, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
   auto outlet_id_list = mesh.getSetEntities(
     culvert_outlet_region_, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
+  // Compute area-weighted averages for hydraulic calculations
   double avg_pe_inlet = computeAreaWeightedAverage(mesh, inlet_id_list, cv, pe);
   double avg_elev_inlet = computeAreaWeightedAverage(mesh, inlet_id_list, cv, elev);
   double avg_pe_outlet = computeAreaWeightedAverage(mesh, outlet_id_list, cv, pe);
 
+  // Convert to feet for hydraulic calculations (using US customary units)
   double h_up_feet = avg_pe_inlet * 3.28084;
   double h_down_feet = avg_pe_outlet * 3.28084;
   double z_invert_feet = avg_elev_inlet * 3.28084;
 
-  double A = M_PI * D_feet_ * D_feet_ / 4.0;
-  double P = M_PI * D_feet_;
-  double R = A / P;
-  double d = h_up_feet - z_invert_feet;
-  double h_i = 0.0;
-  if (d <= 0) {
-    h_i = 0.0;
-  } else if (d < D_) {
-    h_i = 0.5 * d;
-  } else {
-    h_i = h_up_feet - (z_invert_feet + D_feet_ / 2.0);
-  }
+  // Calculate culvert geometry parameters
+  double A = M_PI * D_feet_ * D_feet_ / 4.0;  // Cross-sectional area
+  double P = M_PI * D_feet_;                   // Wetted perimeter
+  double R = A / P;                            // Hydraulic radius
+  double d = h_up_feet - z_invert_feet;        // Depth at inlet
 
+  // Calculate inlet head for discharge calculations based on different hydraulic regimes
+  double d_eps = 0.01; // feet - small depth threshold
+  double h_i = 0.0;    // inlet head for discharge calculation
+  
+  if (d <= 0) {
+    // No water depth - no flow
+    h_i = 0.0;
+    std::cout << "Culvert regime: No flow (d <= 0)" << std::endl;
+  } else if (d < d_eps) {
+    // Very shallow flow - use cubic ramp to avoid numerical issues
+    h_i = 0.5 * d * (d / d_eps);
+    std::cout << "Culvert regime: Very shallow flow (d < " << d_eps << " ft)" << std::endl;
+  } else if (d < D_feet_) {
+    // Partial flow regime - culvert not full, inlet control
+    h_i = 0.5 * d;
+    std::cout << "Culvert regime: Partial flow - inlet control (d < D)" << std::endl;
+  } else {
+    // Full flow regime - culvert running full, pressure flow
+    h_i = h_up_feet - (z_invert_feet + D_feet_ / 2.0);
+    std::cout << "Culvert regime: Full flow - pressure flow (d >= D)" << std::endl;
+  }
+  std::cout << "  Depth d: " << d << " ft, Diameter D: " << D_feet_ << " ft, Head h_i: " << h_i << " ft" << std::endl;
+
+
+  // Calculate flow rates using culvert hydraulics equations
   double g = 9.81;
   double Q_inlet = 0.0;
   if (h_i > 0.0) Q_inlet = Nb_ * C_ * A * std::sqrt(2.0 * g * h_i);
@@ -122,8 +147,14 @@ SurfCulvertEvaluator::Evaluate_(const State& S, const std::vector<CompositeVecto
   double Q_outlet = Nb_ * C_ * A * std::sqrt((2.0 * g * h_o) / k);
   double Q_cfs = (Q_inlet * Q_outlet) / std::sqrt(Q_inlet * Q_inlet + Q_outlet * Q_outlet + 1e-12);
 
-  double Q = Q_cfs * 0.028316847; // convert to m^3/s
+  // Debug output for flow calculations
+  std::cout << "Q_inlet: " << Q_inlet << " ft³/s" << std::endl;
+  std::cout << "Q_outlet: " << Q_outlet << " ft³/s" << std::endl;
+  std::cout << "Q_cfs: " << Q_cfs << " ft³/s" << std::endl;
 
+  double Q = Q_cfs * 0.028316847; // Convert from ft³/s to m³/s
+
+  // Check water availability constraints
   double available_water_mol = 0.0;
   for (auto c : inlet_id_list) {
     available_water_mol += wc[0][c] * liq_den[0][c] * cv[0][c];
@@ -131,17 +162,20 @@ SurfCulvertEvaluator::Evaluate_(const State& S, const std::vector<CompositeVecto
   double total_available_water_mol = 0.0;
   mesh.getComm()->SumAll(&available_water_mol, &total_available_water_mol, 1);
 
+  // Early return if no flow or no water available
   if (Q == 0.0 || total_available_water_mol <= 0.0) {
     for (auto c : inlet_id_list) surf_src[0][c] = 0.0;
     for (auto c : outlet_id_list) surf_src[0][c] = 0.0;
     return;
   }
 
+  // Limit flow rate by available water
   double mols_required = Q * dt;
   if (mols_required > total_available_water_mol && mols_required > 0.0) {
     Q *= total_available_water_mol / mols_required;
   }
 
+  // Distribute source terms at inlet (water removal)
   double sum_wc_l = 0;
   for (auto c : inlet_id_list) sum_wc_l += wc[0][c];
   double sum_wc_g = 0;
@@ -153,6 +187,7 @@ SurfCulvertEvaluator::Evaluate_(const State& S, const std::vector<CompositeVecto
     surf_src[0][c] = -Q * liq_den[0][c] * wc[0][c] / (safe_sum_wc_g * safe_cv);
   }
 
+  // Distribute source terms at outlet (water addition)
   double sum_cv_l = 0;
   for (auto c : outlet_id_list) sum_cv_l += cv[0][c];
   double sum_cv_g = 0;

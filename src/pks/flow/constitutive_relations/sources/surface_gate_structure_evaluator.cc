@@ -19,6 +19,7 @@ Gate structure can be used to move water between two canals, two storage areas o
 #include "surface_gate_structure_evaluator.hh"
 #include "FunctionFactory.hh"
 
+
 namespace Amanzi {
 namespace Flow {
 namespace Relations {

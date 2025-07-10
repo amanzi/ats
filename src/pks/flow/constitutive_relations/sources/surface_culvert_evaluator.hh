@@ -1,5 +1,5 @@
 /*
-  Copyright 2010-202x held jointly by participating institutions.
+  Copyright 2010–202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
@@ -9,7 +9,7 @@
 */
 
 //! Simulates water movement through culverts by instant transfer of water from inlet to outlet region.
-//! Based on culvert flow equation. Considers, both inlet-controlled and outlet-controlled flow.
+//! Flow is calculated using standard culvert hydraulics, considering both inlet-controlled and outlet-controlled regimes.
 /*!
 .. _evaluator-surface-culvert-spec:
 .. admonition:: evaluator-surface-culvert-spec
@@ -25,11 +25,43 @@
    KEYS:
    - `"cell volume`" **DOMAIN-cell_volume** 
    - `"ponded depth`" **DOMAIN-ponded_depth** 
-   - `"potential`" **DOMAIN-pres_elev** stage or water surface elevation
+   - `"potential`" **DOMAIN-pres_elev** (stage or water surface elevation)
    - `"elevation`" **DOMAIN-elevation** 
    - `"water content`" **DOMAIN-water_content** 
-   - `"molar liquid density`" **DOMAIN-molar_density_liquid** 
+   - `"molar density liquid`" **DOMAIN-molar_density_liquid**
 
+
+Implements the following culvert hydraulics equations:
+
+   - Inlet control:
+     \f[
+     Q_{inlet} = N_b C A \sqrt{2g h_i}
+     \f]
+     where:
+       - \( N_b \) = number of barrels  
+       - \( C \) = discharge coefficient  
+       - \( A \) = culvert cross-sectional area  
+       - \( h_i \) = head at culvert inlet  
+       - \( g \) = gravity
+
+   - Outlet control:
+     \f[
+     Q_{outlet} = N_b C A \sqrt{ \frac{2g h_o}{k} }
+     \f]
+     where:
+       - \( h_o \) = head difference between inlet and outlet  
+       - \( k = 1.5 + \frac{29 n^2 L}{R^{4/3}} \) (Manning-based resistance term)  
+       - \( n \) = Manning’s roughness  
+       - \( L \) = culvert length  
+       - \( R \) = hydraulic radius
+
+   - Blended total discharge:
+     \f[
+     Q = \frac{Q_{inlet} Q_{outlet}}{\sqrt{Q_{inlet}^2 + Q_{outlet}^2 + \epsilon}}
+     \f]
+     where \( \epsilon \) is a small number to avoid divide-by-zero.
+
+   The resulting \( Q \) is used to compute area-weighted water removal at the inlet and volume-weighted water addition at the outlet.
 */
 
 #pragma once
@@ -87,6 +119,7 @@ class SurfCulvertEvaluator : public EvaluatorSecondaryMonotypeCV {
   double D_feet_;
   double n_;
   double C_;
+  bool allow_reverse_flow_;
 
  private:
   static Utils::RegisteredFactory<Evaluator, SurfCulvertEvaluator> reg_;
