@@ -1,6 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 import matplotlib.collections
+import matplotlib.ticker
 
 def plotLines(x, y, t, ax=None, colorbar=True, colorbar_ticks=True, colorbar_label=None, t_min=None, t_max=None, **kwargs):
     """Plots lines by color."""
@@ -29,21 +30,28 @@ def plotLines(x, y, t, ax=None, colorbar=True, colorbar_ticks=True, colorbar_lab
 
     if colorbar:
         # create the colorbar
-        axcb = fig.colorbar(lc)
+        cb = fig.colorbar(lc)
 
         # label it
         if colorbar_label is not None:
-            axcb.set_label(colorbar_label)
+            cb.set_label(colorbar_label)
 
-        # transform ticks from [0,1] to [times[0], times[-1]]
         if colorbar_ticks:
-            xticks = axcb.get_ticks()
-            new_ticks = [t * (t_max - t_min) + t_min for t in xticks]
-            axcb.set_ticks(new_ticks)
-            axcb.set_ticklabels([str(np.round(t, 2)) for t in new_ticks])
+            # transform ticks from [0,1] to [times[0], times[-1]] to get
+            # the correct labels
+            def my_formatter(x, pos):
+                xp = x * (t_max - t_min) + t_min
+                if abs(xp - np.round(xp)) < 1.e-2:
+                    return str(int(np.round(xp)))
+                elif abs(xp - np.round(xp, 1)) < 1.e-2:
+                    return str(np.round(xp, 1))
+                return str(np.round(xp, 2))
+
+            cb.ax.yaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(my_formatter))
+            
         else:
-            axcb.set_ticks(list())
+            cb.set_ticks(list())
     else:
-        axcb = None
-    return ax, axcb
+        cb = None
+    return ax, cb
     
