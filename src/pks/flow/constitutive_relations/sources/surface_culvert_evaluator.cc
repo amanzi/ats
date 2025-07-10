@@ -4,7 +4,7 @@
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Authors: 
+  Authors: Saubhagya Rathore (rathoress@ornl.gov)
 */
 
 #include "Key.hh"
@@ -21,18 +21,20 @@ namespace Flow {
 namespace Relations {
 
 // Helper function to compute area-weighted average
-inline double computeAreaWeightedAverage(const AmanziMesh::Mesh& mesh,
-                                  const Amanzi::AmanziMesh::MeshCache<Amanzi::MemSpace_kind::HOST>::cEntity_ID_View& entity_list,
-                                  const Epetra_MultiVector& cv,
-                                  const Epetra_MultiVector& var) {
-    double terms_local[2] = { 0, 0 };
-    for (auto c : entity_list) {
-        terms_local[0] += cv[0][c] * var[0][c];
-        terms_local[1] += cv[0][c];
-    }
-    double terms_global[2] = { 0, 0 };
-    mesh.getComm()->SumAll(terms_local, terms_global, 2);
-    return terms_global[0] / terms_global[1]; // Area-weighted average
+inline double
+computeAreaWeightedAverage(const AmanziMesh::Mesh& mesh,
+                          const Amanzi::AmanziMesh::MeshCache<Amanzi::MemSpace_kind::HOST>::cEntity_ID_View& entity_list,
+                          const Epetra_MultiVector& cv,
+                          const Epetra_MultiVector& var)
+{
+  double terms_local[2] = { 0, 0 };
+  for (auto c : entity_list) {
+    terms_local[0] += cv[0][c] * var[0][c];
+    terms_local[1] += cv[0][c];
+  }
+  double terms_global[2] = { 0, 0 };
+  mesh.getComm()->SumAll(terms_local, terms_global, 2);
+  return terms_global[0] / terms_global[1]; // Area-weighted average
 }
 
 
@@ -63,14 +65,14 @@ SurfCulvertEvaluator::SurfCulvertEvaluator(Teuchos::ParameterList& plist) : Eval
   culvert_inlet_region_ = plist.get<std::string>("culvert inlet region");
   culvert_outlet_region_ = plist.get<std::string>("culvert outlet region");
   Nb_ = plist.get<int>("number of barrels", 1);
-  L_ = plist.get<double>("culvert length", 10);
-  D_ = plist.get<double>("culvert diameter", 1);
+  L_feet_ = plist.get<double>("culvert length", 10) * 3.28084;
+  D_feet_ = plist.get<double>("culvert diameter", 1) * 3.28084;
   n_ = plist.get<double>("culvert roughness coefficient", 0.013);
   C_ = plist.get<double>("culvert discharge coefficient", 0.6);
 }
 
 void
-SurfCulvertEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& result) 
+SurfCulvertEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& result)
 {
   Tag tag = my_keys_.front().second;
   double dt = S.Get<double>("dt", tag);
@@ -81,7 +83,7 @@ SurfCulvertEvaluator::Evaluate_(const State& S, const std::vector<CompositeVecto
   const auto& pe = *S.Get<CompositeVector>(pe_key_, tag).ViewComponent("cell", false);
   const auto& elev = *S.Get<CompositeVector>(elev_key_, tag).ViewComponent("cell", false);
 
-  auto& surf_src= *result[0]->ViewComponent("cell");
+  auto& surf_src = *result[0]->ViewComponent("cell");
   const AmanziMesh::Mesh& mesh = *result[0]->Mesh();
 
   auto inlet_id_list = mesh.getSetEntities(
@@ -94,8 +96,6 @@ SurfCulvertEvaluator::Evaluate_(const State& S, const std::vector<CompositeVecto
   double avg_elev_inlet = computeAreaWeightedAverage(mesh, inlet_id_list, cv, elev);
   double avg_pe_outlet = computeAreaWeightedAverage(mesh, outlet_id_list, cv, pe);
 
-  double L_feet_ = L_ * 3.28084;
-  double D_feet_ = D_ * 3.28084;
   double h_up_feet = avg_pe_inlet * 3.28084;
   double h_down_feet = avg_pe_outlet * 3.28084;
   double z_invert_feet = avg_elev_inlet * 3.28084;
@@ -105,23 +105,24 @@ SurfCulvertEvaluator::Evaluate_(const State& S, const std::vector<CompositeVecto
   double R = A / P;
   double d = h_up_feet - z_invert_feet;
   double h_i = 0.0;
-  if (d <= 0) h_i = 0.0;
-  else if (d < D_) h_i = 0.5 * d;
-  else h_i = h_up_feet - (z_invert_feet + D_feet_ / 2.0);
+  if (d <= 0) {
+    h_i = 0.0;
+  } else if (d < D_) {
+    h_i = 0.5 * d;
+  } else {
+    h_i = h_up_feet - (z_invert_feet + D_feet_ / 2.0);
+  }
 
   double g = 9.81;
   double Q_inlet = 0.0;
   if (h_i > 0.0) Q_inlet = Nb_ * C_ * A * std::sqrt(2.0 * g * h_i);
 
   double h_o = std::max(h_up_feet - h_down_feet, 0.0001);
-  double k = 1.5 + (29.0 * n_ * n_ * L_) / std::pow(R, 1.33);
+  double k = 1.5 + (29.0 * n_ * n_ * L_feet_) / std::pow(R, 1.33);
   double Q_outlet = Nb_ * C_ * A * std::sqrt((2.0 * g * h_o) / k);
   double Q_cfs = (Q_inlet * Q_outlet) / std::sqrt(Q_inlet * Q_inlet + Q_outlet * Q_outlet + 1e-12);
-  std::cout << "Q_inlet: " << Q_inlet << std::endl;
-  std::cout << "Q_outlet: " << Q_outlet << std::endl;
-  std::cout << "Q_cfs: " << Q_cfs << std::endl;
+
   double Q = Q_cfs * 0.028316847; // convert to m^3/s
-  std::cout << "Q: " << Q << std::endl;
 
   double available_water_mol = 0.0;
   for (auto c : inlet_id_list) {
@@ -149,10 +150,10 @@ SurfCulvertEvaluator::Evaluate_(const State& S, const std::vector<CompositeVecto
 
   for (auto c : inlet_id_list) {
     double safe_cv = std::max(cv[0][c], 1e-8);
-    surf_src[0][c] = - Q * liq_den[0][c] * wc[0][c] / (safe_sum_wc_g * safe_cv);
+    surf_src[0][c] = -Q * liq_den[0][c] * wc[0][c] / (safe_sum_wc_g * safe_cv);
   }
 
-  double sum_cv_l = 0; 
+  double sum_cv_l = 0;
   for (auto c : outlet_id_list) sum_cv_l += cv[0][c];
   double sum_cv_g = 0;
   mesh.getComm()->SumAll(&sum_cv_l, &sum_cv_g, 1);

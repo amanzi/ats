@@ -4,22 +4,31 @@
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Authors: Daniil Svyatsky (dasvyat@lanl.gov)
+  Authors: Saubhagya Rathore (rathoress@ornl.gov)
+
 */
 
-//! Evaluates water/solute source which represent effect of distributed subsurface tiles on overland flow
+//! Simulates water movement through culverts by instant transfer of water from inlet to outlet region.
+//! Based on culvert flow equation. Considers, both inlet-controlled and outlet-controlled flow.
 /*!
+.. _evaluator-surface-culvert-spec:
+.. admonition:: evaluator-surface-culvert-spec
 
-.. _surface-distributed-tiles-spec:
-.. admonition:: surface-distributed-tiles-spec
-
-   * `"number of ditches`" ``[int]`` Number of ditches, corresponding to the number of unique IDs.
+   * `"culvert inlet region`" ``[str]`` Region of cells where culvert flow is taken out.
+   * `"culvert outlet region`" ``[str]`` Region of cells where culvert flow is introduced.
+   * `"number of barrels`" ``[int]`` Number of culvert barrels, default is 1.
+   * `"culvert length`" ``[double]`` Length of the culvert in meters, default is 10.
+   * `"culvert diameter`" ``[double]`` Diameter of the culvert in meters, default is 1.
+   * `"culvert roughness coefficient`" ``[double]`` Manning's roughness coefficient for the culvert, default is 0.013.
+   * `"culvert discharge coefficient`" ``[double]`` Discharge coefficient for the culvert, default is 0.6.
 
    KEYS:
-   - `"accumulated source`" **SUBSURFACE_DOMAIN-accumulated_source** Source to the ditch from the tile.
-   - `"catchment ID`" **DOMAIN-catchments_id** ID indicating which ditch a given cell drains to.
-   - `"catchment fraction`" **DOMAIN-catchments_id** 1/dL, the fraction describing the length scale used in connecting the pipe to the ditch.
-   - `"cell volume`"
+   - `"cell volume`" **DOMAIN-cell_volume** 
+   - `"ponded depth`" **DOMAIN-ponded_depth** 
+   - `"potential`" **DOMAIN-pres_elev** stage or water surface elevation
+   - `"elevation`" **DOMAIN-elevation** 
+   - `"water content`" **DOMAIN-water_content** 
+   - `"molar liquid density`" **DOMAIN-molar_density_liquid** 
 
 */
 
