@@ -30,6 +30,20 @@
    - `"water content`" **DOMAIN-water_content** 
    - `"molar density liquid`" **DOMAIN-molar_density_liquid**
 
+Example:
+
+.. code-block:: xml
+
+      <ParameterList name="surface-culvert_flow" type="ParameterList">
+        <Parameter name="evaluator type" type="string" value="culvert"/>
+        <Parameter name="culvert inlet region" type="string" value="culvert inlet"/>
+        <Parameter name="culvert outlet region" type="string" value="culvert outlet"/>
+        <Parameter name="number of barrels" type="int" value="1"/>
+        <Parameter name="culvert length" type="double" value="10.0"/>
+        <Parameter name="culvert diameter" type="double" value="0.25"/>
+        <Parameter name="culvert roughness coefficient" type="double" value="0.013"/>
+        <Parameter name="culvert discharge coefficient" type="double" value="0.6"/>
+      </ParameterList>
 
 Implements the following culvert hydraulics equations:
 
