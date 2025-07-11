@@ -116,25 +116,19 @@ SurfCulvertEvaluator::Evaluate_(const State& S, const std::vector<CompositeVecto
   // Calculate inlet head for discharge calculations based on different hydraulic regimes
   double d_eps = 0.01; // feet - small depth threshold
   double h_i = 0.0;    // inlet head for discharge calculation
-  
   if (d <= 0) {
     // No water depth - no flow
     h_i = 0.0;
-    std::cout << "Culvert regime: No flow (d <= 0)" << std::endl;
   } else if (d < d_eps) {
     // Very shallow flow - use cubic ramp to avoid numerical issues
     h_i = 0.5 * d * (d / d_eps);
-    std::cout << "Culvert regime: Very shallow flow (d < " << d_eps << " ft)" << std::endl;
   } else if (d < D_feet_) {
     // Partial flow regime - culvert not full, inlet control
     h_i = 0.5 * d;
-    std::cout << "Culvert regime: Partial flow - inlet control (d < D)" << std::endl;
   } else {
     // Full flow regime - culvert running full, pressure flow
     h_i = h_up_feet - (z_invert_feet + D_feet_ / 2.0);
-    std::cout << "Culvert regime: Full flow - pressure flow (d >= D)" << std::endl;
   }
-  std::cout << "  Depth d: " << d << " ft, Diameter D: " << D_feet_ << " ft, Head h_i: " << h_i << " ft" << std::endl;
 
 
   // Calculate flow rates using culvert hydraulics equations
@@ -147,10 +141,6 @@ SurfCulvertEvaluator::Evaluate_(const State& S, const std::vector<CompositeVecto
   double Q_outlet = Nb_ * C_ * A * std::sqrt((2.0 * g * h_o) / k);
   double Q_cfs = (Q_inlet * Q_outlet) / std::sqrt(Q_inlet * Q_inlet + Q_outlet * Q_outlet + 1e-12);
 
-  // Debug output for flow calculations
-  std::cout << "Q_inlet: " << Q_inlet << " ft³/s" << std::endl;
-  std::cout << "Q_outlet: " << Q_outlet << " ft³/s" << std::endl;
-  std::cout << "Q_cfs: " << Q_cfs << " ft³/s" << std::endl;
 
   double Q = Q_cfs * 0.028316847; // Convert from ft³/s to m³/s
 
