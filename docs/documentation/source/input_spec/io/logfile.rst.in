@@ -7,15 +7,12 @@ will forward this to a file, e.g.::
 
    ats --verbosity=LEVEL path_to_input.xml &> out.log
 
-The verbosity LEVEL controls how much is written to the logfile:
-
-* `"none`" Literally nothing.  This is useful for large ensembles of runs, but is not recommended.
-* `"low`" Very little -- effectively just a summary of each timestep with no PK-level granularity.
-* `"medium`" All of the above plus each PK provides a summary for each timestep.
-* `"high`" All of the above plus each iteration in a solve of each PK at each timestep.  This also turns on `debug cells <Debugger>`_.
-* `"extreme`" All of the above plus each evaluator will provide a summary of whether it gets updated or not.  Recommended only for input file debugging.
-
-This option sets the default verbosity of all evaluators, PKs, operators, solvers, etc of the simulation. For more fine-grained control, each component also accepts a `Verbose Object`_ spec which overrides the global verbosity to control output from that component.
+The verbosity LEVEL controls how much is written to the logfile (see
+below for valid options).  This option sets the default verbosity of
+all evaluators, PKs, operators, solvers, etc of the simulation. For
+more fine-grained control, each component also accepts a `Verbose
+Object`_ spec which overrides the global verbosity to control output
+from that component.
 
 
 Verbose Object
