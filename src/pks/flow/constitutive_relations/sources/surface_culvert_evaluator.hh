@@ -14,30 +14,46 @@
 Flow is calculated using standard culvert hydraulics, considering both inlet-controlled and outlet-controlled regimes.
 
 Implements the following culvert hydraulics equations:
+- **Inlet control**:
+  
+  .. math::
+     Q_{\text{inlet}} = N_b \, C \, A \, \sqrt{2 g h_i}
+  
+  where:
+  
+  - :math:`N_b` = number of barrels *(unitless)*
+  - :math:`C` = discharge coefficient *(unitless)*
+  - :math:`A` = culvert cross-sectional area *(m^2)*
+  - :math:`h_i` = head at culvert inlet *(m)*
+  - :math:`g` = acceleration due to gravity *(9.81 m/s^2)*
+  - :math:`Q_{\text{inlet}}` = inlet discharge *(m^3/s)*
 
-   - Inlet control:
-     :math:`Q_{inlet} = N_b C A \sqrt{2g h_i}`
-     where:
-       - :math:`N_b` = number of barrels  
-       - :math:`C` = discharge coefficient  
-       - :math:`A` = culvert cross-sectional area  
-       - :math:`h_i` = head at culvert inlet  
-       - :math:`g` = gravity
+- **Outlet control**:
+  
+  .. math::
+     Q_{\text{outlet}} = N_b \, C \, A \, \sqrt{ \frac{2 g h_o}{k} }
+  
+  where:
+  
+  - :math:`h_o` = head difference between inlet and outlet *(m)*
+  - :math:`k = 1.5 + \frac{29 n^2 L}{R^{4/3}}` *(unitless resistance term)*
+  - :math:`n` = Manning's roughness coefficient *(s/m^{1/3})*
+  - :math:`L` = culvert length *(m)*
+  - :math:`R` = hydraulic radius *(m)*
+  - :math:`Q_{\text{outlet}}` = outlet discharge *(m^3/s)*
 
-   - Outlet control:
-     :math:`Q_{outlet} = N_b C A \sqrt{ \frac{2g h_o}{k} }`
-     where:
-       - :math:`h_o` = head difference between inlet and outlet  
-       - :math:`k = 1.5 + \frac{29 n^2 L}{R^{4/3}}` (Manning-based resistance term)  
-       - :math:`n` = Manning's roughness  
-       - :math:`L` = culvert length  
-       - :math:`R` = hydraulic radius
+- **Blended total discharge**:
+  
+  .. math::
+     Q = \frac{Q_{\text{inlet}} \, Q_{\text{outlet}}}{\sqrt{Q_{\text{inlet}}^2 + Q_{\text{outlet}}^2 + \epsilon}}
+  
+  where:
+  
+  - :math:`\epsilon` = small positive constant to avoid divide-by-zero
+  - :math:`Q` = total culvert discharge *(m^3/s)*
 
-   - Blended total discharge:
-     :math:`Q = \frac{Q_{inlet} Q_{outlet}}{\sqrt{Q_{inlet}^2 + Q_{outlet}^2 + \epsilon}}`
-     where :math:`\epsilon` is a small number to avoid divide-by-zero.
+The resulting :math:`Q` is used to compute area-weighted water removal at the inlet and volume-weighted water addition at the outlet.
 
-   The resulting :math:`Q` is used to compute area-weighted water removal at the inlet and volume-weighted water addition at the outlet.
 
 `"evaluator type`" = `"culvert`"
 
