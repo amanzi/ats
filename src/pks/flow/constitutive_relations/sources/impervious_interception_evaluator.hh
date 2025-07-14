@@ -17,6 +17,8 @@ the portion is determined by the impervious area fraction) and moving it
 
 Note: this assumes that the runoff reciever is constant in time!
 
+`"evaluator type`" = `"impervious surface interception`"
+
 .. _impervious-interception-evaluator-spec:
 .. admonition:: impervious-interception-evaluator-spec
 

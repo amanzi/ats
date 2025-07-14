@@ -171,15 +171,13 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
         analysis.OutputBCs();
       }
 
-      std::string plist_name = "mesh info " + mesh->first;
-      // in the case of just a domain mesh, we want to allow no name.
-      if ((mesh->first == "domain") && !plist_->isSublist(plist_name)) { plist_name = "mesh info"; }
-      if (plist_->isSublist(plist_name)) {
-        auto& mesh_info_list = plist_->sublist(plist_name);
+      // writes cellcentroids in global ordering
+      if (plist_->sublist("mesh").sublist(mesh->first).isSublist("mesh info")){
+        auto& mesh_info_list = plist_->sublist("mesh").sublist(mesh->first).sublist("mesh info");
         Teuchos::RCP<Amanzi::MeshInfo> mesh_info =
           Teuchos::rcp(new Amanzi::MeshInfo(mesh_info_list, *S_));
         mesh_info->WriteMeshCentroids(mesh->first, *(mesh->second.first));
-      }
+      }      
     }
 
 
