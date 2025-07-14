@@ -23,7 +23,7 @@ Gate structure can be used to move water two canals, two storage areas or canal 
    * `"storage area region`" ``[str]`` Region of cells where gate flow is introduced.
    * `"gate stage close`" ``[double]`` The water surface elevation in the storage area that should trigger the gate close.
    * `"is ponded depth function`" ``[bool]`` If true, the gate efficiency curve is a function of ponded depth in the intake region rather than stage.
-   * `"function" ``[function-tabular]`` This is a function/table of head and flow. Here, head is the stage or ponded depth in the intake region (upstream) of the gate structure.
+   * `"function`" ``[function-tabular]`` This is a function/table of head and flow. Here, head is the stage or ponded depth in the intake region (upstream) of the gate structure.
 
    KEYS:
    - `"cell volume`" **DOMAIN-cell_volume** 

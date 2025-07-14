@@ -25,8 +25,7 @@ Note: this assumes that the runoff reciever is constant in time!
      water per second per m^2 of _impervious_ area (specific area).
 
    KEYS:
-   - `"impervious fraction`" **DOMAIN-impervious_fraction** The fraction of
-     surface area that is impervious, this also defines the fraction of precip
+   - `"impervious fraction`" **DOMAIN-impervious_fraction** The fraction of surface area that is impervious, this also defines the fraction of precip
      that is rerouted.
    - `"impervious runoff receiver`" **DOMAIN-impervious_runoff_receiver`" The
      Global ID of the cell that will recieve water from this cell.

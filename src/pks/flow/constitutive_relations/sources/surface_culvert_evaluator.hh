@@ -8,42 +8,38 @@
 
 */
 
+//! Simulates water movement through culverts by instant transfer of water from inlet to outlet region.
 /*!
 
-Simulates water movement through culverts by instant transfer of water from inlet to outlet region.
 Flow is calculated using standard culvert hydraulics, considering both inlet-controlled and outlet-controlled regimes.
 
 Implements the following culvert hydraulics equations:
 
    - Inlet control:
-     \f[
-     Q_{inlet} = N_b C A \sqrt{2g h_i}
-     \f]
+     :math:`Q_{inlet} = N_b C A \sqrt{2g h_i}`
      where:
-       - \( N_b \) = number of barrels  
-       - \( C \) = discharge coefficient  
-       - \( A \) = culvert cross-sectional area  
-       - \( h_i \) = head at culvert inlet  
-       - \( g \) = gravity
+       - :math:`N_b` = number of barrels  
+       - :math:`C` = discharge coefficient  
+       - :math:`A` = culvert cross-sectional area  
+       - :math:`h_i` = head at culvert inlet  
+       - :math:`g` = gravity
 
    - Outlet control:
-     \f[
-     Q_{outlet} = N_b C A \sqrt{ \frac{2g h_o}{k} }
-     \f]
+     :math:`Q_{outlet} = N_b C A \sqrt{ \frac{2g h_o}{k} }`
      where:
-       - \( h_o \) = head difference between inlet and outlet  
-       - \( k = 1.5 + \frac{29 n^2 L}{R^{4/3}} \) (Manning-based resistance term)  
-       - \( n \) = Manning's roughness  
-       - \( L \) = culvert length  
-       - \( R \) = hydraulic radius
+       - :math:`h_o` = head difference between inlet and outlet  
+       - :math:`k = 1.5 + \frac{29 n^2 L}{R^{4/3}}` (Manning-based resistance term)  
+       - :math:`n` = Manning's roughness  
+       - :math:`L` = culvert length  
+       - :math:`R` = hydraulic radius
 
    - Blended total discharge:
-     \f[
-     Q = \frac{Q_{inlet} Q_{outlet}}{\sqrt{Q_{inlet}^2 + Q_{outlet}^2 + \epsilon}}
-     \f]
-     where \( \epsilon \) is a small number to avoid divide-by-zero.
+     :math:`Q = \frac{Q_{inlet} Q_{outlet}}{\sqrt{Q_{inlet}^2 + Q_{outlet}^2 + \epsilon}}`
+     where :math:`\epsilon` is a small number to avoid divide-by-zero.
 
-   The resulting \( Q \) is used to compute area-weighted water removal at the inlet and volume-weighted water addition at the outlet.
+   The resulting :math:`Q` is used to compute area-weighted water removal at the inlet and volume-weighted water addition at the outlet.
+
+`"evaluator type`" = `"culvert`"
 
 .. _evaluator-culvert-spec:
 .. admonition:: evaluator-culvert-spec
