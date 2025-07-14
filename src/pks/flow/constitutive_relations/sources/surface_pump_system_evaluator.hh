@@ -17,8 +17,8 @@ Based on pump on-off conditions and pump-operation curve, water is moved from pu
 
 `"evaluator type`" = `"pump system`"
 
-.. _evaluator-surface-pump-system-spec:
-.. admonition:: evaluator-surface-pump-system-spec
+.. _evaluator-pump-system-spec:
+.. admonition:: evaluator-pump-system-spec
 
    * `"pump inlet region`" ``[str]`` Region of cells where pump flow is taken out.
    * `"pump outlet region`" ``[str]`` Region of cells where pump flow is introduced (optional).
@@ -78,7 +78,6 @@ class SurfPumpEvaluator : public EvaluatorSecondaryMonotypeCV {
     return Teuchos::rcp(new SurfPumpEvaluator(*this));
   }
 
-  // virtual void EnsureCompatibility(State& S) override;
   virtual bool
   IsDifferentiableWRT(const State& S, const Key& wrt_key, const Tag& wrt_tag) const override
   {

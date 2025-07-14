@@ -16,8 +16,8 @@ Gate structure can be used to move water two canals, two storage areas or canal 
 
 `"evaluator type`" = `"gate structure`"
 
-.. _evaluator-surface-gate-structure-spec:
-.. admonition:: evaluator-surface-gate-structure-spec
+.. _evaluator-gate-structure-spec:
+.. admonition:: evaluator-gate-structure-spec
 
    * `"gate intake region`" ``[str]`` Region of cells where gate flow is taken out.
    * `"storage area region`" ``[str]`` Region of cells where gate flow is introduced.
