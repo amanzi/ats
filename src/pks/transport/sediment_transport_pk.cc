@@ -74,7 +74,13 @@ SedimentTransport_PK::parseParameterList()
 
     // keys, dependencies, etc
   // -- flux -- only needed at new time, evaluator controlled elsewhere
-  flux_key_ = Keys::readKey(*plist_, domain_, "water flux", "water_flux");
+  water_flux_key_ = Keys::readKey(*plist_, domain_, "water flux", "water_flux");
+
+  mass_flux_advection_key_ = Keys::readKey(*plist_, domain_, "mass flux advection", "mass_flux_advection");
+  requireEvaluatorAtNext(mass_flux_advection_key_, tag_next_, *S_, name_);
+
+  mass_flux_diffusion_key_ = Keys::readKey(*plist_, domain_, "mass flux diffusion", "mass_flux_diffusion");
+  requireEvaluatorAtNext(mass_flux_diffusion_key_, tag_next_, *S_, name_);
 
   // -- liquid water content - need at new time, copy at current time
   lwc_key_ = Keys::readKey(*plist_, domain_, "liquid water content", "water_content");

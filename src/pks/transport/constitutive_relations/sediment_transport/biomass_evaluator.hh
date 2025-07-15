@@ -22,11 +22,9 @@ namespace Amanzi {
 class BiomassEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
   explicit BiomassEvaluator(Teuchos::ParameterList& plist);
-  BiomassEvaluator(const BiomassEvaluator& other);
+  BiomassEvaluator(const BiomassEvaluator& other) = default;
 
   virtual Teuchos::RCP<Evaluator> Clone() const override;
-
-  // virtual bool HasFieldChanged(const Teuchos::Ptr<State>& S, Key request) override;
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
@@ -40,15 +38,18 @@ class BiomassEvaluator : public EvaluatorSecondaryMonotypeCV {
     AMANZI_ASSERT(0);
   }
 
+  virtual void EnsureCompatibility_Structure_(State& S) {
+    EnsureCompatibility_StructureSame_(S);
+  }
+
   void InitializeFromPlist_();
 
+ protected:
 
   int nspecies_, type_;
   std::vector<double> alpha_n, alpha_h, alpha_d, alpha_a;
   std::vector<double> beta_n, beta_h, beta_d, beta_a;
   std::vector<double> Bmax, zmax, zmin;
-  //std::vector<std::string> species_names_;
-  double last_update_, update_frequency_;
 
   Key biomass_key_, stem_density_key_, stem_height_key_, stem_diameter_key_, plant_area_key_;
   Key elev_key_, msl_key_;

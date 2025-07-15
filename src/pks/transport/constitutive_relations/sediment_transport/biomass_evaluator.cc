@@ -19,51 +19,7 @@ namespace Amanzi {
 BiomassEvaluator::BiomassEvaluator(Teuchos::ParameterList& plist)
   : EvaluatorSecondaryMonotypeCV(plist)
 {
-  last_update_ = -1;
   InitializeFromPlist_();
-}
-
-BiomassEvaluator::BiomassEvaluator(const BiomassEvaluator& other)
-  : EvaluatorSecondaryMonotypeCV(other),
-    nspecies_(other.nspecies_),
-    type_(other.type_),
-    biomass_key_(other.biomass_key_),
-    stem_density_key_(other.stem_density_key_),
-    stem_height_key_(other.stem_height_key_),
-    stem_diameter_key_(other.stem_diameter_key_),
-    plant_area_key_(other.plant_area_key_),
-    elev_key_(other.elev_key_),
-    msl_key_(other.msl_key_)
-{
-  last_update_ = other.last_update_;
-  update_frequency_ = other.update_frequency_;
-
-  alpha_n.resize(nspecies_);
-  alpha_h.resize(nspecies_);
-  alpha_a.resize(nspecies_);
-  alpha_d.resize(nspecies_);
-
-  beta_n.resize(nspecies_);
-  beta_h.resize(nspecies_);
-  beta_a.resize(nspecies_);
-  beta_d.resize(nspecies_);
-
-  Bmax.resize(nspecies_);
-  zmax.resize(nspecies_);
-  zmin.resize(nspecies_);
-  for (int i = 0; i < nspecies_; i++) {
-    alpha_n[i] = other.alpha_n[i];
-    alpha_h[i] = other.alpha_h[i];
-    alpha_d[i] = other.alpha_d[i];
-    alpha_a[i] = other.alpha_a[i];
-    beta_n[i] = other.beta_n[i];
-    beta_h[i] = other.beta_h[i];
-    beta_d[i] = other.beta_d[i];
-    beta_a[i] = other.beta_a[i];
-    Bmax[i] = other.Bmax[i];
-    zmax[i] = other.zmax[i];
-    zmin[i] = other.zmin[i];
-  }
 }
 
 Teuchos::RCP<Evaluator>
@@ -77,8 +33,8 @@ BiomassEvaluator::InitializeFromPlist_()
 {
   Tag tag = my_keys_.front().second;
   Key domain_name = Keys::getDomain(my_keys_.front().first);
-  my_keys_.clear(); // clear and re-insert to ensure proper order 
-  
+  my_keys_.clear(); // clear and re-insert to ensure proper order
+
   biomass_key_ = Keys::getKey(domain_name, "biomass");
   my_keys_.emplace_back(KeyTag{biomass_key_, tag});
 
@@ -94,11 +50,7 @@ BiomassEvaluator::InitializeFromPlist_()
   plant_area_key_ = Keys::getKey(domain_name, "plant_area");
   my_keys_.emplace_back(KeyTag{plant_area_key_, tag});
 
-  nspecies_ = plist_.get<int>("number of vegitation species", 1);
-  //species_names_ = plist_.get<Teuchos::Array<std::string> >("species names").toVector();
-
-  last_update_ = -1.;
-  update_frequency_ = plist_.get<double>("update frequency", -1);
+  nspecies_ = plist_.get<int>("number of vegetation species", 1);
 
   type_ = plist_.get<int>("type");
   alpha_n = plist_.get<Teuchos::Array<double>>("alpha n").toVector();
@@ -115,32 +67,13 @@ BiomassEvaluator::InitializeFromPlist_()
   zmax = plist_.get<Teuchos::Array<double>>("zmax").toVector();
   zmin = plist_.get<Teuchos::Array<double>>("zmin").toVector();
 
-  elev_key_ = Keys::getKey(domain_name, "elevation");
-  //msl_key_ = "msl";
+  elev_key_ = Keys::readKey(plist_, domain_name, "elevation", "elevation");
   dependencies_.insert(KeyTag{elev_key_, tag});
+
+  msl_key_ = Keys::readKey(plist_, domain_name, "mean sea level", "mean_sea_level");
+  dependencies_.insert(KeyTag{msl_key_, tag});
 }
 
-
-// bool
-// BiomassEvaluator::HasFieldChanged(const Teuchos::Ptr<State>& S, Key request)
-// {
-//   if ((update_frequency_ > 0) && (last_update_ >= 0)) {
-//     double time = S->get_time();
-//     if (requests_.find(request) == requests_.end()) {
-//       requests_.insert(request);
-//       if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
-//         *vo_->os() << my_keys_[0] << " has changed, but no need to update... " << std::endl;
-//       }
-//       return true;
-//     }
-//     if (time - last_update_ < update_frequency_) return false;
-//   }
-
-//   bool chg = EvaluatorSecondaryMonotypeCV::HasFieldChanged(S, request);
-//   if (chg) last_update_ = S->get_time();
-
-//   return chg;
-// }
 
 void
 BiomassEvaluator::Evaluate_(const State& S,
@@ -154,17 +87,16 @@ BiomassEvaluator::Evaluate_(const State& S,
   Tag tag = my_keys_.front().second;
 
   const Epetra_MultiVector& elev = *S.GetPtr<CompositeVector>(elev_key_, tag)->ViewComponent("cell", false);
+  const Epetra_MultiVector& msl = *S.GetPtr<CompositeVector>(msl_key_, tag)->ViewComponent("cell", false);
 
   int ncells = biomass.MyLength();
-
-  double MSL = S.Get<double>("msl", tag);
 
   for (int n = 0; n < nspecies_; n++) {
     AMANZI_ASSERT((zmax[n] - zmin[n]) > 1e-6);
     switch (type_) {
     case 1:
       for (int c = 0; c < ncells; c++) {
-        double z_b = elev[0][c] - MSL;
+        double z_b = elev[0][c] - msl[0][c];
         if ((z_b > zmin[n]) && (z_b < zmax[n])) {
           biomass[n][c] = Bmax[n] * (zmax[n] - z_b) / (zmax[n] - zmin[n]);
         } else {
@@ -174,7 +106,7 @@ BiomassEvaluator::Evaluate_(const State& S,
       break;
     case 2:
       for (int c = 0; c < ncells; c++) {
-        double z_b = elev[0][c] - MSL;
+        double z_b = elev[0][c] - msl[0][c];
         if (z_b >= zmax[n]) {
           biomass[n][c] = Bmax[n];
         } else if ((z_b > zmin[n]) && (z_b < zmax[n])) {
