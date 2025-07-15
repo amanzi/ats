@@ -13,8 +13,31 @@ on:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         os: [ ubuntu-latest, ubuntu-24.04-arm ]
+        images:
+          - base_image: ubuntu
+            ver_tag: jammy
+            mpi_distro: mpich
+          - base_image: gcc
+            ver_tag: "14"
+            mpi_distro: mpich
+          - base_image: gcc
+            ver_tag: latest
+            mpi_distro: mpich
+          - base_image: ubuntu
+            ver_tag: jammy
+            mpi_distro: openmpi
+            mpi_ver: "4.1.8"
+          - base_image: gcc
+            ver_tag: "14"
+            mpi_distro: openmpi
+            mpi_ver: "5.0.5"
+          - base_image: gcc
+            ver_tag: latest
+            mpi_distro: openmpi
+            mpi_ver: "5.0.8"
     runs-on: ${{ matrix.os }}
     name: Build Docker
     steps:
@@ -73,22 +96,50 @@ jobs:
       with:
         username: ${{secrets.DOCKERHUB_USERNAME}}
         password: ${{secrets.DOCKERHUB_PASSWORD}}
-    - name: Docker build and push
-      id: docker
-      working-directory: Docker
-      shell: bash
-      run: |
-          docker build --build-arg ARCH=linux/${{env.ARCH}} \
-                       --build-arg amanzi_tpls_ver=${{env.AMANZI_TPLS_VER}} \
-                       --build-arg amanzi_branch=${{env.AMANZI_BRANCH}} \
-                       --build-arg ats_branch=${{env.ATS_BRANCH}} \
-                       --build-arg ats_tests_branch=${{env.ATS_TESTS_BRANCH}} \
-                       -t metsi/ats:${{env.ATS_BRANCH_TAG}}-${{env.ARCH}}-latest -f Dockerfile-ATS-build .
-          docker push ${{secrets.DOCKERHUB_USERNAME}}/ats:${{env.ATS_BRANCH_TAG}}-${{env.ARCH}}-latest
+    - name: Build and push image
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        file: ./Docker/Dockerfile-ATS-build
+        push: true
+        tags: ${{secrets.DOCKERHUB_USERNAME}}/ats:${{env.ATS_BRANCH_TAG}}-${{matrix.images.mpi_distro}}-${{matrix.images.base_image}}-${{matrix.images.ver_tag}}-${{env.ARCH}}-latest
+        build-args: |
+          amanzi_branch=${{env.AMANZI_BRANCH}}
+          amanzi_tpls_ver=${{env.AMANZI_TPLS_VER}}
+          base_image=${{matrix.images.base_image}}
+          ver_tag=${{matrix.images.ver_tag}}
+          mpi_distro=${{matrix.images.mpi_distro}}
+          mpi_ver=${{matrix.images.mpi_ver}}
+          ats_branch=${{env.ATS_BRANCH}}
+          ats_tests_branch=${{env.ATS_TESTS_BRANCH}}
+          ARCH=linux/${{env.ARCH}}
   serial-reg15-tests:
     strategy:
+      fail-fast: false
       matrix:
-        os: [ ubuntu-latest, ubuntu-24.04-arm ]
+        os: [ ubuntu-latest, ubuntu-24.04-arm ]        
+        images:
+          - base_image: ubuntu
+            ver_tag: jammy
+            mpi_distro: mpich
+          - base_image: gcc
+            ver_tag: "14"
+            mpi_distro: mpich
+          - base_image: gcc
+            ver_tag: latest
+            mpi_distro: mpich
+          - base_image: ubuntu
+            ver_tag: jammy
+            mpi_distro: openmpi
+            mpi_ver: "4.1.8"
+          - base_image: gcc
+            ver_tag: "14"
+            mpi_distro: openmpi
+            mpi_ver: "5.0.5"
+          - base_image: gcc
+            ver_tag: latest
+            mpi_distro: openmpi
+            mpi_ver: "5.0.8"
     runs-on: ${{ matrix.os }}
     name: serial and regression 1-5 series tests
     needs: build
@@ -119,11 +170,34 @@ jobs:
       id: tests
       working-directory: Docker
       run:
-        docker run --rm ${{secrets.DOCKERHUB_USERNAME}}/ats:${{env.ATS_BRANCH_TAG}}-${{env.ARCH}}-latest /bin/bash -c "cd ~/amanzi_builddir/ats; ctest --output-on-failure -LE PARALLEL -E 'ats_regression_test-[1-9][0-9]|ats_regression_test-0[6-9]'"
+        docker run --rm ${{secrets.DOCKERHUB_USERNAME}}/ats:${{env.ATS_BRANCH_TAG}}-${{matrix.images.mpi_distro}}-${{matrix.images.base_image}}-${{matrix.images.ver_tag}}-${{env.ARCH}}-latest /bin/bash -c "cd ~/amanzi_builddir/ats; ctest --output-on-failure -LE PARALLEL -E 'ats_regression_test-[1-9][0-9]|ats_regression_test-0[6-9]'"
   parallel-tests:
     strategy:
+      fail-fast: false
       matrix:
         os: [ ubuntu-latest, ubuntu-24.04-arm ]
+        images:
+          - base_image: ubuntu
+            ver_tag: jammy
+            mpi_distro: mpich
+          - base_image: gcc
+            ver_tag: "14"
+            mpi_distro: mpich
+          - base_image: gcc
+            ver_tag: latest
+            mpi_distro: mpich
+          - base_image: ubuntu
+            ver_tag: jammy
+            mpi_distro: openmpi
+            mpi_ver: "4.1.8"
+          - base_image: gcc
+            ver_tag: "14"
+            mpi_distro: openmpi
+            mpi_ver: "5.0.5"
+          - base_image: gcc
+            ver_tag: latest
+            mpi_distro: openmpi
+            mpi_ver: "5.0.8"
     runs-on: ${{ matrix.os }}
     name: parallel and regression 6-10 series tests
     needs: build
@@ -154,7 +228,7 @@ jobs:
       id: tests
       working-directory: Docker
       run: |
-        docker run --rm ${{secrets.DOCKERHUB_USERNAME}}/ats:${{env.ATS_BRANCH_TAG}}-${{env.ARCH}}-latest /bin/bash -c "cd ~/amanzi_builddir/ats; ctest --output-on-failure -L PARALLEL; ctest --output-on-failure -R 'ats_regression_test-0[6-9]|ats_regression_test-[1-9][0-9]'"
+        docker run --rm ${{secrets.DOCKERHUB_USERNAME}}/ats:${{env.ATS_BRANCH_TAG}}-${{matrix.images.mpi_distro}}-${{matrix.images.base_image}}-${{matrix.images.ver_tag}}-${{env.ARCH}}-latest /bin/bash -c "cd ~/amanzi_builddir/ats; ctest --output-on-failure -L PARALLEL; ctest --output-on-failure -R 'ats_regression_test-0[6-9]|ats_regression_test-[1-9][0-9]'"
   fix-manifest:
     runs-on: ubuntu-latest
     needs: [serial-reg15-tests, parallel-tests]
