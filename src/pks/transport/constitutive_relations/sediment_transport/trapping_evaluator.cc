@@ -8,8 +8,7 @@
 */
 
 /*
-  Determining the molar fraction of a gas component within a gas mixture.
-
+  Determining rate for trapping sediment
 */
 
 #include "trapping_evaluator.hh"

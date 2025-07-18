@@ -111,6 +111,10 @@ Morphology_PK::AdvanceStep(double t_old, double t_new, bool reinit)
   bool fail = false;
   Teuchos::OSTab tab = vo_->getOSTab();
 
+  // zero out the dz field to reset for the next step
+  S_->GetW<CompositeVector>(elevation_increase_key_, tag_next_,
+                            sub_pks_[1]->name()).PutScalar(0.);
+  
   fail = Amanzi::MPCFlowTransport::AdvanceStep(t_old, t_new, reinit);
 
   if (!fail) {
@@ -180,10 +184,6 @@ Morphology_PK::Update_MeshVertices_(const Teuchos::Ptr<State>& S, const Tag& tag
 
     AmanziMesh::deform(*mesh_ss_, nodeids, newpos);
     AmanziMesh::deform(*mesh_3d_, nodeids_surf, newpos);
-
-    // zero out the dz field to reset for the next step
-    S_->GetW<CompositeVector>(elevation_increase_key_, tag_next_,
-            sub_pks_[1]->name()).PutScalar(0.);
 
     // mark the indicator field as changed now to force recomputation of
     // dependencies on deformed mesh

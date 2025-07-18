@@ -8,8 +8,7 @@
 */
 
 /*
-  Determining the molar fraction of a gas component within a gas mixture.
-
+  Determining rate of settlement of sediment
 */
 
 #include "settlement_evaluator.hh"

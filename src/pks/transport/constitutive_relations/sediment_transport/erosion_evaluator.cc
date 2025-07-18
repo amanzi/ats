@@ -9,7 +9,8 @@
 
 /*
 
-
+ Determining erosion rate into sediment transport
+  
 */
 
 #include "erosion_evaluator.hh"
