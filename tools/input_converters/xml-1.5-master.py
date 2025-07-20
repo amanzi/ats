@@ -579,7 +579,6 @@ def fixTransportPK(pk, evals_list):
         for name, mm in zip(names, mms):
             pk.sublist("molar mass [kg mol^-1]").setParameter(name, "double", mm)
 
-    import pdb; pdb.set_trace()
     # look for a water_content, define if needed
     if domain == "domain":
         lwc_key = "water_content"
@@ -691,7 +690,6 @@ if __name__ == "__main__":
     # check for orig file
     print("Converting file: %s"%args.infile)
     xml = aio.fromFile(args.infile, True)
-    import pdb; pdb.set_trace()
     update(xml)
     if args.inplace:
         aio.toFile(xml, args.infile)
