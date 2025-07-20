@@ -424,7 +424,7 @@ def fixTransportPK_Source(pk, evals_list, domain, components):
             pk.setParameter("source key suffix", "string", "component_source")
 
 
-def fixTransportPK_Dead(pk):
+def fixTransportPK_Dead(pk, evals_list):
     """Removes dead options from transport PK list."""
     # internal subcycling is dead
     if pk.isElement("transport subcycling"):
@@ -435,7 +435,7 @@ def fixTransportPK_Dead(pk):
         pk.pop("runtime diagnostics: regions")
 
     # remove dead keys
-    def removeDead(keyname, default_names, remove_eval=False):
+    def removeDead(keyname, default_names, evals_list, remove_eval=False):
         if isinstance(default_names, str):
             default_names = [default_names,]
         keyname_key = keyname + " key"
@@ -454,13 +454,13 @@ def fixTransportPK_Dead(pk):
             if key in default_names:
                 pk.pop(keyname_key)
 
-    removeDead("porosity", ["porosity",])
-    removeDead("porosity", ["surface-porosity", "surface-one"], True)
-    removeDead("molar density liquid", ["surface-molar_density_liquid", "molar_density_liquid"])
-    removeDead("saturation", ["surface-saturation_liquid", "surface-ponded_depth", "saturation_liquid"])
-    removeDead("saturation liquid", ["surface-saturation_liquid", "surface-ponded_depth", "saturation_liquid"])
-    removeDead("flux", ["surface-water_flux", "water_flux"])
-    removeDead("water flux", ["surface-water_flux", "water_flux"])
+    removeDead("porosity", ["porosity",], evals_list)
+    removeDead("porosity", ["surface-porosity", "surface-one"], evals_list, True)
+    removeDead("molar density liquid", ["surface-molar_density_liquid", "molar_density_liquid"], evals_list)
+    removeDead("saturation", ["surface-saturation_liquid", "surface-ponded_depth", "saturation_liquid"], evals_list)
+    removeDead("saturation liquid", ["surface-saturation_liquid", "surface-ponded_depth", "saturation_liquid"], evals_list)
+    removeDead("flux", ["surface-water_flux", "water_flux"], evals_list)
+    removeDead("water flux", ["surface-water_flux", "water_flux"], evals_list)
     if pk.isElement("flux_key"):
         pk.pop("flux_key")
     if pk.isElement("molar_density_key"):
@@ -579,6 +579,7 @@ def fixTransportPK(pk, evals_list):
         for name, mm in zip(names, mms):
             pk.sublist("molar mass [kg mol^-1]").setParameter(name, "double", mm)
 
+    import pdb; pdb.set_trace()
     # look for a water_content, define if needed
     if domain == "domain":
         lwc_key = "water_content"
@@ -611,7 +612,7 @@ def fixTransportPK(pk, evals_list):
                 sublist.sublist('boundary concentration function').setName('boundary mole fraction function')
 
     # remove dead options
-    fixTransportPK_Dead(pk)
+    fixTransportPK_Dead(pk,evals_list)
 
     # source terms are now evaluators
     if pk.isElement("component names"):
@@ -690,6 +691,7 @@ if __name__ == "__main__":
     # check for orig file
     print("Converting file: %s"%args.infile)
     xml = aio.fromFile(args.infile, True)
+    import pdb; pdb.set_trace()
     update(xml)
     if args.inplace:
         aio.toFile(xml, args.infile)
