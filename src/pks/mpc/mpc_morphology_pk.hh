@@ -8,9 +8,22 @@
 */
 
 /*
-  This is the mpc_pk component of the Amanzi code.
+  This PK couples surface flow and sediment transport and provides capability to model
+  geomorphological changes of the surface elevation and slopes.
+  The elevation change is defined as follows:
 
-  PK for coupling of surface and subsurface transport PKs
+  .. math::
+
+  \Delta Z = \frac{\delta t}{(1-\phi_s)\rho_s} (Q_t + Q_s - Q_e + Q_db)
+
+
+  where :math:'\phi_s' is soil porosity and  :math:'\rho_s' - sediment density
+
+  The surface and subsurface meshes has to be defined as 'deformable mesh'
+
+  <Parameter name="deformable mesh" type="bool" value="true" />
+
+
 */
 
 #ifndef ATS_AMANZI_MORPHOLOGY_PK_HH_
@@ -18,64 +31,39 @@
 
 #include "Teuchos_RCP.hpp"
 
-#include "pk_mpcsubcycled_ats.hh"
+#include "mpc_flow_transport.hh"
 #include "pk_physical_bdf_default.hh"
 #include "PK.hh"
 #include "Debugger.hh"
 
 namespace Amanzi {
 
-class Morphology_PK : public PK_MPCSubcycled_ATS {
+class Morphology_PK : public MPCFlowTransport {
  public:
   Morphology_PK(Teuchos::ParameterList& pk_tree_or_fe_list,
                 const Teuchos::RCP<Teuchos::ParameterList>& global_list,
                 const Teuchos::RCP<State>& S,
                 const Teuchos::RCP<TreeVector>& soln);
-  ~Morphology_PK() {}
 
   // PK methods
-  // -- dt is the minimum of the sub pks
-  virtual double get_dt();
-  //virtual void set_dt(double dt);
-  virtual void Setup(const Teuchos::Ptr<State>& S);
-  virtual void Initialize(const Teuchos::Ptr<State>& S);
+  void parseParameterList() override;
+  void Setup() override;
+  void CommitStep(double t_old, double t_new, const Tag& tag) override;
 
   // -- advance each sub pk from t_old to t_new.
-  virtual bool AdvanceStep(double t_old, double t_new, bool reinit = false);
-
-  virtual void CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S);
-
-  std::string name() { return name_; }
+  virtual bool AdvanceStep(double t_old, double t_new, bool reinit = false) override;
 
  protected:
-  void Initialize_MeshVertices_(const Teuchos::Ptr<State>& S,
-                                Teuchos::RCP<const AmanziMesh::Mesh> mesh,
-                                Key vert_field_key);
-
-  void Update_MeshVertices_(const Teuchos::Ptr<State>& S);
-
-  void FlowAnalyticalSolution_(const Teuchos::Ptr<State>& S, double time);
+  void Update_MeshVertices_(const Teuchos::Ptr<State>& S, const Tag& tag);
 
   Key domain_, domain_3d_, domain_ss_;
-  Key vertex_coord_key_, vertex_coord_key_3d_, vertex_coord_key_ss_;
-  Key elevation_increase_key_;
-
-  Teuchos::RCP<Epetra_MultiVector> dz_accumul_;
-
-  Teuchos::RCP<PK_BDF_Default> flow_pk_;
-  Teuchos::RCP<PK> sed_transport_pk_;
-
-  double master_dt_, slave_dt_;
-  double dt_MPC_, dt_sample_;
-  double MSF_; // morphology scaling factor
-
   Teuchos::RCP<AmanziMesh::Mesh> mesh_, mesh_3d_, mesh_ss_;
-  Teuchos::RCP<EvaluatorPrimary> deform_eval_;
-  Key erosion_rate_;
 
-  // debugger for dumping vectors
-  Teuchos::RCP<Debugger> flow_db_;
-  Teuchos::RCP<Debugger> trans_db_;
+  Key vertex_coord_key_;
+  Key elevation_increase_key_;
+  Key dens_key_, pd_key_; // used in transport's subcycled quantites, need interpolations
+
+  double MSF_; // morphology scaling factor
 
   // factory registration
   static RegisteredPKFactory<Morphology_PK> reg_;

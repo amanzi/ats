@@ -22,33 +22,37 @@ namespace Amanzi {
 class BiomassEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
   explicit BiomassEvaluator(Teuchos::ParameterList& plist);
-  BiomassEvaluator(const BiomassEvaluator& other);
+  BiomassEvaluator(const BiomassEvaluator& other) = default;
 
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
-  virtual bool HasFieldChanged(const Teuchos::Ptr<State>& S, Key request) override;
-
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-                              const std::vector<Teuchos::Ptr<CompositeVector>>& results) override;
-  virtual void EvaluateFieldPartialDerivative_(
-    const Teuchos::Ptr<State>& S,
-    Key wrt_key,
-    const std::vector<Teuchos::Ptr<CompositeVector>>& results) override;
+  virtual void Evaluate_(const State& S,
+                            const std::vector<CompositeVector*>& results) override;
+
+  virtual void EvaluatePartialDerivative_(const State& S,
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& results) override {
+    AMANZI_ASSERT(0);
+  }
+
+  virtual void EnsureCompatibility_Structure_(State& S) {
+    EnsureCompatibility_StructureSame_(S);
+  }
 
   void InitializeFromPlist_();
 
+ protected:
 
   int nspecies_, type_;
   std::vector<double> alpha_n, alpha_h, alpha_d, alpha_a;
   std::vector<double> beta_n, beta_h, beta_d, beta_a;
   std::vector<double> Bmax, zmax, zmin;
-  //std::vector<std::string> species_names_;
-  double last_update_, update_frequency_;
 
   Key biomass_key_, stem_density_key_, stem_height_key_, stem_diameter_key_, plant_area_key_;
-  Key domain_name_, elev_key_, msl_key_;
+  Key elev_key_, msl_key_;
 
  private:
   static Utils::RegisteredFactory<Evaluator, BiomassEvaluator> factory_;

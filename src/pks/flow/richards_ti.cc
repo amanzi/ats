@@ -91,10 +91,11 @@ Richards::FunctionalResidual(double t_old,
   db_->WriteVector("res (acc)", res.ptr(), true);
 
   // more debugging -- write accumulation variables to screen
-  vnames = { "poro", "WC_old", "WC_new" };
+  vnames = { "poro", "WC_old", "WC_new", "mol_dens" };
   vecs = { S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "porosity"), tag_next_).ptr(),
            S_->GetPtr<CompositeVector>(conserved_key_, tag_current_).ptr(),
-           S_->GetPtr<CompositeVector>(conserved_key_, tag_next_).ptr() };
+           S_->GetPtr<CompositeVector>(conserved_key_, tag_next_).ptr(),
+           S_->GetPtr<CompositeVector>(molar_dens_key_, tag_next_).ptr() };
   db_->WriteVectors(vnames, vecs);
   db_->WriteVector("res (acc)", res.ptr(), true);
 

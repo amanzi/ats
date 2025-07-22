@@ -4,12 +4,12 @@
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
-*/
+  Authors: Daniil Svyatsky (dasvyat@lanl.gov)
 
 /*
-  Determining the molar fraction of a gas component within a gas mixture.
 
+  Determining input organic matter into sediment transport
+  
 */
 
 #include "organic_matter_evaluator.hh"

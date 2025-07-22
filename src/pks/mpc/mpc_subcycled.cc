@@ -11,7 +11,6 @@
   MPC for subcycling one PK relative to another.
 */
 
-#include "Event.hh"
 #include "TimeStepManager.hh"
 #include "mpc_subcycled.hh"
 #include "PK_Helpers.hh"

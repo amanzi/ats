@@ -9,39 +9,84 @@
 
 /*!
 
-Document me @dasvyat
+This PK solves sediment transport in surface flows. The assumpotion is that there is only one sediment component which
+is called 'sediment'. The advection-diffusion equation for this component
+
+.. math::
+  \frac{\partial (\Theta \chi_i)}{\partial t} = - \boldsymbol{\nabla} \cdot (\boldsymbol{q} \chi_i)
+  + \boldsymbol{\nabla} \cdot ( \tau \, \boldsymbol{\nabla} \chi_i) + Q_e - Q_t - Q_s,
+
+
+As well as in transport ATS PK the primary variable is the **mole fraction** of a sediment with units of
+[mol i mol liquid^-1]
+
+   * `"sediment diffusion coefficient [m^2 s^-1]`" ``[molecular-diffusivity-spec]`` See
+     below.
+
+   Math and solver algorithm options:
+
+   * `"diffusion`" ``[pde-diffusion-typedinline-spec]`` Diffusion drives the
+     distribution.  Typically we use finite volume here, but mimetic schemes
+     may be used.  See :ref:`Diffusion`
+
+
+   * `"diffusion preconditioner`" ``[pde-diffusion-typedinline-spec]`` Inverse
+     of the above.  Likely only Jacobian term options are needed here, as the
+     others default to the same as the `"diffusion`" list.  See
+     :ref:`Diffusion`.
+
+   * `"inverse`" ``[inverse-typed-spec]`` :ref:`Inverse` method for the
+     diffusion-dispersion solve.  See :ref:`Inverse`.
+
+   * `"cfl`" ``[double]`` **1.0** Courant-Friedrichs-Lewy condition, a limiter
+     on the timestep size relative to spatial size.  Must be <= 1.
+
+   * `"advection spatial discretization order`" ``[int]`` **1** Defines
+     accuracy of the spatial discretization in the advection term.  It permits
+     values 1 or 2. Default value is 1 (donor upwind) but 2 (a limiter scheme)
+     is much less numerically diffusive, and recommended for most cases.
+
+   * `"temporal discretization order`" ``[int]`` **1** Defines accuracy of
+     temporal discretization.  It permits values 1 (forward Euler) and 2 (a
+     Runga-Kutta scheme).
+
+   * `"reconstruction`" ``[reconstruction-spec]`` collects reconstruction
+     parameters for use in reconstructing the velocity field for 2nd order
+     advection schemes.  See :ref:`Reconstructions`.
+
+   KEYS
+   - `"primary variable`" **"mole_fraction"** [mol C mol H2O^-1]
+   - `"liquid water content`" **"water_content"** This variable is a multiplier
+     in in the accumulation term. This is often just `"water_content`", but
+     not in frozen cases, where it must be defined by the user (typically as
+     :math:`\phi s n_l |V|` in the subsurface, or :math:`h n_l |V|` on the
+     surface.
+   - `"molar density liquid`" [mol H2O m^-3]
+   - `"water flux`" The face-based water flux in [mol H2O s^-1].
+   - `"water source`" Defines the water injection rate [mol H2O m^-2 s^-1] in
+     surface and [mol H2O m^-3 s^-1] in subsurface) which applies to
+     concentrations specified by the `"geochemical conditions`".  Note that if
+     this PK is coupled to a surface flow PK, the unit of the water source
+     there *must* be in [mol m^-2 s^-1], *not* in [m s^-1] as is an option for
+     that PK (e.g. `"water source in meters`" must be set to `"false`" in the
+     overland flow PK).
+
+     The sources for sediments transport are defined via "erosion rate", :math:`Q_e`, "traping rate", :math:`Q_t`, "settling rate", :math:`Q_s`
+     evaluators. These evaluators are defined in unit of [m/s]. Moreover sediment density has to be defined as a scalar value.
 
 */
 
 #ifndef AMANZI_ATS_SEDIMENTTRANSPORT_PK_HH_
 #define AMANZI_ATS_SEDIMENTTRANSPORT_PK_HH_
 
-// TPLs
-#include "Epetra_Vector.h"
-#include "Epetra_IntVector.h"
-#include "Epetra_Import.h"
-#include "Teuchos_RCP.hpp"
-
-// Amanzi
-#include "CompositeVector.hh"
-#include "Explicit_TI_FnBase.hh"
-//#include "MaterialProperties.hh"
-#include "PK.hh"
-#include "PK_Factory.hh"
-#include "ReconstructionCellLinear.hh"
-#include "State.hh"
-#include "Tensor.hh"
-#include "Units.hh"
-#include "VerboseObject.hh"
-#include "PK_PhysicalExplicit.hh"
-#include "DenseVector.hh"
-
 #include <string>
 
-// Transport
-#include "TransportDomainFunction.hh"
-#include "SedimentTransportDefs.hh"
+// Amanzi
+#include "PK_Factory.hh"
+#include "State.hh"
 
+// Transport
+#include "transport_ats.hh"
 
 /* ******************************************************************
 The transport PK receives a reduced (optional) copy of a physical
@@ -54,230 +99,37 @@ pointers to the original variables.
 namespace Amanzi {
 namespace Transport {
 
-class SedimentTransport_PK : public PK_Physical_Explicit<Epetra_Vector> {
- public:
+
+class SedimentTransport_PK : public Transport_ATS {
+public:
   SedimentTransport_PK(Teuchos::ParameterList& pk_tree,
                        const Teuchos::RCP<Teuchos::ParameterList>& glist,
                        const Teuchos::RCP<State>& S,
                        const Teuchos::RCP<TreeVector>& soln);
 
-  SedimentTransport_PK(const Teuchos::RCP<Teuchos::ParameterList>& glist,
-                       Teuchos::RCP<State> S,
-                       const std::string& pk_list_name,
-                       std::vector<std::string>& component_names);
-
-  ~SedimentTransport_PK() = default;
-
-  // members required by PK interface
-  virtual void Setup(const Teuchos::Ptr<State>& S);
-  virtual void Initialize(const Teuchos::Ptr<State>& S);
-
-  virtual double get_dt();
-  virtual void set_dt(double dt){};
-
-  virtual bool AdvanceStep(double t_old, double t_new, bool reinit = false);
-  virtual void CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S);
-  virtual void CalculateDiagnostics(const Teuchos::RCP<State>& S){};
-
-  virtual std::string name() { return "sediment transport"; }
-  Key get_domain_name() { return domain_name_; }
-
-  // main transport members
-  // -- calculation of a stable timestep needs saturations and darcy flux
-  double StableTimeStep_();
-  void
-  Sinks2TotalOutFlux(Epetra_MultiVector& tcc, std::vector<double>& total_outflux, int n0, int n1);
-
-  // -- access members
-  inline double cfl() { return cfl_; }
-  Teuchos::RCP<const State> state() { return S_; }
-  Teuchos::RCP<CompositeVector> total_component_concentration() { return tcc_tmp; }
-
-  // void Policy(Teuchos::Ptr<State> S);
-
-  // void CheckGEDProperty(Epetra_MultiVector& tracer) const;
-  // void VV_CheckTracerBounds(Epetra_MultiVector& tracer, int component,
-  //                           double lower_bound, double upper_bound, double tol = 0.0) const;
-  void VV_CheckInfluxBC() const;
-  void PrintSoluteExtrema(const Epetra_MultiVector& tcc_next, double dT_MPC);
-  double VV_SoluteVolumeChangePerSecond(int idx_solute);
-  double ComputeSolute(const Epetra_MultiVector& tcc, int idx);
-  double ComputeSolute(const Epetra_MultiVector& tcc,
-                       const Epetra_MultiVector& ws,
-                       const Epetra_MultiVector& den,
-                       int idx);
-
-  // -- sources and sinks for components from n0 to n1 including
-  void ComputeAddSourceTerms_(double tp, double dtp, Epetra_MultiVector& tcc, int n0, int n1);
-
-  bool
-  PopulateBoundaryData_(std::vector<int>& bc_model, std::vector<double>& bc_value, int component);
-
-  // -- limiters
-  void LimiterBarthJespersen(const int component,
-                             Teuchos::RCP<const Epetra_Vector> scalar_field,
-                             Teuchos::RCP<CompositeVector>& gradient,
-                             Teuchos::RCP<Epetra_Vector>& limiter);
-
-  // const std::vector<std::string>  component_names(){return component_names_;};
-  // int num_aqueous_component() {return num_aqueous;};
-
-
- private:
-  void InitializeFields_(const Teuchos::Ptr<State>& S);
-
-  // advection members
-  void AdvanceDonorUpwind_(double dT);
-  // void AdvanceSecondOrderUpwindRKn_(double dT);
-  // void AdvanceSecondOrderUpwindRK1_(double dT);
-  // void AdvanceSecondOrderUpwindRK2_(double dT);
-  void Advance_Diffusion(double t_old, double t_new);
-
-  // time integration members
-  void FunctionalTimeDerivative(const double t,
-                                const Epetra_Vector& component,
-                                Epetra_Vector& f_component){};
-  //  void Functional(const double t, const Epetra_Vector& component, TreeVector& f_component);
-
-  void IdentifyUpwindCells_();
-
-  void InterpolateCellVector(const Epetra_MultiVector& v0,
-                             const Epetra_MultiVector& v1,
-                             double dT_int,
-                             double dT,
-                             Epetra_MultiVector& v_int);
-
-  const Teuchos::RCP<Epetra_IntVector>& upwind_cell() { return upwind_cell_; }
-  const Teuchos::RCP<Epetra_IntVector>& downwind_cell() { return downwind_cell_; }
-
-  // physical models
-  // -- dispersion and diffusion
-  void CalculateDiffusionTensor_(const Epetra_MultiVector& km,
-                                 const Epetra_MultiVector& saturation,
-                                 const Epetra_MultiVector& mol_density);
-
-  int FindDiffusionValue_(const std::string& tcc_name, double* md, int* phase);
-
-  void CalculateAxiSymmetryDirection();
-
-  // initialization methods
-  void InitializeAll_();
-  void InitializeFieldFromField_(const std::string& field0,
-                                 const Tag& tag0,
-                                 const std::string& field1,
-                                 const Tag& tag1,
-                                 const Teuchos::Ptr<State>& S,
-                                 bool call_evaluator,
-                                 bool overwrite);
-
- public:
-  Teuchos::RCP<Teuchos::ParameterList> tp_list_;
-
-  int MyPID; // parallel information: will be moved to private
-  int spatial_disc_order, temporal_disc_order, limiter_model;
-
-  int nsubcycles; // output information
-  int internal_tests;
-  double tests_tolerance;
-
+  void parseParameterList() override;
+  void Initialize() override;
 
  protected:
-  Teuchos::RCP<TreeVector> soln_;
 
-  Key domain_name_;
-  Key saturation_key_;
-  Key prev_saturation_key_;
-  Key flux_key_;
-  Key tcc_key_;
-  Key molar_density_key_;
-  Key solid_residue_mass_key_;
-  Key sd_trapping_key_, sd_settling_key_, sd_erosion_key_, horiz_mixing_key_, porosity_key_,
-    sd_organic_key_;
+  void SetupPhysicalEvaluators_() override;
+  void AddSourceTerms_(double t0, double t1,
+        Epetra_MultiVector& conserve_qty)  override;;
+
+
+  Key sd_trapping_key_, sd_settling_key_, sd_erosion_key_, horiz_mixing_key_,  sd_organic_key_;
   Key elevation_increase_key_;
-
+  Key porosity_key_;
+  Key plant_area_key_, stem_diameter_key_, stem_height_key_, stem_density_key_;
 
  private:
-  Teuchos::RCP<const AmanziMesh::Mesh> mesh_;
-  Teuchos::RCP<State> S_;
-  std::string passwd_;
-
-  bool subcycling_;
-  int dim;
-  int saturation_name_;
-  bool vol_flux_conversion_;
-
-  Teuchos::RCP<CompositeVector> tcc_tmp; // next tcc
-  Teuchos::RCP<CompositeVector> tcc;     // smart mirrow of tcc
-  Teuchos::RCP<Epetra_MultiVector> conserve_qty_, solid_qty_;
-  Teuchos::RCP<const Epetra_MultiVector> flux_;
-  Teuchos::RCP<const Epetra_MultiVector> ws_, ws_prev_, mol_dens_; //, mol_dens_prev_;
-  Teuchos::RCP<const Epetra_MultiVector> km_;
-
-  Teuchos::RCP<Epetra_IntVector> upwind_cell_;
-  Teuchos::RCP<Epetra_IntVector> downwind_cell_;
-
-  Teuchos::RCP<const Epetra_MultiVector> ws_start, ws_end;             // data for subcycling
-  Teuchos::RCP<const Epetra_MultiVector> mol_dens_start, mol_dens_end; // data for subcycling
-  Teuchos::RCP<Epetra_MultiVector> ws_subcycle_start, ws_subcycle_end;
-  Teuchos::RCP<Epetra_MultiVector> mol_dens_subcycle_start, mol_dens_subcycle_end;
-
-  int current_component_; // data for lifting
-  Teuchos::RCP<Operators::ReconstructionCellLinear> lifting_;
-
-  std::vector<Teuchos::RCP<TransportDomainFunction>> srcs_; // Source or sink for components
-  std::vector<Teuchos::RCP<TransportDomainFunction>> bcs_;  // influx BC for components
-  double bc_scaling;
-
-  Teuchos::RCP<Epetra_Import> cell_importer; // parallel communicators
-  Teuchos::RCP<Epetra_Import> face_importer;
-
-  // mechanical dispersion and molecual diffusion
-  // Teuchos::RCP<MDMPartition> mdm_;
-
-  std::vector<WhetStone::Tensor> D_;
-  std::string diffusion_preconditioner, diffusion_solver;
-
-  // bool flag_dispersion_;
-  // std::vector<int> axi_symmetry_;  // axi-symmetry direction of permeability tensor
-
-
-  // std::vector<Teuchos::RCP<MaterialProperties> > mat_properties_;  // vector of materials
-  // std::vector<Teuchos::RCP<DiffusionPhase> > diffusion_phase_;   // vector of phases
-
-
-  double cfl_, dt_, dt_debug_, t_physics_;
-
-  double mass_sediment_exact_, mass_sediment_source_; // mass for all sediment
-  double mass_sediment_bc_, mass_sediment_stepstart_;
-  std::vector<std::string> runtime_sediment_; // names of trached sediment
-  std::vector<std::string> runtime_regions_;
-
-  int ncells_owned, ncells_wghost;
-  int nfaces_owned, nfaces_wghost;
-  int nnodes_wghost;
-
-  std::vector<double> mol_masses_;
   double sediment_density_;
-  int num_aqueous;
 
-  std::vector<std::string> component_names_; // details of components
-  double water_tolerance_, max_tcc_;
-
-  // io
-  Utils::Units units_;
-  Teuchos::RCP<VerboseObject> vo_;
-  Tag tag_subcycle_;
-  Tag tag_subcycle_current_;
-  Tag tag_subcycle_next_;
-
-
-  // Forbidden.
-  SedimentTransport_PK(const SedimentTransport_PK&);
-  SedimentTransport_PK& operator=(const SedimentTransport_PK&);
 
  private:
   // factory registration
   static RegisteredPKFactory<SedimentTransport_PK> reg_;
+
 };
 
 } // namespace Transport
