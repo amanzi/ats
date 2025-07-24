@@ -16,7 +16,7 @@
 `"evaluator type`" = `"richards water content`"
 
 .. _evaluator-richards-water-content-spec:
-.. admonition:: evaluator-type-richards-water-content-spec
+.. admonition:: evaluator-richards-water-content-spec
 
    DEPENDENCIES:
 

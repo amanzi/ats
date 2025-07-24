@@ -4,11 +4,51 @@
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Authors:
+  Authors: Daniil Svyatsky (dasvyat@lanl.gov)
 */
 
-/*
-  This biomass model evaluates
+/*!
+
+This biomass model evaluates evolution of biomass as a function of `"mean sea
+level`".  There are 2 models implemented.
+
+Model 1:
+
+.. math::
+
+   B = \left\{\begin{array}{ll}
+         B_{max}\frac{(z_{max} - z_b)}{(z_{max} - z_{min})} &\qquad\mbox{if}\qquad z_{min}<z_b<z_{max} \\
+         0 &\qquad\mbox{otherwise}
+       \end{array}\right.
+
+Model 2:
+
+.. math::
+
+   B = \left\{\begin{array}{ll}
+         B_{max} &\qquad\mbox{if}\qquad z_b\ge z_{max} \\
+         B_{max} \frac{(z_b - z_{min})}{(z_{max} - z_{min})} &\qquad\mbox{if}\qquad z_{min}<z_b<z_{max} \\
+         0 &\qquad\mbox{otherwise}
+       \end{array}\right.
+
+where :math:`B_{max}` is a maximum biomass, :math:`z_b = h - MSL`, MSL is a
+mean sea level, and :math:`h` is a surface elevation.
+
+`"evaluator type`" = `"biomass`"
+
+.. _evaluator-biomass-spec:
+.. admonition:: evaluator-biomass-spec
+
+   * `"Bmax`" ``[double]`` **2000.0**
+   * `"zmax`" ``[double]`` **0.8**
+   * `"zmin`" ``[double]`` **0.0**
+
+   DEPENDENCIES:
+
+   - `"mean sea level`" **DOMAIN-mean_sea_level**
+   - `"elevation`" **DOMAIN-elevation**
+
+
 */
 
 #ifndef AMANZI_BIOMASS_EVALUATOR

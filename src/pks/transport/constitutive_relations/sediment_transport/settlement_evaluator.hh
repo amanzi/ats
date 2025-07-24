@@ -7,9 +7,38 @@
   Authors: Daniil Svyatsky (dasvyat@lanl.gov)
 */
 
-/*
-  The erosion evaluator gets the erosion rates.
+/*!
 
+The settlement evaluator gets the settlement rates. We estimate the deposition
+due to settling, Q_ds which is mainly due to the formation and breakup of
+flocs, by way of the formulation proposed by Einstein and Krone [1962] who
+assumed that most of the particles settled in flocs as long as near bed shear
+stresses are small enough to prevent their breaking up, namely,
+
+.. math::
+
+   Q_ds = \left\{\begin{array}{ll}
+                    \rho_s w_s min(C, 0.5)\left(1-\frac{\tau_0}{\tau_d}\right) &\qquad\mbox{if} \qquad \tau_0<\tau_d \\
+                    0  &\qquad\mbox{if} \qquad \tau_0\ge\tau_d
+                 \end{array} \right.
+
+where :math:`\rho_s` is the sediment density, :math:`w_s` is the settling velocity which depends on the size
+of sediment flocs, :math:`\tau_d` is a critical shear stress, C in a sediment molar ratio.
+
+`"evaluator type`" = `"settlement rate`"
+
+.. _evaluator-settlement-rate-spec:
+.. admonition:: evaluator-settlement-rate-spec
+
+   * `"critical shear stress`" ``[double]`` **0.1**
+   * `"settling velocity`" ``[double]`` **0.0001**
+   * `"drag coefficient`" ``[double]`` **0.02**
+   * `"specific weight of water`" ``[double]`` **9806.0**
+
+   DEPENDENCIES:
+
+   - `"velocity`" **DOMAIN-velocity**
+   - `"sediment`" **DOMAIN-sediment**
 
 */
 

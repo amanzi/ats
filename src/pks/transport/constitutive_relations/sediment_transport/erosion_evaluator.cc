@@ -81,8 +81,6 @@ ErosionRateEvaluator::Evaluate_(const State& S, const std::vector<CompositeVecto
       result_c[0][c] = 0.;
     }
   }
-
-  std::cout << "max_tau " << max_tau << " max v2 " << max_v2 << "\n";
 }
 
 void

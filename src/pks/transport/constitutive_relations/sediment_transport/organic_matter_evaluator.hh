@@ -7,9 +7,30 @@
   Authors: Daniil Svyatsky (dasvyat@lanl.gov)
 */
 
-/*
-  The erosion evaluator gets the erosion rates.
+/*!
 
+The organic evaluator gets the organic matter deposition rates.
+
+..math::
+
+   Q_{db} = Q_{db_0} \frac{B}{B_{max}}
+
+where :math:`Q_{db_0}` is a typical deposition rate, empirical coefficient with
+the dimensions of [L/T], which is derived empirically from field measurements,
+:math:`B` is the current biomass, :math:`B_{max}` is the maximum value of the
+biomass.
+
+`"evaluator type`" = `"organic matter rate`"
+
+.. _evaluator-organic-matter-rate-spec:
+.. admonition:: evaluator-organic-matter-rate-spec
+
+   * `"empirical coefficient`" ``[double]`` **9.5129e-11**
+   * `"maximum biomass`" ``[double]`` **2000**
+
+   DEPENDENCIES:
+
+   - `"biomass`" **DOMAIN-biomass**
 
 */
 

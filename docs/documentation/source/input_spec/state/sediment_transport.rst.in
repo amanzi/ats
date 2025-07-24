@@ -1,0 +1,22 @@
+Sediment Transport
+------------------
+
+Most of the below are rates of suspension / fallout used in sediment
+transport.  The biomass evaluator lets the others be a function of
+biomass.
+
+Biomass
+^^^^^^^
+{ biomass_evaluator }
+
+Organic Matter
+^^^^^^^^^^^^^^
+{ organic_matter_evaluator }
+
+Erosion
+^^^^^^^
+{ erosion_evaluator }
+
+Settlement
+^^^^^^^^^^
+{ settlement_evaluator }
