@@ -119,7 +119,7 @@ EvaporativeFluxRelaxationEvaluator::EvaluatePartialDerivative_(
   Teuchos::RCP<const CompositeVector> cv = S.GetPtr<CompositeVector>(cv_key_, tag);
 
   if (wrt_key == wc_key_) {
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       const Epetra_MultiVector& wc_v = *wc->ViewComponent(*comp, false);
       const Epetra_MultiVector& rho_v = *rho->ViewComponent(*comp, false);
@@ -136,7 +136,7 @@ EvaporativeFluxRelaxationEvaluator::EvaluatePartialDerivative_(
     }
 
   } else if (wrt_key == rho_key_) {
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       const Epetra_MultiVector& wc_v = *wc->ViewComponent(*comp, false);
       const Epetra_MultiVector& rho_v = *rho->ViewComponent(*comp, false);
@@ -152,7 +152,7 @@ EvaporativeFluxRelaxationEvaluator::EvaluatePartialDerivative_(
     }
 
   } else if (wrt_key == thickness_key_) {
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       const Epetra_MultiVector& wc_v = *wc->ViewComponent(*comp, false);
       const Epetra_MultiVector& rho_v = *rho->ViewComponent(*comp, false);

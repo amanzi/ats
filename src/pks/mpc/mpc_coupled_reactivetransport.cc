@@ -27,8 +27,7 @@ MPCCoupledReactiveTransport::MPCCoupledReactiveTransport(
   const Teuchos::RCP<Teuchos::ParameterList>& global_list,
   const Teuchos::RCP<State>& S,
   const Teuchos::RCP<TreeVector>& soln)
-  : PK(pk_tree, global_list, S, soln),
-    WeakMPC(pk_tree, global_list, S, soln)
+  : PK(pk_tree, global_list, S, soln), WeakMPC(pk_tree, global_list, S, soln)
 {}
 
 void
@@ -42,15 +41,19 @@ MPCCoupledReactiveTransport::parseParameterList()
   domain_ = pks_list_->sublist(transport_names[0]).get<std::string>("domain name", "domain");
   domain_surf_ = pks_list_->sublist(transport_names[1]).get<std::string>("domain name", "surface");
 
-  mol_frac_key_ = Keys::readKey(pks_list_->sublist(transport_names[0]), domain_,
-                           "primary variable", "mole_fraction");
-  mol_frac_surf_key_ = Keys::readKey(pks_list_->sublist(transport_names[1]), domain_surf_,
-                           "primary variable", "mole_fraction");
+  mol_frac_key_ = Keys::readKey(
+    pks_list_->sublist(transport_names[0]), domain_, "primary variable", "mole_fraction");
+  mol_frac_surf_key_ = Keys::readKey(
+    pks_list_->sublist(transport_names[1]), domain_surf_, "primary variable", "mole_fraction");
 
-  tcc_key_ = Keys::readKey(pks_list_->sublist(chem_names[0]), domain_,
-                           "primary variable", "total_component_concentration");
-  tcc_surf_key_ = Keys::readKey(pks_list_->sublist(chem_names[1]), domain_surf_,
-                           "primary variable", "total_component_concentration");
+  tcc_key_ = Keys::readKey(pks_list_->sublist(chem_names[0]),
+                           domain_,
+                           "primary variable",
+                           "total_component_concentration");
+  tcc_surf_key_ = Keys::readKey(pks_list_->sublist(chem_names[1]),
+                                domain_surf_,
+                                "primary variable",
+                                "total_component_concentration");
 
   mol_dens_key_ = Keys::readKey(*plist_, domain_, "molar density liquid", "molar_density_liquid");
   mol_dens_surf_key_ =
@@ -64,8 +67,8 @@ MPCCoupledReactiveTransport::parseParameterList()
   }
   if (tcc_surf_key_ == mol_frac_surf_key_) {
     Errors::Message msg;
-    msg << "Chemistry and Transport may not be given the same primary variable name (\"" << tcc_surf_key_
-        << "\") -- rename one or the other.";
+    msg << "Chemistry and Transport may not be given the same primary variable name (\""
+        << tcc_surf_key_ << "\") -- rename one or the other.";
     Exceptions::amanzi_throw(msg);
   }
 
@@ -83,8 +86,10 @@ MPCCoupledReactiveTransport::parseParameterList()
 
   coupled_chemistry_pk_->parseParameterList();
 #ifdef ALQUIMIA_ENABLED
-  transport_pk_->setChemEngine(Teuchos::rcp_static_cast<AmanziChemistry::Alquimia_PK>(chemistry_pk_));
-  transport_pk_surf_->setChemEngine(Teuchos::rcp_static_cast<AmanziChemistry::Alquimia_PK>(chemistry_pk_surf_));
+  transport_pk_->setChemEngine(
+    Teuchos::rcp_static_cast<AmanziChemistry::Alquimia_PK>(chemistry_pk_));
+  transport_pk_surf_->setChemEngine(
+    Teuchos::rcp_static_cast<AmanziChemistry::Alquimia_PK>(chemistry_pk_surf_));
 #endif
   coupled_transport_pk_->parseParameterList();
 }
@@ -153,12 +158,18 @@ MPCCoupledReactiveTransport::Initialize()
   // after the density of water can be evaluated.  This could be problematic
   // for, e.g., salinity intrusion problems where water density is a function
   // of concentration itself, but should work for all other problems?
-  convertConcentrationToMolFrac(*S_, {tcc_key_, tag_next_},
-          {mol_frac_key_, tag_next_}, {mol_dens_key_, tag_next_}, name());
+  convertConcentrationToMolFrac(*S_,
+                                { tcc_key_, tag_next_ },
+                                { mol_frac_key_, tag_next_ },
+                                { mol_dens_key_, tag_next_ },
+                                name());
   S_->GetRecordW(mol_frac_key_, tag_next_, name()).set_initialized();
 
-  convertConcentrationToMolFrac(*S_, {tcc_surf_key_, tag_next_},
-          {mol_frac_surf_key_, tag_next_}, {mol_dens_surf_key_, tag_next_}, name());
+  convertConcentrationToMolFrac(*S_,
+                                { tcc_surf_key_, tag_next_ },
+                                { mol_frac_surf_key_, tag_next_ },
+                                { mol_dens_surf_key_, tag_next_ },
+                                name());
   S_->GetRecordW(mol_frac_surf_key_, tag_next_, name()).set_initialized();
 
   coupled_transport_pk_->Initialize();
@@ -178,20 +189,32 @@ MPCCoupledReactiveTransport::AdvanceStep(double t_old, double t_new, bool reinit
   if (fail) return fail;
 
   // move from mol_frac@next to tcc@current
-  convertMolFracToConcentration(*S_, {mol_frac_key_, tag_next_},
-          {tcc_key_, tag_current_}, {mol_dens_key_, tag_next_}, name());
-  convertMolFracToConcentration(*S_, {mol_frac_surf_key_, tag_next_},
-          {tcc_surf_key_, tag_current_}, {mol_dens_surf_key_, tag_next_}, name());
+  convertMolFracToConcentration(*S_,
+                                { mol_frac_key_, tag_next_ },
+                                { tcc_key_, tag_current_ },
+                                { mol_dens_key_, tag_next_ },
+                                name());
+  convertMolFracToConcentration(*S_,
+                                { mol_frac_surf_key_, tag_next_ },
+                                { tcc_surf_key_, tag_current_ },
+                                { mol_dens_surf_key_, tag_next_ },
+                                name());
 
   // Next to chemistry step
   fail = coupled_chemistry_pk_->AdvanceStep(t_old, t_new, reinit);
   if (fail) return fail;
 
   // move from tcc@next to mol_frac@next
-  convertConcentrationToMolFrac(*S_, {tcc_key_, tag_next_},
-          {mol_frac_key_, tag_next_}, {mol_dens_key_, tag_next_}, name());
-  convertConcentrationToMolFrac(*S_, {tcc_surf_key_, tag_next_},
-          {mol_frac_surf_key_, tag_next_}, {mol_dens_surf_key_, tag_next_}, name());
+  convertConcentrationToMolFrac(*S_,
+                                { tcc_key_, tag_next_ },
+                                { mol_frac_key_, tag_next_ },
+                                { mol_dens_key_, tag_next_ },
+                                name());
+  convertConcentrationToMolFrac(*S_,
+                                { tcc_surf_key_, tag_next_ },
+                                { mol_frac_surf_key_, tag_next_ },
+                                { mol_dens_surf_key_, tag_next_ },
+                                name());
   return fail;
 };
 

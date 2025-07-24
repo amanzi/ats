@@ -25,7 +25,8 @@ const double FLOW_WRM_TOLERANCE = 1e-10;
 /* ******************************************************************
  * Setup fundamental parameters for this model.
  ****************************************************************** */
-WRMPlantChristoffersen::WRMPlantChristoffersen(Teuchos::ParameterList& plist) : plist_(plist)
+WRMPlantChristoffersen::WRMPlantChristoffersen(Teuchos::ParameterList& plist)
+  : plist_(plist)
 {
   InitializeFromPlist_();
 };
@@ -46,12 +47,9 @@ double
 WRMPlantChristoffersen::potential(double s) const
 {
   double psi;
-  if (s > sft_)
-    psi = potentialLinear(s);
-  else if (s > stlp_)
-    psi = fmin(potentialSol(s) + potentialP(s), potentialLinear(s));
-  else
-    psi = potentialSol(s);
+  if (s > sft_) psi = potentialLinear(s);
+  else if (s > stlp_) psi = fmin(potentialSol(s) + potentialP(s), potentialLinear(s));
+  else psi = potentialSol(s);
   return psi;
 }
 
@@ -59,15 +57,12 @@ double
 WRMPlantChristoffersen::d_potential(double s) const
 {
   double dpsi;
-  if (s > sft_)
-    dpsi = d_potentialLinear(s);
+  if (s > sft_) dpsi = d_potentialLinear(s);
   else if (s > stlp_) {
     if ((potentialSol(s) + potentialP(s)) < potentialLinear(s))
       dpsi = d_potentialSol(s) + d_potentialP(s);
-    else
-      dpsi = d_potentialLinear(s);
-  } else
-    dpsi = d_potentialSol(s);
+    else dpsi = d_potentialLinear(s);
+  } else dpsi = d_potentialSol(s);
   return dpsi;
 }
 
@@ -123,15 +118,12 @@ WRMPlantChristoffersen::saturation(double pc)
 
   psi = -pc * 1E-6;
 
-  if (psi > psi0_)
-    se = (1.0 - sr_) / (sft_ - sr_);
-  else if (psi > psicapfttrans_)
-    se = (1.0 - sr_) / (sft_ - sr_) - (psi0_ - psi) / mcapstar_;
+  if (psi > psi0_) se = (1.0 - sr_) / (sft_ - sr_);
+  else if (psi > psicapfttrans_) se = (1.0 - sr_) / (sft_ - sr_) - (psi0_ - psi) / mcapstar_;
   else if (psi > psitlp_) {
     double b = std::abs(pi0_) - psi - eps_;
     se = (-b + sqrt(std::pow(b, 2) + 4 * eps_ * std::abs(pi0_))) / (2 * eps_);
-  } else
-    se = -std::abs(pi0_) / psi;
+  } else se = -std::abs(pi0_) / psi;
   return (se * (sft_ - sr_)) + sr_;
 }
 
@@ -145,16 +137,13 @@ WRMPlantChristoffersen::d_saturation(double pc)
   psi = -pc * 1E-6;
   double dpsi = -1E-6;
 
-  if (psi > psi0_)
-    dse = 0;
-  else if (psi > psicapfttrans_)
-    dse = dpsi / mcapstar_;
+  if (psi > psi0_) dse = 0;
+  else if (psi > psicapfttrans_) dse = dpsi / mcapstar_;
   else if (psi > psitlp_) {
     double b = std::abs(pi0_) - psi - eps_;
     double db = -dpsi;
     dse = (db + ((db * b) / sqrt(std::pow(b, 2) + 4 * eps_ * std::abs(pi0_)))) / (2 * eps_);
-  } else
-    dse = std::abs(pi0_) * (std::pow(psi, -2)) * (dpsi);
+  } else dse = std::abs(pi0_) * (std::pow(psi, -2)) * (dpsi);
   return dse * (sft_ - sr_);
 }
 

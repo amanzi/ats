@@ -35,8 +35,8 @@ class EosIdealGasEvaluator : public EvaluatorSecondaryMonotypeCV {
   virtual Teuchos::RCP<Evaluator> Clone() const;
 
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void
-  EvaluateField_(const Teuchos::Ptr<State>& S, const Teuchos::Ptr<CompositeVector>& result);
+  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
+                              const Teuchos::Ptr<CompositeVector>& result);
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
                                                Key wrt_key,
                                                const Teuchos::Ptr<CompositeVector>& result);

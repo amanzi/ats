@@ -26,7 +26,7 @@ Clients should provide a struct functor that does the actual work, and returns
 namespace Amanzi {
 namespace Relations {
 
-template <class Parser, class Integrator>
+template<class Parser, class Integrator>
 class EvaluatorColumnIntegrator : public EvaluatorSecondaryMonotypeCV {
  public:
   explicit EvaluatorColumnIntegrator(Teuchos::ParameterList& plist);
@@ -34,8 +34,9 @@ class EvaluatorColumnIntegrator : public EvaluatorSecondaryMonotypeCV {
   Teuchos::RCP<Evaluator> Clone() const override;
 
   // Disables derivatives
-  virtual bool
-  IsDifferentiableWRT(const State& S, const Key& wrt_key, const Tag& wrt_tag) const override;
+  virtual bool IsDifferentiableWRT(const State& S,
+                                   const Key& wrt_key,
+                                   const Tag& wrt_tag) const override;
 
  protected:
   // Implements custom EC to use dependencies from subsurface for surface
@@ -55,7 +56,7 @@ class EvaluatorColumnIntegrator : public EvaluatorSecondaryMonotypeCV {
 };
 
 
-template <class Parser, class Integrator>
+template<class Parser, class Integrator>
 EvaluatorColumnIntegrator<Parser, Integrator>::EvaluatorColumnIntegrator(
   Teuchos::ParameterList& plist)
   : EvaluatorSecondaryMonotypeCV(plist)
@@ -65,7 +66,7 @@ EvaluatorColumnIntegrator<Parser, Integrator>::EvaluatorColumnIntegrator(
 }
 
 
-template <class Parser, class Integrator>
+template<class Parser, class Integrator>
 Teuchos::RCP<Evaluator>
 EvaluatorColumnIntegrator<Parser, Integrator>::Clone() const
 {
@@ -75,7 +76,7 @@ EvaluatorColumnIntegrator<Parser, Integrator>::Clone() const
 
 // Implements custom EC to use dependencies from subsurface for surface
 // vector.
-template <class Parser, class Integrator>
+template<class Parser, class Integrator>
 void
 EvaluatorColumnIntegrator<Parser, Integrator>::EnsureCompatibility_ToDeps_(State& S)
 {
@@ -99,7 +100,7 @@ EvaluatorColumnIntegrator<Parser, Integrator>::EnsureCompatibility_ToDeps_(State
 
 
 // Disables derivatives
-template <class Parser, class Integrator>
+template<class Parser, class Integrator>
 bool
 EvaluatorColumnIntegrator<Parser, Integrator>::IsDifferentiableWRT(const State& S,
                                                                    const Key& wrt_key,
@@ -110,7 +111,7 @@ EvaluatorColumnIntegrator<Parser, Integrator>::IsDifferentiableWRT(const State& 
 
 
 // Required methods from EvaluatorSecondaryMonotypeCV
-template <class Parser, class Integrator>
+template<class Parser, class Integrator>
 void
 EvaluatorColumnIntegrator<Parser, Integrator>::Evaluate_(
   const State& S,
@@ -140,16 +141,14 @@ EvaluatorColumnIntegrator<Parser, Integrator>::Evaluate_(
     // val[1] is typically e.g. cell volume, but can be 0 to indicate no
     // denominator.  Coefficient provides a hook for column-wide multiples
     // (e.g. 1/surface area).
-    if (val[1] > 0.)
-      res[0][col] = integrator.coefficient(col) * val[0] / val[1];
-    else
-      res[0][col] = integrator.coefficient(col) * val[0];
+    if (val[1] > 0.) res[0][col] = integrator.coefficient(col) * val[0] / val[1];
+    else res[0][col] = integrator.coefficient(col) * val[0];
   }
 }
 
 
 // Required methods from EvaluatorSecondaryMonotypeCV
-template <class Parser, class Integrator>
+template<class Parser, class Integrator>
 void
 EvaluatorColumnIntegrator<Parser, Integrator>::EvaluatePartialDerivative_(
   const State& S,

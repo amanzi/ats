@@ -58,9 +58,7 @@ class PK_BDF_Default : public PK_BDF {
                  const Teuchos::RCP<Teuchos::ParameterList>& glist,
                  const Teuchos::RCP<State>& S,
                  const Teuchos::RCP<TreeVector>& solution)
-    : PK(pk_tree, glist, S, solution),
-      PK_BDF(pk_tree, glist, S, solution),
-      dt_next_(-1.0)
+    : PK(pk_tree, glist, S, solution), PK_BDF(pk_tree, glist, S, solution), dt_next_(-1.0)
   {}
 
   // Virtual destructor
@@ -92,18 +90,19 @@ class PK_BDF_Default : public PK_BDF {
 
   // -- Possibly modify the predictor that is going to be used as a
   //    starting value for the nonlinear solve in the time integrator.
-  virtual bool
-  ModifyPredictor(double h, Teuchos::RCP<const TreeVector> up, Teuchos::RCP<TreeVector> u) override
+  virtual bool ModifyPredictor(double h,
+                               Teuchos::RCP<const TreeVector> up,
+                               Teuchos::RCP<TreeVector> u) override
   {
     return false;
   }
 
   // -- Possibly modify the correction before it is applied
-  virtual AmanziSolvers::FnBaseDefs::ModifyCorrectionResult
-  ModifyCorrection(double h,
-                   Teuchos::RCP<const TreeVector> res,
-                   Teuchos::RCP<const TreeVector> u,
-                   Teuchos::RCP<TreeVector> du) override
+  virtual AmanziSolvers::FnBaseDefs::ModifyCorrectionResult ModifyCorrection(
+    double h,
+    Teuchos::RCP<const TreeVector> res,
+    Teuchos::RCP<const TreeVector> u,
+    Teuchos::RCP<TreeVector> du) override
   {
     return AmanziSolvers::FnBaseDefs::CORRECTION_NOT_MODIFIED;
   }

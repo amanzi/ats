@@ -72,7 +72,7 @@ slope_aspect(const AmanziGeometry::Point& normal, double& slope, double& aspect)
 
 
 MeshedElevationEvaluator::MeshedElevationEvaluator(Teuchos::ParameterList& plist)
-  : ElevationEvaluator(plist){};
+  : ElevationEvaluator(plist) {};
 
 
 Teuchos::RCP<Evaluator>

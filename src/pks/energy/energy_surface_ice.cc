@@ -254,7 +254,9 @@ EnergySurfaceIce::AddSources_(const Tag& tag, const Teuchos::Ptr<CompositeVector
     AmanziMesh::Entity_ID_List cells;
 
     unsigned int ncells = g_c.MyLength();
-    for (unsigned int c = 0; c != ncells; ++c) { g_c[0][c] -= e_source1[0][cells[0]]; }
+    for (unsigned int c = 0; c != ncells; ++c) {
+      g_c[0][c] -= e_source1[0][cells[0]];
+    }
     db_->WriteVector("res (s-s adv src)", g, false);
   }
 }
@@ -295,7 +297,9 @@ EnergySurfaceIce::AddSourcesToPrecon_(double h)
     const Epetra_MultiVector& cell_vol =
       *S_->Get<CompositeVector>(cell_vol_key_, tag_next_).ViewComponent("cell", false);
     unsigned int ncells = dsource_dT.MyLength();
-    for (unsigned int c = 0; c != ncells; ++c) { acc_c[0][c] = -dsource_dT[0][c] * cell_vol[0][c]; }
+    for (unsigned int c = 0; c != ncells; ++c) {
+      acc_c[0][c] = -dsource_dT[0][c] * cell_vol[0][c];
+    }
     preconditioner_acc_->AddAccumulationTerm(acc, "cell");
 
     if (vo_->os_OK(Teuchos::VERB_EXTREME)) {

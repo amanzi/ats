@@ -36,7 +36,8 @@ ParserWaterTableDepth::ParserWaterTableDepth(Teuchos::ParameterList& plist, cons
 
 IntegratorWaterTableDepth::IntegratorWaterTableDepth(Teuchos::ParameterList& plist,
                                                      std::vector<const Epetra_MultiVector*>& deps,
-                                                     const AmanziMesh::Mesh* mesh) : mesh_(mesh)
+                                                     const AmanziMesh::Mesh* mesh)
+  : mesh_(mesh)
 {
   AMANZI_ASSERT(deps.size() == 4);
   sat_ = deps[0];
@@ -57,8 +58,8 @@ IntegratorWaterTableDepth::scan(AmanziMesh::Entity_ID col,
       p[0] = (*pres_)[0][c]; // last saturated cell pressure
     } else {
       p[0] += (*cv_)[0][c]; // cumulative saturated cell volume
-    } 
-    return false;  
+    }
+    return false;
   }
   if (is_interp_) {
     p[1] = (*pres_)[0][c]; // first unsaturated cell pressure

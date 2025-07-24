@@ -28,11 +28,11 @@ class ManningCoefficientLitterModel {
 
   virtual double ManningCoefficient(double litter_depth, double ponded_depth) const = 0;
 
-  virtual double
-  DManningCoefficientDLitterThickness(double litter_depth, double ponded_depth) const = 0;
+  virtual double DManningCoefficientDLitterThickness(double litter_depth,
+                                                     double ponded_depth) const = 0;
 
-  virtual double
-  DManningCoefficientDPondedDepth(double litter_depth, double ponded_depth) const = 0;
+  virtual double DManningCoefficientDPondedDepth(double litter_depth,
+                                                 double ponded_depth) const = 0;
 };
 
 } // namespace Relations

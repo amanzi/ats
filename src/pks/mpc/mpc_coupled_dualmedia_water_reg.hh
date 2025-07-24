@@ -11,7 +11,7 @@
 
 namespace Amanzi {
 
-RegisteredPKFactory<MPCCoupledDualMediaWater>
-  MPCCoupledDualMediaWater::reg_("coupled dualmedia water");
+RegisteredPKFactory<MPCCoupledDualMediaWater> MPCCoupledDualMediaWater::reg_(
+  "coupled dualmedia water");
 
 }

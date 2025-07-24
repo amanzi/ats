@@ -62,7 +62,9 @@ OverlandPressureWaterContentEvaluator::Evaluate_(const State& S,
 
   int ncells = res.MyLength();
   if (bar_) {
-    for (int c = 0; c != ncells; ++c) { res[0][c] = cv[0][c] * (pres[0][c] - p_atm) / (gz * M_); }
+    for (int c = 0; c != ncells; ++c) {
+      res[0][c] = cv[0][c] * (pres[0][c] - p_atm) / (gz * M_);
+    }
   } else if (rollover_ > 0.) {
     for (int c = 0; c != ncells; ++c) {
       double dp = pres[0][c] - p_atm;
@@ -103,7 +105,9 @@ OverlandPressureWaterContentEvaluator::EvaluatePartialDerivative_(
   if (wrt_key == pres_key_) {
     int ncells = res.MyLength();
     if (bar_) {
-      for (int c = 0; c != ncells; ++c) { res[0][c] = cv[0][c] / (gz * M_); }
+      for (int c = 0; c != ncells; ++c) {
+        res[0][c] = cv[0][c] / (gz * M_);
+      }
     } else if (rollover_ > 0.) {
       for (int c = 0; c != ncells; ++c) {
         double dp = pres[0][c] - p_atm;

@@ -162,7 +162,9 @@ DistributedTilesRateEvaluator::Update_(State& S)
   }
 
   total = 0.;
-  for (AmanziMesh::Entity_ID c = 0; c != ncells; ++c) { total += sub_sink[0][c] * cv[0][c]; }
+  for (AmanziMesh::Entity_ID c = 0; c != ncells; ++c) {
+    total += sub_sink[0][c] * cv[0][c];
+  }
 
   Teuchos::RCP<const Comm_type> comm_p = S.GetMesh(domain_)->getComm();
   Teuchos::RCP<const MpiComm_type> mpi_comm_p =
@@ -183,7 +185,9 @@ DistributedTilesRateEvaluator::EnsureCompatibility(State& S)
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   // Cop-out -- ensure not fully implemented for this evaluator.  FIXME --ETC
-  for (const auto& dep : dependencies_) { S.RequireEvaluator(dep.first, dep.second); }
+  for (const auto& dep : dependencies_) {
+    S.RequireEvaluator(dep.first, dep.second);
+  }
 }
 
 

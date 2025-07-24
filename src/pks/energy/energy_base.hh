@@ -17,7 +17,7 @@ Note that this is implemented rather differently than chemical transport,
 likely for unclear (historical) reasons.  At some point energy and chemical
 transport should probably be merged into a shared PK which supports both
 sequential and globally implicit coupling of flow and transport.
-    
+
 Note that this is a base class and cannot be directly created.  Instead, use
 two-phase or three-phase energy PKs.
 
@@ -111,7 +111,7 @@ two-phase or three-phase energy PKs.
      Typically not provided by users, as defaults are correct.
 
    Algorithmic physics control:
-     
+
    IF
 
    * `"coupled to surface via flux`" ``[bool]`` **false** If true, apply
@@ -203,8 +203,8 @@ class EnergyBase : public PK_PhysicalBDF_Default {
 
   // Default implementations of BDFFnBase methods.
   // -- Compute a norm on u-du and return the result.
-  virtual double
-  ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const TreeVector> du) override;
+  virtual double ErrorNorm(Teuchos::RCP<const TreeVector> u,
+                           Teuchos::RCP<const TreeVector> du) override;
 
   // EnergyBase is a BDFFnBase
   // computes the non-linear functional f = f(t,u,udot)
@@ -216,8 +216,8 @@ class EnergyBase : public PK_PhysicalBDF_Default {
 
 
   // applies preconditioner to u and returns the result in Pu
-  virtual int
-  ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) override;
+  virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
+                                  Teuchos::RCP<TreeVector> Pu) override;
 
   // updates the preconditioner
   virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) override;
@@ -225,17 +225,18 @@ class EnergyBase : public PK_PhysicalBDF_Default {
   // problems with temperatures -- setting a range of admissible temps
   virtual bool IsAdmissible(Teuchos::RCP<const TreeVector> up) override;
 
-  virtual bool
-  ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::RCP<TreeVector> u) override;
+  virtual bool ModifyPredictor(double h,
+                               Teuchos::RCP<const TreeVector> u0,
+                               Teuchos::RCP<TreeVector> u) override;
 
   // evaluating consistent faces for given BCs and cell values
   virtual void CalculateConsistentFaces(const Teuchos::Ptr<CompositeVector>& u);
 
-  virtual AmanziSolvers::FnBaseDefs::ModifyCorrectionResult
-  ModifyCorrection(double h,
-                   Teuchos::RCP<const TreeVector> res,
-                   Teuchos::RCP<const TreeVector> u,
-                   Teuchos::RCP<TreeVector> du) override;
+  virtual AmanziSolvers::FnBaseDefs::ModifyCorrectionResult ModifyCorrection(
+    double h,
+    Teuchos::RCP<const TreeVector> res,
+    Teuchos::RCP<const TreeVector> u,
+    Teuchos::RCP<TreeVector> du) override;
 
  protected:
   // These must be provided by the deriving PK.

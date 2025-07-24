@@ -145,7 +145,7 @@ Transport_ATS::CalculateAxiSymmetryDirection_()
   int ncells_owned =
     mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
-  axi_symmetry_.resize(ncells_owned, mesh_->getSpaceDimension()-1);
+  axi_symmetry_.resize(ncells_owned, mesh_->getSpaceDimension() - 1);
 }
 
 } // namespace Transport

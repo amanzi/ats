@@ -36,7 +36,7 @@ class PK_Explicit_Default : public PK_Explicit<TreeVector> {
   {}
 
   // Virtual destructor
-  virtual ~PK_Explicit_Default(){};
+  virtual ~PK_Explicit_Default() {};
 
   // Default implementations of PK methods.
   // -- setup

@@ -104,7 +104,9 @@ class WRMImplicitPermafrostModel : public WRMPermafrostModel {
 
   // Convergence criteria for root-finding
   struct Tol_ {
-    Tol_(double eps) : eps_(eps) {}
+    Tol_(double eps)
+      : eps_(eps)
+    {}
     bool operator()(const double& a, const double& b) const { return std::abs(a - b) <= eps_; }
     double eps_;
   };

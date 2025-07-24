@@ -54,10 +54,8 @@ ReciprocalEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector
 
   auto key_tag_numer = dependencies_.begin();
   auto key_tag_denom = dependencies_.begin();
-  if (key_tag_numer->first == reciprocal_key_)
-    key_tag_numer++;
-  else
-    key_tag_denom++;
+  if (key_tag_numer->first == reciprocal_key_) key_tag_numer++;
+  else key_tag_denom++;
 
   const auto& numer = S.Get<CompositeVector>(key_tag_numer->first, key_tag_numer->second);
   const auto& denom = S.Get<CompositeVector>(key_tag_denom->first, key_tag_denom->second);
@@ -72,7 +70,9 @@ ReciprocalEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector
   if (positive_) {
     for (const auto& comp : *result[0]) {
       Epetra_MultiVector& res_c = *result[0]->ViewComponent(comp, false);
-      for (int c = 0; c != res_c.MyLength(); ++c) { res_c[0][c] = std::max(res_c[0][c], 0.); }
+      for (int c = 0; c != res_c.MyLength(); ++c) {
+        res_c[0][c] = std::max(res_c[0][c], 0.);
+      }
     }
   }
 }
@@ -87,10 +87,8 @@ ReciprocalEvaluator::EvaluatePartialDerivative_(const State& S,
 
   auto key_tag_numer = dependencies_.begin();
   auto key_tag_denom = dependencies_.begin();
-  if (key_tag_numer->first == reciprocal_key_)
-    key_tag_numer++;
-  else
-    key_tag_denom++;
+  if (key_tag_numer->first == reciprocal_key_) key_tag_numer++;
+  else key_tag_denom++;
 
   if (wrt_key == key_tag_denom->first) {
     const auto& numer = S.Get<CompositeVector>(key_tag_numer->first, key_tag_numer->second);
@@ -110,7 +108,7 @@ ReciprocalEvaluator::EvaluatePartialDerivative_(const State& S,
     for (const auto& comp : *result[0]) {
       Epetra_MultiVector& res_c = *result[0]->ViewComponent(comp, false);
       const Epetra_MultiVector& denom_c = *denom.ViewComponent(comp, false);
-      for (int c = 0; c != res_c.MyLength(); ++c) res_c[0][c] = -coef_ / denom_c[0][c];
+      for (int c = 0; c != res_c.MyLength() ; ++c) res_c[0][c] = -coef_ / denom_c[0][c];
     }
   }
 }

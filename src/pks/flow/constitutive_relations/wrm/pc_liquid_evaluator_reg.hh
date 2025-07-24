@@ -19,8 +19,8 @@ namespace Amanzi {
 namespace Flow {
 
 // registry of method
-Utils::RegisteredFactory<Evaluator, PCLiquidEvaluator>
-  PCLiquidEvaluator::factory_("capillary pressure, atmospheric gas over liquid");
+Utils::RegisteredFactory<Evaluator, PCLiquidEvaluator> PCLiquidEvaluator::factory_(
+  "capillary pressure, atmospheric gas over liquid");
 
 } // namespace Flow
 } // namespace Amanzi

@@ -102,7 +102,9 @@ OverlandPressureFlow::AddSourceTerms_(const Teuchos::Ptr<CompositeVector>& g)
       *S_->Get<CompositeVector>(source_key_, tag_next_).ViewComponent("cell", false);
     db_->WriteVector("  source", S_->GetPtr<CompositeVector>(source_key_, tag_next_).ptr(), false);
     int ncells = g_c.MyLength();
-    for (int c = 0; c != ncells; ++c) { g_c[0][c] -= cv1[0][c] * source1[0][c]; }
+    for (int c = 0; c != ncells; ++c) {
+      g_c[0][c] -= cv1[0][c] * source1[0][c];
+    }
   }
 
   if (coupled_to_subsurface_via_head_) {

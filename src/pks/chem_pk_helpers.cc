@@ -21,10 +21,10 @@ namespace Amanzi {
 // -----------------------------------------------------------------------------
 void
 convertConcentrationToMolFrac(State& S,
-        const KeyTag& tcc,
-        const KeyTag& mol_frac,
-        const KeyTag& mol_dens,
-        const std::string& passwd)
+                              const KeyTag& tcc,
+                              const KeyTag& mol_frac,
+                              const KeyTag& mol_dens,
+                              const std::string& passwd)
 {
   const Epetra_MultiVector& tcc_c =
     *S.Get<CompositeVector>(tcc.first, tcc.second).ViewComponent("cell", false);
@@ -43,10 +43,10 @@ convertConcentrationToMolFrac(State& S,
 
 void
 convertMolFracToConcentration(State& S,
-        const KeyTag& mol_frac,
-        const KeyTag& tcc,
-        const KeyTag& mol_dens,
-        const std::string& passwd)
+                              const KeyTag& mol_frac,
+                              const KeyTag& tcc,
+                              const KeyTag& mol_dens,
+                              const std::string& passwd)
 {
   const Epetra_MultiVector& mol_frac_c =
     *S.Get<CompositeVector>(mol_frac.first, mol_frac.second).ViewComponent("cell", false);

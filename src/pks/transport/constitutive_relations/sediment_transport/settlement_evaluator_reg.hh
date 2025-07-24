@@ -17,7 +17,7 @@
 namespace Amanzi {
 
 // registry of method
-Utils::RegisteredFactory<Evaluator, SettlementRateEvaluator>
-  SettlementRateEvaluator ::factory_("settlement rate");
+Utils::RegisteredFactory<Evaluator, SettlementRateEvaluator> SettlementRateEvaluator ::factory_(
+  "settlement rate");
 
 } // namespace Amanzi

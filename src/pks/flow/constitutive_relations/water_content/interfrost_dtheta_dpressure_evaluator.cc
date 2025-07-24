@@ -99,7 +99,7 @@ InterfrostDthetaDpressureEvaluator::EvaluatePartialDerivative_(
   Teuchos::RCP<const CompositeVector> phi = S.GetPtr<CompositeVector>(phi_key_, tag);
 
   if (wrt_key == nl_key_) {
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
       const Epetra_MultiVector& sl_v = *sl->ViewComponent(*comp, false);
@@ -114,7 +114,7 @@ InterfrostDthetaDpressureEvaluator::EvaluatePartialDerivative_(
     }
 
   } else if (wrt_key == sl_key_) {
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
       const Epetra_MultiVector& sl_v = *sl->ViewComponent(*comp, false);
@@ -129,7 +129,7 @@ InterfrostDthetaDpressureEvaluator::EvaluatePartialDerivative_(
     }
 
   } else if (wrt_key == phi_key_) {
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
       const Epetra_MultiVector& sl_v = *sl->ViewComponent(*comp, false);

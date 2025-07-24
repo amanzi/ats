@@ -15,12 +15,12 @@ Flow is calculated using standard culvert hydraulics, considering both inlet-con
 
 Implements the following culvert hydraulics equations:
 - **Inlet control**:
-  
+
   .. math::
      Q_{\text{inlet}} = N_b \, C \, A \, \sqrt{2 g h_i}
-  
+
   where:
-  
+
   - :math:`N_b` = number of barrels *(unitless)*
   - :math:`C` = discharge coefficient *(unitless)*
   - :math:`A` = culvert cross-sectional area *(m^2)*
@@ -29,12 +29,12 @@ Implements the following culvert hydraulics equations:
   - :math:`Q_{\text{inlet}}` = inlet discharge *(m^3/s)*
 
 - **Outlet control**:
-  
+
   .. math::
      Q_{\text{outlet}} = N_b \, C \, A \, \sqrt{ \frac{2 g h_o}{k} }
-  
+
   where:
-  
+
   - :math:`h_o` = head difference between inlet and outlet *(m)*
   - :math:`k = 1.5 + \frac{29 n^2 L}{R^{4/3}}` *(unitless resistance term)*
   - :math:`n` = Manning's roughness coefficient *(s/m^{1/3})*
@@ -43,12 +43,12 @@ Implements the following culvert hydraulics equations:
   - :math:`Q_{\text{outlet}}` = outlet discharge *(m^3/s)*
 
 - **Blended total discharge**:
-  
+
   .. math::
      Q = \frac{Q_{\text{inlet}} \, Q_{\text{outlet}}}{\sqrt{Q_{\text{inlet}}^2 + Q_{\text{outlet}}^2 + \epsilon}}
-  
+
   where:
-  
+
   - :math:`\epsilon` = small positive constant to avoid divide-by-zero
   - :math:`Q` = total culvert discharge *(m^3/s)*
 
@@ -69,11 +69,11 @@ The resulting :math:`Q` is used to compute area-weighted water removal at the in
    * `"culvert discharge coefficient"`" ``[double]`` Discharge coefficient for the culvert, default is 0.6.
 
    KEYS:
-   - `"cell volume"`" **DOMAIN-cell_volume** 
-   - `"ponded depth"`" **DOMAIN-ponded_depth** 
+   - `"cell volume"`" **DOMAIN-cell_volume**
+   - `"ponded depth"`" **DOMAIN-ponded_depth**
    - `"potential"`" **DOMAIN-pres_elev** (stage or water surface elevation)
-   - `"elevation"`" **DOMAIN-elevation** 
-   - `"water content"`" **DOMAIN-water_content** 
+   - `"elevation"`" **DOMAIN-elevation**
+   - `"water content"`" **DOMAIN-water_content**
    - `"molar density liquid"`" **DOMAIN-molar_density_liquid**
 
 Example:
@@ -114,21 +114,22 @@ class SurfCulvertEvaluator : public EvaluatorSecondaryMonotypeCV {
   }
 
   // virtual void EnsureCompatibility(State& S) override;
-  virtual bool
-  IsDifferentiableWRT(const State& S, const Key& wrt_key, const Tag& wrt_tag) const override
+  virtual bool IsDifferentiableWRT(const State& S,
+                                   const Key& wrt_key,
+                                   const Tag& wrt_tag) const override
   {
     // calculate of derivatives of this is a tricky thing to do, with
     // non-cell-local terms due to rescaling.  Just turn off derivatives
     // instead.
     return false;
   }
-  
+
  protected:
   virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-                                        const Key& wrt_key,
-                                        const Tag& wrt_tag,
-                                        const std::vector<CompositeVector*>& result) override{};
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override {};
 
  protected:
   Key domain_;

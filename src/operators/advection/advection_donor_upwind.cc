@@ -39,12 +39,11 @@ AdvectionDonorUpwind::set_flux(const Teuchos::RCP<const CompositeVector>& flux)
 };
 
 
-void
-AdvectionDonorUpwind::Apply(const Teuchos::RCP<Functions::BoundaryFunction>& bc_flux,
-                            bool include_bc_fluxes){
+void AdvectionDonorUpwind::Apply(const Teuchos::RCP<Functions::BoundaryFunction>& bc_flux,
+                                 bool include_bc_fluxes){
 
   // Part 1: Collect fluxes in faces
-  { field_->ScatterMasterToGhosted("cell"); // communicate the cells
+  { field_ -> ScatterMasterToGhosted("cell"); // communicate the cells
 const Epetra_MultiVector& field_c = *field_->ViewComponent("cell", true);
 Epetra_MultiVector& field_f = *field_->ViewComponent("face", true);
 
@@ -56,7 +55,9 @@ for (unsigned int f = 0; f != nfaces_ghosted; ++f) { // loop over master and sla
   int c1 = (*upwind_cell_)[f];
   if (c1 >= 0) {
     double u = std::abs(flux[0][f]);
-    for (unsigned int i = 0; i != num_dofs_; ++i) { field_f[i][f] = u * field_c[i][c1]; }
+    for (unsigned int i = 0; i != num_dofs_; ++i) {
+      field_f[i][f] = u * field_c[i][c1];
+    }
   }
 }
 } // namespace Operators
@@ -76,11 +77,15 @@ for (unsigned int f = 0; f != nfaces_ghosted; ++f) { // loop over master and sla
     int c2 = (*downwind_cell_)[f];
 
     if (c1 >= 0 && c1 < ncells_owned) {
-      for (int i = 0; i != num_dofs_; ++i) { field_c[i][c1] -= field_f[i][f]; }
+      for (int i = 0; i != num_dofs_; ++i) {
+        field_c[i][c1] -= field_f[i][f];
+      }
     }
 
     if (c2 >= 0 && c2 < ncells_owned) {
-      for (int i = 0; i != num_dofs_; ++i) { field_c[i][c2] += field_f[i][f]; }
+      for (int i = 0; i != num_dofs_; ++i) {
+        field_c[i][c2] += field_f[i][f];
+      }
     }
   }
 }

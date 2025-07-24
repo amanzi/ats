@@ -114,7 +114,7 @@ int
 SnowDistribution::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_HIGH)) *vo_->os() << "Precon application:" << std::endl;
+  if (vo_->os_OK(Teuchos::VERB_HIGH) ) *vo_->os() << "Precon application:" << std::endl;
 
 #if DEBUG_FLAG
   db_->WriteVector("h_res", u->Data().ptr(), true);
@@ -141,7 +141,7 @@ SnowDistribution::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> 
 {
   // VerboseObject stuff.
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "Precon update at t = " << t << std::endl;
+  if (vo_->os_OK(Teuchos::VERB_EXTREME) ) *vo_->os() << "Precon update at t = " << t << std::endl;
 
 
   // update state with the solution up.
@@ -219,8 +219,7 @@ SnowDistribution::ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const
   if (vo_->os_OK(Teuchos::VERB_MEDIUM)) {
     double infnorm_c(0.);
     res_c.NormInf(&infnorm_c);
-    *vo_->os() << "ENorm (cells) = " << enorm_c.value
-               << " (" << infnorm_c << ")" << std::endl;
+    *vo_->os() << "ENorm (cells) = " << enorm_c.value << " (" << infnorm_c << ")" << std::endl;
   }
 
   return enorm_c.value;

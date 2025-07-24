@@ -13,8 +13,8 @@ namespace Amanzi {
 namespace Flow {
 namespace Relations {
 
-Utils::RegisteredFactory<Evaluator, QCRelationOverlandEvaluator>
-  QCRelationOverlandEvaluator::reg_("q-c overland");
+Utils::RegisteredFactory<Evaluator, QCRelationOverlandEvaluator> QCRelationOverlandEvaluator::reg_(
+  "q-c overland");
 
 } // namespace Relations
 } // namespace Flow

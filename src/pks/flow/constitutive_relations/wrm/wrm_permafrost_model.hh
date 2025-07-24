@@ -23,7 +23,9 @@ class WRM;
 
 class WRMPermafrostModel {
  public:
-  WRMPermafrostModel(Teuchos::ParameterList& plist) : plist_(plist) {}
+  WRMPermafrostModel(Teuchos::ParameterList& plist)
+    : plist_(plist)
+  {}
 
   virtual ~WRMPermafrostModel() {}
 

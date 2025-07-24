@@ -13,8 +13,8 @@ namespace Amanzi {
 namespace Flow {
 namespace Relations {
 
-Utils::RegisteredFactory<Evaluator, QCRelationFieldEvaluator>
-  QCRelationFieldEvaluator::reg_("q-c field");
+Utils::RegisteredFactory<Evaluator, QCRelationFieldEvaluator> QCRelationFieldEvaluator::reg_(
+  "q-c field");
 
 } // namespace Relations
 } // namespace Flow

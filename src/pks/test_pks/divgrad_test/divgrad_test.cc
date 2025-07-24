@@ -169,7 +169,9 @@ DivGradTest::ApplyBoundaryConditions_(const Teuchos::RCP<CompositeVector>& pres)
   Epetra_MultiVector& pres_f = *pres->ViewComponent("face", true);
   int nfaces = pres->size("face");
   for (int f = 0; f != nfaces; ++f) {
-    if (bc_markers_[f] == Operators::OPERATOR_BC_DIRICHLET) { pres_f[0][f] = bc_values_[f]; }
+    if (bc_markers_[f] == Operators::OPERATOR_BC_DIRICHLET) {
+      pres_f[0][f] = bc_values_[f];
+    }
   }
 };
 
@@ -187,9 +189,11 @@ DivGradTest::TestRegularFaceValues_(const Teuchos::RCP<CompositeVector>& pres)
 
     if (cells.size() == 1) {
       if (bc_markers_[f] == Operators::OPERATOR_BC_DIRICHLET) {
-        if (std::abs((*pres)("face", f) - bc_values_[f]) > eps) nfail++;
+        if (std::abs((*pres) ("face", f) - bc_values_[f]) > eps) nfail++;
       } else {
-        if (bc_markers_[f] == Operators::OPERATOR_BC_NONE) { bc_values_[f] = 0.0; }
+        if (bc_markers_[f] == Operators::OPERATOR_BC_NONE) {
+          bc_values_[f] = 0.0;
+        }
 
         AmanziGeometry::Point fpoint = mesh_->getFaceCentroid(f);
         AmanziGeometry::Point cpoint = mesh_->getCellCentroid(cells[0]);
@@ -202,11 +206,11 @@ DivGradTest::TestRegularFaceValues_(const Teuchos::RCP<CompositeVector>& pres)
         } else {
           p = p - dp;
         }
-        if (std::abs((*pres)("face", f) - p) > eps) nfail++;
+        if (std::abs((*pres) ("face", f) - p) > eps) nfail++;
       }
     } else {
       double p = ((*pres)("cell", cells[0]) + (*pres)("cell", cells[1])) / 2.0;
-      if (std::abs((*pres)("face", f) - p) > eps) nfail++;
+      if (std::abs((*pres) ("face", f) - p) > eps) nfail++;
     }
   }
 

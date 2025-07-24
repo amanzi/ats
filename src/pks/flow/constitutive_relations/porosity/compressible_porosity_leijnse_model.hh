@@ -50,7 +50,8 @@ namespace Flow {
 
 class CompressiblePorosityLeijnseModel {
  public:
-  explicit CompressiblePorosityLeijnseModel(Teuchos::ParameterList& plist) : plist_(plist)
+  explicit CompressiblePorosityLeijnseModel(Teuchos::ParameterList& plist)
+    : plist_(plist)
   {
     InitializeFromPlist_();
   }

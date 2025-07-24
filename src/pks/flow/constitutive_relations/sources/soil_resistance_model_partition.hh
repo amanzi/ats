@@ -39,8 +39,8 @@ typedef std::pair<Teuchos::RCP<Functions::MeshPartition>, SoilResistanceSakaguck
   SoilResistanceModelPartition;
 
 // Non-member factory
-Teuchos::RCP<SoilResistanceModelPartition>
-createSoilResistanceModelPartition(Teuchos::ParameterList& plist);
+Teuchos::RCP<SoilResistanceModelPartition> createSoilResistanceModelPartition(
+  Teuchos::ParameterList& plist);
 
 } // namespace Flow
 } // namespace Amanzi

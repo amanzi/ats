@@ -55,7 +55,7 @@ Some additional parameters are available.
      relative permeability.
 
    * `"coefficient in drag term of kr`" ``[double]`` **1.0** [-]
-     
+
    KEYS:
 
    - `"rel perm`"
@@ -65,7 +65,7 @@ Some additional parameters are available.
    - `"viscosity`" (if `"use density on viscosity in rel perm`" == true)
    - `"surface relative permeability`" (if `"boundary rel perm strategy`" == `"surface rel perm`")
 
-     
+
 Example:
 Using the same set of van Genuchten model paramters for WRM and relative permeability
 

@@ -21,7 +21,8 @@
 namespace Amanzi {
 namespace Flow {
 
-OneUFRelPermModel::OneUFRelPermModel(Teuchos::ParameterList& plist) : plist_(plist), pi_(M_PI)
+OneUFRelPermModel::OneUFRelPermModel(Teuchos::ParameterList& plist)
+  : plist_(plist), pi_(M_PI)
 {
   alpha_ = plist_.get<int>("unfrozen rel perm alpha", 4);
   if (alpha_ % 2 != 0) {

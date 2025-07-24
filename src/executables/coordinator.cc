@@ -172,12 +172,12 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
       }
 
       // writes cellcentroids in global ordering
-      if (plist_->sublist("mesh").sublist(mesh->first).isSublist("mesh info")){
+      if (plist_->sublist("mesh").sublist(mesh->first).isSublist("mesh info")) {
         auto& mesh_info_list = plist_->sublist("mesh").sublist(mesh->first).sublist("mesh info");
         Teuchos::RCP<Amanzi::MeshInfo> mesh_info =
           Teuchos::rcp(new Amanzi::MeshInfo(mesh_info_list, *S_));
         mesh_info->WriteMeshCentroids(mesh->first, *(mesh->second.first));
-      }      
+      }
     }
 
 
@@ -252,7 +252,8 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
     }
 
     // create the timestep manager, register assorted timestep control events
-    tsm_ = Teuchos::rcp(new Amanzi::Utils::TimeStepManager(coordinator_list_->sublist("timestep manager")));
+    tsm_ = Teuchos::rcp(
+      new Amanzi::Utils::TimeStepManager(coordinator_list_->sublist("timestep manager")));
     checkpoint_->RegisterWithTimeStepManager(*tsm_);
     for (const auto& obs : observations_) obs->RegisterWithTimeStepManager(*tsm_);
     for (const auto& vis : visualization_) vis->RegisterWithTimeStepManager(*tsm_);
@@ -395,11 +396,11 @@ rss_usage()
      defined(__MACH__))
   struct rusage usage;
   getrusage(RUSAGE_SELF, &usage);
-#  if (defined(__APPLE__) || defined(__MACH__))
+#if (defined(__APPLE__) || defined(__MACH__))
   return static_cast<double>(usage.ru_maxrss) / 1024.0 / 1024.0;
-#  else
+#else
   return static_cast<double>(usage.ru_maxrss) / 1024.0;
-#  endif
+#endif
 #else
   return 0.0;
 #endif
@@ -424,7 +425,9 @@ Coordinator::report_memory()
     double mem = rss_usage();
 
     double percell(mem);
-    if (local_ncells > 0) { percell = mem / local_ncells; }
+    if (local_ncells > 0) {
+      percell = mem / local_ncells;
+    }
 
     double max_percell(0.0);
     double min_percell(0.0);
@@ -534,7 +537,9 @@ Coordinator::get_dt(bool after_fail)
   }
 
   // cap the max step size
-  if (dt > max_dt_) { dt = max_dt_; }
+  if (dt > max_dt_) {
+    dt = max_dt_;
+  }
 
   // ask the step manager if this step is ok
   dt = tsm_->TimeStep(S_->get_time(Amanzi::Tags::NEXT), dt, after_fail);
@@ -613,13 +618,19 @@ Coordinator::visualize(bool force)
   double time = S_->get_time();
 
   if (!dump) {
-    for (const auto& vis : visualization_) { dump |= vis->DumpRequested(cycle, time); }
+    for (const auto& vis : visualization_) {
+      dump |= vis->DumpRequested(cycle, time);
+    }
   }
 
-  if (dump) { pk_->CalculateDiagnostics(Amanzi::Tags::NEXT); }
+  if (dump) {
+    pk_->CalculateDiagnostics(Amanzi::Tags::NEXT);
+  }
 
   for (const auto& vis : visualization_) {
-    if (force || vis->DumpRequested(cycle, time)) { WriteVis(*vis, *S_); }
+    if (force || vis->DumpRequested(cycle, time)) {
+      WriteVis(*vis, *S_);
+    }
   }
   return dump;
 }

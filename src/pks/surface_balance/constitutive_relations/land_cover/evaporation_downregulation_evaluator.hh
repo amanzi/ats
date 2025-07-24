@@ -44,8 +44,9 @@ class EvaporationDownregulationEvaluator : public EvaluatorSecondaryMonotypeCV {
   EvaporationDownregulationEvaluator(const EvaporationDownregulationEvaluator& other) = default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
-  virtual bool
-  IsDifferentiableWRT(const State& S, const Key& wrt_key, const Tag& wrt_tag) const override
+  virtual bool IsDifferentiableWRT(const State& S,
+                                   const Key& wrt_key,
+                                   const Tag& wrt_tag) const override
   {
     // this will mostly be differentiated with respect to pressure for flow
     // Jacobians, but none of the terms that _really_ depend on p are actually

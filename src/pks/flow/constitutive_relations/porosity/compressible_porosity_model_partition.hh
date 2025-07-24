@@ -25,8 +25,8 @@ typedef std::pair<Teuchos::RCP<Functions::MeshPartition>, CompressiblePorosityMo
   CompressiblePorosityModelPartition;
 
 // Non-member factory
-Teuchos::RCP<CompressiblePorosityModelPartition>
-createCompressiblePorosityModelPartition(Teuchos::ParameterList& plist);
+Teuchos::RCP<CompressiblePorosityModelPartition> createCompressiblePorosityModelPartition(
+  Teuchos::ParameterList& plist);
 
 } // namespace Flow
 } // namespace Amanzi

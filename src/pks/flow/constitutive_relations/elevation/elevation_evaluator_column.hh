@@ -71,8 +71,8 @@ class ColumnElevationEvaluator : public ElevationEvaluator {
   Teuchos::RCP<Evaluator> Clone() const override;
 
  protected:
-  virtual void
-  EvaluateElevationAndSlope_(const State& S, const std::vector<CompositeVector*>& results) override;
+  virtual void EvaluateElevationAndSlope_(const State& S,
+                                          const std::vector<CompositeVector*>& results) override;
 
   // Custom EnsureCompatibility fills dependencies based on domain set.
   virtual void EnsureEvaluators(State& S) override;

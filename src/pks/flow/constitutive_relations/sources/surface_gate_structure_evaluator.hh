@@ -26,12 +26,12 @@ Gate structure can be used to move water two canals, two storage areas or canal 
    * `"function`" ``[function-tabular]`` This is a function/table of head and flow. Here, head is the stage or ponded depth in the intake region (upstream) of the gate structure.
 
    KEYS:
-   - `"cell volume`" **DOMAIN-cell_volume** 
-   - `"ponded depth`" **DOMAIN-ponded_depth** 
+   - `"cell volume`" **DOMAIN-cell_volume**
+   - `"ponded depth`" **DOMAIN-ponded_depth**
    - `"potential`" **DOMAIN-pres_elev** stage or water surface elevation
-   - `"elevation`" **DOMAIN-elevation** 
-   - `"water content`" **DOMAIN-water_content** 
-   - `"molar liquid density`" **DOMAIN-molar_density_liquid** 
+   - `"elevation`" **DOMAIN-elevation**
+   - `"water content`" **DOMAIN-water_content**
+   - `"molar liquid density`" **DOMAIN-molar_density_liquid**
 
 Example:
 
@@ -75,21 +75,22 @@ class SurfGateEvaluator : public EvaluatorSecondaryMonotypeCV {
   }
 
   // virtual void EnsureCompatibility(State& S) override;
-  virtual bool
-  IsDifferentiableWRT(const State& S, const Key& wrt_key, const Tag& wrt_tag) const override
+  virtual bool IsDifferentiableWRT(const State& S,
+                                   const Key& wrt_key,
+                                   const Tag& wrt_tag) const override
   {
     // calculate of derivatives of this is a tricky thing to do, with
     // non-cell-local terms due to rescaling.  Just turn off derivatives
     // instead.
     return false;
   }
-  
+
  protected:
   virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-                                        const Key& wrt_key,
-                                        const Tag& wrt_tag,
-                                        const std::vector<CompositeVector*>& result) override{};
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override {};
 
  protected:
   Key domain_;
@@ -103,7 +104,7 @@ class SurfGateEvaluator : public EvaluatorSecondaryMonotypeCV {
   std::string storage_region_;
   std::string gate_intake_region_;
   double stage_close_;
-  bool is_ponded_depth_function_; 
+  bool is_ponded_depth_function_;
 
   Teuchos::RCP<Function> Q_gate_;
 
@@ -114,4 +115,3 @@ class SurfGateEvaluator : public EvaluatorSecondaryMonotypeCV {
 } // namespace Relations
 } // namespace Flow
 } // namespace Amanzi
-

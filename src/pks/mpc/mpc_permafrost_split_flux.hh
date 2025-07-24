@@ -35,7 +35,7 @@ This is the model from `Jan et al Comp. Geosci. 2018
      Balance` equations rather than :ref:`Overland Flow PK` and :ref:`Overland
      Energy with Ice` (thereby removing the lateral flow and energy transport
      components).
-                
+
    * `"domain name`" ``[string]`` The subsurface domain, e.g. "domain" (for a
      3D subsurface ) or "column:*" (for the intermediate scale model.
 

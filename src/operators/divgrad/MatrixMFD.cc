@@ -154,7 +154,9 @@ MatrixMFD::CreateMFDmassMatrices(const Teuchos::Ptr<std::vector<WhetStone::Tenso
 
   int ncells = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::OWNED);
 
-  if (Mff_cells_.size() != ncells) { Mff_cells_.resize(static_cast<size_t>(ncells)); }
+  if (Mff_cells_.size() != ncells) {
+    Mff_cells_.resize(static_cast<size_t>(ncells));
+  }
 
   int ok;
   nokay_ = npassed_ = 0;
@@ -171,7 +173,9 @@ MatrixMFD::CreateMFDmassMatrices(const Teuchos::Ptr<std::vector<WhetStone::Tenso
 
     WhetStone::DenseMatrix Mff(nfaces, nfaces);
 
-    if (K != Teuchos::null) { Kc = (*K)[c]; }
+    if (K != Teuchos::null) {
+      Kc = (*K)[c];
+    }
 
     if (method_ == MFD3D_POLYHEDRA_SCALED) {
       ok = mfd.MassMatrixInverseScaled(c, Kc, Mff);
@@ -191,8 +195,7 @@ MatrixMFD::CreateMFDmassMatrices(const Teuchos::Ptr<std::vector<WhetStone::Tenso
     } else if (method_ == MFD3D_HEXAHEDRA_MONOTONE) {
       if ((nfaces == 6 && dim == 3) || (nfaces == 4 && dim == 2))
         ok = mfd.MassMatrixInverseMMatrixHex(c, Kc, Mff);
-      else
-        ok = mfd.MassMatrixInverse(c, Kc, Mff);
+      else ok = mfd.MassMatrixInverse(c, Kc, Mff);
     } else if (method_ == MFD3D_TPFA) {
       ok = mfd.MassMatrixInverseTPFA(c, Kc, Mff);
     } else if (method_ == MFD3D_SUPPORT_OPERATOR) {
@@ -240,9 +243,15 @@ MatrixMFD::CreateMFDstiffnessMatrices(const Teuchos::Ptr<const CompositeVector>&
 
   int ncells = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::OWNED);
 
-  if (Aff_cells_.size() != ncells) { Aff_cells_.resize(static_cast<size_t>(ncells)); }
-  if (Afc_cells_.size() != ncells) { Afc_cells_.resize(static_cast<size_t>(ncells)); }
-  if (Acf_cells_.size() != ncells) { Acf_cells_.resize(static_cast<size_t>(ncells)); }
+  if (Aff_cells_.size() != ncells) {
+    Aff_cells_.resize(static_cast<size_t>(ncells));
+  }
+  if (Afc_cells_.size() != ncells) {
+    Afc_cells_.resize(static_cast<size_t>(ncells));
+  }
+  if (Acf_cells_.size() != ncells) {
+    Acf_cells_.resize(static_cast<size_t>(ncells));
+  }
   if (Acc_cells_.size() != ncells) {
     Acc_cells_.resize(static_cast<size_t>(ncells));
     Acc_ = Teuchos::rcp(
@@ -258,13 +267,17 @@ MatrixMFD::CreateMFDstiffnessMatrices(const Teuchos::Ptr<const CompositeVector>&
 
     if (Krel == Teuchos::null || (!Krel->HasComponent("cell") && !Krel->HasComponent("face"))) {
       for (int n = 0; n != nfaces; ++n) {
-        for (int m = 0; m != nfaces; ++m) { Bff(m, n) = Mff(m, n); }
+        for (int m = 0; m != nfaces; ++m) {
+          Bff(m, n) = Mff(m, n);
+        }
       }
     } else if (Krel->HasComponent("cell") && !Krel->HasComponent("face")) {
       const Epetra_MultiVector& Krel_c = *Krel->ViewComponent("cell", false);
 
       for (int n = 0; n != nfaces; ++n) {
-        for (int m = 0; m != nfaces; ++m) { Bff(m, n) = Mff(m, n) * Krel_c[0][c]; }
+        for (int m = 0; m != nfaces; ++m) {
+          Bff(m, n) = Mff(m, n) * Krel_c[0][c];
+        }
       }
     } else if (!Krel->HasComponent("cell") && Krel->HasComponent("face")) {
       const Epetra_MultiVector& Krel_f = *Krel->ViewComponent("face", true);
@@ -273,7 +286,9 @@ MatrixMFD::CreateMFDstiffnessMatrices(const Teuchos::Ptr<const CompositeVector>&
 
       for (int m = 0; m != nfaces; ++m) {
         AmanziMesh::Entity_ID f = faces[m];
-        for (int n = 0; n != nfaces; ++n) { Bff(m, n) = Mff(m, n) * Krel_f[0][f]; }
+        for (int n = 0; n != nfaces; ++n) {
+          Bff(m, n) = Mff(m, n) * Krel_f[0][f];
+        }
       }
     } else if (Krel->HasComponent("cell") && Krel->HasComponent("face")) {
       const Epetra_MultiVector& Krel_f = *Krel->ViewComponent("face", true);
@@ -283,7 +298,9 @@ MatrixMFD::CreateMFDstiffnessMatrices(const Teuchos::Ptr<const CompositeVector>&
 
       for (int m = 0; m != nfaces; ++m) {
         AmanziMesh::Entity_ID f = faces[m];
-        for (int n = 0; n != nfaces; ++n) { Bff(m, n) = Mff(m, n) * Krel_c[0][c] * Krel_f[0][f]; }
+        for (int n = 0; n != nfaces; ++n) {
+          Bff(m, n) = Mff(m, n) * Krel_c[0][c] * Krel_f[0][f];
+        }
       }
     }
 
@@ -318,8 +335,12 @@ MatrixMFD::CreateMFDrhsVectors()
 {
   int ncells = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::OWNED);
 
-  if (Ff_cells_.size() != ncells) { Ff_cells_.resize(static_cast<size_t>(ncells)); }
-  if (Fc_cells_.size() != ncells) { Fc_cells_.resize(static_cast<size_t>(ncells)); }
+  if (Ff_cells_.size() != ncells) {
+    Ff_cells_.resize(static_cast<size_t>(ncells));
+  }
+  if (Fc_cells_.size() != ncells) {
+    Fc_cells_.resize(static_cast<size_t>(ncells));
+  }
 
   for (int c = 0; c != ncells; ++c) {
     int nfaces = mesh_->getCellNumFaces(c);
@@ -441,7 +462,9 @@ MatrixMFD::FillMatrixGraphs_(const Teuchos::Ptr<Epetra_CrsGraph> cf_graph,
     faces = mesh_->getCellFaces(c);
     int nfaces = faces.size();
 
-    for (int n = 0; n != nfaces; ++n) { faces_GID[n] = fmap_wghost.GID(faces[n]); }
+    for (int n = 0; n != nfaces; ++n) {
+      faces_GID[n] = fmap_wghost.GID(faces[n]);
+    }
     cf_graph->InsertMyIndices(c, nfaces, &(faces[0]));
     ff_graph->InsertGlobalIndices(nfaces, faces_GID, nfaces, faces_GID);
   }
@@ -514,7 +537,9 @@ MatrixMFD::Apply(const CompositeVector& X, CompositeVector& Y) const
     int nfaces = faces.size();
 
     Teuchos::SerialDenseVector<int, double> v(nfaces), av(nfaces);
-    for (int n = 0; n < nfaces; n++) { v(n) = Xf[0][faces[n]]; }
+    for (int n = 0; n < nfaces; n++) {
+      v(n) = Xf[0][faces[n]];
+    }
 
     av.multiply(Teuchos::NO_TRANS, Teuchos::NO_TRANS, 1.0, Aff[c], v, 0.0);
 
@@ -680,7 +705,9 @@ MatrixMFD::DeriveFlux(const CompositeVector& solution,
       int f = faces[n];
       if (f < nfaces_owned && !done[f]) {
         double s = 0.0;
-        for (int m = 0; m != nfaces; ++m) { s += Aff_cells_[c](n, m) * dp[m]; }
+        for (int m = 0; m != nfaces; ++m) {
+          s += Aff_cells_[c](n, m) * dp[m];
+        }
 
         flux_v[0][f] = s * dirs[n];
         done[f] = true;
@@ -689,7 +716,9 @@ MatrixMFD::DeriveFlux(const CompositeVector& solution,
   }
 
   // ensure post-condition - we got them all
-  for (int f = 0; f != nfaces_owned; ++f) { ASSERT(done[f]); }
+  for (int f = 0; f != nfaces_owned; ++f) {
+    ASSERT(done[f]);
+  }
 }
 
 
@@ -828,7 +857,9 @@ MatrixMFD::UpdateConsistentCellCorrection(const CompositeVector& u,
   Epetra_MultiVector& Pu_c = *Pu->ViewComponent("cell", false);
   Pu_c.Update(1.0, *u.ViewComponent("cell", false), -1.0);
 
-  for (int c = 0; c != Pu_c.MyLength(); ++c) { Pu_c[0][c] /= Acc_cells_[c]; }
+  for (int c = 0; c != Pu_c.MyLength(); ++c) {
+    Pu_c[0][c] /= Acc_cells_[c];
+  }
 }
 
 
@@ -841,16 +872,24 @@ MatrixMFD::Add2MFDstiffnessMatrices(std::vector<double>* Acc_ptr,
   int ncells = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::OWNED);
 
   if (Acc_ptr) {
-    for (int c = 0; c != ncells; ++c) { Acc_cells_[c] += (*Acc_ptr)[c]; }
+    for (int c = 0; c != ncells; ++c) {
+      Acc_cells_[c] += (*Acc_ptr)[c];
+    }
   }
   if (Afc_ptr) {
-    for (int c = 0; c != ncells; ++c) { Afc_cells_[c] += Afc_ptr->at(c); }
+    for (int c = 0; c != ncells; ++c) {
+      Afc_cells_[c] += Afc_ptr->at(c);
+    }
   }
   if (Acf_ptr) {
-    for (int c = 0; c != ncells; ++c) { Acf_cells_[c] += Acf_ptr->at(c); }
+    for (int c = 0; c != ncells; ++c) {
+      Acf_cells_[c] += Acf_ptr->at(c);
+    }
   }
   if (Aff_ptr) {
-    for (int c = 0; c != ncells; ++c) { Aff_cells_[c] += Aff_ptr->at(c); }
+    for (int c = 0; c != ncells; ++c) {
+      Aff_cells_[c] += Aff_ptr->at(c);
+    }
   }
 }
 
@@ -899,7 +938,9 @@ MatrixMFD::ApplyAcf_(const Epetra_MultiVector& X, Epetra_MultiVector& Y, double 
     faces = mesh_->getCellFaces(c);
     int nfaces = faces.size();
 
-    for (int n = 0; n < nfaces; n++) { Y[0][c] += Acf[c][n] * X[0][faces[n]]; }
+    for (int n = 0; n < nfaces; n++) {
+      Y[0][c] += Acf[c][n] * X[0][faces[n]];
+    }
   }
   return 0;
 }
@@ -954,7 +995,9 @@ MatrixMFD::ApplyAfc_(const Epetra_MultiVector& X, Epetra_MultiVector& Y, double 
     int nfaces = faces.size();
 
     double tmp = X[0][c];
-    for (int n = 0; n < nfaces; n++) { Y[0][faces[n]] += Afc[c][n] * tmp; }
+    for (int n = 0; n < nfaces; n++) {
+      Y[0][faces[n]] += Afc[c][n] * tmp;
+    }
   }
   return 0;
 }
@@ -1016,7 +1059,9 @@ MatrixMFD::AssembleAff_() const
     faces = mesh_->getCellFaces(c);
     int nfaces = faces.size();
 
-    for (int n = 0; n != nfaces; ++n) { gid[n] = fmap_wghost.GID(faces[n]); }
+    for (int n = 0; n != nfaces; ++n) {
+      gid[n] = fmap_wghost.GID(faces[n]);
+    }
     Aff_->SumIntoGlobalValues(nfaces, gid, Aff_cells_[c].values());
   }
 

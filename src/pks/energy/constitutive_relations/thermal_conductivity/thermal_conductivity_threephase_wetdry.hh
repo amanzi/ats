@@ -51,16 +51,22 @@ class ThermalConductivityThreePhaseWetDry : public ThermalConductivityThreePhase
   ThermalConductivityThreePhaseWetDry(Teuchos::ParameterList& plist);
 
   double ThermalConductivity(double porosity, double sat_liq, double sat_ice, double temp);
-  double
-  DThermalConductivity_DPorosity(double porosity, double sat_liq, double sat_ice, double temp);
+  double DThermalConductivity_DPorosity(double porosity,
+                                        double sat_liq,
+                                        double sat_ice,
+                                        double temp);
   double DThermalConductivity_DSaturationLiquid(double porosity,
                                                 double sat_liq,
                                                 double sat_ice,
                                                 double temp);
-  double
-  DThermalConductivity_DSaturationIce(double porosity, double sat_liq, double sat_ice, double temp);
-  double
-  DThermalConductivity_DTemperature(double porosity, double sat_liq, double sat_ice, double temp);
+  double DThermalConductivity_DSaturationIce(double porosity,
+                                             double sat_liq,
+                                             double sat_ice,
+                                             double temp);
+  double DThermalConductivity_DTemperature(double porosity,
+                                           double sat_liq,
+                                           double sat_ice,
+                                           double temp);
 
  private:
   void InitializeFromPlist_();

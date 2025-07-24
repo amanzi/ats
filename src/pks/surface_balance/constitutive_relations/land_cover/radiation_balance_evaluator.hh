@@ -57,7 +57,7 @@ Computes:
    - `"canopy radiation balance`"
 
    DEPENDENCIES:
-     
+
    - `"surface albedos`" **SURFACE_DOMAIN-albedos**
    - `"surface emissivities`" **SURFACE_DOMAIN-emissivities**
    - `"incoming shortwave radiation`" **SURFACE_DOMAIN-incoming_shortwave_radiation**
@@ -78,7 +78,7 @@ Computes:
    - `"Beer's law extinction coefficient, longwave [-]`"
    - `"albedo of canopy [-]`"
 
-     
+
 Note that this is a *superset* of the physics in the "canopy radiation
 evaluator," and is therefore mutually exclusive with that model.
 
@@ -106,7 +106,8 @@ class RadiationBalanceEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
-  virtual void EnsureCompatibility_Structure_(State& S) override {
+  virtual void EnsureCompatibility_Structure_(State& S) override
+  {
     EnsureCompatibility_StructureSame_(S);
   }
 

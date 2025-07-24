@@ -11,7 +11,7 @@
 
 namespace Amanzi {
 
-RegisteredPKFactory<MPCPermafrostSplitFlux>
-  MPCPermafrostSplitFlux::reg_("operator split permafrost");
+RegisteredPKFactory<MPCPermafrostSplitFlux> MPCPermafrostSplitFlux::reg_(
+  "operator split permafrost");
 
 } // namespace Amanzi

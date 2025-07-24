@@ -72,14 +72,15 @@ class ImplicitSubgrid : public SurfaceBalanceBase {
   // -- Initialize owned (dependent) variables.
   virtual void Initialize() override;
 
-  virtual bool
-  ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::RCP<TreeVector> u) override;
+  virtual bool ModifyPredictor(double h,
+                               Teuchos::RCP<const TreeVector> u0,
+                               Teuchos::RCP<TreeVector> u) override;
 
-  virtual AmanziSolvers::FnBaseDefs::ModifyCorrectionResult
-  ModifyCorrection(double h,
-                   Teuchos::RCP<const TreeVector> res,
-                   Teuchos::RCP<const TreeVector> u,
-                   Teuchos::RCP<TreeVector> du) override;
+  virtual AmanziSolvers::FnBaseDefs::ModifyCorrectionResult ModifyCorrection(
+    double h,
+    Teuchos::RCP<const TreeVector> res,
+    Teuchos::RCP<const TreeVector> u,
+    Teuchos::RCP<TreeVector> du) override;
 
   // computes the non-linear functional g = g(t,u,udot)
   virtual void FunctionalResidual(double t_old,

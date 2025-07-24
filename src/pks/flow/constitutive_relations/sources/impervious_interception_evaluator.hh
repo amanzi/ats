@@ -60,8 +60,9 @@ class ImperviousInterceptionEvaluator : public EvaluatorSecondaryMonotypeCV {
     return Teuchos::rcp(new ImperviousInterceptionEvaluator(*this));
   }
 
-  virtual bool
-  IsDifferentiableWRT(const State& S, const Key& wrt_key, const Tag& wrt_tag) const override
+  virtual bool IsDifferentiableWRT(const State& S,
+                                   const Key& wrt_key,
+                                   const Tag& wrt_tag) const override
   {
     // calculate of derivatives of this is a tricky thing to do, with
     // non-cell-local terms due to rescaling.  Just turn off derivatives
@@ -70,12 +71,11 @@ class ImperviousInterceptionEvaluator : public EvaluatorSecondaryMonotypeCV {
   }
 
  protected:
-
   virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-                                        const Key& wrt_key,
-                                        const Tag& wrt_tag,
-                                        const std::vector<CompositeVector*>& result) override {};
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override {};
 
  protected:
   Key imp_frac_key_;
@@ -93,4 +93,3 @@ class ImperviousInterceptionEvaluator : public EvaluatorSecondaryMonotypeCV {
 } // namespace Relations
 } // namespace Flow
 } // namespace Amanzi
-

@@ -40,7 +40,7 @@ sinks.
      implies explicit, 0.5 implies C-N.
 
    Math and solver algorithm options:
-     
+
    * `"absolute error tolerance`" ``[double]`` **550.0** a_tol in the standard
      error norm calculation.  Defaults to a small amount of water.  Units are
      the same as the conserved quantity.
@@ -56,7 +56,7 @@ sinks.
 
    * `"modify predictor positivity preserving`" ``[bool]`` **false** If true,
      predictors are modified to ensure that the conserved quantity is always > 0.
-     
+
    INCLUDES:
 
    - ``[pk-physical-bdf-default-spec]`` A :ref:`PK: Physical and BDF` spec.
@@ -102,11 +102,12 @@ class SurfaceBalanceBase : public PK_PhysicalBDF_Default {
   virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) override;
 
   // applies preconditioner to u and returns the result in Pu
-  virtual int
-  ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) override;
+  virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
+                                  Teuchos::RCP<TreeVector> Pu) override;
 
-  virtual bool
-  ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::RCP<TreeVector> u) override;
+  virtual bool ModifyPredictor(double h,
+                               Teuchos::RCP<const TreeVector> u0,
+                               Teuchos::RCP<TreeVector> u) override;
 
  protected:
   bool conserved_quantity_;

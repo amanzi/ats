@@ -26,8 +26,8 @@ MPCReactiveTransport::MPCReactiveTransport(Teuchos::ParameterList& pk_tree,
                                            const Teuchos::RCP<Teuchos::ParameterList>& global_list,
                                            const Teuchos::RCP<State>& S,
                                            const Teuchos::RCP<TreeVector>& soln)
-  : PK(pk_tree, global_list, S, soln),
-    WeakMPC(pk_tree, global_list, S, soln) {}
+  : PK(pk_tree, global_list, S, soln), WeakMPC(pk_tree, global_list, S, soln)
+{}
 
 
 void
@@ -37,10 +37,9 @@ MPCReactiveTransport::parseParameterList()
   cast_sub_pks_();
 
   domain_ = getSubPKPlist_(1)->get<std::string>("domain name", "domain");
-  tcc_key_ = Keys::readKey(*getSubPKPlist_(0), domain_, "primary variable",
-                           "total_component_concentration");
-  mol_frac_key_ = Keys::readKey(*getSubPKPlist_(1), domain_, "primary variable",
-                           "mole_fraction");
+  tcc_key_ =
+    Keys::readKey(*getSubPKPlist_(0), domain_, "primary variable", "total_component_concentration");
+  mol_frac_key_ = Keys::readKey(*getSubPKPlist_(1), domain_, "primary variable", "mole_fraction");
   if (tcc_key_ == mol_frac_key_) {
     Errors::Message msg;
     msg << "Chemistry and Transport may not be given the same primary variable name (\"" << tcc_key_
@@ -96,7 +95,6 @@ MPCReactiveTransport::cast_sub_pks_()
   AMANZI_ASSERT(chemistry_pk_ != Teuchos::null);
 
 #endif
-
 }
 
 // -----------------------------------------------------------------------------
@@ -115,14 +113,16 @@ MPCReactiveTransport::Initialize()
   // after the density of water can be evaluated.  This could be problematic
   // for, e.g., salinity intrusion problems where water density is a function
   // of concentration itself, but should work for all other problems?
-  convertConcentrationToMolFrac(*S_, {tcc_key_, tag_next_},
-          {mol_frac_key_, tag_next_}, {mol_dens_key_, tag_next_}, name());
+  convertConcentrationToMolFrac(*S_,
+                                { tcc_key_, tag_next_ },
+                                { mol_frac_key_, tag_next_ },
+                                { mol_dens_key_, tag_next_ },
+                                name());
   S_->GetRecordW(mol_frac_key_, tag_next_, name()).set_initialized();
 
   // initialize transport
   transport_pk_->Initialize();
 }
-
 
 
 // -----------------------------------------------------------------------------
@@ -136,16 +136,22 @@ MPCReactiveTransport::AdvanceStep(double t_old, double t_new, bool reinit)
   if (fail) return fail;
 
   // move from mol_frac@next to tcc@current
-  convertMolFracToConcentration(*S_, {mol_frac_key_, tag_next_},
-          {tcc_key_, tag_current_}, {mol_dens_key_, tag_next_}, name());
+  convertMolFracToConcentration(*S_,
+                                { mol_frac_key_, tag_next_ },
+                                { tcc_key_, tag_current_ },
+                                { mol_dens_key_, tag_next_ },
+                                name());
 
   // Next to chemistry step
   fail = chemistry_pk_->AdvanceStep(t_old, t_new, reinit);
   if (fail) return fail;
 
   // move from tcc@next to mol_frac@next
-  convertConcentrationToMolFrac(*S_, {tcc_key_, tag_next_},
-          {mol_frac_key_, tag_next_}, {mol_dens_key_, tag_next_}, name());
+  convertConcentrationToMolFrac(*S_,
+                                { tcc_key_, tag_next_ },
+                                { mol_frac_key_, tag_next_ },
+                                { mol_dens_key_, tag_next_ },
+                                name());
   return fail;
 };
 

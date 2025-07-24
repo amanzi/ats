@@ -12,8 +12,8 @@
 namespace Amanzi {
 namespace Flow {
 
-RegisteredPKFactory<OverlandPressureFlow>
-  OverlandPressureFlow::reg_("overland flow, pressure basis");
+RegisteredPKFactory<OverlandPressureFlow> OverlandPressureFlow::reg_(
+  "overland flow, pressure basis");
 
 
 } // namespace Flow

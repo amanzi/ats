@@ -382,7 +382,9 @@ WRMImplicitPermafrostModel::si_frozen_unsaturated_nospline_(double pc_liq,
     std::cerr << "WRMImplicitPermafrostModel did not converge, " << max_it
               << " iterations, error = " << func(si) << ", s_i = " << si
               << ", PC_{lg,il} = " << pc_liq << "," << pc_ice << std::endl;
-    if (throw_ok) { Exceptions::amanzi_throw(Errors::CutTimestep()); }
+    if (throw_ok) {
+      Exceptions::amanzi_throw(Errors::CutTimestep());
+    }
   }
   return si;
 }
@@ -430,8 +432,8 @@ WRMImplicitPermafrostModel::dsi_dpc_ice_frozen_unsaturated_nospline_(double pc_l
 void
 WRMImplicitPermafrostModel::saturations(double pc_liq, double pc_ice, double (&sats)[3])
 {
-  if (sats_unfrozen_(pc_liq, pc_ice, sats)) return;
-  if (sats_saturated_(pc_liq, pc_ice, sats)) return;
+  if (sats_unfrozen_(pc_liq, pc_ice, sats) ) return;
+  if (sats_saturated_(pc_liq, pc_ice, sats) ) return;
   sats_frozen_unsaturated_(pc_liq, pc_ice, sats);
   return;
 }
@@ -439,16 +441,16 @@ WRMImplicitPermafrostModel::saturations(double pc_liq, double pc_ice, double (&s
 void
 WRMImplicitPermafrostModel::dsaturations_dpc_liq(double pc_liq, double pc_ice, double (&dsats)[3])
 {
-  if (dsats_dpc_liq_unfrozen_(pc_liq, pc_ice, dsats)) return;
-  if (dsats_dpc_liq_saturated_(pc_liq, pc_ice, dsats)) return;
+  if (dsats_dpc_liq_unfrozen_(pc_liq, pc_ice, dsats) ) return;
+  if (dsats_dpc_liq_saturated_(pc_liq, pc_ice, dsats) ) return;
   dsats_dpc_liq_frozen_unsaturated_(pc_liq, pc_ice, dsats);
 };
 
 void
 WRMImplicitPermafrostModel::dsaturations_dpc_ice(double pc_liq, double pc_ice, double (&dsats)[3])
 {
-  if (dsats_dpc_ice_unfrozen_(pc_liq, pc_ice, dsats)) return;
-  if (dsats_dpc_ice_saturated_(pc_liq, pc_ice, dsats)) return;
+  if (dsats_dpc_ice_unfrozen_(pc_liq, pc_ice, dsats) ) return;
+  if (dsats_dpc_ice_saturated_(pc_liq, pc_ice, dsats) ) return;
   dsats_dpc_ice_frozen_unsaturated_(pc_liq, pc_ice, dsats);
 };
 

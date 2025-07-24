@@ -33,10 +33,8 @@ MPCCoupledWaterSplitFlux::parseParameterList()
 
   // determine whether we are coupling subdomains or coupling 3D domains
   is_domain_set_ = S_->HasDomainSet(domain_set_);
-  if (is_domain_set_)
-    domain_ = Keys::getDomainInSet(domain_set_, "*");
-  else
-    domain_ = domain_set_;
+  if (is_domain_set_) domain_ = Keys::getDomainInSet(domain_set_, "*");
+  else domain_ = domain_set_;
 
   domain_sub_ = Keys::readDomainHint(*plist_, domain_set_, "surface", "subsurface");
 
@@ -152,8 +150,7 @@ MPCCoupledWaterSplitFlux::Initialize()
         S_->GetRecordW(pkey, ds_tag_next, p_owner).set_initialized();
       }
     } else {
-      S_->GetRecordW(p_lateral_flow_source_, tags_[1].second, name_)
-        .set_initialized();
+      S_->GetRecordW(p_lateral_flow_source_, tags_[1].second, name_).set_initialized();
     }
   }
 
@@ -208,23 +205,15 @@ void
 MPCCoupledWaterSplitFlux::CopyStarToPrimary_()
 {
   if (is_domain_set_) {
-    if (coupling_ == "pressure")
-      CopyStarToPrimary_DomainSet_Pressure_();
-    else if (coupling_ == "flux")
-      CopyStarToPrimary_DomainSet_Flux_();
-    else if (coupling_ == "hybrid")
-      CopyStarToPrimary_DomainSet_Hybrid_();
-    else
-      AMANZI_ASSERT(false);
+    if (coupling_ == "pressure") CopyStarToPrimary_DomainSet_Pressure_();
+    else if (coupling_ == "flux") CopyStarToPrimary_DomainSet_Flux_();
+    else if (coupling_ == "hybrid") CopyStarToPrimary_DomainSet_Hybrid_();
+    else AMANZI_ASSERT(false);
   } else {
-    if (coupling_ == "pressure")
-      CopyStarToPrimary_Standard_Pressure_();
-    else if (coupling_ == "flux")
-      CopyStarToPrimary_Standard_Flux_();
-    else if (coupling_ == "hybrid")
-      CopyStarToPrimary_Standard_Hybrid_();
-    else
-      AMANZI_ASSERT(false);
+    if (coupling_ == "pressure") CopyStarToPrimary_Standard_Pressure_();
+    else if (coupling_ == "flux") CopyStarToPrimary_Standard_Flux_();
+    else if (coupling_ == "hybrid") CopyStarToPrimary_Standard_Hybrid_();
+    else AMANZI_ASSERT(false);
   }
 }
 
@@ -296,9 +285,8 @@ MPCCoupledWaterSplitFlux::CopyStarToPrimary_Standard_Pressure_()
   auto p_owner = S_->GetRecord(p_primary_variable_, tags_[1].first).owner();
   auto& p = *S_->GetW<CompositeVector>(p_primary_variable_, tags_[1].first, p_owner)
                .ViewComponent("cell", false);
-  auto& WC =
-    *S_->GetW<CompositeVector>(p_conserved_variable_, tags_[1].first, name_)
-       .ViewComponent("cell", false);
+  auto& WC = *S_->GetW<CompositeVector>(p_conserved_variable_, tags_[1].first, name_)
+                .ViewComponent("cell", false);
 
   double p_atm_plus_eps = 101325. + 1.e-7;
   for (int c = 0; c != p_star.MyLength(); ++c) {
@@ -333,9 +321,8 @@ MPCCoupledWaterSplitFlux::CopyStarToPrimary_Standard_Flux_()
 
   // mass
   // -- grab the data, difference
-  auto& q_div =
-    *S_->GetW<CompositeVector>(p_lateral_flow_source_, tags_[1].second, name_)
-       .ViewComponent("cell", false);
+  auto& q_div = *S_->GetW<CompositeVector>(p_lateral_flow_source_, tags_[1].second, name_)
+                   .ViewComponent("cell", false);
   q_div.Update(1.0 / dt,
                *S_->Get<CompositeVector>(p_conserved_variable_star_, tags_[0].second)
                   .ViewComponent("cell", false),
@@ -366,9 +353,8 @@ MPCCoupledWaterSplitFlux::CopyStarToPrimary_Standard_Hybrid_()
 
   // mass
   // -- grab the data, difference
-  auto& q_div =
-    *S_->GetW<CompositeVector>(p_lateral_flow_source_, tags_[1].second, name_)
-       .ViewComponent("cell", false);
+  auto& q_div = *S_->GetW<CompositeVector>(p_lateral_flow_source_, tags_[1].second, name_)
+                   .ViewComponent("cell", false);
   q_div.Update(1.0 / dt,
                *S_->Get<CompositeVector>(p_conserved_variable_star_, tags_[0].second)
                   .ViewComponent("cell", false),

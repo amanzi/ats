@@ -47,15 +47,18 @@ class VaporPressureRelation;
 class PermafrostModel : public EWCModelBase {
  public:
   PermafrostModel() {}
-  virtual ~PermafrostModel(){};
+  virtual ~PermafrostModel() {};
 
   virtual void InitializeModel(const Teuchos::Ptr<State>& S,
                                const Tag& tag,
                                Teuchos::ParameterList& plist) override;
   virtual void UpdateModel(const Teuchos::Ptr<State>& S, int c) override;
   virtual bool Freezing(double T, double p) override;
-  virtual int
-  EvaluateSaturations(double T, double p, double& s_gas, double& s_liq, double& s_ice) override;
+  virtual int EvaluateSaturations(double T,
+                                  double p,
+                                  double& s_gas,
+                                  double& s_liq,
+                                  double& s_ice) override;
 
  protected:
   bool IsSetUp_();

@@ -128,7 +128,8 @@ MPCPermafrostSplitFlux::parseParameterList()
         auto base_poro_key = Keys::getKey(domain_sub, "base_porosity");
         Tag ds_tag_next = get_ds_tag_next_(domain);
 
-        Teuchos::ParameterList& base_poro_list = S_->GetEvaluatorList(Keys::getKey(base_poro_key, star_next_tag));
+        Teuchos::ParameterList& base_poro_list =
+          S_->GetEvaluatorList(Keys::getKey(base_poro_key, star_next_tag));
         if (!base_poro_list.isParameter("evaluator type")) {
           base_poro_list.set<std::string>("evaluator type", "alias");
           base_poro_list.set<std::string>("target", Keys::getKey(base_poro_key, ds_tag_next, true));
@@ -137,10 +138,12 @@ MPCPermafrostSplitFlux::parseParameterList()
     } else {
       auto [column_current_tag, column_next_tag] = tags_[1];
 
-      Teuchos::ParameterList& base_poro_list = S_->GetEvaluatorList(Keys::getKey("base_porosity", star_next_tag));
+      Teuchos::ParameterList& base_poro_list =
+        S_->GetEvaluatorList(Keys::getKey("base_porosity", star_next_tag));
       if (!base_poro_list.isParameter("evaluator type")) {
         base_poro_list.set<std::string>("evaluator type", "alias");
-        base_poro_list.set<std::string>("target", Keys::getKey("base_porosity", column_next_tag, true));
+        base_poro_list.set<std::string>("target",
+                                        Keys::getKey("base_porosity", column_next_tag, true));
       }
     }
   }
@@ -300,23 +303,15 @@ void
 MPCPermafrostSplitFlux::CopyStarToPrimary_()
 {
   if (is_domain_set_) {
-    if (coupling_ == "pressure")
-      CopyStarToPrimary_DomainSet_Pressure_();
-    else if (coupling_ == "flux")
-      CopyStarToPrimary_DomainSet_Flux_();
-    else if (coupling_ == "hybrid")
-      CopyStarToPrimary_DomainSet_Hybrid_();
-    else
-      AMANZI_ASSERT(false);
+    if (coupling_ == "pressure") CopyStarToPrimary_DomainSet_Pressure_();
+    else if (coupling_ == "flux") CopyStarToPrimary_DomainSet_Flux_();
+    else if (coupling_ == "hybrid") CopyStarToPrimary_DomainSet_Hybrid_();
+    else AMANZI_ASSERT(false);
   } else {
-    if (coupling_ == "pressure")
-      CopyStarToPrimary_Standard_Pressure_();
-    else if (coupling_ == "flux")
-      CopyStarToPrimary_Standard_Flux_();
-    else if (coupling_ == "hybrid")
-      CopyStarToPrimary_Standard_Hybrid_();
-    else
-      AMANZI_ASSERT(false);
+    if (coupling_ == "pressure") CopyStarToPrimary_Standard_Pressure_();
+    else if (coupling_ == "flux") CopyStarToPrimary_Standard_Flux_();
+    else if (coupling_ == "hybrid") CopyStarToPrimary_Standard_Hybrid_();
+    else AMANZI_ASSERT(false);
   }
 }
 

@@ -91,22 +91,23 @@ class MPCPermafrost : public MPCSubsurface {
                                   Teuchos::RCP<TreeVector> g) override;
 
   // -- Apply preconditioner to r and returns the result in Pr.
-  virtual int
-  ApplyPreconditioner(Teuchos::RCP<const TreeVector> r, Teuchos::RCP<TreeVector> Pr) override;
+  virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> r,
+                                  Teuchos::RCP<TreeVector> Pr) override;
 
   // -- Update the preconditioner.
   virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) override;
 
   // -- Modify the predictor.
-  virtual bool
-  ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::RCP<TreeVector> u) override;
+  virtual bool ModifyPredictor(double h,
+                               Teuchos::RCP<const TreeVector> u0,
+                               Teuchos::RCP<TreeVector> u) override;
 
   // -- Modify the correction.
-  virtual AmanziSolvers::FnBaseDefs::ModifyCorrectionResult
-  ModifyCorrection(double h,
-                   Teuchos::RCP<const TreeVector> r,
-                   Teuchos::RCP<const TreeVector> u,
-                   Teuchos::RCP<TreeVector> du) override;
+  virtual AmanziSolvers::FnBaseDefs::ModifyCorrectionResult ModifyCorrection(
+    double h,
+    Teuchos::RCP<const TreeVector> r,
+    Teuchos::RCP<const TreeVector> u,
+    Teuchos::RCP<TreeVector> du) override;
 
  protected:
   // sub PKs

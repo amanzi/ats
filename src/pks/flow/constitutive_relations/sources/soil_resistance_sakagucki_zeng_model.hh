@@ -27,7 +27,8 @@ namespace Flow {
 
 class SoilResistanceSakaguckiZengModel {
  public:
-  explicit SoilResistanceSakaguckiZengModel(Teuchos::ParameterList& plist) : plist_(plist)
+  explicit SoilResistanceSakaguckiZengModel(Teuchos::ParameterList& plist)
+    : plist_(plist)
   {
     InitializeFromPlist_();
   }

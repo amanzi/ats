@@ -22,11 +22,9 @@
 namespace Amanzi {
 namespace Flow {
 
-void
-computeDepth_MeanFaceCentroid(const AmanziMesh::Mesh& mesh, Epetra_MultiVector& depth);
+void computeDepth_MeanFaceCentroid(const AmanziMesh::Mesh& mesh, Epetra_MultiVector& depth);
 
-void
-computeDepth_CellCentroid(const AmanziMesh::Mesh& mesh, Epetra_MultiVector& depth);
+void computeDepth_CellCentroid(const AmanziMesh::Mesh& mesh, Epetra_MultiVector& depth);
 
 } // namespace Flow
 } // namespace Amanzi

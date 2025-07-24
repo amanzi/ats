@@ -42,15 +42,20 @@ MPCFlowTransport::parseParameterList()
       chemistry_ = true;
 
       // chemistry first
-      transport_names = pks_list_->sublist(transport_names[1]).get<Teuchos::Array<std::string>>("PKs order");
+      transport_names =
+        pks_list_->sublist(transport_names[1]).get<Teuchos::Array<std::string>>("PKs order");
     }
 
     // now we have the actual transport names!
     auto subsurf_domain = Keys::readDomain(pks_list_->sublist(transport_names[0]));
-    sub_lwc_key = Keys::readKey(pks_list_->sublist(transport_names[0]), subsurf_domain, "liquid water content", "water_content");
+    sub_lwc_key = Keys::readKey(pks_list_->sublist(transport_names[0]),
+                                subsurf_domain,
+                                "liquid water content",
+                                "water_content");
 
     auto surf_domain = Keys::readDomain(pks_list_->sublist(transport_names[1]));
-    surf_lwc_key = Keys::readKey(pks_list_->sublist(transport_names[1]), surf_domain, "liquid water content", "water_content");
+    surf_lwc_key = Keys::readKey(
+      pks_list_->sublist(transport_names[1]), surf_domain, "liquid water content", "water_content");
   }
 
   auto [flow_current_tag, flow_next_tag] = tags_[0];
@@ -64,14 +69,16 @@ MPCFlowTransport::parseParameterList()
       // from the flow PK's sublist (which may be nested two deep).  Instead we
       // hard-code this as the default.  If this breaks in the future it can be
       // fixed. --ETC
-      Teuchos::ParameterList& flux_list = S_->GetEvaluatorList(Keys::getKey("water_flux", transport_next_tag));
+      Teuchos::ParameterList& flux_list =
+        S_->GetEvaluatorList(Keys::getKey("water_flux", transport_next_tag));
       if (!flux_list.isParameter("evaluator type")) {
         flux_list.set<std::string>("evaluator type", "alias");
         flux_list.set<std::string>("target", Keys::getKey("water_flux", flow_next_tag, true));
       }
 
       // velocity for dispersivity
-      Teuchos::ParameterList& velo_list = S_->GetEvaluatorList(Keys::getKey("darcy_velocity", transport_next_tag));
+      Teuchos::ParameterList& velo_list =
+        S_->GetEvaluatorList(Keys::getKey("darcy_velocity", transport_next_tag));
       if (!velo_list.isParameter("evaluator type")) {
         velo_list.set<std::string>("evaluator type", "alias");
         velo_list.set<std::string>("target", Keys::getKey("darcy_velocity", flow_next_tag, true));
@@ -79,7 +86,8 @@ MPCFlowTransport::parseParameterList()
 
       // now set the liquid water content as an interpolated field at next
       // note that flow_current copy is kept by flow PK, and transport_current copy is kept by transport PK
-      Teuchos::ParameterList& lwc_list_next = S_->GetEvaluatorList(Keys::getKey(sub_lwc_key, transport_next_tag));
+      Teuchos::ParameterList& lwc_list_next =
+        S_->GetEvaluatorList(Keys::getKey(sub_lwc_key, transport_next_tag));
       if (!lwc_list_next.isParameter("evaluator type")) {
         lwc_list_next.set<std::string>("evaluator type", "temporal interpolation");
         lwc_list_next.set<std::string>("current tag", flow_current_tag.get());
@@ -88,7 +96,8 @@ MPCFlowTransport::parseParameterList()
 
       // porosity used with velocity to compute particle velocity when dispersion is on
       // -- and an interpolation at transport's next
-      Teuchos::ParameterList& poro_list_next = S_->GetEvaluatorList(Keys::getKey("porosity", transport_next_tag));
+      Teuchos::ParameterList& poro_list_next =
+        S_->GetEvaluatorList(Keys::getKey("porosity", transport_next_tag));
       if (!poro_list_next.isParameter("evaluator type")) {
         poro_list_next.set<std::string>("evaluator type", "temporal interpolation");
         poro_list_next.set<std::string>("current tag", flow_current_tag.get());
@@ -99,7 +108,8 @@ MPCFlowTransport::parseParameterList()
       if (chemistry_) {
         // mass density used by Alquimia
         // -- transport next is an interpolation
-        Teuchos::ParameterList& dens_list_current = S_->GetEvaluatorList(Keys::getKey("mass_density_liquid", transport_current_tag));
+        Teuchos::ParameterList& dens_list_current =
+          S_->GetEvaluatorList(Keys::getKey("mass_density_liquid", transport_current_tag));
         if (!dens_list_current.isParameter("evaluator type")) {
           dens_list_current.set<std::string>("evaluator type", "temporal interpolation");
           dens_list_current.set<std::string>("current tag", flow_current_tag.get());
@@ -109,7 +119,8 @@ MPCFlowTransport::parseParameterList()
         // saturation
         // -- flow's current is done by flow
         // -- transport's next is an interoplation
-        Teuchos::ParameterList& sat_list_current = S_->GetEvaluatorList(Keys::getKey("saturation_liquid", transport_current_tag));
+        Teuchos::ParameterList& sat_list_current =
+          S_->GetEvaluatorList(Keys::getKey("saturation_liquid", transport_current_tag));
         if (!sat_list_current.isParameter("evaluator type")) {
           sat_list_current.set<std::string>("evaluator type", "temporal interpolation");
           sat_list_current.set<std::string>("current tag", flow_current_tag.get());
@@ -117,7 +128,8 @@ MPCFlowTransport::parseParameterList()
         }
 
         // -- porosity at transport's current is an interpolation (could also be a copy of transport's next?)
-        Teuchos::ParameterList& poro_list_current = S_->GetEvaluatorList(Keys::getKey("porosity", transport_current_tag));
+        Teuchos::ParameterList& poro_list_current =
+          S_->GetEvaluatorList(Keys::getKey("porosity", transport_current_tag));
         if (!poro_list_current.isParameter("evaluator type")) {
           poro_list_current.set<std::string>("evaluator type", "temporal interpolation");
           poro_list_current.set<std::string>("current tag", flow_current_tag.get());
@@ -135,14 +147,17 @@ MPCFlowTransport::parseParameterList()
       // from the flow PK's sublist (which may be nested two deep).  Instead we
       // hard-code this as the default.  If this breaks in the future it can be
       // fixed. --ETC
-      Teuchos::ParameterList& flux_list = S_->GetEvaluatorList(Keys::getKey("surface-water_flux", transport_next_tag));
+      Teuchos::ParameterList& flux_list =
+        S_->GetEvaluatorList(Keys::getKey("surface-water_flux", transport_next_tag));
       if (!flux_list.isParameter("evaluator type")) {
         flux_list.set<std::string>("evaluator type", "alias");
-        flux_list.set<std::string>("target", Keys::getKey("surface-water_flux", flow_next_tag, true));
+        flux_list.set<std::string>("target",
+                                   Keys::getKey("surface-water_flux", flow_next_tag, true));
       }
 
       // velocity for evaluators
-      Teuchos::ParameterList& velo_list = S_->GetEvaluatorList(Keys::getKey("surface-velocity", transport_next_tag));
+      Teuchos::ParameterList& velo_list =
+        S_->GetEvaluatorList(Keys::getKey("surface-velocity", transport_next_tag));
       if (!velo_list.isParameter("evaluator type")) {
         velo_list.set<std::string>("evaluator type", "alias");
         velo_list.set<std::string>("target", Keys::getKey("surface-velocity", flow_next_tag, true));
@@ -151,7 +166,8 @@ MPCFlowTransport::parseParameterList()
       // set the liquid water content as an interpolated field
       // -- flow's current is a kept by flow
       // -- transport's next is an interpolation
-      Teuchos::ParameterList& lwc_list_next = S_->GetEvaluatorList(Keys::getKey(surf_lwc_key, transport_next_tag));
+      Teuchos::ParameterList& lwc_list_next =
+        S_->GetEvaluatorList(Keys::getKey(surf_lwc_key, transport_next_tag));
       if (!lwc_list_next.isParameter("evaluator type")) {
         lwc_list_next.set<std::string>("evaluator type", "temporal interpolation");
         lwc_list_next.set<std::string>("current tag", flow_current_tag.get());
@@ -162,7 +178,8 @@ MPCFlowTransport::parseParameterList()
       if (chemistry_) {
         // density used by Alquimia
         // -- transport's next is an interpolation
-        Teuchos::ParameterList& dens_list_current = S_->GetEvaluatorList(Keys::getKey("surface-mass_density_liquid", transport_current_tag));
+        Teuchos::ParameterList& dens_list_current =
+          S_->GetEvaluatorList(Keys::getKey("surface-mass_density_liquid", transport_current_tag));
         if (!dens_list_current.isParameter("evaluator type")) {
           dens_list_current.set<std::string>("evaluator type", "temporal interpolation");
           dens_list_current.set<std::string>("current tag", flow_current_tag.get());
@@ -172,7 +189,8 @@ MPCFlowTransport::parseParameterList()
         // ponded depth
         // -- flow's current is kept by flow
         // -- transport's next is an interpolation
-        Teuchos::ParameterList& pd_list_current = S_->GetEvaluatorList(Keys::getKey("surface-ponded_depth", transport_current_tag));
+        Teuchos::ParameterList& pd_list_current =
+          S_->GetEvaluatorList(Keys::getKey("surface-ponded_depth", transport_current_tag));
         if (!pd_list_current.isParameter("evaluator type")) {
           pd_list_current.set<std::string>("evaluator type", "temporal interpolation");
           pd_list_current.set<std::string>("current tag", flow_current_tag.get());

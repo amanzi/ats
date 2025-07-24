@@ -56,7 +56,6 @@ EnergyBase::EnergyBase(Teuchos::ParameterList& FElist,
 {}
 
 
-
 // call to allow a PK to modify its own list or lists of its children.
 void
 EnergyBase::parseParameterList()
@@ -97,7 +96,8 @@ EnergyBase::parseParameterList()
   is_source_term_ = plist_->get<bool>("source term", false);
   if (is_source_term_ && source_key_.empty()) {
     source_key_ = Keys::readKey(*plist_, domain_, "source", "total_energy_source");
-    is_source_term_finite_differentiable_ = plist_->get<bool>("source term finite difference", false);
+    is_source_term_finite_differentiable_ =
+      plist_->get<bool>("source term finite difference", false);
   }
 
   // get keys
@@ -169,8 +169,8 @@ EnergyBase::SetupEnergy_()
       .SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
-    if (!is_source_term_finite_differentiable_
-        && S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
+    if (!is_source_term_finite_differentiable_ &&
+        S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
       is_source_term_differentiable_ = true;
       // require derivative of source
       S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
@@ -179,7 +179,7 @@ EnergyBase::SetupEnergy_()
   }
 
   // is dynamic mesh?  If so, get a key for indicating when the mesh has changed.
-  if (!deform_key_.empty()) S_->RequireEvaluator(deform_key_, tag_next_);
+  if (!deform_key_.empty() ) S_->RequireEvaluator(deform_key_, tag_next_);
 
   // Set up Operators
   // -- boundary conditions
@@ -497,7 +497,7 @@ EnergyBase::UpdateConductivityData_(const Tag& tag)
       S_->GetPtrW<CompositeVector>(uw_conductivity_key_, tag, name_);
     upwinding_->Update(*cond, *uw_cond, *S_);
 
-    if (uw_cond->HasComponent("face")) uw_cond->ScatterMasterToGhosted("face");
+    if (uw_cond->HasComponent("face") ) uw_cond->ScatterMasterToGhosted("face");
   }
   return update;
 }
@@ -507,7 +507,7 @@ bool
 EnergyBase::UpdateConductivityDerivativeData_(const Tag& tag)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "  Updating conductivity derivatives? ";
+  if (vo_->os_OK(Teuchos::VERB_EXTREME) ) *vo_->os() << "  Updating conductivity derivatives? ";
 
   bool update = S_->GetEvaluator(conductivity_key_, tag).UpdateDerivative(*S_, name_, key_, tag);
 
@@ -520,7 +520,7 @@ EnergyBase::UpdateConductivityDerivativeData_(const Tag& tag)
         S_->GetPtrW<CompositeVector>(duw_conductivity_key_, tag, name_);
       duw_cond->PutScalar(0.);
       upwinding_deriv_->Update(*dcond, *duw_cond, *S_);
-      if (duw_cond->HasComponent("face")) duw_cond->ScatterMasterToGhosted("face");
+      if (duw_cond->HasComponent("face") ) duw_cond->ScatterMasterToGhosted("face");
     } else {
       dcond->ScatterMasterToGhosted("cell");
     }
@@ -546,7 +546,7 @@ void
 EnergyBase::UpdateBoundaryConditions_(const Tag& tag)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "  Updating BCs." << std::endl;
+  if (vo_->os_OK(Teuchos::VERB_EXTREME) ) *vo_->os() << "  Updating BCs." << std::endl;
 
   auto& markers = bc_markers();
   auto& values = bc_values();
@@ -664,7 +664,7 @@ bool
 EnergyBase::IsAdmissible(Teuchos::RCP<const TreeVector> up)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "  Checking admissibility..." << std::endl;
+  if (vo_->os_OK(Teuchos::VERB_EXTREME) ) *vo_->os() << "  Checking admissibility..." << std::endl;
 
   // For some reason, wandering PKs break most frequently with an unreasonable
   // temperature.  This simply tries to catch that before it happens.
@@ -708,7 +708,7 @@ bool
 EnergyBase::ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::RCP<TreeVector> u)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "Modifying predictor:" << std::endl;
+  if (vo_->os_OK(Teuchos::VERB_EXTREME) ) *vo_->os() << "Modifying predictor:" << std::endl;
 
   // update boundary conditions
   //ComputeBoundaryConditions_(tag_next_);
@@ -766,7 +766,7 @@ EnergyBase::ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos
 void
 EnergyBase::CalculateConsistentFaces(const Teuchos::Ptr<CompositeVector>& u)
 {
-  if (!u->HasComponent("face")) return;
+  if (!u->HasComponent("face") ) return;
 
   // average cells to faces to give a reasonable initial guess
   u->ScatterMasterToGhosted("cell");
@@ -779,7 +779,9 @@ EnergyBase::CalculateConsistentFaces(const Teuchos::Ptr<CompositeVector>& u)
     int ncells = cells.size();
 
     double face_value = 0.0;
-    for (int n = 0; n != ncells; ++n) { face_value += u_c[0][cells[n]]; }
+    for (int n = 0; n != ncells; ++n) {
+      face_value += u_c[0][cells[n]];
+    }
     u_f[0][f] = face_value / ncells;
   }
   ChangedSolution();
@@ -848,7 +850,7 @@ EnergyBase::ModifyCorrection(double h,
   int my_limited = 0;
   int n_limited = 0;
   if (T_limit_ > 0.) {
-    for (CompositeVector::name_iterator comp = du->Data()->begin(); comp != du->Data()->end();
+    for (CompositeVector::name_iterator comp = du->Data() ->begin(); comp != du->Data()->end();
          ++comp) {
       Epetra_MultiVector& du_c = *du->Data()->ViewComponent(*comp, false);
 
@@ -869,7 +871,9 @@ EnergyBase::ModifyCorrection(double h,
   }
 
   if (n_limited > 0) {
-    if (vo_->os_OK(Teuchos::VERB_HIGH)) { *vo_->os() << "  limited by temperature." << std::endl; }
+    if (vo_->os_OK(Teuchos::VERB_HIGH)) {
+      *vo_->os() << "  limited by temperature." << std::endl;
+    }
     return AmanziSolvers::FnBaseDefs::CORRECTION_MODIFIED;
   }
   return AmanziSolvers::FnBaseDefs::CORRECTION_NOT_MODIFIED;

@@ -106,7 +106,7 @@ class FATES_PK : public PK_Physical_Default {
 
 
   // -- Update diagnostics for vis.
-  virtual void CalculateDiagnostics(const Teuchos::RCP<State>& S){};
+  virtual void CalculateDiagnostics(const Teuchos::RCP<State>& S) {};
 
   virtual bool AdvanceStep(double t_old, double t_new, bool reinit);
 
@@ -119,8 +119,10 @@ class FATES_PK : public PK_Physical_Default {
   virtual void set_dt(double dt) { dt_ = dt; }
 
  protected:
-  void
-  FieldToColumn_(AmanziMesh::Entity_ID col, const Epetra_Vector& vec, double* col_vec, int ncol);
+  void FieldToColumn_(AmanziMesh::Entity_ID col,
+                      const Epetra_Vector& vec,
+                      double* col_vec,
+                      int ncol);
   void ColDepthDz_(AmanziMesh::Entity_ID col,
                    Teuchos::Ptr<Epetra_SerialDenseVector> depth,
                    Teuchos::Ptr<Epetra_SerialDenseVector> dz);

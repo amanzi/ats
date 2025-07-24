@@ -13,8 +13,8 @@ namespace Amanzi {
 namespace Flow {
 
 // registry of method
-Utils::RegisteredFactory<Evaluator, WaterLevelEvaluator>
-  WaterLevelEvaluator::factory_("water level");
+Utils::RegisteredFactory<Evaluator, WaterLevelEvaluator> WaterLevelEvaluator::factory_(
+  "water level");
 
 } // namespace Flow
 } // namespace Amanzi

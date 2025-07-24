@@ -25,13 +25,13 @@ EvaluatorSubgridReturn::EvaluatorSubgridReturn(Teuchos::ParameterList& plist)
 
   // first add the non-domain-set dependencies
   cv_key_ = Keys::readKey(plist, domain_, "cell volume", "cell_volume");
-  dependencies_.insert({cv_key_, tag});
+  dependencies_.insert({ cv_key_, tag });
 
   lwc_key_ = Keys::readKey(plist, domain_, "liquid water content", "water_content");
-  dependencies_.insert({lwc_key_, tag});
+  dependencies_.insert({ lwc_key_, tag });
 
   alpha_key_ = Keys::readKey(plist, domain_, "exchange coefficient", "exchange_coefficient_0");
-  dependencies_.insert({alpha_key_, tag});
+  dependencies_.insert({ alpha_key_, tag });
 
   // now add the domain-set dependencies
   mf_suffix_ = plist.get<std::string>("subgrid field suffix", "mole_fraction");
@@ -48,8 +48,10 @@ EvaluatorSubgridReturn::Evaluate_(const State& S, const std::vector<CompositeVec
 {
   const Tag& tag = my_keys_.front().second;
   const Epetra_MultiVector& cv = *S.Get<CompositeVector>(cv_key_, tag).ViewComponent("cell", false);
-  const Epetra_MultiVector& alpha = *S.Get<CompositeVector>(alpha_key_, tag).ViewComponent("cell", false);
-  const Epetra_MultiVector& lwc = *S.Get<CompositeVector>(lwc_key_, tag).ViewComponent("cell", false);
+  const Epetra_MultiVector& alpha =
+    *S.Get<CompositeVector>(alpha_key_, tag).ViewComponent("cell", false);
+  const Epetra_MultiVector& lwc =
+    *S.Get<CompositeVector>(lwc_key_, tag).ViewComponent("cell", false);
 
   AMANZI_ASSERT(results.size() == 1);
   Epetra_MultiVector& res = *results[0]->ViewComponent("cell", false);
@@ -60,11 +62,11 @@ EvaluatorSubgridReturn::Evaluate_(const State& S, const std::vector<CompositeVec
   int c = 0;
   for (const auto& subdomain : *ds) {
     const Epetra_MultiVector& mf = *S.Get<CompositeVector>(Keys::getKey(subdomain, mf_suffix_), tag)
-      .ViewComponent("cell", false);
+                                      .ViewComponent("cell", false);
 
     for (int k = 0; k != mf.NumVectors(); ++k) {
       double integral = 0.;
-      for (int c_sg = 0; c_sg != mf.MyLength(); ++c_sg) integral += mf[k][c_sg];
+      for (int c_sg = 0; c_sg != mf.MyLength() ; ++c_sg) integral += mf[k][c_sg];
 
       res[k][c] = integral * alpha[k][c] * lwc[0][c] / cv[0][c] / mf.MyLength();
     }
@@ -82,15 +84,14 @@ EvaluatorSubgridReturn::EnsureCompatibility_ToDeps_(State& S)
     auto ds = S.GetDomainSet(domain_set_);
     for (const auto& subdomain : *ds) {
       Key dep = Keys::getKey(subdomain, mf_suffix_);
-      dependencies_.insert({dep, akeytag.second});
+      dependencies_.insert({ dep, akeytag.second });
     }
   }
 
   const auto& my_fac =
     S.Require<CompositeVector, CompositeVectorSpace>(akeytag.first, akeytag.second);
 
-  if (my_fac.Mesh() != Teuchos::null &&
-      my_fac.HasComponent("cell")) {
+  if (my_fac.Mesh() != Teuchos::null && my_fac.HasComponent("cell")) {
     S.Require<CompositeVector, CompositeVectorSpace>(cv_key_, akeytag.second)
       .SetMesh(my_fac.Mesh())
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
@@ -104,7 +105,8 @@ EvaluatorSubgridReturn::EnsureCompatibility_ToDeps_(State& S)
 
     auto ds = S.GetDomainSet(domain_set_);
     for (const auto& subdomain : *ds) {
-      S.Require<CompositeVector, CompositeVectorSpace>(Keys::getKey(subdomain, mf_suffix_), akeytag.second)
+      S.Require<CompositeVector, CompositeVectorSpace>(Keys::getKey(subdomain, mf_suffix_),
+                                                       akeytag.second)
         .SetMesh(S.GetMesh(subdomain))
         ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, my_fac.NumVectors("cell"));
     }

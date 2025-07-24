@@ -55,13 +55,15 @@ Morphology_PK::parseParameterList()
     requireEvaluatorAtCurrent(pd_key_, flow_current_tag, *S_, name_);
 
     // transport's next is an interpolation
-    Teuchos::ParameterList& dens_list_next = S_->GetEvaluatorList(Keys::getKey(dens_key_, transport_next_tag));
+    Teuchos::ParameterList& dens_list_next =
+      S_->GetEvaluatorList(Keys::getKey(dens_key_, transport_next_tag));
     if (!dens_list_next.isParameter("evaluator type")) {
       dens_list_next.set<std::string>("evaluator type", "temporal interpolation");
       dens_list_next.set<std::string>("current tag", flow_current_tag.get());
       dens_list_next.set<std::string>("next tag", flow_next_tag.get());
     }
-    Teuchos::ParameterList& pd_list_next = S_->GetEvaluatorList(Keys::getKey(pd_key_, transport_next_tag));
+    Teuchos::ParameterList& pd_list_next =
+      S_->GetEvaluatorList(Keys::getKey(pd_key_, transport_next_tag));
     if (!pd_list_next.isParameter("evaluator type")) {
       pd_list_next.set<std::string>("evaluator type", "temporal interpolation");
       pd_list_next.set<std::string>("current tag", flow_current_tag.get());
@@ -74,7 +76,8 @@ Morphology_PK::parseParameterList()
   domain_3d_ = Keys::readDomainHint(*plist_, domain_, "surface", "surface_3d");
   domain_ss_ = Keys::readDomainHint(*plist_, domain_, "surface", "domain");
 
-  vertex_coord_key_ = Keys::readKey(*plist_, domain_3d_, "vertex coordinates", "vertex_coordinates");
+  vertex_coord_key_ =
+    Keys::readKey(*plist_, domain_3d_, "vertex coordinates", "vertex_coordinates");
 
   mesh_ = S_->GetDeformableMesh(domain_);
   mesh_3d_ = S_->GetDeformableMesh(domain_3d_);
@@ -95,7 +98,8 @@ Morphology_PK::Setup()
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
-  S_->Require<CompositeVector, CompositeVectorSpace>(vertex_coord_key_, tag_next_, vertex_coord_key_)
+  S_->Require<CompositeVector, CompositeVectorSpace>(
+      vertex_coord_key_, tag_next_, vertex_coord_key_)
     .SetMesh(mesh_3d_)
     ->SetGhosted()
     ->SetComponent("node", AmanziMesh::Entity_kind::NODE, mesh_3d_->getSpaceDimension());
@@ -112,14 +116,13 @@ Morphology_PK::AdvanceStep(double t_old, double t_new, bool reinit)
   Teuchos::OSTab tab = vo_->getOSTab();
 
   // zero out the dz field to reset for the next step
-  S_->GetW<CompositeVector>(elevation_increase_key_, tag_next_,
-                            sub_pks_[1]->name()).PutScalar(0.);
-  
+  S_->GetW<CompositeVector>(elevation_increase_key_, tag_next_, sub_pks_[1]->name()).PutScalar(0.);
+
   fail = Amanzi::MPCFlowTransport::AdvanceStep(t_old, t_new, reinit);
 
   if (!fail) {
-    const Epetra_MultiVector& dz = *S_->Get<CompositeVector>(elevation_increase_key_, tag_next_)
-      .ViewComponent("cell", false);
+    const Epetra_MultiVector& dz =
+      *S_->Get<CompositeVector>(elevation_increase_key_, tag_next_).ViewComponent("cell", false);
     double max_dz, min_dz;
     dz.MinValue(&min_dz);
     dz.MaxValue(&max_dz);
@@ -146,8 +149,8 @@ Morphology_PK::Update_MeshVertices_(const Teuchos::Ptr<State>& S, const Tag& tag
     //
     // NOTE that this only needs to exist on the surface mesh, but needs to be
     // the 3d coordinates.
-    Epetra_MultiVector& vc =
-      *S->GetW<CompositeVector>(vertex_coord_key_, tag, vertex_coord_key_).ViewComponent("node", false);
+    Epetra_MultiVector& vc = *S->GetW<CompositeVector>(vertex_coord_key_, tag, vertex_coord_key_)
+                                .ViewComponent("node", false);
 
     for (int c = 0; c != dz.MyLength(); ++c) {
       auto surf_nodes = mesh_->getCellNodes(c);
@@ -202,7 +205,6 @@ Morphology_PK::CommitStep(double t_old, double t_new, const Tag& tag)
   assign(dens_key_, flow_current_tag, flow_next_tag, *S_);
   assign(pd_key_, flow_current_tag, flow_next_tag, *S_);
 }
-
 
 
 } // namespace Amanzi

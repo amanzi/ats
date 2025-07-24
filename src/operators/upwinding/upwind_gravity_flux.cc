@@ -25,7 +25,7 @@ namespace Operators {
 UpwindGravityFlux::UpwindGravityFlux(const std::string& pkname,
                                      const Tag& tag,
                                      const Teuchos::RCP<const TensorVector>& K)
-  : pkname_(pkname), tag_(tag), K_(K){};
+  : pkname_(pkname), tag_(tag), K_(K) {};
 
 void
 UpwindGravityFlux::Update(const CompositeVector& cells,
@@ -63,7 +63,9 @@ UpwindGravityFlux::CalculateCoefficientsOnFaces(const CompositeVector& cell_coef
 
   // initialize the face coefficients
   face_coef.ViewComponent(face_component, true)->PutScalar(0.0);
-  if (face_coef.HasComponent("cell")) { face_coef.ViewComponent("cell", true)->PutScalar(1.0); }
+  if (face_coef.HasComponent("cell")) {
+    face_coef.ViewComponent("cell", true)->PutScalar(1.0);
+  }
 
   // Note that by scattering, and then looping over all Parallel_kind::ALL cells, we
   // end up getting the correct upwind values in all faces (owned or

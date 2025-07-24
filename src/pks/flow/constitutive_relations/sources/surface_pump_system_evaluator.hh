@@ -8,11 +8,11 @@
            Ethan Coon (coonet@ornl.gov)
 */
 
-//! An evaluator for stage-based pump systems 
+//! An evaluator for stage-based pump systems
 /*!
 
-This evaluator models stage-based pump station model inside 2D flow area. 
-Pump stations can be used to move water between any combination of river reaches, storage areas or catchment regions. 
+This evaluator models stage-based pump station model inside 2D flow area.
+Pump stations can be used to move water between any combination of river reaches, storage areas or catchment regions.
 Based on pump on-off conditions and pump-operation curve, water is moved from pump-inlet to -outlet region instantly.
 
 `"evaluator type`" = `"pump system`"
@@ -24,17 +24,17 @@ Based on pump on-off conditions and pump-operation curve, water is moved from pu
    * `"pump outlet region`" ``[str]`` Region of cells where pump flow is introduced (optional).
    * `"on off reference region`" ``[str]`` Region used to determine when the pump should turn on or off (optional). Defaults to "pump inlet region".
    * `"pump start at stage`" ``[double]`` The water surface elevation that should trigger the pump start.
-   * `"pump stop at stage`" ``[double]`` The water surface elevation that should trigger the pump stop. 
+   * `"pump stop at stage`" ``[double]`` The water surface elevation that should trigger the pump stop.
    * `"maximum pumpline elevation`" ``[double]`` Allows the user to enter the highest elevation in the pump line. E.g., pumping water over top of a levee.
    * `"function`" ``[function-tabular]`` This is a function/table of head and pump flow. Here, head is head difference between outlet and inlet (or head by which the water is to be lifted).
 
    KEYS:
-   - `"cell volume`" **DOMAIN-cell_volume** 
-   - `"ponded depth`" **DOMAIN-ponded_depth** 
+   - `"cell volume`" **DOMAIN-cell_volume**
+   - `"ponded depth`" **DOMAIN-ponded_depth**
    - `"potential`" **DOMAIN-pres_elev** stage or water surface elevation
-   - `"elevation`" **DOMAIN-elevation** 
-   - `"water content`" **DOMAIN-water_content** 
-   - `"molar liquid density`" **DOMAIN-molar_density_liquid** 
+   - `"elevation`" **DOMAIN-elevation**
+   - `"water content`" **DOMAIN-water_content**
+   - `"molar liquid density`" **DOMAIN-molar_density_liquid**
    - `"pump on`" **DOMAIN-pump_on_flag** status of pump
 
 Example:
@@ -78,8 +78,9 @@ class SurfPumpEvaluator : public EvaluatorSecondaryMonotypeCV {
     return Teuchos::rcp(new SurfPumpEvaluator(*this));
   }
 
-  virtual bool
-  IsDifferentiableWRT(const State& S, const Key& wrt_key, const Tag& wrt_tag) const override
+  virtual bool IsDifferentiableWRT(const State& S,
+                                   const Key& wrt_key,
+                                   const Tag& wrt_tag) const override
   {
     // calculate of derivatives of this is a tricky thing to do, with
     // non-cell-local terms due to rescaling.  Just turn off derivatives
@@ -88,7 +89,6 @@ class SurfPumpEvaluator : public EvaluatorSecondaryMonotypeCV {
   }
 
  protected:
-
   virtual void EnsureCompatibility_Structure_(State& S) override;
 
   // note, we override Update here because we are working around the fact that
@@ -102,13 +102,14 @@ class SurfPumpEvaluator : public EvaluatorSecondaryMonotypeCV {
   // API, which is just empty and throws an error.
   virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result, int& pump_on);
 
-  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override {
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override
+  {
     AMANZI_ASSERT(false);
   }
   virtual void EvaluatePartialDerivative_(const State& S,
-                                        const Key& wrt_key,
-                                        const Tag& wrt_tag,
-                                        const std::vector<CompositeVector*>& result) override{};
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override {};
 
  protected:
   Key cv_key_;
@@ -137,4 +138,3 @@ class SurfPumpEvaluator : public EvaluatorSecondaryMonotypeCV {
 } // namespace Relations
 } // namespace Flow
 } // namespace Amanzi
-

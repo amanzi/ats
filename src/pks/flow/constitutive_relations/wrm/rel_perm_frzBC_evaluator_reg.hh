@@ -13,8 +13,8 @@ namespace Amanzi {
 namespace Flow {
 
 // registry of method
-Utils::RegisteredFactory<Evaluator, RelPermFrzBCEvaluator>
-  RelPermFrzBCEvaluator::factory_("relative permeability, freezing Brooks-Corey");
+Utils::RegisteredFactory<Evaluator, RelPermFrzBCEvaluator> RelPermFrzBCEvaluator::factory_(
+  "relative permeability, freezing Brooks-Corey");
 
 } // namespace Flow
 } // namespace Amanzi

@@ -18,7 +18,7 @@
 #include "surface_relperm_model_factory.hh"
 
 // explicity instantitate the static data of Factory<SurfaceRelPermModel>
-template <>
+template<>
 Amanzi::Utils::Factory<Amanzi::Flow::SurfaceRelPermModel>::map_type*
   Amanzi::Utils::Factory<Amanzi::Flow::SurfaceRelPermModel>::map_;
 

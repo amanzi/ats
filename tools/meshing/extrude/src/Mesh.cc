@@ -20,7 +20,9 @@ Mesh2D::Mesh2D(std::vector<Point>& coords_,
 {
   double area_eps = 1.e-6;
 
-  for (auto& set : cell_sets) { AMANZI_ASSERT(set.size() == cell2node.size()); }
+  for (auto& set : cell_sets) {
+    AMANZI_ASSERT(set.size() == cell2node.size());
+  }
 
   nnodes = coords.size();
   ncells = cell2node.size();
@@ -30,7 +32,9 @@ Mesh2D::Mesh2D(std::vector<Point>& coords_,
     v1.set(coords[c[1]][0] - coords[c[0]][0], coords[c[1]][1] - coords[c[0]][1]);
     v2.set(coords[c[2]][0] - coords[c[0]][0], coords[c[2]][1] - coords[c[0]][1]);
     Point cross = v1 ^ v2;
-    if (cross[0] < 0) { std::reverse(c.begin(), c.end()); }
+    if (cross[0] < 0) {
+      std::reverse(c.begin(), c.end());
+    }
     if (std::abs(cross[0]) < area_eps) {
       std::cout << "Zero area triangle:" << std::endl
                 << " " << coords[c[0]] << std::endl
@@ -131,12 +135,16 @@ Mesh3D::Mesh3D(const Mesh2D* const m_, int n_layers)
 
   // move the 2d cell sets to face sets on the surface
   std::set<int> set_ids;
-  for (auto& part : m->cell_sets) { set_ids.insert(part.begin(), part.end()); }
+  for (auto& part : m->cell_sets) {
+    set_ids.insert(part.begin(), part.end());
+  }
   for (int sid : set_ids) {
     std::vector<int> set_cells;
     for (auto& part : m->cell_sets) {
       for (int c = 0; c != part.size(); ++c) {
-        if (part[c] == sid) { set_cells.push_back(c); }
+        if (part[c] == sid) {
+          set_cells.push_back(c);
+        }
       }
     }
     std::vector<int> set_faces(set_cells.size(), 0);

@@ -21,7 +21,8 @@
 namespace Amanzi {
 namespace Relations {
 
-ViscosityConstant::ViscosityConstant(Teuchos::ParameterList& visc_plist) : visc_plist_(visc_plist)
+ViscosityConstant::ViscosityConstant(Teuchos::ParameterList& visc_plist)
+  : visc_plist_(visc_plist)
 {
   InitializeFromPlist_();
 };

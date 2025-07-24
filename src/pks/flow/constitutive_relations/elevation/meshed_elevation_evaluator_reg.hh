@@ -14,8 +14,8 @@ namespace Amanzi {
 namespace Flow {
 
 // registry of method
-Utils::RegisteredFactory<Evaluator, MeshedElevationEvaluator>
-  MeshedElevationEvaluator::reg_("meshed elevation");
+Utils::RegisteredFactory<Evaluator, MeshedElevationEvaluator> MeshedElevationEvaluator::reg_(
+  "meshed elevation");
 Utils::RegisteredFactory<Evaluator, StandaloneElevationEvaluator>
   StandaloneElevationEvaluator::reg_("standalone elevation");
 

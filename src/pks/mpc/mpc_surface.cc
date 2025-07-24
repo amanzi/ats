@@ -207,7 +207,9 @@ MPCSurface::Initialize()
 void
 MPCSurface::CommitStep(double t_old, double t_new, const Tag& tag)
 {
-  if (ewc_ != Teuchos::null) { ewc_->commit_state(); }
+  if (ewc_ != Teuchos::null) {
+    ewc_->commit_state();
+  }
   StrongMPC<PK_PhysicalBDF_Default>::CommitStep(t_old, t_new, tag);
 }
 
@@ -297,7 +299,7 @@ int
 MPCSurface::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "Precon application:" << std::endl;
+  if (vo_->os_OK(Teuchos::VERB_EXTREME) ) *vo_->os() << "Precon application:" << std::endl;
 
   // write residuals
   if (vo_->os_OK(Teuchos::VERB_HIGH)) {
@@ -338,7 +340,9 @@ MPCSurface::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<T
            ->ViewComponent("cell", false);
       Epetra_MultiVector& Pu_c = *Pu->SubVector(0)->Data()->ViewComponent("cell", false);
 
-      for (unsigned int c = 0; c != Pu_c.MyLength(); ++c) { Pu_c[0][c] /= dh_dp[0][c]; }
+      for (unsigned int c = 0; c != Pu_c.MyLength(); ++c) {
+        Pu_c[0][c] /= dh_dp[0][c];
+      }
     }
   }
 

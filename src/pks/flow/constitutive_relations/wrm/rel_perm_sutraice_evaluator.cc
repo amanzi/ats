@@ -241,7 +241,9 @@ RelPermSutraIceEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
     const Epetra_MultiVector& visc_c =
       *S.GetPtr<CompositeVector>(visc_key_, tag)->ViewComponent("cell", false);
 
-    for (unsigned int c = 0; c != ncells; ++c) { res_c[0][c] *= dens_c[0][c] / visc_c[0][c]; }
+    for (unsigned int c = 0; c != ncells; ++c) {
+      res_c[0][c] *= dens_c[0][c] / visc_c[0][c];
+    }
 
     // Potentially scale boundary faces.
     if (result[0]->HasComponent("boundary_face")) {
@@ -320,7 +322,9 @@ RelPermSutraIceEvaluator::EvaluatePartialDerivative_(const State& S,
       const Epetra_MultiVector& visc_c =
         *S.GetPtr<CompositeVector>(visc_key_, tag)->ViewComponent("cell", false);
 
-      for (unsigned int c = 0; c != ncells; ++c) { res_c[0][c] *= dens_c[0][c] / visc_c[0][c]; }
+      for (unsigned int c = 0; c != ncells; ++c) {
+        res_c[0][c] *= dens_c[0][c] / visc_c[0][c];
+      }
     }
 
     // rescale as neeeded
@@ -365,7 +369,9 @@ RelPermSutraIceEvaluator::EvaluatePartialDerivative_(const State& S,
       const Epetra_MultiVector& visc_c =
         *S.GetPtr<CompositeVector>(visc_key_, tag)->ViewComponent("cell", false);
 
-      for (unsigned int c = 0; c != ncells; ++c) { res_c[0][c] *= dens_c[0][c] / visc_c[0][c]; }
+      for (unsigned int c = 0; c != ncells; ++c) {
+        res_c[0][c] *= dens_c[0][c] / visc_c[0][c];
+      }
     }
 
     // rescale as neeeded
@@ -381,7 +387,9 @@ RelPermSutraIceEvaluator::EvaluatePartialDerivative_(const State& S,
     Epetra_MultiVector& res_c = *result[0]->ViewComponent("cell", false);
 
     int ncells = res_c.MyLength();
-    for (unsigned int c = 0; c != ncells; ++c) { res_c[0][c] = kr_c[0][c] / dens_c[0][c]; }
+    for (unsigned int c = 0; c != ncells; ++c) {
+      res_c[0][c] = kr_c[0][c] / dens_c[0][c];
+    }
 
     // Potentially scale boundary faces.
     if (result[0]->HasComponent("boundary_face")) {
@@ -409,7 +417,9 @@ RelPermSutraIceEvaluator::EvaluatePartialDerivative_(const State& S,
     Epetra_MultiVector& res_c = *result[0]->ViewComponent("cell", false);
 
     int ncells = res_c.MyLength();
-    for (unsigned int c = 0; c != ncells; ++c) { res_c[0][c] = -kr_c[0][c] / visc_c[0][c]; }
+    for (unsigned int c = 0; c != ncells; ++c) {
+      res_c[0][c] = -kr_c[0][c] / visc_c[0][c];
+    }
 
 
     // Potentially scale boundary faces.

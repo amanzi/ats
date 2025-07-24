@@ -32,8 +32,8 @@ namespace Amanzi {
 namespace SurfaceBalance {
 namespace Relations {
 
-Utils::RegisteredFactory<Evaluator, AlbedoTwoComponentEvaluator>
-  AlbedoTwoComponentEvaluator::reg_("subgrid albedos, two components");
+Utils::RegisteredFactory<Evaluator, AlbedoTwoComponentEvaluator> AlbedoTwoComponentEvaluator::reg_(
+  "subgrid albedos, two components");
 
 Utils::RegisteredFactory<Evaluator, AlbedoThreeComponentEvaluator>
   AlbedoThreeComponentEvaluator::reg_("subgrid albedos, three components");
@@ -51,22 +51,22 @@ Utils::RegisteredFactory<Evaluator, AreaFractionsThreeComponentMicrotopographyEv
 Utils::RegisteredFactory<Evaluator, IncidentShortwaveRadiationEvaluator>
   IncidentShortwaveRadiationEvaluator::reg_("incident shortwave radiation");
 
-Utils::RegisteredFactory<Evaluator, LongwaveEvaluator>
-  LongwaveEvaluator::reg_("incoming longwave radiation");
+Utils::RegisteredFactory<Evaluator, LongwaveEvaluator> LongwaveEvaluator::reg_(
+  "incoming longwave radiation");
 
 Utils::RegisteredFactory<Evaluator, InterceptionFractionEvaluator>
   InterceptionFractionEvaluator::reg_("interception fraction");
 
 Utils::RegisteredFactory<Evaluator, DrainageEvaluator> DrainageEvaluator::reg_("canopy drainage");
 
-Utils::RegisteredFactory<Evaluator, PETPriestleyTaylorEvaluator>
-  PETPriestleyTaylorEvaluator::reg_("potential evapotranspiration, Priestley-Taylor");
+Utils::RegisteredFactory<Evaluator, PETPriestleyTaylorEvaluator> PETPriestleyTaylorEvaluator::reg_(
+  "potential evapotranspiration, Priestley-Taylor");
 
 Utils::RegisteredFactory<Evaluator, EvaporationDownregulationEvaluator>
   EvaporationDownregulationEvaluator::reg_("evaporation downregulation, soil resistance");
 
-Utils::RegisteredFactory<Evaluator, PlantWiltingFactorEvaluator>
-  PlantWiltingFactorEvaluator::reg_("plant wilting factor");
+Utils::RegisteredFactory<Evaluator, PlantWiltingFactorEvaluator> PlantWiltingFactorEvaluator::reg_(
+  "plant wilting factor");
 
 Utils::RegisteredFactory<Evaluator, RootingDepthFractionEvaluator>
   RootingDepthFractionEvaluator::reg_("root fraction");
@@ -77,20 +77,20 @@ Utils::RegisteredFactory<Evaluator, TranspirationDistributionRelPermEvaluator>
   TranspirationDistributionRelPermEvaluator::reg_(
     "transpiration distribution, relative permeability");
 
-Utils::RegisteredFactory<Evaluator, SnowMeltRateEvaluator>
-  SnowMeltRateEvaluator::reg_("snow melt rate");
+Utils::RegisteredFactory<Evaluator, SnowMeltRateEvaluator> SnowMeltRateEvaluator::reg_(
+  "snow melt rate");
 
-Utils::RegisteredFactory<Evaluator, RadiationBalanceEvaluator>
-  RadiationBalanceEvaluator::reg_("radiation balance, surface and canopy");
+Utils::RegisteredFactory<Evaluator, RadiationBalanceEvaluator> RadiationBalanceEvaluator::reg_(
+  "radiation balance, surface and canopy");
 
-Utils::RegisteredFactory<Evaluator, CanopyRadiationEvaluator>
-  CanopyRadiationEvaluator::reg_("canopy radiation balance from above");
+Utils::RegisteredFactory<Evaluator, CanopyRadiationEvaluator> CanopyRadiationEvaluator::reg_(
+  "canopy radiation balance from above");
 
-Utils::RegisteredFactory<Evaluator, SEBTwoComponentEvaluator>
-  SEBTwoComponentEvaluator::reg_("surface energy balance, two components");
+Utils::RegisteredFactory<Evaluator, SEBTwoComponentEvaluator> SEBTwoComponentEvaluator::reg_(
+  "surface energy balance, two components");
 
-Utils::RegisteredFactory<Evaluator, SEBThreeComponentEvaluator>
-  SEBThreeComponentEvaluator::reg_("surface energy balance, three components");
+Utils::RegisteredFactory<Evaluator, SEBThreeComponentEvaluator> SEBThreeComponentEvaluator::reg_(
+  "surface energy balance, three components");
 
 } // namespace Relations
 } // namespace SurfaceBalance

@@ -25,11 +25,11 @@ typedef std::pair<Teuchos::RCP<Functions::MeshPartition>, WRMPermafrostModelList
   WRMPermafrostModelPartition;
 
 // Non-member factory
-Teuchos::RCP<WRMPartition>
-createWRMPartition(Teuchos::ParameterList& plist);
+Teuchos::RCP<WRMPartition> createWRMPartition(Teuchos::ParameterList& plist);
 
-Teuchos::RCP<WRMPermafrostModelPartition>
-createWRMPermafrostModelPartition(Teuchos::ParameterList& plist, Teuchos::RCP<WRMPartition>& wrms);
+Teuchos::RCP<WRMPermafrostModelPartition> createWRMPermafrostModelPartition(
+  Teuchos::ParameterList& plist,
+  Teuchos::RCP<WRMPartition>& wrms);
 
 } // namespace Flow
 } // namespace Amanzi

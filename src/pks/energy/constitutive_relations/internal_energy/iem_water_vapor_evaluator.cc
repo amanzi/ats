@@ -90,7 +90,7 @@ IEMWaterVaporEvaluator::EvaluatePartialDerivative_(const State& S,
   Teuchos::RCP<const CompositeVector> mol_frac = S.GetPtr<CompositeVector>(mol_frac_key_, tag);
 
   if (wrt_key == temp_key_) {
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       const Epetra_MultiVector& temp_v = *temp->ViewComponent(*comp, false);
       const Epetra_MultiVector& molfrac_v = *mol_frac->ViewComponent(*comp, false);
@@ -102,7 +102,7 @@ IEMWaterVaporEvaluator::EvaluatePartialDerivative_(const State& S,
       }
     }
   } else if (wrt_key == mol_frac_key_) {
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       const Epetra_MultiVector& temp_v = *temp->ViewComponent(*comp, false);
       const Epetra_MultiVector& molfrac_v = *mol_frac->ViewComponent(*comp, false);

@@ -26,7 +26,8 @@ class WRM;
 
 class WRMInterfrostPermafrostModel : public WRMPermafrostModel {
  public:
-  explicit WRMInterfrostPermafrostModel(Teuchos::ParameterList& plist) : WRMPermafrostModel(plist)
+  explicit WRMInterfrostPermafrostModel(Teuchos::ParameterList& plist)
+    : WRMPermafrostModel(plist)
   {
     W_ = plist.get<double>("W [K]");
     sr_ = plist.get<double>("residual saturation [-]");

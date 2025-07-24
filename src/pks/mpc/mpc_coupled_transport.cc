@@ -29,17 +29,16 @@ MPCCoupledTransport::parseParameterList()
   Key domain_surf = pks_list_->sublist(name_surf_).get<std::string>("domain name", "surface");
 
   // first make sure predictor-corrector scheme is turned off -- this isn't valid for coupled transport
-  for (const auto& name : std::vector<std::string>{name_ss_, name_surf_}) {
+  for (const auto& name : std::vector<std::string>{ name_ss_, name_surf_ }) {
     if (pks_list_->sublist(name).isParameter("temporal discretization order")) {
       int order = pks_list_->sublist(name).get<int>("temporal discretization order");
       if (order != 1) {
         if (vo_->os_OK(Teuchos::VERB_LOW))
-          *vo_->os() << vo_->color("yellow")
-                     << "Transport PK \"" << name
-                     << "\" prescribes \"temporal discretization order\" "
-                     << order << ", but this is not valid for integrated transport.  "
-                     << "Using \"temporal discretization order\" 1 instead."
-                     << vo_->reset() << std::endl;
+          *vo_->os() << vo_->color("yellow") << "Transport PK \"" << name
+                     << "\" prescribes \"temporal discretization order\" " << order
+                     << ", but this is not valid for integrated transport.  "
+                     << "Using \"temporal discretization order\" 1 instead." << vo_->reset()
+                     << std::endl;
       }
       pks_list_->sublist(name).set<int>("temporal discretization order", 1);
     }
@@ -50,10 +49,10 @@ MPCCoupledTransport::parseParameterList()
   Key surf_flux_key =
     Keys::readKey(pks_list_->sublist(name_surf_), domain_surf, "water flux", "water_flux");
 
-  Key ss_tcc_key = Keys::readKey(
-    pks_list_->sublist(name_ss_), domain_ss, "primary variable", "mole_fraction");
-  Key surf_tcc_key = Keys::readKey(
-    pks_list_->sublist(name_surf_), domain_surf, "primary variable", "mole_fraction");
+  Key ss_tcc_key =
+    Keys::readKey(pks_list_->sublist(name_ss_), domain_ss, "primary variable", "mole_fraction");
+  Key surf_tcc_key =
+    Keys::readKey(pks_list_->sublist(name_surf_), domain_surf, "primary variable", "mole_fraction");
   Key surf_tcq_key = Keys::readKey(
     pks_list_->sublist(name_surf_), domain_surf, "conserved quantity", "total_component_quantity");
 
@@ -138,7 +137,6 @@ MPCCoupledTransport::get_num_aqueous_component()
 
 void
 MPCCoupledTransport::SetupCouplingConditions_()
-{
-}
+{}
 
 } // namespace Amanzi

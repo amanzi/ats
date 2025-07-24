@@ -37,8 +37,6 @@ PK_PhysicalBDF_Default::parseParameterList()
   fluxtol_ = plist_->get<double>("flux error tolerance", 1.0);
 
   cell_vol_key_ = Keys::readKey(*plist_, domain_, "cell volume", "cell_volume");
-
-
 }
 
 // -----------------------------------------------------------------------------
@@ -166,8 +164,8 @@ PK_PhysicalBDF_Default::ErrorNorm(Teuchos::RCP<const TreeVector> u,
       double infnorm(0.);
       dvec_v.NormInf(&infnorm);
 
-      *vo_->os() << "  ENorm (" << *comp << ") = " << enorm_comp
-                 << " (" << infnorm << ")" << std::endl;
+      *vo_->os() << "  ENorm (" << *comp << ") = " << enorm_comp << " (" << infnorm << ")"
+                 << std::endl;
     }
 
     enorm_val = std::max(enorm_val, enorm_comp.value);
@@ -183,7 +181,7 @@ bool
 PK_PhysicalBDF_Default::IsValid(const Teuchos::RCP<const TreeVector>& up)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "Validating timestep." << std::endl;
+  if (vo_->os_OK(Teuchos::VERB_EXTREME) ) *vo_->os() << "Validating timestep." << std::endl;
 
   if (max_valid_change_ > 0.0) {
     const CompositeVector& var_new = S_->Get<CompositeVector>(key_, tag_next_);

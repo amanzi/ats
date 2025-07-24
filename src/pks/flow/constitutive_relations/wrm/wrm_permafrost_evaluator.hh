@@ -17,8 +17,8 @@ work of `(Painter & Karra 2014) <https://doi.org/10.2136/vzj2013.04.0071>`_
 .. _evaluator-water-retention-model-with-ice-spec:
 .. admonition:: evaluator-water-retention-model-with-ice-spec
 
-   ONE OF                
-                
+   ONE OF
+
    * `"model parameters`" ``[string]`` **"WRM parameters"** Copies this list from
      :ref:`State`'s `"model parameters`" list.
 
@@ -29,7 +29,7 @@ work of `(Painter & Karra 2014) <https://doi.org/10.2136/vzj2013.04.0071>`_
    END
 
    ONE OF
-          
+
    * `"permafrost model parameters`" ``[string]`` Copies this list from
      :ref:`State`'s `"model parameters`" list.
 
@@ -39,7 +39,7 @@ work of `(Painter & Karra 2014) <https://doi.org/10.2136/vzj2013.04.0071>`_
 
    END
 
-     
+
    KEYS:
 
    - `"liquid saturation`"
@@ -62,7 +62,7 @@ pairs:
    * `"permafrost wrm type`" ``[string]`` name of the model
    * `"_PERMAFROST_WRM_type_ parameters`" ``[_PERMAFROST_WRM_type_-spec]`` See
      below for each type's spec.
-     
+
 */
 
 #ifndef AMANZI_FLOW_RELATIONS_WRM_PERMAFROST_EVALUATOR_

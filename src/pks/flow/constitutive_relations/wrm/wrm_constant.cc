@@ -22,7 +22,8 @@ const double FLOW_WRM_TOLERANCE = 1e-10;
 /* ******************************************************************
  * Setup fundamental parameters for this model.
  ****************************************************************** */
-WRMConstant::WRMConstant(Teuchos::ParameterList& plist) : plist_(plist)
+WRMConstant::WRMConstant(Teuchos::ParameterList& plist)
+  : plist_(plist)
 {
   InitializeFromPlist_();
 };

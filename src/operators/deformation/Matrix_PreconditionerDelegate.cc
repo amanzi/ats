@@ -44,7 +44,7 @@ void
 Matrix_PreconditionerDelegate::InitializePreconditioner()
 {
   if (prec_method_ == TRILINOS_ML) {
-    if (ml_prec_->IsPreconditionerComputed()) ml_prec_->DestroyPreconditioner();
+    if (ml_prec_->IsPreconditionerComputed() ) ml_prec_->DestroyPreconditioner();
     ml_prec_->SetParameterList(solver_plist_);
     ml_prec_->ComputePreconditioner();
 

@@ -101,12 +101,15 @@ Transport_ATS::parseParameterList()
   num_aqueous_ = plist_->get<int>("number of aqueous components", component_names_.size());
 
   // parameters
-  molar_masses_ = readParameterMapByComponent(plist_->sublist("component molar masses [kg / mol C]"), 1.0);
-  tcc_max_ = readParameterMapByComponent(plist_->sublist("component maximum concentration [mol C / mol H2O]"), -1.0);
+  molar_masses_ =
+    readParameterMapByComponent(plist_->sublist("component molar masses [kg / mol C]"), 1.0);
+  tcc_max_ = readParameterMapByComponent(
+    plist_->sublist("component maximum concentration [mol C / mol H2O]"), -1.0);
 
   if (plist_->isSublist("molecular diffusivity [m^2 s^-1]")) {
     has_diffusion_ = true;
-    molec_diff_ = readParameterMapByComponent(plist_->sublist("molecular diffusivity [m^2 s^-1]"), 0.);
+    molec_diff_ =
+      readParameterMapByComponent(plist_->sublist("molecular diffusivity [m^2 s^-1]"), 0.);
 
     tortuosity_ = readParameterMapByPhase(plist_->sublist("tortuosity [-]"), 1.);
   }
@@ -115,10 +118,12 @@ Transport_ATS::parseParameterList()
   // -- flux -- only needed at new time, evaluator controlled elsewhere
   water_flux_key_ = Keys::readKey(*plist_, domain_, "water flux", "water_flux");
 
-  mass_flux_advection_key_ = Keys::readKey(*plist_, domain_, "mass flux advection", "mass_flux_advection");
+  mass_flux_advection_key_ =
+    Keys::readKey(*plist_, domain_, "mass flux advection", "mass_flux_advection");
   requireEvaluatorAtNext(mass_flux_advection_key_, tag_next_, *S_, name_);
 
-  mass_flux_diffusion_key_ = Keys::readKey(*plist_, domain_, "mass flux diffusion", "mass_flux_diffusion");
+  mass_flux_diffusion_key_ =
+    Keys::readKey(*plist_, domain_, "mass flux diffusion", "mass_flux_diffusion");
   requireEvaluatorAtNext(mass_flux_diffusion_key_, tag_next_, *S_, name_);
 
   // -- liquid water content - need at new time, copy at current time
@@ -133,18 +138,21 @@ Transport_ATS::parseParameterList()
     Keys::readKey(*plist_, domain_, "conserved quantity", "total_component_quantity");
   requireEvaluatorAtNext(conserve_qty_key_, tag_next_, *S_, name_);
 
-  solid_residue_mass_key_ = Keys::readKey(*plist_, domain_, "solid residue", "solid_residue_quantity");
+  solid_residue_mass_key_ =
+    Keys::readKey(*plist_, domain_, "solid residue", "solid_residue_quantity");
 
   geochem_src_factor_key_ =
     Keys::readKey(*plist_, domain_, "geochem source factor", "geochem_src_factor");
 
   if (chem_engine_ != Teuchos::null) {
     // needed by geochemical bcs
-    molar_dens_key_ = Keys::readKey(*plist_, domain_, "molar density liquid", "molar_density_liquid");
+    molar_dens_key_ =
+      Keys::readKey(*plist_, domain_, "molar density liquid", "molar_density_liquid");
   }
 
   // dispersion coefficient tensor
-  dispersion_tensor_key_ = Keys::readKey(*plist_, domain_, "dispersion coefficient", "dispersion_coefficient");
+  dispersion_tensor_key_ =
+    Keys::readKey(*plist_, domain_, "dispersion coefficient", "dispersion_coefficient");
   has_dispersion_ = S_->HasEvaluatorList(dispersion_tensor_key_);
 
   // other parameters
@@ -166,7 +174,8 @@ Transport_ATS::parseParameterList()
   temporal_disc_order_ = plist_->get<int>("temporal discretization order", 1);
   if (temporal_disc_order_ < 1 || temporal_disc_order_ > 2) {
     Errors::Message msg;
-    msg << "Transport_ATS: \"temporal discretization order\" must be 1 or 2, not " << temporal_disc_order_;
+    msg << "Transport_ATS: \"temporal discretization order\" must be 1 or 2, not "
+        << temporal_disc_order_;
     Exceptions::amanzi_throw(msg);
   }
 
@@ -181,8 +190,7 @@ Transport_ATS::parseParameterList()
 
 
 Transport_ATS::ParameterMap
-Transport_ATS::readParameterMapByComponent(Teuchos::ParameterList& plist,
-        double default_val)
+Transport_ATS::readParameterMapByComponent(Teuchos::ParameterList& plist, double default_val)
 {
   Transport_ATS::ParameterMap map;
   for (int i = 0; i != num_components_; ++i) {
@@ -193,8 +201,7 @@ Transport_ATS::readParameterMapByComponent(Teuchos::ParameterList& plist,
 
 
 Transport_ATS::ParameterMap
-Transport_ATS::readParameterMapByPhase(Teuchos::ParameterList& plist,
-        double default_val)
+Transport_ATS::readParameterMapByPhase(Teuchos::ParameterList& plist, double default_val)
 {
   Transport_ATS::ParameterMap map;
   map["aqueous"] = plist.get<double>("aqueous", default_val);
@@ -254,8 +261,7 @@ Transport_ATS::SetupTransport_()
     // check and set defaults
     if (!recon_list.isParameter("limiter extension for transport"))
       recon_list.set<bool>("limiter extension for transport", true);
-    if (!recon_list.isParameter("limiter"))
-      recon_list.set<std::string>("limiter", "tensorial");
+    if (!recon_list.isParameter("limiter") ) recon_list.set<std::string>("limiter", "tensorial");
 
     lifting_ = Teuchos::rcp(new Operators::ReconstructionCellLinear(mesh_));
     lifting_->Init(recon_list);
@@ -292,8 +298,8 @@ Transport_ATS::SetupTransport_()
     Teuchos::ParameterList& op_list = plist_->sublist("diffusion");
     diff_op_ = opfactory.Create(op_list, mesh_, diff_bcs_);
     diff_global_op_ = diff_op_->global_operator();
-    diff_acc_op_ = Teuchos::rcp(
-      new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, diff_global_op_));
+    diff_acc_op_ =
+      Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, diff_global_op_));
 
     // diffusion workspace
     const CompositeVectorSpace& cvs = diff_global_op_->DomainMap();
@@ -318,8 +324,8 @@ Transport_ATS::SetupTransport_()
           std::string src_type = src_list->get<std::string>("spatial distribution method", "none");
 
           if (src_type == "domain coupling") {
-            Teuchos::RCP<TransportDomainFunction> src =
-              factory.Create(*src_list, "fields", AmanziMesh::Entity_kind::CELL, Teuchos::null, tag_current_);
+            Teuchos::RCP<TransportDomainFunction> src = factory.Create(
+              *src_list, "fields", AmanziMesh::Entity_kind::CELL, Teuchos::null, tag_current_);
 
             // domain couplings functions is special -- always work on all components
             for (int i = 0; i < num_components_; i++) {
@@ -330,8 +336,8 @@ Transport_ATS::SetupTransport_()
             srcs_.push_back(src);
 
           } else if (src_type == "field") {
-            Teuchos::RCP<TransportDomainFunction> src =
-              factory.Create(*src_list, "field", AmanziMesh::Entity_kind::CELL, Teuchos::null, tag_current_);
+            Teuchos::RCP<TransportDomainFunction> src = factory.Create(
+              *src_list, "field", AmanziMesh::Entity_kind::CELL, Teuchos::null, tag_current_);
 
             for (int i = 0; i < num_components_; i++) {
               src->tcc_names().push_back(component_names_[i]);
@@ -353,7 +359,8 @@ Transport_ATS::SetupTransport_()
                 for (int fid = 1; fid != (num_fields + 1); ++fid) {
                   std::stringstream sublist_name;
                   sublist_name << "field " << fid << " info";
-                  Key field_key = Keys::readKey(flist.sublist(sublist_name.str()), domain_, "field");
+                  Key field_key =
+                    Keys::readKey(flist.sublist(sublist_name.str()), domain_, "field");
                   Tag field_tag = Keys::readTag(flist.sublist(sublist_name.str()));
                   requireEvaluatorAtNext(field_key, field_tag, *S_)
                     .SetMesh(mesh_)
@@ -374,9 +381,14 @@ Transport_ATS::SetupTransport_()
             }
 
           } else { // all others work on a subset of components
-            Teuchos::RCP<TransportDomainFunction> src = factory.Create(
-              *src_list, "source function", AmanziMesh::Entity_kind::CELL, Teuchos::null, tag_current_);
-            src->set_tcc_names(src_list->get<Teuchos::Array<std::string>>("component names").toVector());
+            Teuchos::RCP<TransportDomainFunction> src =
+              factory.Create(*src_list,
+                             "source function",
+                             AmanziMesh::Entity_kind::CELL,
+                             Teuchos::null,
+                             tag_current_);
+            src->set_tcc_names(
+              src_list->get<Teuchos::Array<std::string>>("component names").toVector());
             for (const auto& n : src->tcc_names()) {
               src->tcc_index().push_back(FindComponentNumber_(n));
             }
@@ -436,8 +448,8 @@ Transport_ATS::SetupTransport_()
 
         if (bc_type == "domain coupling") {
           // domain couplings are special -- they always work on all components
-          Teuchos::RCP<TransportDomainFunction> bc =
-            factory.Create(bc_list, "fields", AmanziMesh::Entity_kind::FACE, Teuchos::null, tag_current_);
+          Teuchos::RCP<TransportDomainFunction> bc = factory.Create(
+            bc_list, "fields", AmanziMesh::Entity_kind::FACE, Teuchos::null, tag_current_);
 
           for (int i = 0; i < num_components_; i++) {
             bc->tcc_names().push_back(component_names_[i]);
@@ -454,8 +466,11 @@ Transport_ATS::SetupTransport_()
           int gid = std::stoi(domain_.substr(last_of + 1, domain_.size()));
           bc_list.set("entity GID", gid);
 
-          Teuchos::RCP<TransportDomainFunction> bc = factory.Create(
-            bc_list, "boundary mole fraction", AmanziMesh::Entity_kind::FACE, Teuchos::null, tag_current_);
+          Teuchos::RCP<TransportDomainFunction> bc = factory.Create(bc_list,
+                                                                    "boundary mole fraction",
+                                                                    AmanziMesh::Entity_kind::FACE,
+                                                                    Teuchos::null,
+                                                                    tag_current_);
 
           for (int i = 0; i < num_components_; i++) {
             bc->tcc_names().push_back(component_names_[i]);
@@ -523,7 +538,7 @@ Transport_ATS::SetupPhysicalEvaluators_()
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_components_);
-    // ->AddComponent("face", AmanziMesh::Entity_kind::FACE, num_components_);
+  // ->AddComponent("face", AmanziMesh::Entity_kind::FACE, num_components_);
   S_->GetRecordSetW(key_).set_subfieldnames(component_names_);
 
   // -- water flux
@@ -623,7 +638,6 @@ Transport_ATS::SetupPhysicalEvaluators_()
     ->SetGhosted(true)
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_aqueous_ + 2);
   S_->GetRecordSetW(conserve_qty_key_).set_subfieldnames(subfield_names);
-
 }
 
 
@@ -661,7 +675,9 @@ Transport_ATS::Initialize()
           S_->Get<CompositeVector>(geochem_src_factor_key_, tag_next_).ViewComponent("cell", false);
         src->set_conversion(-1000., src_factor, false);
 
-        for (const auto& n : src->tcc_names()) { src->tcc_index().push_back(FindComponentNumber_(n)); }
+        for (const auto& n : src->tcc_names()) {
+          src->tcc_index().push_back(FindComponentNumber_(n));
+        }
         srcs_.push_back(src);
       }
 #endif
@@ -676,12 +692,12 @@ Transport_ATS::Initialize()
   if (has_diffusion_) D_rank = 1; // scalar
   if (has_dispersion_) {
     // dispersion rank is 1 or 2
-    D_rank = S_->Require<TensorVector, TensorVector_Factory>(dispersion_tensor_key_, tag_next_).get_rank();
+    D_rank =
+      S_->Require<TensorVector, TensorVector_Factory>(dispersion_tensor_key_, tag_next_).get_rank();
   }
   if (D_rank >= 0) {
     CompositeVectorSpace D_space;
-    D_space.SetMesh(mesh_)
-      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+    D_space.SetMesh(mesh_)->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     D_ = Teuchos::rcp(new TensorVector(D_space, D_dim, D_rank, false));
   }
 
@@ -690,11 +706,13 @@ Transport_ATS::Initialize()
 
   if (vo_->os_OK(Teuchos::VERB_MEDIUM)) {
     *vo_->os() << "Number of components: " << num_components_ << std::endl
-               << "  aqueous: " << num_aqueous_ << std::endl << "    ";
+               << "  aqueous: " << num_aqueous_ << std::endl
+               << "    ";
     for (int i = 0; i != num_aqueous_; ++i) *vo_->os() << component_names_[i] << ", ";
 
     *vo_->os() << "cfl=" << cfl_ << " spatial/temporal discretization: " << adv_spatial_disc_order_
-               << " " << temporal_disc_order_ << std::endl << std::endl;
+               << " " << temporal_disc_order_ << std::endl
+               << std::endl;
   }
 }
 
@@ -711,9 +729,12 @@ Transport_ATS::InitializeFields_()
 
   // initialize conserved quantity
   S_->GetEvaluator(lwc_key_, tag_next_).Update(*S_, name_);
-  const Epetra_MultiVector& lwc = *S_->Get<CompositeVector>(lwc_key_, tag_next_).ViewComponent("cell", false);
-  const Epetra_MultiVector& tcc = *S_->Get<CompositeVector>(key_, tag_next_).ViewComponent("cell", false);
-  Epetra_MultiVector& conserve_qty = *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_).ViewComponent("cell", false);
+  const Epetra_MultiVector& lwc =
+    *S_->Get<CompositeVector>(lwc_key_, tag_next_).ViewComponent("cell", false);
+  const Epetra_MultiVector& tcc =
+    *S_->Get<CompositeVector>(key_, tag_next_).ViewComponent("cell", false);
+  Epetra_MultiVector& conserve_qty =
+    *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_).ViewComponent("cell", false);
   for (int i = 0; i != num_aqueous_; ++i) {
     conserve_qty(i)->Multiply(1., *lwc(0), *tcc(i), 0.);
   }
@@ -739,7 +760,8 @@ Transport_ATS::ComputeStableTimeStep_()
   // Get flux at faces for time NEXT
   IdentifyUpwindCells_();
 
-  int ncells_owned = S_->GetMesh(domain_)->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+  int ncells_owned = S_->GetMesh(domain_)->getNumEntities(AmanziMesh::Entity_kind::CELL,
+                                                          AmanziMesh::Parallel_kind::OWNED);
 
   // flux at next tag
   S_->GetEvaluator(water_flux_key_, tag_next_).Update(*S_, name_);
@@ -749,8 +771,10 @@ Transport_ATS::ComputeStableTimeStep_()
 
   // extensive liquid water content at start and end of step
   S_->GetEvaluator(lwc_key_, tag_next_).Update(*S_, name_);
-  const Epetra_MultiVector& lwc_old = *S_->Get<CompositeVector>(lwc_key_, tag_current_).ViewComponent("cell");
-  const Epetra_MultiVector& lwc_new = *S_->Get<CompositeVector>(lwc_key_, tag_next_).ViewComponent("cell");
+  const Epetra_MultiVector& lwc_old =
+    *S_->Get<CompositeVector>(lwc_key_, tag_current_).ViewComponent("cell");
+  const Epetra_MultiVector& lwc_new =
+    *S_->Get<CompositeVector>(lwc_key_, tag_next_).ViewComponent("cell");
 
   // loop over ALL faces and accumulate outgoing fluxes from each OWNED cell
   std::vector<double> total_outflux(ncells_owned, 0.0);
@@ -822,8 +846,7 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_LOW))
     *vo_->os() << "----------------------------------------------------------------" << std::endl
-               << "Advancing: t0 = " << t_old
-               << " t1 = " << t_new << " h = " << dt << std::endl
+               << "Advancing: t0 = " << t_old << " t1 = " << t_new << " h = " << dt << std::endl
                << "----------------------------------------------------------------" << std::endl;
   AMANZI_ASSERT(std::abs(S_->get_time(tag_current_) - t_old) < 1.e-4);
   AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t_new) < 1.e-4);
@@ -837,12 +860,12 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   dt_stable_ = ComputeStableTimeStep_();
   if (dt > dt_stable_ + 1.e-4) {
     if (vo_->os_OK(Teuchos::VERB_LOW))
-      *vo_->os() << "Failed step: requested dt = " << dt << " > stable dt = " << dt_stable_ << std::endl;
+      *vo_->os() << "Failed step: requested dt = " << dt << " > stable dt = " << dt_stable_
+                 << std::endl;
     return true;
   }
 
-  if (vo_->os_OK(Teuchos::VERB_HIGH))
-    *vo_->os() << "Water state:" << std::endl;
+  if (vo_->os_OK(Teuchos::VERB_HIGH) ) *vo_->os() << "Water state:" << std::endl;
   std::vector<std::string> vnames{ "lwc_old", "lwc_new" };
   std::vector<Teuchos::Ptr<const CompositeVector>> vecs{
     S_->GetPtr<CompositeVector>(lwc_key_, tag_current_).ptr(),
@@ -862,8 +885,8 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
         // src_factor = water_source / molar_density_liquid, both flow
         // quantities, see note above.
         S_->GetEvaluator(geochem_src_factor_key_, tag_next_).Update(*S_, name_);
-        auto src_factor = S_->Get<CompositeVector>(geochem_src_factor_key_, tag_next_)
-                            .ViewComponent("cell", false);
+        auto src_factor =
+          S_->Get<CompositeVector>(geochem_src_factor_key_, tag_next_).ViewComponent("cell", false);
         Teuchos::RCP<TransportSourceFunction_Alquimia_Units> src_alq =
           Teuchos::rcp_dynamic_cast<TransportSourceFunction_Alquimia_Units>(src);
         src_alq->set_conversion(-1000, src_factor, false);
@@ -878,8 +901,8 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
           Teuchos::rcp_dynamic_cast<TransportBoundaryFunction_Alquimia_Units>(bc);
 
         S_->GetEvaluator(molar_dens_key_, tag_next_).Update(*S_, name_);
-        auto molar_dens = S_->Get<CompositeVector>(molar_dens_key_, tag_next_)
-          .ViewComponent("cell", false);
+        auto molar_dens =
+          S_->Get<CompositeVector>(molar_dens_key_, tag_next_).ViewComponent("cell", false);
         bc_alq->set_conversion(1000.0, molar_dens, true);
       }
     }
@@ -904,8 +927,8 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   AdvanceDispersionDiffusion_(t_old, t_new);
 
   // statistics output
-  const Epetra_MultiVector& tcc_new = *S_->Get<CompositeVector>(key_, tag_next_)
-    .ViewComponent("cell");
+  const Epetra_MultiVector& tcc_new =
+    *S_->Get<CompositeVector>(key_, tag_next_).ViewComponent("cell");
   ChangedSolutionPK(tag_next_);
   db_->WriteVector("mol_frac_new",
                    S_->GetPtr<CompositeVector>(key_, tag_next_).ptr(),
@@ -921,14 +944,14 @@ Transport_ATS ::AdvanceDispersionDiffusion_(double t_old, double t_new)
   if (!has_diffusion_ && !has_dispersion_) return;
   double dt = t_new - t_old;
 
-  Epetra_MultiVector& tcc_new = *S_->GetW<CompositeVector>(key_, tag_next_, passwd_)
-    .ViewComponent("cell", false);
+  Epetra_MultiVector& tcc_new =
+    *S_->GetW<CompositeVector>(key_, tag_next_, passwd_).ViewComponent("cell", false);
 
   // needed for diffusion coefficent and for accumulation term
-  const Epetra_MultiVector& lwc = *S_->Get<CompositeVector>(lwc_key_, tag_next_)
-    .ViewComponent("cell", false);
-  const Epetra_MultiVector& cv = *S_->Get<CompositeVector>(cv_key_, tag_next_)
-    .ViewComponent("cell", false);
+  const Epetra_MultiVector& lwc =
+    *S_->Get<CompositeVector>(lwc_key_, tag_next_).ViewComponent("cell", false);
+  const Epetra_MultiVector& cv =
+    *S_->Get<CompositeVector>(cv_key_, tag_next_).ViewComponent("cell", false);
 
   //
   // first step  -- aqueous dispersion + diffusion
@@ -986,8 +1009,8 @@ Transport_ATS ::AdvanceDispersionDiffusion_(double t_old, double t_new)
       diff_op_->UpdateMatrices(Teuchos::null, Teuchos::null);
 
       // add accumulation term
-      diff_acc_op_->AddAccumulationTerm(S_->Get<CompositeVector>(lwc_key_, tag_next_),
-              dt, "cell", false);
+      diff_acc_op_->AddAccumulationTerm(
+        S_->Get<CompositeVector>(lwc_key_, tag_next_), dt, "cell", false);
     }
 
     // whether or not diffusion operator is changed, RHS is different
@@ -999,7 +1022,8 @@ Transport_ATS ::AdvanceDispersionDiffusion_(double t_old, double t_new)
     diff_op_->ApplyBCs(true, true, true);
 
     // get diffusive mass fluxes
-    Teuchos::RCP<CompositeVector> cq_flux = S_->GetPtrW<CompositeVector>(mass_flux_diffusion_key_, tag_next_, name_);
+    Teuchos::RCP<CompositeVector> cq_flux =
+      S_->GetPtrW<CompositeVector>(mass_flux_diffusion_key_, tag_next_, name_);
 
     // get a sliced vector of the ith component
     Teuchos::RCP<CompositeVector> cq_flux_i = cq_flux->GetVector(i);
@@ -1019,7 +1043,6 @@ Transport_ATS ::AdvanceDispersionDiffusion_(double t_old, double t_new)
 
     // -- copy back the solution
     *tcc_new(i) = *(*diff_sol_->ViewComponent("cell", false))(0);
-
   }
 
   // NOTE: here was gas diffusion! --ETC
@@ -1047,9 +1070,7 @@ Transport_ATS::CommitStep(double t_old, double t_new, const Tag& tag_next)
  * Advance RK1
  ****************************************************************** */
 void
-Transport_ATS::AdvanceAdvectionSources_RK1_(
-  double t_old, double t_new, int spatial_order
-)
+Transport_ATS::AdvanceAdvectionSources_RK1_(double t_old, double t_new, int spatial_order)
 {
   double dt = t_new - t_old;
 
@@ -1058,18 +1079,17 @@ Transport_ATS::AdvanceAdvectionSources_RK1_(
   S_->Get<CompositeVector>(key_, tag_current_).ScatterMasterToGhosted();
 
   { // context for Multiply -- on owned cells
-    const Epetra_MultiVector& tcc_old = *S_->Get<CompositeVector>(key_, tag_current_)
-      .ViewComponent("cell", false);
+    const Epetra_MultiVector& tcc_old =
+      *S_->Get<CompositeVector>(key_, tag_current_).ViewComponent("cell", false);
 
     // old and new water contents -- note these were updated in StableStep
-    const Epetra_MultiVector& lwc_old = *S_->Get<CompositeVector>(lwc_key_, tag_current_)
-      .ViewComponent("cell", false);
+    const Epetra_MultiVector& lwc_old =
+      *S_->Get<CompositeVector>(lwc_key_, tag_current_).ViewComponent("cell", false);
 
     // populating conserved quantity (unit: molC)
     // The conserve_qty (M) has `num_components_+2` vectors, the extras for tracking water
     Epetra_MultiVector& conserve_qty =
-      *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_)
-      .ViewComponent("cell", false);
+      *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_).ViewComponent("cell", false);
 
     // Compute mass from concentration and water content: Mass <-- Concentration * water content
     // conserved component quantity [mol C] = (mol C / mol H20) * mol H2O
@@ -1080,20 +1100,19 @@ Transport_ATS::AdvanceAdvectionSources_RK1_(
     }
     conserve_qty(num_aqueous_)->PutScalar(0.);
     conserve_qty(num_aqueous_ + 1)->PutScalar(0.);
-    db_->WriteCellVector("qnty (old)", conserve_qty,
-                         S_->GetRecordSet(conserve_qty_key_).subfieldnames());
+    db_->WriteCellVector(
+      "qnty (old)", conserve_qty, S_->GetRecordSet(conserve_qty_key_).subfieldnames());
   }
 
   { // context for advection -- on all cells
-    const Epetra_MultiVector& tcc_old = *S_->Get<CompositeVector>(key_, tag_current_)
-      .ViewComponent("cell", true);
+    const Epetra_MultiVector& tcc_old =
+      *S_->Get<CompositeVector>(key_, tag_current_).ViewComponent("cell", true);
     Epetra_MultiVector& conserve_qty =
-      *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_)
-      .ViewComponent("cell", true);
+      *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_).ViewComponent("cell", true);
     // populating solute mass flux (unit: molC/s)
     Epetra_MultiVector& mass_flux_advection =
       *S_->GetW<CompositeVector>(mass_flux_advection_key_, tag_next_, name_)
-      .ViewComponent("face", false);
+         .ViewComponent("face", false);
 
     // advection: M <-- M + dt * div q * C0
     if (spatial_order == 1) {
@@ -1103,40 +1122,37 @@ Transport_ATS::AdvanceAdvectionSources_RK1_(
       // conserve_qty = conserve_qty + div qC
       AddAdvection_SecondOrderUpwind_(t_old, t_new, tcc_old, conserve_qty, mass_flux_advection);
     }
-    db_->WriteCellVector("qnty (adv)", conserve_qty,
-                         S_->GetRecordSet(conserve_qty_key_).subfieldnames());
+    db_->WriteCellVector(
+      "qnty (adv)", conserve_qty, S_->GetRecordSet(conserve_qty_key_).subfieldnames());
   }
 
   { // context for sources
     Epetra_MultiVector& conserve_qty =
-      *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_)
-      .ViewComponent("cell", false);
+      *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_).ViewComponent("cell", false);
 
     // process external sources: M <-- M + dt * Q
     AddSourceTerms_(t_old, t_new, conserve_qty);
-    db_->WriteCellVector("qnty (src)", conserve_qty,
-                          S_->GetRecordSet(conserve_qty_key_).subfieldnames());
+    db_->WriteCellVector(
+      "qnty (src)", conserve_qty, S_->GetRecordSet(conserve_qty_key_).subfieldnames());
   }
 
   { // context for inversion
     // invert for C1: C1 <-- M / WC1, also deals with dissolution/precipitation
     // tcc_new, the new solution
-    Epetra_MultiVector& tcc_new = *S_->GetW<CompositeVector>(key_, tag_next_, passwd_)
-      .ViewComponent("cell", false);
+    Epetra_MultiVector& tcc_new =
+      *S_->GetW<CompositeVector>(key_, tag_next_, passwd_).ViewComponent("cell", false);
 
     // solid quantity (unit: molC) stores extra solute mass
     // solid_qty has `num_components_` vectors only (solute mass)
     Epetra_MultiVector& solid_qty =
       *S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, name_)
-      .ViewComponent("cell", false);
+         .ViewComponent("cell", false);
 
     const Epetra_MultiVector& conserve_qty =
-      *S_->Get<CompositeVector>(conserve_qty_key_, tag_next_)
-      .ViewComponent("cell", false);
+      *S_->Get<CompositeVector>(conserve_qty_key_, tag_next_).ViewComponent("cell", false);
 
     InvertTccNew_(conserve_qty, tcc_new, &solid_qty, true);
-    db_->WriteCellVector("mol_frac (pre-diff)", tcc_new,
-                        S_->GetRecordSet(key_).subfieldnames());
+    db_->WriteCellVector("mol_frac (pre-diff)", tcc_new, S_->GetRecordSet(key_).subfieldnames());
   }
 }
 
@@ -1146,9 +1162,7 @@ Transport_ATS::AdvanceAdvectionSources_RK1_(
  * reconstructions.
  ****************************************************************** */
 void
-Transport_ATS::AdvanceAdvectionSources_RK2_(
-  double t_old, double t_new, int spatial_order
-)
+Transport_ATS::AdvanceAdvectionSources_RK2_(double t_old, double t_new, int spatial_order)
 {
   double dt = t_new - t_old;
 
@@ -1157,40 +1171,38 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(
   S_->Get<CompositeVector>(key_, tag_current_).ScatterMasterToGhosted();
 
   { // context for Multiply -- on owned cells
-    const Epetra_MultiVector& tcc_old = *S_->Get<CompositeVector>(key_, tag_current_)
-      .ViewComponent("cell", false);
+    const Epetra_MultiVector& tcc_old =
+      *S_->Get<CompositeVector>(key_, tag_current_).ViewComponent("cell", false);
 
     // old and new water contents -- note these were updated in StableStep
-    const Epetra_MultiVector& lwc_old = *S_->Get<CompositeVector>(lwc_key_, tag_current_)
-      .ViewComponent("cell", false);
+    const Epetra_MultiVector& lwc_old =
+      *S_->Get<CompositeVector>(lwc_key_, tag_current_).ViewComponent("cell", false);
 
     // populating conserved quantity (unit: molC)
     // The conserve_qty (M) has `num_components_+2` vectors, the extras for tracking water
     Epetra_MultiVector& conserve_qty =
-      *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_)
-      .ViewComponent("cell", false);
+      *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_).ViewComponent("cell", false);
 
     // -- M <-- C0 * W0
     // -- mol H2O * (mol C / mol H20) --> mol C, the conserved component quantity
     for (int i = 0; i != num_aqueous_; ++i) {
       conserve_qty(i)->Multiply(1., *lwc_old(0), *tcc_old(i), 0.);
     }
-      conserve_qty(num_aqueous_)->PutScalar(0.);
-      conserve_qty(num_aqueous_ + 1)->PutScalar(0.);
-      db_->WriteCellVector("qnty (start)", conserve_qty,
-                          S_->GetRecordSet(conserve_qty_key_).subfieldnames());
+    conserve_qty(num_aqueous_)->PutScalar(0.);
+    conserve_qty(num_aqueous_ + 1)->PutScalar(0.);
+    db_->WriteCellVector(
+      "qnty (start)", conserve_qty, S_->GetRecordSet(conserve_qty_key_).subfieldnames());
   }
 
   { // context for advection -- on all cells
-    const Epetra_MultiVector& tcc_old = *S_->Get<CompositeVector>(key_, tag_current_)
-      .ViewComponent("cell", true);
+    const Epetra_MultiVector& tcc_old =
+      *S_->Get<CompositeVector>(key_, tag_current_).ViewComponent("cell", true);
     Epetra_MultiVector& conserve_qty =
-      *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_)
-      .ViewComponent("cell", true);
+      *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_).ViewComponent("cell", true);
     // populating solute mass flux (unit: molC/s)
     Epetra_MultiVector& mass_flux_advection =
       *S_->GetW<CompositeVector>(mass_flux_advection_key_, tag_next_, name_)
-      .ViewComponent("face", false);
+         .ViewComponent("face", false);
 
     // Predictor Step:
     // -- advection: M <-- M + dt * div q * C0
@@ -1199,40 +1211,38 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(
     } else if (spatial_order == 2) {
       AddAdvection_SecondOrderUpwind_(t_old, t_new, tcc_old, conserve_qty, mass_flux_advection);
     }
-    db_->WriteCellVector("qnty (pred adv)", conserve_qty,
-                         S_->GetRecordSet(conserve_qty_key_).subfieldnames());
+    db_->WriteCellVector(
+      "qnty (pred adv)", conserve_qty, S_->GetRecordSet(conserve_qty_key_).subfieldnames());
 
     // -- process external sources: M <-- M + dt * Q(t0)
     AddSourceTerms_(t_old, t_new, conserve_qty);
-    db_->WriteCellVector("qnty (pred src)", conserve_qty,
-                         S_->GetRecordSet(conserve_qty_key_).subfieldnames());
+    db_->WriteCellVector(
+      "qnty (pred src)", conserve_qty, S_->GetRecordSet(conserve_qty_key_).subfieldnames());
   }
 
   // -- invert for C': C' <-- M / WC1, note no dissolution/precip
   { // context for inversion
-    Epetra_MultiVector& tcc_new = *S_->GetW<CompositeVector>(key_, tag_next_, passwd_)
-      .ViewComponent("cell", false);
-    const Epetra_MultiVector& conserve_qty = *S_->Get<CompositeVector>(conserve_qty_key_, tag_next_)
-      .ViewComponent("cell", false);
+    Epetra_MultiVector& tcc_new =
+      *S_->GetW<CompositeVector>(key_, tag_next_, passwd_).ViewComponent("cell", false);
+    const Epetra_MultiVector& conserve_qty =
+      *S_->Get<CompositeVector>(conserve_qty_key_, tag_next_).ViewComponent("cell", false);
 
     InvertTccNew_(conserve_qty, tcc_new, nullptr, false);
-    db_->WriteCellVector("mol_frac (pred)", tcc_new,
-                       S_->GetRecordSet(key_).subfieldnames());
+    db_->WriteCellVector("mol_frac (pred)", tcc_new, S_->GetRecordSet(key_).subfieldnames());
   }
 
   { // context for Corrector Step Multiply
-    const Epetra_MultiVector& tcc_old = *S_->Get<CompositeVector>(key_, tag_current_)
-      .ViewComponent("cell", false);
+    const Epetra_MultiVector& tcc_old =
+      *S_->Get<CompositeVector>(key_, tag_current_).ViewComponent("cell", false);
 
     // old and new water contents -- note these were updated in StableStep
-    const Epetra_MultiVector& lwc_old = *S_->Get<CompositeVector>(lwc_key_, tag_current_)
-      .ViewComponent("cell", false);
+    const Epetra_MultiVector& lwc_old =
+      *S_->Get<CompositeVector>(lwc_key_, tag_current_).ViewComponent("cell", false);
 
     // populating conserved quantity (unit: molC)
     // The conserve_qty (M) has `num_components_+2` vectors, the extras for tracking water
     Epetra_MultiVector& conserve_qty =
-      *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_)
-      .ViewComponent("cell", false);
+      *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_).ViewComponent("cell", false);
 
     // -- M <-- M/2 + M0 C0 / 2
     //      <-- (C0 W0 + dt div q C0 + dt Q0) / 2 + W0 C0 / 2
@@ -1242,63 +1252,63 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(
 
     conserve_qty(num_aqueous_)->PutScalar(0.);
     conserve_qty(num_aqueous_ + 1)->PutScalar(0.);
-    db_->WriteCellVector("qnty (corr start)", conserve_qty,
-                         S_->GetRecordSet(conserve_qty_key_).subfieldnames());
+    db_->WriteCellVector(
+      "qnty (corr start)", conserve_qty, S_->GetRecordSet(conserve_qty_key_).subfieldnames());
   }
 
   // scatter updated values
   S_->Get<CompositeVector>(key_, tag_next_).ScatterMasterToGhosted();
 
   { // -- advect the predicted C'
-    const Epetra_MultiVector& tcc_new = *S_->Get<CompositeVector>(key_, tag_next_)
-      .ViewComponent("cell", true);
-    Epetra_MultiVector& conserve_qty = *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_)
-      .ViewComponent("cell", true);
+    const Epetra_MultiVector& tcc_new =
+      *S_->Get<CompositeVector>(key_, tag_next_).ViewComponent("cell", true);
+    Epetra_MultiVector& conserve_qty =
+      *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_).ViewComponent("cell", true);
     Epetra_MultiVector& mass_flux_advection =
       *S_->GetW<CompositeVector>(mass_flux_advection_key_, tag_next_, name_)
-      .ViewComponent("face", false);
+         .ViewComponent("face", false);
 
     //   M <-- M + dt/2 * div q * C'
     //     <-- (C0 W0 + dt div q C0 + dt Q0) / 2 + W0 C0 / 2 + dt div q C' / 2
     if (spatial_order == 1) {
-      AddAdvection_FirstOrderUpwind_(t_old + dt/2., t_new, tcc_new, conserve_qty, mass_flux_advection);
+      AddAdvection_FirstOrderUpwind_(
+        t_old + dt / 2., t_new, tcc_new, conserve_qty, mass_flux_advection);
     } else if (spatial_order == 2) {
-      AddAdvection_SecondOrderUpwind_(t_old + dt/2., t_new, tcc_new, conserve_qty, mass_flux_advection);
+      AddAdvection_SecondOrderUpwind_(
+        t_old + dt / 2., t_new, tcc_new, conserve_qty, mass_flux_advection);
     }
-    db_->WriteCellVector("qnty (corr adv)", conserve_qty,
-                         S_->GetRecordSet(conserve_qty_key_).subfieldnames());
+    db_->WriteCellVector(
+      "qnty (corr adv)", conserve_qty, S_->GetRecordSet(conserve_qty_key_).subfieldnames());
   }
 
   { // -- add sources at the new time, predicted C'
-    Epetra_MultiVector& conserve_qty = *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_)
-      .ViewComponent("cell", false);
+    Epetra_MultiVector& conserve_qty =
+      *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_).ViewComponent("cell", false);
     //   M <-- M + dt/2 Q(t1)
     //     <-- (C0 W0 + dt div q C0 + dt Q(t0)) / 2 + W0 C0 / 2 + dt div q C' / 2 + dt Q(t1) / 2
     //     <-- C0 W0 + dt * (div q C0 + div q C') / 2 + dt (Q(t0) + Q(t1)) / 2
-    AddSourceTerms_(t_old + dt/2., t_new, conserve_qty);
-    db_->WriteCellVector("qnty (corr src)", conserve_qty,
-                         S_->GetRecordSet(conserve_qty_key_).subfieldnames());
+    AddSourceTerms_(t_old + dt / 2., t_new, conserve_qty);
+    db_->WriteCellVector(
+      "qnty (corr src)", conserve_qty, S_->GetRecordSet(conserve_qty_key_).subfieldnames());
   }
 
   { // -- Invert to get C1, this time with dissolution/solidification
     // solid quantity (unit: molC) stores extra solute mass
     // solid_qty has `num_components_` vectors only (solute mass)
-    const Epetra_MultiVector& conserve_qty = *S_->Get<CompositeVector>(conserve_qty_key_, tag_next_)
-      .ViewComponent("cell", false);
+    const Epetra_MultiVector& conserve_qty =
+      *S_->Get<CompositeVector>(conserve_qty_key_, tag_next_).ViewComponent("cell", false);
 
     Epetra_MultiVector& solid_qty =
       *S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, name_)
-      .ViewComponent("cell", false);
+         .ViewComponent("cell", false);
 
-    Epetra_MultiVector& tcc_new = *S_->GetW<CompositeVector>(key_, tag_next_, passwd_)
-      .ViewComponent("cell", false);
+    Epetra_MultiVector& tcc_new =
+      *S_->GetW<CompositeVector>(key_, tag_next_, passwd_).ViewComponent("cell", false);
 
     InvertTccNew_(conserve_qty, tcc_new, &solid_qty, true);
-    db_->WriteCellVector("mol_frac_new", tcc_new,
-                         S_->GetRecordSet(key_).subfieldnames());
+    db_->WriteCellVector("mol_frac_new", tcc_new, S_->GetRecordSet(key_).subfieldnames());
   }
 }
-
 
 
 /* *******************************************************************
@@ -1364,7 +1374,8 @@ Transport_ATS::IdentifyUpwindCells_()
   downwind_cell_->PutValue(-1);
 
   S_->Get<CompositeVector>(water_flux_key_, tag_next_).ScatterMasterToGhosted("face");
-  const Epetra_MultiVector& flux = *S_->Get<CompositeVector>(water_flux_key_, tag_next_).ViewComponent("face", true);
+  const Epetra_MultiVector& flux =
+    *S_->Get<CompositeVector>(water_flux_key_, tag_next_).ViewComponent("face", true);
 
   // identify upwind and downwind cell of each face
   for (int c = 0; c != ncells_all; ++c) {

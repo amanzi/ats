@@ -13,19 +13,13 @@
 namespace ATS {
 namespace Utils {
 
-enum class Indexer_kind {
-  SCALAR = 0,
-  ELM,
-  ATS
-};
+enum class Indexer_kind { SCALAR = 0, ELM, ATS };
 
-enum class Domain_kind {
-  SURF,
-  SUBSURF
-};
+enum class Domain_kind { SURF, SUBSURF };
 
 
-template<Indexer_kind ikind, Domain_kind dkind, typename T> struct Indexer;
+template<Indexer_kind ikind, Domain_kind dkind, typename T>
+struct Indexer;
 
 //
 // Indexer for scalars.
@@ -33,14 +27,21 @@ template<Indexer_kind ikind, Domain_kind dkind, typename T> struct Indexer;
 template<Domain_kind dkind, typename T>
 struct Indexer<Indexer_kind::SCALAR, dkind, T> {
   template<typename D = T>
-  typename std::enable_if<dkind == Domain_kind::SUBSURF, D&>::type
-  get(T const * const& val, const int col, const int cic) const { return *val_; }
+  typename std::enable_if<dkind == Domain_kind::SUBSURF, D&>::type get(T const* const& val,
+                                                                       const int col,
+                                                                       const int cic) const
+  {
+    return *val_;
+  }
 
   template<typename D = T>
-  typename std::enable_if<dkind == Domain_kind::SURF, D&>::type
-  get(T const * const& val, const int i) const { return *val_; }
+  typename std::enable_if<dkind == Domain_kind::SURF, D&>::type get(T const* const& val,
+                                                                    const int i) const
+  {
+    return *val_;
+  }
 
-private:
+ private:
   T* val_;
 };
 
@@ -50,21 +51,24 @@ private:
 //
 template<Domain_kind dkind, typename T>
 struct Indexer<Indexer_kind::ELM, dkind, T> {
-
-  Indexer(int ncells_per_col=-1)
-    : ncells_per_col_(ncells_per_col) {}
+  Indexer(int ncells_per_col = -1)
+    : ncells_per_col_(ncells_per_col)
+  {}
 
   // for use by subsurface
   template<typename D = T>
-  typename std::enable_if<dkind == Domain_kind::SUBSURF, D&>::type
-  get(T * const& val, const int col, const int cic) const {
+  typename std::enable_if<dkind == Domain_kind::SUBSURF, D&>::type get(T* const& val,
+                                                                       const int col,
+                                                                       const int cic) const
+  {
     return val[col * ncells_per_col_ + cic];
   }
 
   // for use by surface
   template<typename D = T>
-  typename std::enable_if<dkind == Domain_kind::SURF, D&>::type
-  get(T * const& val, const int i) const {
+  typename std::enable_if<dkind == Domain_kind::SURF, D&>::type get(T* const& val,
+                                                                    const int i) const
+  {
     return val[i];
   }
 
@@ -78,30 +82,30 @@ struct Indexer<Indexer_kind::ELM, dkind, T> {
 //
 template<Domain_kind dkind, typename T>
 struct Indexer<Indexer_kind::ATS, dkind, T> {
-
   Indexer(const Amanzi::AmanziMesh::Mesh& mesh)
-    : mesh_(mesh) {}
+    : mesh_(mesh)
+  {}
 
   // for use by subsurface
   template<typename D = T>
-  typename std::enable_if<dkind == Domain_kind::SUBSURF, T&>::type
-  get(T * const& val, const int col, const int cic) const {
+  typename std::enable_if<dkind == Domain_kind::SUBSURF, T&>::type get(T* const& val,
+                                                                       const int col,
+                                                                       const int cic) const
+  {
     return val[mesh_.cells_of_column(col)[cic]];
   }
 
   // for use by surface
   template<typename D = T>
-  typename std::enable_if<dkind == Domain_kind::SURF, D&>::type
-  get(T * const& val, const int i) const {
+  typename std::enable_if<dkind == Domain_kind::SURF, D&>::type get(T* const& val,
+                                                                    const int i) const
+  {
     return val[i];
   }
 
  private:
   const Amanzi::AmanziMesh::Mesh& mesh_;
 };
-
-
-
 
 
 } // namespace Utils

@@ -19,7 +19,8 @@
 namespace Amanzi {
 namespace Relations {
 
-EOSIdealGas::EOSIdealGas(Teuchos::ParameterList& eos_plist) : eos_plist_(eos_plist)
+EOSIdealGas::EOSIdealGas(Teuchos::ParameterList& eos_plist)
+  : eos_plist_(eos_plist)
 {
   InitializeFromPlist_();
 };

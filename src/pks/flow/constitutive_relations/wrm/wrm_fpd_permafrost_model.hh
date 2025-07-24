@@ -32,7 +32,9 @@ class WRM;
 
 class WRMFPDPermafrostModel : public WRMPermafrostModel {
  public:
-  explicit WRMFPDPermafrostModel(Teuchos::ParameterList& plist) : WRMPermafrostModel(plist) {}
+  explicit WRMFPDPermafrostModel(Teuchos::ParameterList& plist)
+    : WRMPermafrostModel(plist)
+  {}
 
   // required methods from the base class
   // sats[0] = sg, sats[1] = sl, sats[2] = si

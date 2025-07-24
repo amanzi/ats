@@ -31,7 +31,7 @@ commonly used in practice is the van Genuchten model, but others are available d
      from the evaluator name and need not be set.
 
    DEPENDENCIES:
-   
+
    - `"capillary pressure`"` **DOMAIN-capillary_pressure_gas_liq**
      The name of the capillary pressure.
 

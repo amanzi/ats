@@ -40,8 +40,8 @@ class ElevationEvaluator : public EvaluatorSecondaryMonotypeCV {
                                           const Tag& wrt_tag,
                                           const std::vector<CompositeVector*>& results) override;
 
-  virtual void
-  EvaluateElevationAndSlope_(const State& S, const std::vector<CompositeVector*>& results) = 0;
+  virtual void EvaluateElevationAndSlope_(const State& S,
+                                          const std::vector<CompositeVector*>& results) = 0;
 
   //
   // This is required to make sure that elevation, slope, and aspect share a

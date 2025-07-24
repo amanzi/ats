@@ -26,9 +26,13 @@ class InterfrostDenergyDtemperatureModel {
  public:
   explicit InterfrostDenergyDtemperatureModel(Teuchos::ParameterList& plist);
 
-  double
-  DEnergyDTCoef(double phi, double sl, double nl, double si, double ni, double rhos, double T)
-    const;
+  double DEnergyDTCoef(double phi,
+                       double sl,
+                       double nl,
+                       double si,
+                       double ni,
+                       double rhos,
+                       double T) const;
 
   double DDEnergyDTCoefDPorosity(double phi,
                                  double sl,

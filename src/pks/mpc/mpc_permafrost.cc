@@ -174,7 +174,7 @@ MPCPermafrost::Setup()
     if (precon_type_ != PRECON_NO_FLOW_COUPLING) {
       Teuchos::RCP<Operators::Operator> surf_flow_pc = surf_flow_pk_->preconditioner();
       Teuchos::RCP<Operators::Operator> domain_flow_pc = domain_flow_pk_->preconditioner();
-      for (Operators::Operator::op_iterator op = surf_flow_pc->begin(); op != surf_flow_pc->end();
+      for (Operators::Operator::op_iterator op = surf_flow_pc->begin() ; op != surf_flow_pc->end();
            ++op) {
         domain_flow_pc->OpPushBack(*op);
       }
@@ -183,7 +183,8 @@ MPCPermafrost::Setup()
     // -- surface energy
     Teuchos::RCP<Operators::Operator> surf_energy_pc = surf_energy_pk_->preconditioner();
     Teuchos::RCP<Operators::Operator> domain_energy_pc = domain_energy_pk_->preconditioner();
-    for (Operators::Operator::op_iterator op = surf_energy_pc->begin(); op != surf_energy_pc->end();
+    for (Operators::Operator::op_iterator op = surf_energy_pc->begin()
+      ; op != surf_energy_pc->end();
          ++op) {
       domain_energy_pc->OpPushBack(*op);
     }
@@ -239,7 +240,7 @@ MPCPermafrost::Setup()
       dE_dp_plist.set("entity kind", "cell");
       dE_dp_surf_ = Teuchos::rcp(new Operators::PDE_Accumulation(dE_dp_plist, surf_mesh_));
 
-      for (Operators::Operator::op_iterator op = dE_dp_surf_->global_operator()->begin();
+      for (Operators::Operator::op_iterator op = dE_dp_surf_->global_operator() ->begin();
            op != dE_dp_surf_->global_operator()->end();
            ++op) {
         dE_dp_block_->OpPushBack(*op);
@@ -346,8 +347,7 @@ MPCPermafrost::Initialize()
   S_->GetRecordW(mass_exchange_key_, tag_next_, name_).set_initialized();
   changedEvaluatorPrimary(mass_exchange_key_, tag_next_, *S_);
 
-  S_->GetPtrW<CompositeVector>(energy_exchange_key_, tag_next_, name_)
-    ->PutScalar(0.0);
+  S_->GetPtrW<CompositeVector>(energy_exchange_key_, tag_next_, name_)->PutScalar(0.0);
   S_->GetRecordW(energy_exchange_key_, tag_next_, name_).set_initialized();
   changedEvaluatorPrimary(energy_exchange_key_, tag_next_, *S_);
 
@@ -389,7 +389,7 @@ void
 MPCPermafrost::set_tags(const Tag& tag_current, const Tag& tag_next)
 {
   MPCSubsurface::set_tags(tag_current, tag_next);
-  if (water_.get()) water_->set_tags(tag_current, tag_next);
+  if (water_.get() ) water_->set_tags(tag_current, tag_next);
   if (surf_ewc_ != Teuchos::null) surf_ewc_->set_tags(tag_current, tag_next);
 }
 
@@ -424,8 +424,7 @@ MPCPermafrost::FunctionalResidual(double t_old,
   // The residual of the surface flow equation provides the water flux from
   // subsurface to surface.
   Epetra_MultiVector& source =
-    *S_->GetW<CompositeVector>(mass_exchange_key_, tag_next_, name_)
-       .ViewComponent("cell", false);
+    *S_->GetW<CompositeVector>(mass_exchange_key_, tag_next_, name_).ViewComponent("cell", false);
   source = *g->SubVector(2)->Data()->ViewComponent("cell", false);
   changedEvaluatorPrimary(mass_exchange_key_, tag_next_, *S_);
 
@@ -444,8 +443,7 @@ MPCPermafrost::FunctionalResidual(double t_old,
   // The residual of the surface energy equation provides the diffusive energy
   // flux from subsurface to surface.
   Epetra_MultiVector& esource =
-    *S_->GetW<CompositeVector>(energy_exchange_key_, tag_next_, name_)
-       .ViewComponent("cell", false);
+    *S_->GetW<CompositeVector>(energy_exchange_key_, tag_next_, name_).ViewComponent("cell", false);
   esource = *g->SubVector(3)->Data()->ViewComponent("cell", false);
   changedEvaluatorPrimary(energy_exchange_key_, tag_next_, *S_);
 
@@ -462,7 +460,7 @@ int
 MPCPermafrost::ApplyPreconditioner(Teuchos::RCP<const TreeVector> r, Teuchos::RCP<TreeVector> Pr)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "Precon application:" << std::endl;
+  if (vo_->os_OK(Teuchos::VERB_EXTREME) ) *vo_->os() << "Precon application:" << std::endl;
 
   // write residuals
   if (vo_->os_OK(Teuchos::VERB_HIGH)) {
@@ -528,7 +526,7 @@ void
 MPCPermafrost::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_HIGH)) *vo_->os() << "Precon update at t = " << t << std::endl;
+  if (vo_->os_OK(Teuchos::VERB_HIGH) ) *vo_->os() << "Precon update at t = " << t << std::endl;
 
   // update the various components -- note it is important that subsurface are
   // done first (which is handled as they are listed first)

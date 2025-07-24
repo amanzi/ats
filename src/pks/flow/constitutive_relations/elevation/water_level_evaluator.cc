@@ -9,7 +9,7 @@
 */
 
 /*
-  Evaluator for determining water level, a combined variable of 
+  Evaluator for determining water level, a combined variable of
   water table and ponded depth.
 
 */
@@ -101,10 +101,8 @@ WaterLevelEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector
       // val[1] is typically e.g. cell volume, but can be 0 to indicate no
       // denominator.  Coefficient provides a hook for column-wide multiples
       // (e.g. 1/surface area).
-      if (val[1] > 0.)
-        res_c[0][sc] = -val[1] / cv_surf_c[0][sc] * val[0];
-      else
-        res_c[0][sc] = -1. / cv_surf_c[0][sc] * val[0];
+      if (val[1] > 0.) res_c[0][sc] = -val[1] / cv_surf_c[0][sc] * val[0];
+      else res_c[0][sc] = -1. / cv_surf_c[0][sc] * val[0];
     } else {
       // ponded depth
       res_c[0][sc] = model_->Height(pres_c[0][sc], rho[0][sc], p_atm, gz);

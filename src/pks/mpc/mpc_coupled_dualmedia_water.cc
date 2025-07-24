@@ -175,7 +175,7 @@ MPCCoupledDualMediaWater::UpdatePreconditioner(double t,
                                                double h)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_HIGH)) *vo_->os() << "Precon update at t = " << t << std::endl;
+  if (vo_->os_OK(Teuchos::VERB_HIGH) ) *vo_->os() << "Precon update at t = " << t << std::endl;
 }
 
 

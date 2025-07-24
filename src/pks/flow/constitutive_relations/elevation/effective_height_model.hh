@@ -22,7 +22,8 @@ namespace Flow {
 
 class EffectiveHeightModel {
  public:
-  explicit EffectiveHeightModel(Teuchos::ParameterList& plist) : plist_(plist)
+  explicit EffectiveHeightModel(Teuchos::ParameterList& plist)
+    : plist_(plist)
   {
     InitializeFromPList_();
   }

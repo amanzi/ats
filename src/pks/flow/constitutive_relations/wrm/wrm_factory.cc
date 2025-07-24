@@ -32,13 +32,13 @@ WRMFactory::createWRM(Teuchos::ParameterList& plist)
     wrm_typename = plist.get<std::string>("wrm type");
   } else if (plist.isParameter("WRM Type")) {
     Errors::Message msg;
-    msg << "WRMFactory: deprecated parameter \"WRM Type\" in list \""
-        << plist.name() << "\" -- new parameter name is \"wrm type\"";
+    msg << "WRMFactory: deprecated parameter \"WRM Type\" in list \"" << plist.name()
+        << "\" -- new parameter name is \"wrm type\"";
     Exceptions::amanzi_throw(msg);
   } else if (plist.isParameter("WRM type")) {
     Errors::Message msg;
-    msg << "WRMFactory: deprecated parameter \"WRM type\" in list \""
-        << plist.name() << "\" -- new parameter name is \"wrm type\"";
+    msg << "WRMFactory: deprecated parameter \"WRM type\" in list \"" << plist.name()
+        << "\" -- new parameter name is \"wrm type\"";
     Exceptions::amanzi_throw(msg);
   } else {
     // throw the missing parameter error

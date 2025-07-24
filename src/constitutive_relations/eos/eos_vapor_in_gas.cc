@@ -13,7 +13,8 @@
 namespace Amanzi {
 namespace Relations {
 
-EOSVaporInGas::EOSVaporInGas(Teuchos::ParameterList& eos_plist) : eos_plist_(eos_plist)
+EOSVaporInGas::EOSVaporInGas(Teuchos::ParameterList& eos_plist)
+  : eos_plist_(eos_plist)
 {
   InitializeFromPlist_();
 }

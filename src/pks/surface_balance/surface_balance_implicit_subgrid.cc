@@ -134,7 +134,9 @@ ImplicitSubgrid::ModifyPredictor(double h,
                                  Teuchos::RCP<TreeVector> u)
 {
   Epetra_MultiVector& u_vec = *u->Data()->ViewComponent("cell", false);
-  for (int c = 0; c != u_vec.MyLength(); ++c) { u_vec[0][c] = std::max(0., u_vec[0][c]); }
+  for (int c = 0; c != u_vec.MyLength(); ++c) {
+    u_vec[0][c] = std::max(0., u_vec[0][c]);
+  }
   return true;
 }
 

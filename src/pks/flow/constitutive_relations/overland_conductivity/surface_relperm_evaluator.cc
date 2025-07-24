@@ -57,7 +57,7 @@ SurfaceRelPermEvaluator::Evaluate_(const State& S, const std::vector<CompositeVe
     Teuchos::RCP<const CompositeVector> uf = S.GetPtr<CompositeVector>(uf_key_, tag);
     Teuchos::RCP<const CompositeVector> h = S.GetPtr<CompositeVector>(h_key_, tag);
 
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       const Epetra_MultiVector& uf_v = *uf->ViewComponent(*comp, false);
       const Epetra_MultiVector& h_v = *h->ViewComponent(*comp, false);
@@ -72,13 +72,15 @@ SurfaceRelPermEvaluator::Evaluate_(const State& S, const std::vector<CompositeVe
   } else {
     Teuchos::RCP<const CompositeVector> h = S.GetPtr<CompositeVector>(h_key_, tag);
 
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       const Epetra_MultiVector& h_v = *h->ViewComponent(*comp, false);
       Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
 
       int ncomp = result[0]->size(*comp, false);
-      for (int i = 0; i != ncomp; ++i) { result_v[0][i] = model_->SurfaceRelPerm(0., h_v[0][i]); }
+      for (int i = 0; i != ncomp; ++i) {
+        result_v[0][i] = model_->SurfaceRelPerm(0., h_v[0][i]);
+      }
     }
   }
 }

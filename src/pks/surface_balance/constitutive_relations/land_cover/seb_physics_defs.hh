@@ -72,7 +72,8 @@ struct ModelParams {
       Cd0_d(0.)
   {}
 
-  ModelParams(Teuchos::ParameterList& plist) : ModelParams()
+  ModelParams(Teuchos::ParameterList& plist)
+    : ModelParams()
   {
     thermalK_freshsnow =
       plist.get<double>("thermal conductivity of fresh snow [W m^-1 K^-1]", thermalK_freshsnow);
@@ -196,7 +197,9 @@ struct MassBalance { // all are in [m/s] of WATER, i.e. snow are in SWE
   double Mm;         // melt rate (positive indicates increasing water, decreasing snow)
   double dt;         // max dt that may be taken to conserve snow swe
 
-  MassBalance() : Me(NaN), Mm(NaN) {}
+  MassBalance()
+    : Me(NaN), Mm(NaN)
+  {}
 };
 
 
@@ -208,7 +211,9 @@ struct FluxBalance {
   double E_subsurf; // [W/m^2], energy to/from subsurface system
   double M_snow;    // [m/s], mass swe to snow system
 
-  FluxBalance() : M_surf(0.), E_surf(0.), M_subsurf(0.), E_subsurf(0.), M_snow(0.) {}
+  FluxBalance()
+    : M_surf(0.), E_surf(0.), M_subsurf(0.), E_subsurf(0.), M_snow(0.)
+  {}
 };
 
 

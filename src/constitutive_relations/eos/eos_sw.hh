@@ -26,7 +26,7 @@ namespace Relations {
 class EOS_SW : public EOS {
  public:
   explicit EOS_SW(Teuchos::ParameterList& eos_plist);
-  virtual ~EOS_SW(){};
+  virtual ~EOS_SW() {};
 
   // Virtual methods that form the EOS
   virtual double MassDensity(std::vector<double>& params) override;

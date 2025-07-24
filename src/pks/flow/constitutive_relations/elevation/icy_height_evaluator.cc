@@ -15,7 +15,8 @@ namespace Amanzi {
 namespace Flow {
 
 
-IcyHeightEvaluator::IcyHeightEvaluator(Teuchos::ParameterList& plist) : HeightEvaluator(plist)
+IcyHeightEvaluator::IcyHeightEvaluator(Teuchos::ParameterList& plist)
+  : HeightEvaluator(plist)
 {
   Key domain = Keys::getDomain(my_keys_.front().first);
   Tag tag = my_keys_.front().second;

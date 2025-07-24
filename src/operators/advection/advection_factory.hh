@@ -28,8 +28,8 @@ namespace Operators {
 
 class AdvectionFactory {
  public:
-  Teuchos::RCP<Advection>
-  create(Teuchos::ParameterList& advect_plist, const Teuchos::RCP<const AmanziMesh::Mesh> mesh);
+  Teuchos::RCP<Advection> create(Teuchos::ParameterList& advect_plist,
+                                 const Teuchos::RCP<const AmanziMesh::Mesh> mesh);
 };
 
 } // namespace Operators

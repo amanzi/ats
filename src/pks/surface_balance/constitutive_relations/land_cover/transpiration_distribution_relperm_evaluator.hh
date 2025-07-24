@@ -126,7 +126,7 @@ struct SoilPlantFluxFunctor {
 
   // right hand side
   double computeSoilPlantFlux(double root_pc, AmanziMesh::Entity_ID c) const;
-  double computeSoilPlantFluxes(double root_pc, Epetra_MultiVector* trans=nullptr) const;
+  double computeSoilPlantFluxes(double root_pc, Epetra_MultiVector* trans = nullptr) const;
 
   const LandCover& lc;
   const Epetra_MultiVector& soil_pc;
@@ -152,8 +152,9 @@ class TranspirationDistributionRelPermEvaluator : public EvaluatorSecondaryMonot
     const TranspirationDistributionRelPermEvaluator& other) = default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
-  virtual bool
-  IsDifferentiableWRT(const State& S, const Key& wrt_key, const Tag& wrt_tag) const override
+  virtual bool IsDifferentiableWRT(const State& S,
+                                   const Key& wrt_key,
+                                   const Tag& wrt_tag) const override
   {
     // calculate of derivatives of this is a tricky thing to do, with
     // non-cell-local terms due to rescaling.  Just turn off derivatives

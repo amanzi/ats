@@ -57,7 +57,9 @@ TimeMaxEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>&
        .ViewComponent("cell", false);
 
   if (operator_ == "max") {
-    for (int c = 0; c != res.MyLength(); ++c) { res[0][c] = std::max(res[0][c], dep[0][c]); }
+    for (int c = 0; c != res.MyLength(); ++c) {
+      res[0][c] = std::max(res[0][c], dep[0][c]);
+    }
   }
 }
 

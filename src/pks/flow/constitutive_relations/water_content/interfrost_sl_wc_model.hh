@@ -29,12 +29,21 @@ class InterfrostSlWcModel {
   double WaterContent(double phi, double sl, double nl, double ni, double cv) const;
 
   double DWaterContentDPorosity(double phi, double sl, double nl, double ni, double cv) const;
-  double
-  DWaterContentDSaturationLiquid(double phi, double sl, double nl, double ni, double cv) const;
-  double
-  DWaterContentDMolarDensityLiquid(double phi, double sl, double nl, double ni, double cv) const;
-  double
-  DWaterContentDMolarDensityIce(double phi, double sl, double nl, double ni, double cv) const;
+  double DWaterContentDSaturationLiquid(double phi,
+                                        double sl,
+                                        double nl,
+                                        double ni,
+                                        double cv) const;
+  double DWaterContentDMolarDensityLiquid(double phi,
+                                          double sl,
+                                          double nl,
+                                          double ni,
+                                          double cv) const;
+  double DWaterContentDMolarDensityIce(double phi,
+                                       double sl,
+                                       double nl,
+                                       double ni,
+                                       double cv) const;
   double DWaterContentDCellVolume(double phi, double sl, double nl, double ni, double cv) const;
 
  protected:

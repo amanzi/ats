@@ -18,7 +18,8 @@
 namespace Amanzi {
 namespace Flow {
 
-WRMLinearRelPerm::WRMLinearRelPerm(Teuchos::ParameterList& plist) : plist_(plist)
+WRMLinearRelPerm::WRMLinearRelPerm(Teuchos::ParameterList& plist)
+  : plist_(plist)
 {
   InitializeFromPlist_();
 };

@@ -95,7 +95,8 @@ MatrixVolumetricDeformation::ApplyRHS(
   Epetra_MultiVector& rhs_n = *x_node->ViewComponent("node", false);
   unsigned int nnodes_owned =
     mesh_->getNumEntities(AmanziMesh::Entity_kind::NODE, AmanziMesh::Parallel_kind::OWNED);
-  for (AmanziMesh::Entity_ID_List::const_iterator n = fixed_nodes->begin(); n != fixed_nodes->end();
+  for (AmanziMesh::Entity_ID_List::const_iterator n = fixed_nodes->begin()
+    ; n != fixed_nodes->end();
        ++n) {
     if (*n < nnodes_owned) rhs_n[0][*n] = 0;
   }
@@ -352,7 +353,8 @@ MatrixVolumetricDeformation::Assemble(
   std::cout << "MIN VAL OP (PRE) = " << min << std::endl;
 
   // -- Fix the bottom nodes, they may not move
-  for (AmanziMesh::Entity_ID_List::const_iterator n = fixed_nodes->begin(); n != fixed_nodes->end();
+  for (AmanziMesh::Entity_ID_List::const_iterator n = fixed_nodes->begin()
+    ; n != fixed_nodes->end();
        ++n) {
     // extract the row
     if (*n < nnodes) {
@@ -396,8 +398,7 @@ MatrixVolumetricDeformation::Assemble(
 }
 
 
-void
-MatrixVolumetricDeformation::set_inverse_parameters(){};
+void MatrixVolumetricDeformation::set_inverse_parameters() {};
 
 } // namespace Operators
 } // namespace Amanzi

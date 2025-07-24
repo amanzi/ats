@@ -34,7 +34,7 @@ ThermalConductivityTwoPhaseEvaluator::ThermalConductivityTwoPhaseEvaluator(
 
   Teuchos::ParameterList tc_sublist = plist_.sublist("thermal conductivity parameters");
   ThermalConductivityTwoPhaseFactory fac;
-  for (Teuchos::ParameterList::ConstIterator lcv = tc_sublist.begin(); lcv != tc_sublist.end();
+  for (Teuchos::ParameterList::ConstIterator lcv = tc_sublist.begin() ; lcv != tc_sublist.end();
        ++lcv) {
     std::string name = lcv->first;
     if (tc_sublist.isSublist(name)) {
@@ -76,7 +76,7 @@ ThermalConductivityTwoPhaseEvaluator::Evaluate_(const State& S,
     const Epetra_MultiVector& sat_v = *sat->ViewComponent(*comp, false);
     Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
 
-    for (std::vector<RegionModelPair>::const_iterator lcv = tcs_.begin(); lcv != tcs_.end();
+    for (std::vector<RegionModelPair>::const_iterator lcv = tcs_.begin() ; lcv != tcs_.end();
          ++lcv) {
       std::string region_name = lcv->first;
       if (mesh->isValidSetName(region_name, AmanziMesh::Entity_kind::CELL)) {

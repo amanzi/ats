@@ -18,7 +18,8 @@ namespace Flow {
 /* ******************************************************************
  * Setup fundamental parameters for this model.
  ****************************************************************** */
-PCIceWater::PCIceWater(Teuchos::ParameterList& pc_plist) : pc_plist_(pc_plist)
+PCIceWater::PCIceWater(Teuchos::ParameterList& pc_plist)
+  : pc_plist_(pc_plist)
 {
   InitializeFromPlist_();
 };

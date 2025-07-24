@@ -101,14 +101,16 @@ class PredictorDelegateBCFlux {
   };
 
   struct Tol_ {
-    Tol_(double eps) : eps_(eps) {}
+    Tol_(double eps)
+      : eps_(eps)
+    {}
     bool operator()(const double& a, const double& b) const { return std::abs(a - b) <= eps_; }
     double eps_;
   };
 
  protected:
-  Teuchos::RCP<FluxBCFunctor>
-  CreateFunctor_(int f, const Teuchos::Ptr<const CompositeVector>& pres);
+  Teuchos::RCP<FluxBCFunctor> CreateFunctor_(int f,
+                                             const Teuchos::Ptr<const CompositeVector>& pres);
   int CalculateLambda_(int f, const Teuchos::Ptr<const CompositeVector>& pres, double& lambda);
 
  protected:

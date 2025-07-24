@@ -88,7 +88,7 @@ InterceptionFractionEvaluator::Evaluate_(const State& S,
   Teuchos::RCP<const CompositeVector> drainage = S.GetPtr<CompositeVector>(drainage_key_, tag);
   Teuchos::RCP<const CompositeVector> air_temp = S.GetPtr<CompositeVector>(air_temp_key_, tag);
 
-  for (CompositeVector::name_iterator comp = results[0]->begin(); comp != results[0]->end();
+  for (CompositeVector::name_iterator comp = results[0]->begin() ; comp != results[0]->end();
        ++comp) {
     const Epetra_MultiVector& ai_v = *ai->ViewComponent(*comp, false);
     const Epetra_MultiVector& rain_v = *rain->ViewComponent(*comp, false);
@@ -129,7 +129,7 @@ InterceptionFractionEvaluator::EvaluatePartialDerivative_(
     Teuchos::RCP<const CompositeVector> drainage = S.GetPtr<CompositeVector>(drainage_key_, tag);
     Teuchos::RCP<const CompositeVector> air_temp = S.GetPtr<CompositeVector>(air_temp_key_, tag);
 
-    for (CompositeVector::name_iterator comp = results[0]->begin(); comp != results[0]->end();
+    for (CompositeVector::name_iterator comp = results[0]->begin() ; comp != results[0]->end();
          ++comp) {
       const Epetra_MultiVector& ai_v = *ai->ViewComponent(*comp, false);
       const Epetra_MultiVector& rain_v = *rain->ViewComponent(*comp, false);

@@ -17,6 +17,6 @@
 #include "thermal_conductivity_twophase_factory.hh"
 
 // explicity instantitate the static data of Factory<EOS>
-template <>
+template<>
 Amanzi::Utils::Factory<Amanzi::Energy::ThermalConductivityTwoPhase>::map_type*
   Amanzi::Utils::Factory<Amanzi::Energy::ThermalConductivityTwoPhase>::map_;

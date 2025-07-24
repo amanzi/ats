@@ -190,8 +190,8 @@ class MPCSubsurface : public StrongMPC<PK_PhysicalBDF_Default> {
   virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) override;
 
   // -- Apply preconditioner to u and returns the result in Pu.
-  virtual int
-  ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) override;
+  virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
+                                  Teuchos::RCP<TreeVector> Pu) override;
 
   Teuchos::RCP<Operators::TreeOperator> preconditioner() { return preconditioner_; }
 

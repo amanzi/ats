@@ -29,8 +29,8 @@ class StandaloneElevationEvaluator : public ElevationEvaluator {
   Teuchos::RCP<Evaluator> Clone() const override;
 
  protected:
-  virtual void
-  EvaluateElevationAndSlope_(const State& S, const std::vector<CompositeVector*>& results) override;
+  virtual void EvaluateElevationAndSlope_(const State& S,
+                                          const std::vector<CompositeVector*>& results) override;
 
  protected:
   Teuchos::RCP<Functions::CompositeVectorFunction> elevation_function_;

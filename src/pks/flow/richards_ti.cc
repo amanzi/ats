@@ -117,7 +117,7 @@ int
 Richards::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_HIGH)) *vo_->os() << "Precon application:" << std::endl;
+  if (vo_->os_OK(Teuchos::VERB_HIGH) ) *vo_->os() << "Precon application:" << std::endl;
 
   // Apply the preconditioner
   db_->WriteVector("p_res", u->Data().ptr(), true);
@@ -136,13 +136,14 @@ Richards::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, doub
 {
   // VerboseObject stuff.
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_HIGH)) *vo_->os() << "Precon update at t = " << t << std::endl;
+  if (vo_->os_OK(Teuchos::VERB_HIGH) ) *vo_->os() << "Precon update at t = " << t << std::endl;
 
   // Recreate mass matrices
   if ((!deform_key_.empty() &&
        S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_ + " precon")) ||
-      S_->GetEvaluator(perm_key_, tag_next_).Update(*S_, name_+" precon"))
-    preconditioner_diff_->SetTensorCoefficient(Teuchos::rcpFromRef(S_->Get<TensorVector>(perm_key_, tag_next_).data));
+      S_->GetEvaluator(perm_key_, tag_next_).Update(*S_, name_ + " precon"))
+    preconditioner_diff_->SetTensorCoefficient(
+      Teuchos::rcpFromRef(S_->Get<TensorVector>(perm_key_, tag_next_).data));
 
   // update state with the solution up.
   if (std::abs(t - iter_counter_time_) / t > 1.e-4) {
@@ -182,8 +183,9 @@ Richards::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, doub
   preconditioner_diff_->SetScalarCoefficient(rel_perm, dkrdp);
 
   // update mass matrix?
-  if (S_->GetEvaluator(perm_key_, tag_next_).Update(*S_, name_+" precon"))
-    preconditioner_diff_->SetTensorCoefficient(Teuchos::rcpFromRef(S_->Get<TensorVector>(perm_key_, tag_next_).data));
+  if (S_->GetEvaluator(perm_key_, tag_next_).Update(*S_, name_ + " precon"))
+    preconditioner_diff_->SetTensorCoefficient(
+      Teuchos::rcpFromRef(S_->Get<TensorVector>(perm_key_, tag_next_).data));
 
   // -- local matries, primary term
   preconditioner_->Init();
