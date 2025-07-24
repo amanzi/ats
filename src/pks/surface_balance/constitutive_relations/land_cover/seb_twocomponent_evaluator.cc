@@ -530,7 +530,9 @@ SEBTwoComponentEvaluator::EvaluatePartialDerivative_(const State& S,
                                                      const Key& wrt_key,
                                                      const Tag& wrt_tag,
                                                      const std::vector<CompositeVector*>& results)
-{}
+{
+  AMANZI_ASSERT(false);
+}
 
 
 void
