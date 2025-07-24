@@ -38,16 +38,16 @@ Utils::RegisteredFactory<EOS, EOS_SW> EOS_SW::factory_("salt water");
 Utils::RegisteredFactory<EOS, EOSVaporInGas> EOSVaporInGas::factory_("vapor in gas");
 Utils::RegisteredFactory<EOS, EOSWater> EOSWater::factory_("liquid water");
 
-Utils::RegisteredFactory<Evaluator, MolarFractionGasEvaluator>
-  MolarFractionGasEvaluator::factory_("molar fraction gas");
-Utils::RegisteredFactory<VaporPressureRelation, VaporPressureWater>
-  VaporPressureWater::factory_("water vapor over water/ice");
+Utils::RegisteredFactory<Evaluator, MolarFractionGasEvaluator> MolarFractionGasEvaluator::factory_(
+  "molar fraction gas");
+Utils::RegisteredFactory<VaporPressureRelation, VaporPressureWater> VaporPressureWater::factory_(
+  "water vapor over water/ice");
 
 Utils::RegisteredFactory<Evaluator, ViscosityEvaluator> ViscosityEvaluator::factory_("viscosity");
-Utils::RegisteredFactory<ViscosityRelation, ViscosityConstant>
-  ViscosityConstant::factory_("constant");
-Utils::RegisteredFactory<ViscosityRelation, ViscosityWater>
-  ViscosityWater::factory_("liquid water");
+Utils::RegisteredFactory<ViscosityRelation, ViscosityConstant> ViscosityConstant::factory_(
+  "constant");
+Utils::RegisteredFactory<ViscosityRelation, ViscosityWater> ViscosityWater::factory_(
+  "liquid water");
 
 Utils::RegisteredFactory<Evaluator, CarbonDecomposeRateEvaluator>
   CarbonDecomposeRateEvaluator::reg_("carbon decomposition rate");

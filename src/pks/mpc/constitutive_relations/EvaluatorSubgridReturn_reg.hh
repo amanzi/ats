@@ -17,6 +17,7 @@
 
 namespace Amanzi {
 
-Utils::RegisteredFactory<Evaluator, EvaluatorSubgridReturn> EvaluatorSubgridReturn::fac_("subgrid return");
+Utils::RegisteredFactory<Evaluator, EvaluatorSubgridReturn> EvaluatorSubgridReturn::fac_(
+  "subgrid return");
 
 } // namespace Amanzi

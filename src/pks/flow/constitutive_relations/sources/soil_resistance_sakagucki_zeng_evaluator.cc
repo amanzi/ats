@@ -103,7 +103,7 @@ SoilResistanceSakaguckiZengEvaluator::EvaluatePartialDerivative_(
 
   if (wrt_key == sat_gas_key_) {
     // evaluate the model
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       AMANZI_ASSERT(*comp == "cell"); // partition on cell only
       const Epetra_MultiVector& sat_gas_v = *(sat_gas->ViewComponent(*comp, false));
@@ -121,7 +121,7 @@ SoilResistanceSakaguckiZengEvaluator::EvaluatePartialDerivative_(
 
   } else if (wrt_key == poro_key_) {
     // evaluate the model
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       AMANZI_ASSERT(*comp == "cell"); // partition on cell only
       const Epetra_MultiVector& sat_gas_v = *(sat_gas->ViewComponent(*comp, false));

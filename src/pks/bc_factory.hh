@@ -89,14 +89,15 @@ class BCFactory {
     : mesh_(mesh), plist_(plist)
   {}
 
-  Teuchos::RCP<Functions::BoundaryFunction>
-  CreateWithFunction(const std::string& list_name, const std::string& function_name) const;
+  Teuchos::RCP<Functions::BoundaryFunction> CreateWithFunction(
+    const std::string& list_name,
+    const std::string& function_name) const;
 
-  Teuchos::RCP<Functions::BoundaryFunction>
-  CreateWithoutFunction(const std::string& list_name) const;
+  Teuchos::RCP<Functions::BoundaryFunction> CreateWithoutFunction(
+    const std::string& list_name) const;
 
-  Teuchos::RCP<Functions::DynamicBoundaryFunction>
-  CreateDynamicFunction(const std::string& list_name) const;
+  Teuchos::RCP<Functions::DynamicBoundaryFunction> CreateDynamicFunction(
+    const std::string& list_name) const;
 
   bool CheckExplicitFlag(const std::string& list_name);
 

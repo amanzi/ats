@@ -35,8 +35,11 @@ class MicroporeMacroporeFluxModel {
                                                    double krM,
                                                    double krm,
                                                    double K) const;
-  double
-  DMicroporeMacroporeFluxDPressure(double pm, double pM, double krM, double krm, double K) const;
+  double DMicroporeMacroporeFluxDPressure(double pm,
+                                          double pM,
+                                          double krM,
+                                          double krm,
+                                          double K) const;
   double DMicroporeMacroporeFluxDRelativePermeability(double pm,
                                                       double pM,
                                                       double krM,

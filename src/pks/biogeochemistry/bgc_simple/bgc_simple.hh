@@ -135,8 +135,10 @@ class BGCSimple : public PK_Physical_Default {
                       const Epetra_Vector& vec,
                       Teuchos::Ptr<Epetra_SerialDenseVector> col_vec,
                       bool copy = true);
-  void
-  FieldToColumn_(AmanziMesh::Entity_ID col, const Epetra_Vector& vec, double* col_vec, int ncol);
+  void FieldToColumn_(AmanziMesh::Entity_ID col,
+                      const Epetra_Vector& vec,
+                      double* col_vec,
+                      int ncol);
   void ColDepthDz_(AmanziMesh::Entity_ID col,
                    Teuchos::Ptr<Epetra_SerialDenseVector> depth,
                    Teuchos::Ptr<Epetra_SerialDenseVector> dz);

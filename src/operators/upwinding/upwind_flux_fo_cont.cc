@@ -40,7 +40,7 @@ UpwindFluxFOCont::UpwindFluxFOCont(const std::string& pkname,
     manning_coef_(manning_coef),
     elevation_(elevation),
     slope_regularization_(slope_regularization),
-    manning_exp_(manning_exp){};
+    manning_exp_(manning_exp) {};
 
 
 void
@@ -69,7 +69,9 @@ UpwindFluxFOCont::CalculateCoefficientsOnFaces(const CompositeVector& cell_coef,
   Teuchos::RCP<const AmanziMesh::Mesh> mesh = face_coef.Mesh();
 
   // initialize the face coefficients
-  if (face_coef.HasComponent("cell")) { face_coef.ViewComponent("cell", true)->PutScalar(1.0); }
+  if (face_coef.HasComponent("cell")) {
+    face_coef.ViewComponent("cell", true)->PutScalar(1.0);
+  }
 
   // communicate needed ghost values
   cell_coef.ScatterMasterToGhosted("cell");
@@ -164,12 +166,9 @@ UpwindFluxFOCont::CalculateCoefficientsOnFaces(const CompositeVector& cell_coef,
 
     double pdf = 0.0;
     // Determine the coefficient
-    if (dw == -1)
-      pdf = pds[1];
-    else if (uw == -1)
-      pdf = pds[0];
-    else
-      pdf = pds[0] + elevation_v[0][uw] - std::max(elevation_v[0][uw], elevation_v[0][dw]);
+    if (dw == -1) pdf = pds[1];
+    else if (uw == -1) pdf = pds[0];
+    else pdf = pds[0] + elevation_v[0][uw] - std::max(elevation_v[0][uw], elevation_v[0][dw]);
 
     double exponent = manning_exp_ + 1.0;
     coef_faces[0][f] = std::pow(std::max(pdf, 0.), exponent) / denominator;

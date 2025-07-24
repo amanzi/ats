@@ -66,7 +66,7 @@ Solves Richards equation:
      face unknowns on diffusion discretizations that are cell-only (e.g. FV).
      This can be useful for surface flow or other wierd boundary conditions.
      Usually provided by MPCs that need them.
-     
+
    * `"accumulation preconditioner`" ``[pde-accumulation-spec]`` **optional**
      The inverse of the accumulation operator.  See :ref:`Accumulation`.
      Typically not provided by users, as defaults are sufficient.
@@ -246,14 +246,15 @@ class Richards : public PK_PhysicalBDF_Default {
                                   Teuchos::RCP<TreeVector> g) override;
 
   // applies preconditioner to u and returns the result in Pu
-  virtual int
-  ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) override;
+  virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
+                                  Teuchos::RCP<TreeVector> Pu) override;
 
   // updates the preconditioner
   virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) override;
 
-  virtual bool
-  ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::RCP<TreeVector> u) override;
+  virtual bool ModifyPredictor(double h,
+                               Teuchos::RCP<const TreeVector> u0,
+                               Teuchos::RCP<TreeVector> u) override;
 
   // problems with pressures -- setting a range of admissible pressures
   virtual bool IsAdmissible(Teuchos::RCP<const TreeVector> up) override;
@@ -310,11 +311,11 @@ class Richards : public PK_PhysicalBDF_Default {
   // virtual void PreconWC_(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu);
 
   // -- Possibly modify the correction before it is applied
-  virtual AmanziSolvers::FnBaseDefs::ModifyCorrectionResult
-  ModifyCorrection(double h,
-                   Teuchos::RCP<const TreeVector> res,
-                   Teuchos::RCP<const TreeVector> u,
-                   Teuchos::RCP<TreeVector> du) override;
+  virtual AmanziSolvers::FnBaseDefs::ModifyCorrectionResult ModifyCorrection(
+    double h,
+    Teuchos::RCP<const TreeVector> res,
+    Teuchos::RCP<const TreeVector> u,
+    Teuchos::RCP<TreeVector> du) override;
 
  protected:
   // control switches
@@ -421,8 +422,8 @@ class Richards : public PK_PhysicalBDF_Default {
   bool fixed_kr_;
 
   // -- access methods
-  virtual Teuchos::RCP<Operators::Operator>
-  my_operator(const Operators::OperatorType& type) override
+  virtual Teuchos::RCP<Operators::Operator> my_operator(
+    const Operators::OperatorType& type) override
   {
     return matrix_;
   }

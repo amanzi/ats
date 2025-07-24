@@ -19,7 +19,8 @@ namespace Amanzi {
 namespace Energy {
 
 
-IEMEvaluator::IEMEvaluator(Teuchos::ParameterList& plist) : EvaluatorSecondaryMonotypeCV(plist)
+IEMEvaluator::IEMEvaluator(Teuchos::ParameterList& plist)
+  : EvaluatorSecondaryMonotypeCV(plist)
 {
   AMANZI_ASSERT(plist_.isSublist("IEM parameters"));
   Teuchos::ParameterList sublist = plist_.sublist("IEM parameters");
@@ -68,7 +69,9 @@ IEMEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& res
     Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
 
     int ncomp = result[0]->size(*comp, false);
-    for (int i = 0; i != ncomp; ++i) { result_v[0][i] = iem_->InternalEnergy(temp_v[0][i]); }
+    for (int i = 0; i != ncomp; ++i) {
+      result_v[0][i] = iem_->InternalEnergy(temp_v[0][i]);
+    }
   }
 }
 
@@ -88,7 +91,9 @@ IEMEvaluator::EvaluatePartialDerivative_(const State& S,
     Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
 
     int ncomp = result[0]->size(*comp, false);
-    for (int i = 0; i != ncomp; ++i) { result_v[0][i] = iem_->DInternalEnergyDT(temp_v[0][i]); }
+    for (int i = 0; i != ncomp; ++i) {
+      result_v[0][i] = iem_->DInternalEnergyDT(temp_v[0][i]);
+    }
   }
 }
 

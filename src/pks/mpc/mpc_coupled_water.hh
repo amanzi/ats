@@ -24,7 +24,7 @@ standard form, it couples pressure at a the surface of the domain,
    \frac{\partial \Theta(p)}{\partial t} &= \nabla \cdot k K (\nabla p + \rho g \hat{z}) \\
    -k K (\nabla p + \rho g \hat{z}) \cdot \hat{n} |_{\Gamma} &= q_{ss} \\
    p|_{\Gamma} &= p_s
-   
+
 :math:`q_{ss}`, the "exfiltration" of water from subsurface to surface, is
 eliminated discretely (enforcing flux continuity) and the pressure equality
 condition (the last equation) is enforced by elimintating the surface unknowns
@@ -36,7 +36,7 @@ with the surface cell pressure, and therefore are equivalent.  In this approach
 (see `Coon et al WRR 2020 <https://doi.org/10.1016/j.advwatres.2020.103701>`_),
 the surface equations are directly assembled into the subsurface discrete
 operator.
-     
+
 As a result, this requires a subsurface discretization that uses face-based
 unknowns, e.g. any of the `"mfd: *`" class of methods.
 
@@ -94,22 +94,23 @@ class MPCCoupledWater : public StrongMPC<PK_PhysicalBDF_Default> {
                                   Teuchos::RCP<TreeVector> g) override;
 
   // -- Apply preconditioner to u and returns the result in Pu.
-  virtual int
-  ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) override;
+  virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
+                                  Teuchos::RCP<TreeVector> Pu) override;
 
   // -- Modify the predictor.
-  virtual bool
-  ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::RCP<TreeVector> u) override;
+  virtual bool ModifyPredictor(double h,
+                               Teuchos::RCP<const TreeVector> u0,
+                               Teuchos::RCP<TreeVector> u) override;
 
   // -- Modify the correction.
-  virtual AmanziSolvers::FnBaseDefs::ModifyCorrectionResult
-  ModifyCorrection(double h,
-                   Teuchos::RCP<const TreeVector> res,
-                   Teuchos::RCP<const TreeVector> u,
-                   Teuchos::RCP<TreeVector> du) override;
+  virtual AmanziSolvers::FnBaseDefs::ModifyCorrectionResult ModifyCorrection(
+    double h,
+    Teuchos::RCP<const TreeVector> res,
+    Teuchos::RCP<const TreeVector> u,
+    Teuchos::RCP<TreeVector> du) override;
 
-  virtual double
-  ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const TreeVector> res) override;
+  virtual double ErrorNorm(Teuchos::RCP<const TreeVector> u,
+                           Teuchos::RCP<const TreeVector> res) override;
 
   Teuchos::RCP<Operators::Operator> preconditioner() { return precon_; }
 

@@ -60,7 +60,7 @@ EnthalpyEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>
     Teuchos::RCP<const CompositeVector> pres = S.GetPtr<CompositeVector>(pres_key_, tag);
     Teuchos::RCP<const CompositeVector> n_l = S.GetPtr<CompositeVector>(dens_key_, tag);
 
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       const Epetra_MultiVector& pres_v = *pres->ViewComponent(*comp, false);
       const Epetra_MultiVector& nl_v = *n_l->ViewComponent(*comp, false);
@@ -91,7 +91,7 @@ EnthalpyEvaluator::EvaluatePartialDerivative_(const State& S,
 
     Teuchos::RCP<const CompositeVector> n_l = S.GetPtr<CompositeVector>(dens_key_, tag);
 
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       const Epetra_MultiVector& nl_v = *n_l->ViewComponent(*comp, false);
       Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
@@ -109,7 +109,7 @@ EnthalpyEvaluator::EvaluatePartialDerivative_(const State& S,
     Teuchos::RCP<const CompositeVector> pres = S.GetPtr<CompositeVector>(pres_key_, tag);
     Teuchos::RCP<const CompositeVector> n_l = S.GetPtr<CompositeVector>(dens_key_, tag);
 
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       const Epetra_MultiVector& nl_v = *n_l->ViewComponent(*comp, false);
       const Epetra_MultiVector& pres_v = *pres->ViewComponent(*comp, false);

@@ -35,8 +35,7 @@ SedimentTransport_PK::SedimentTransport_PK(Teuchos::ParameterList& pk_tree,
                                            const Teuchos::RCP<State>& S,
                                            const Teuchos::RCP<TreeVector>& solution)
 
-  : PK(pk_tree, glist, S, solution),
-    Transport_ATS(pk_tree, glist, S, solution)
+  : PK(pk_tree, glist, S, solution), Transport_ATS(pk_tree, glist, S, solution)
 {}
 
 
@@ -50,13 +49,15 @@ SedimentTransport_PK::parseParameterList()
   component_names_[0] = "sediment";
   num_aqueous_ = 1;
 
-  molar_masses_ = readParameterMapByComponent(plist_->sublist("component molar masses [kg / mol C]"), 1.0);
-  tcc_max_ = readParameterMapByComponent(plist_->sublist("component maximum concentration [mol C / mol H2O]"), -1.0);
+  molar_masses_ =
+    readParameterMapByComponent(plist_->sublist("component molar masses [kg / mol C]"), 1.0);
+  tcc_max_ = readParameterMapByComponent(
+    plist_->sublist("component maximum concentration [mol C / mol H2O]"), -1.0);
 
-  sd_trapping_key_ =  Keys::readKey(*plist_, domain_, "trapping rate", "trapping_rate");
-  sd_settling_key_ =  Keys::readKey(*plist_, domain_, "settling rate", "settling_rate");
-  sd_erosion_key_ =  Keys::readKey(*plist_, domain_, "erosion rate", "erosion_rate");
-  sd_organic_key_ =  Keys::readKey(*plist_, domain_, "organic rate", "organic_rate");
+  sd_trapping_key_ = Keys::readKey(*plist_, domain_, "trapping rate", "trapping_rate");
+  sd_settling_key_ = Keys::readKey(*plist_, domain_, "settling rate", "settling_rate");
+  sd_erosion_key_ = Keys::readKey(*plist_, domain_, "erosion rate", "erosion_rate");
+  sd_organic_key_ = Keys::readKey(*plist_, domain_, "organic rate", "organic_rate");
 
   elevation_increase_key_ = Keys::readKey(*plist_, domain_, "deformation", "deformation");
   requireEvaluatorAtNext(elevation_increase_key_, tag_next_, *S_, name_);
@@ -68,18 +69,21 @@ SedimentTransport_PK::parseParameterList()
 
   if (plist_->isSublist("sediment diffusion coefficient [m^2 s^-1]")) {
     has_diffusion_ = true;
-    molec_diff_ = readParameterMapByComponent(plist_->sublist("sediment diffusion coefficient [m^2 s^-1]"), 0.);
+    molec_diff_ =
+      readParameterMapByComponent(plist_->sublist("sediment diffusion coefficient [m^2 s^-1]"), 0.);
     tortuosity_ = readParameterMapByPhase(plist_->sublist("tortuosity [-]"), 1.);
   }
 
-    // keys, dependencies, etc
+  // keys, dependencies, etc
   // -- flux -- only needed at new time, evaluator controlled elsewhere
   water_flux_key_ = Keys::readKey(*plist_, domain_, "water flux", "water_flux");
 
-  mass_flux_advection_key_ = Keys::readKey(*plist_, domain_, "mass flux advection", "mass_flux_advection");
+  mass_flux_advection_key_ =
+    Keys::readKey(*plist_, domain_, "mass flux advection", "mass_flux_advection");
   requireEvaluatorAtNext(mass_flux_advection_key_, tag_next_, *S_, name_);
 
-  mass_flux_diffusion_key_ = Keys::readKey(*plist_, domain_, "mass flux diffusion", "mass_flux_diffusion");
+  mass_flux_diffusion_key_ =
+    Keys::readKey(*plist_, domain_, "mass flux diffusion", "mass_flux_diffusion");
   requireEvaluatorAtNext(mass_flux_diffusion_key_, tag_next_, *S_, name_);
 
   // -- liquid water content - need at new time, copy at current time
@@ -94,9 +98,10 @@ SedimentTransport_PK::parseParameterList()
     Keys::readKey(*plist_, domain_, "conserved quantity", "total_component_quantity");
   requireEvaluatorAtNext(conserve_qty_key_, tag_next_, *S_, name_);
 
-  solid_residue_mass_key_ = Keys::readKey(*plist_, domain_, "solid residue", "solid_residue_quantity");
+  solid_residue_mass_key_ =
+    Keys::readKey(*plist_, domain_, "solid residue", "solid_residue_quantity");
 
-    // other parameters
+  // other parameters
   // -- a small amount of water, used to define when we are going to completely dry out a grid cell
   water_tolerance_ = plist_->get<double>("water tolerance [mol H2O / m^d]", 1e-6);
 
@@ -106,7 +111,8 @@ SedimentTransport_PK::parseParameterList()
 
 
   // dispersion coefficient tensor
-  dispersion_tensor_key_ = Keys::readKey(*plist_, domain_, "sediment dispersion coefficient", "horizontal_mixing");
+  dispersion_tensor_key_ =
+    Keys::readKey(*plist_, domain_, "sediment dispersion coefficient", "horizontal_mixing");
   has_dispersion_ = S_->HasEvaluatorList(dispersion_tensor_key_);
 
 
@@ -121,7 +127,8 @@ SedimentTransport_PK::parseParameterList()
   temporal_disc_order_ = plist_->get<int>("temporal discretization order", 1);
   if (temporal_disc_order_ < 1 || temporal_disc_order_ > 2) {
     Errors::Message msg;
-    msg << "Transport_ATS: \"temporal discretization order\" must be 1 or 2, not " << temporal_disc_order_;
+    msg << "Transport_ATS: \"temporal discretization order\" must be 1 or 2, not "
+        << temporal_disc_order_;
     Exceptions::amanzi_throw(msg);
   }
 }
@@ -177,7 +184,6 @@ SedimentTransport_PK::SetupPhysicalEvaluators_()
 void
 SedimentTransport_PK::Initialize()
 {
-
   Teuchos::OSTab tab = vo_->getOSTab();
   PK_Physical_Default::Initialize();
 
@@ -191,8 +197,7 @@ SedimentTransport_PK::Initialize()
 
   if (D_rank >= 0) {
     CompositeVectorSpace D_space;
-    D_space.SetMesh(mesh_)
-      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+    D_space.SetMesh(mesh_)->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     D_ = Teuchos::rcp(new TensorVector(D_space, D_dim, D_rank, false));
   }
 
@@ -201,15 +206,14 @@ SedimentTransport_PK::Initialize()
 
   if (vo_->os_OK(Teuchos::VERB_MEDIUM)) {
     *vo_->os() << "cfl=" << cfl_ << " spatial/temporal discretization: " << adv_spatial_disc_order_
-               << " " << temporal_disc_order_ << std::endl << std::endl;
+               << " " << temporal_disc_order_ << std::endl
+               << std::endl;
   }
 }
 
 
 void
-SedimentTransport_PK::AddSourceTerms_(double t0,
-        double t1,
-        Epetra_MultiVector& conserve_qty)
+SedimentTransport_PK::AddSourceTerms_(double t0, double t1, Epetra_MultiVector& conserve_qty)
 {
   int ncells_owned =
     mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
@@ -230,7 +234,7 @@ SedimentTransport_PK::AddSourceTerms_(double t0,
 
   for (int c = 0; c < ncells_owned; c++) {
     double value = mesh_->getCellVolume(c) * (Q_e[0][c] - Q_dt[0][c] - Q_ds[0][c]); /// m^3/s
-    conserve_qty[0][c] += sediment_density_ * value * (t1 - t0)/ molar_masses_["sediment"] ;
+    conserve_qty[0][c] += sediment_density_ * value * (t1 - t0) / molar_masses_["sediment"];
   }
 
 
@@ -246,11 +250,12 @@ SedimentTransport_PK::AddSourceTerms_(double t0,
 
       // NOTE: we do note zero this out here, because it gets accumulated across the outer step size
       Epetra_MultiVector& dz = *S_->GetW<CompositeVector>(elevation_increase_key_, tag_next_, name_)
-        .ViewComponent("cell", false);
+                                  .ViewComponent("cell", false);
       // dz.PutScalar(0.);
 
       for (int c = 0; c < ncells_owned; c++) {
-        dz[0][c] += ((1. / sediment_density_) * ((Q_dt[0][c] + Q_ds[0][c]) - Q_e[0][c]) + Q_db[0][c]) *
+        dz[0][c] +=
+          ((1. / sediment_density_) * ((Q_dt[0][c] + Q_ds[0][c]) - Q_e[0][c]) + Q_db[0][c]) *
           (t1 - t0) / (1 - poro[0][c]);
       }
     }
@@ -260,7 +265,6 @@ SedimentTransport_PK::AddSourceTerms_(double t0,
     // changedEvaluatorPrimary(elevation_increase_key_, tag_next_, *S_);
     db_->WriteVector("dz", S_->GetPtr<CompositeVector>(elevation_increase_key_, tag_next_).ptr());
   }
-
 }
 
 } // namespace Transport

@@ -29,7 +29,8 @@ namespace Flow {
 /* ******************************************************************
  * Setup fundamental parameters for this model.
  ****************************************************************** */
-WRMLinearSystem::WRMLinearSystem(Teuchos::ParameterList& plist) : plist_(plist)
+WRMLinearSystem::WRMLinearSystem(Teuchos::ParameterList& plist)
+  : plist_(plist)
 {
   InitializeFromPlist_();
 };

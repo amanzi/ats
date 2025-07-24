@@ -26,9 +26,13 @@ class LiquidGasWaterContentModel {
  public:
   explicit LiquidGasWaterContentModel(Teuchos::ParameterList& plist);
 
-  double
-  WaterContent(double phi, double sl, double nl, double sg, double ng, double omega, double cv)
-    const;
+  double WaterContent(double phi,
+                      double sl,
+                      double nl,
+                      double sg,
+                      double ng,
+                      double omega,
+                      double cv) const;
 
   double DWaterContentDPorosity(double phi,
                                 double sl,

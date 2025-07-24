@@ -124,7 +124,6 @@ OverlandPressureFlow::parseParameterList()
 
   // require a few primary variable keys now to set the leaf node in the dep graph
   requireEvaluatorAtCurrent(pd_key_, tag_current_, *S_, name_);
-
 }
 
 
@@ -507,10 +506,8 @@ OverlandPressureFlow::Initialize()
              .ViewComponent("cell", false);
 
         // -- get the surface cell's equivalent subsurface face and neighboring cell
-        if (pres[0][0] > 101325.)
-          pres_star[0][c] = pres[0][0];
-        else
-          pres_star[0][c] = 101325.0;
+        if (pres[0][0] > 101325.) pres_star[0][c] = pres[0][0];
+        else pres_star[0][c] = 101325.0;
       }
       S_->GetRecordW(key_, tag_next_, name_).set_initialized();
     }
@@ -622,7 +619,9 @@ OverlandPressureFlow::CalculateDiagnostics(const Tag& tag)
       for (int i = 0; i != d; ++i) {
         rhs[i] += normal[i] * flux_f[0][f];
         matrix(i, i) += normal[i] * normal[i];
-        for (int j = i + 1; j < d; ++j) { matrix(j, i) = matrix(i, j) += normal[i] * normal[j]; }
+        for (int j = i + 1; j < d; ++j) {
+          matrix(j, i) = matrix(i, j) += normal[i] * normal[j];
+        }
       }
     }
 
@@ -646,7 +645,7 @@ bool
 OverlandPressureFlow::UpdatePermeabilityData_(const Tag& tag)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "  Updating permeability?";
+  if (vo_->os_OK(Teuchos::VERB_EXTREME) ) *vo_->os() << "  Updating permeability?";
 
   bool update_perm = S_->GetEvaluator(pd_key_, tag).Update(*S_, name_);
 
@@ -701,7 +700,7 @@ OverlandPressureFlow::UpdatePermeabilityData_(const Tag& tag)
     upwinding_->Update(*cond, *uw_cond, *S_);
   }
 
-  if (update_perm && vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << " TRUE." << std::endl;
+  if (update_perm && vo_->os_OK(Teuchos::VERB_EXTREME) ) *vo_->os() << " TRUE." << std::endl;
   return update_perm;
 }
 
@@ -713,7 +712,7 @@ bool
 OverlandPressureFlow::UpdatePermeabilityDerivativeData_(const Tag& tag)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "  Updating permeability derivatives?";
+  if (vo_->os_OK(Teuchos::VERB_EXTREME) ) *vo_->os() << "  Updating permeability derivatives?";
 
   bool update_perm = S_->GetEvaluator(cond_key_, tag).UpdateDerivative(*S_, name_, pd_key_, tag);
   Teuchos::RCP<const CompositeVector> dcond =
@@ -731,9 +730,10 @@ OverlandPressureFlow::UpdatePermeabilityDerivativeData_(const Tag& tag)
     }
   }
 
-  db_->WriteVector("dk_cond", S_->GetDerivativePtr<CompositeVector>(cond_key_, tag, pd_key_, tag).ptr(), true);
+  db_->WriteVector(
+    "dk_cond", S_->GetDerivativePtr<CompositeVector>(cond_key_, tag, pd_key_, tag).ptr(), true);
 
-  if (update_perm && vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << " TRUE." << std::endl;
+  if (update_perm && vo_->os_OK(Teuchos::VERB_EXTREME) ) *vo_->os() << " TRUE." << std::endl;
   return update_perm;
 }
 
@@ -766,7 +766,7 @@ void
 OverlandPressureFlow::UpdateBoundaryConditions_(const Tag& tag)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "  Updating BCs." << std::endl;
+  if (vo_->os_OK(Teuchos::VERB_EXTREME) ) *vo_->os() << "  Updating BCs." << std::endl;
 
   auto& markers = bc_markers();
   auto& values = bc_values();
@@ -847,10 +847,8 @@ OverlandPressureFlow::UpdateBoundaryConditions_(const Tag& tag)
     markers[f] = Operators::OPERATOR_BC_DIRICHLET;
     double val = bc.second;
 
-    if (elevation[0][f] > val)
-      values[f] = 0;
-    else
-      values[f] = val;
+    if (elevation[0][f] > val) values[f] = 0;
+    else values[f] = val;
   }
 
   if (bc_dynamic_->size() > 0) {
@@ -882,7 +880,7 @@ OverlandPressureFlow::UpdateBoundaryConditions_(const Tag& tag)
     const Epetra_MultiVector& nliq_c =
       *S_->GetPtr<CompositeVector>(molar_dens_key_, tag)->ViewComponent("cell");
 
-    for (auto bc_lvl = bc_level_flux_lvl_->begin(), bc_vel = bc_level_flux_vel_->begin();
+    for (auto bc_lvl = bc_level_flux_lvl_->begin() , bc_vel = bc_level_flux_vel_->begin();
          bc_lvl != bc_level_flux_lvl_->end();
          ++bc_lvl, ++bc_vel) {
       int f = bc_lvl->first;
@@ -891,8 +889,7 @@ OverlandPressureFlow::UpdateBoundaryConditions_(const Tag& tag)
 
       markers[f] = Operators::OPERATOR_BC_NEUMANN;
       double val = bc_lvl->second;
-      if (elevation[0][f] > val)
-        values[f] = 0;
+      if (elevation[0][f] > val) values[f] = 0;
       else {
         values[f] = (val - elevation[0][f]) * nliq_c[0][c] * bc_vel->second;
       }
@@ -1246,7 +1243,7 @@ OverlandPressureFlow::ModifyPredictor(double h,
                                       Teuchos::RCP<TreeVector> u)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "Modifying predictor:" << std::endl;
+  if (vo_->os_OK(Teuchos::VERB_EXTREME) ) *vo_->os() << "Modifying predictor:" << std::endl;
   return false;
 };
 
@@ -1272,7 +1269,7 @@ OverlandPressureFlow::ModifyCorrection(double h,
   }
 
   // debugging -- remove me! --etc
-  for (CompositeVector::name_iterator comp = du->Data()->begin(); comp != du->Data()->end();
+  for (CompositeVector::name_iterator comp = du->Data() ->begin(); comp != du->Data()->end();
        ++comp) {
     Epetra_MultiVector& du_c = *du->Data()->ViewComponent(*comp, false);
     double max, l2;
@@ -1322,12 +1319,14 @@ OverlandPressureFlow::ModifyCorrection(double h,
   }
 
   if (n_limited_spurt > 0) {
-    if (vo_->os_OK(Teuchos::VERB_HIGH)) { *vo_->os() << "  limiting the spurt." << std::endl; }
+    if (vo_->os_OK(Teuchos::VERB_HIGH)) {
+      *vo_->os() << "  limiting the spurt." << std::endl;
+    }
   }
 
   // debugging -- remove me! --etc
   if (vo_->os_OK(Teuchos::VERB_HIGH)) {
-    for (CompositeVector::name_iterator comp = du->Data()->begin(); comp != du->Data()->end();
+    for (CompositeVector::name_iterator comp = du->Data() ->begin(); comp != du->Data()->end();
          ++comp) {
       Epetra_MultiVector& du_c = *du->Data()->ViewComponent(*comp, false);
       double max, l2;
@@ -1343,7 +1342,7 @@ OverlandPressureFlow::ModifyCorrection(double h,
   int n_limited_change = 0;
 
   if (p_limit_ > 0.) {
-    for (CompositeVector::name_iterator comp = du->Data()->begin(); comp != du->Data()->end();
+    for (CompositeVector::name_iterator comp = du->Data() ->begin(); comp != du->Data()->end();
          ++comp) {
       Epetra_MultiVector& du_c = *du->Data()->ViewComponent(*comp, false);
 
@@ -1365,11 +1364,13 @@ OverlandPressureFlow::ModifyCorrection(double h,
   }
 
   if (n_limited_change > 0) {
-    if (vo_->os_OK(Teuchos::VERB_HIGH)) { *vo_->os() << "  limited by pressure." << std::endl; }
+    if (vo_->os_OK(Teuchos::VERB_HIGH)) {
+      *vo_->os() << "  limited by pressure." << std::endl;
+    }
   }
 
   // debugging -- remove me! --etc
-  for (CompositeVector::name_iterator comp = du->Data()->begin(); comp != du->Data()->end();
+  for (CompositeVector::name_iterator comp = du->Data() ->begin(); comp != du->Data()->end();
        ++comp) {
     Epetra_MultiVector& du_c = *du->Data()->ViewComponent(*comp, false);
     double max, l2;

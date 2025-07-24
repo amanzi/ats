@@ -55,7 +55,8 @@ namespace Flow {
 
 class CompressiblePorosityModel {
  public:
-  explicit CompressiblePorosityModel(Teuchos::ParameterList& plist) : plist_(plist)
+  explicit CompressiblePorosityModel(Teuchos::ParameterList& plist)
+    : plist_(plist)
   {
     InitializeFromPlist_();
   }
@@ -70,10 +71,8 @@ class CompressiblePorosityModel {
       poro = base_poro + compressibility_ * (std::pow(p_over, 2.) / 2. / cutoff_);
     }
 
-    if (max_is_one_)
-      return poro > 1. ? 1. : poro;
-    else
-      return poro;
+    if (max_is_one_) return poro > 1. ? 1. : poro;
+    else return poro;
   }
 
   double DPorosityDPressure(double base_poro, double pres, double patm)
@@ -93,10 +92,8 @@ class CompressiblePorosityModel {
 
   double DPorosityDBasePorosity(double base_poro, double pres, double patm)
   {
-    if (max_is_one_)
-      return pres > patm ? (Porosity(base_poro, pres, patm) > 1.0 ? 0. : 1.) : 1.;
-    else
-      return 1;
+    if (max_is_one_) return pres > patm ? (Porosity(base_poro, pres, patm) > 1.0 ? 0. : 1.) : 1.;
+    else return 1;
   }
 
  protected:

@@ -21,7 +21,8 @@
 namespace Amanzi {
 namespace Relations {
 
-EOSLinear::EOSLinear(Teuchos::ParameterList& eos_plist) : eos_plist_(eos_plist)
+EOSLinear::EOSLinear(Teuchos::ParameterList& eos_plist)
+  : eos_plist_(eos_plist)
 {
   InitializeFromPlist_();
 };

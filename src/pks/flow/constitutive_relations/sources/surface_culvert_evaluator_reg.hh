@@ -13,8 +13,7 @@ namespace Amanzi {
 namespace Flow {
 namespace Relations {
 
-Utils::RegisteredFactory<Evaluator, SurfCulvertEvaluator>
-  SurfCulvertEvaluator::reg_("culvert");
+Utils::RegisteredFactory<Evaluator, SurfCulvertEvaluator> SurfCulvertEvaluator::reg_("culvert");
 
 } // namespace Relations
 } // namespace Flow

@@ -40,8 +40,7 @@ number of grid cells.
 
 namespace Amanzi {
 
-class EvaluatorSubgridReturn
-  : public EvaluatorSecondaryMonotypeCV {
+class EvaluatorSubgridReturn : public EvaluatorSecondaryMonotypeCV {
  public:
   EvaluatorSubgridReturn(Teuchos::ParameterList& plist);
   EvaluatorSubgridReturn(const EvaluatorSubgridReturn& other) = default;
@@ -54,11 +53,13 @@ class EvaluatorSubgridReturn
   virtual void EvaluatePartialDerivative_(const State& S,
                                           const Key& wrt_key,
                                           const Tag& wrt_tag,
-                                          const std::vector<CompositeVector*>& results) override {
+                                          const std::vector<CompositeVector*>& results) override
+  {
     AMANZI_ASSERT(false);
   }
 
-  virtual bool IsDifferentiableWRT(const State& S, const Key& key, const Tag& tag) const override {
+  virtual bool IsDifferentiableWRT(const State& S, const Key& key, const Tag& tag) const override
+  {
     return false;
   }
 
@@ -78,6 +79,3 @@ class EvaluatorSubgridReturn
 };
 
 } // namespace Amanzi
-
-
-

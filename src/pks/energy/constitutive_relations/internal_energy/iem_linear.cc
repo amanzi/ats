@@ -23,7 +23,8 @@ Linear internal energy model -- function of Cv and temperature
 namespace Amanzi {
 namespace Energy {
 
-IEMLinear::IEMLinear(Teuchos::ParameterList& plist) : plist_(plist)
+IEMLinear::IEMLinear(Teuchos::ParameterList& plist)
+  : plist_(plist)
 {
   InitializeFromPlist_();
 };

@@ -50,7 +50,7 @@ respective methods.
 
 namespace Amanzi {
 
-template <class PK_t>
+template<class PK_t>
 class MPC : virtual public PK {
  public:
   MPC(Teuchos::ParameterList& pk_tree,
@@ -117,7 +117,7 @@ class MPC : virtual public PK {
 };
 
 
-template <class PK_t>
+template<class PK_t>
 void
 MPC<PK_t>::parseParameterList()
 {
@@ -128,7 +128,7 @@ MPC<PK_t>::parseParameterList()
 // -----------------------------------------------------------------------------
 // Setup of PK hierarchy from PList
 // -----------------------------------------------------------------------------
-template <class PK_t>
+template<class PK_t>
 void
 MPC<PK_t>::Setup()
 {
@@ -139,19 +139,18 @@ MPC<PK_t>::Setup()
 // -----------------------------------------------------------------------------
 // loop over sub-PKs, calling their initialization methods
 // -----------------------------------------------------------------------------
-template <class PK_t>
+template<class PK_t>
 void
 MPC<PK_t>::Initialize()
 {
-  for (auto& pk : sub_pks_)
-    pk->Initialize();
+  for (auto& pk : sub_pks_) pk->Initialize();
 };
 
 
 // -----------------------------------------------------------------------------
 // loop over sub-PKs, calling set_tags
 // -----------------------------------------------------------------------------
-template <class PK_t>
+template<class PK_t>
 void
 MPC<PK_t>::set_tags(const Tag& current, const Tag& next)
 {
@@ -163,7 +162,7 @@ MPC<PK_t>::set_tags(const Tag& current, const Tag& next)
 // -----------------------------------------------------------------------------
 // loop over sub-PKs, calling their state_to_solution method
 // -----------------------------------------------------------------------------
-template <class PK_t>
+template<class PK_t>
 void
 MPC<PK_t>::State_to_Solution(const Tag& tag, TreeVector& soln)
 {
@@ -181,7 +180,7 @@ MPC<PK_t>::State_to_Solution(const Tag& tag, TreeVector& soln)
 // -----------------------------------------------------------------------------
 // loop over sub-PKs, calling their solution_to_state method
 // -----------------------------------------------------------------------------
-template <class PK_t>
+template<class PK_t>
 void
 MPC<PK_t>::Solution_to_State(const TreeVector& soln, const Tag& tag)
 {
@@ -199,25 +198,27 @@ MPC<PK_t>::Solution_to_State(const TreeVector& soln, const Tag& tag)
 // -----------------------------------------------------------------------------
 // loop over sub-PKs, calling their commit_state method
 // -----------------------------------------------------------------------------
-template <class PK_t>
+template<class PK_t>
 void
 MPC<PK_t>::CommitStep(double t_old, double t_new, const Tag& tag)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "commiting step @ " << tag << std::endl;
-  for (auto& pk : sub_pks_) { pk->CommitStep(t_old, t_new, tag); }
+  if (vo_->os_OK(Teuchos::VERB_EXTREME) ) *vo_->os() << "commiting step @ " << tag << std::endl;
+  for (auto& pk : sub_pks_) {
+    pk->CommitStep(t_old, t_new, tag);
+  }
 };
 
 
 // -----------------------------------------------------------------------------
 // loop over sub-PKs, calling their fail step method
 // -----------------------------------------------------------------------------
-template <class PK_t>
+template<class PK_t>
 void
 MPC<PK_t>::FailStep(double t_old, double t_new, const Tag& tag)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "failing step @ " << tag << std::endl;
+  if (vo_->os_OK(Teuchos::VERB_EXTREME) ) *vo_->os() << "failing step @ " << tag << std::endl;
   for (auto& pk : sub_pks_) pk->FailStep(t_old, t_new, tag);
 };
 
@@ -225,7 +226,7 @@ MPC<PK_t>::FailStep(double t_old, double t_new, const Tag& tag)
 // -----------------------------------------------------------------------------
 // loop over sub-PKs, calling their calculate_diagnostics method
 // -----------------------------------------------------------------------------
-template <class PK_t>
+template<class PK_t>
 void
 MPC<PK_t>::CalculateDiagnostics(const Tag& tag)
 {
@@ -239,7 +240,7 @@ MPC<PK_t>::CalculateDiagnostics(const Tag& tag)
 // -----------------------------------------------------------------------------
 // Marks sub-PKs as changed.
 // -----------------------------------------------------------------------------
-template <class PK_t>
+template<class PK_t>
 void
 MPC<PK_t>::ChangedSolutionPK(const Tag& tag)
 {
@@ -247,7 +248,7 @@ MPC<PK_t>::ChangedSolutionPK(const Tag& tag)
 };
 
 
-template <class PK_t>
+template<class PK_t>
 Teuchos::RCP<PK_t>
 MPC<PK_t>::get_subpk(int i)
 {
@@ -260,7 +261,7 @@ MPC<PK_t>::get_subpk(int i)
 
 
 // protected constructor of subpks
-template <class PK_t>
+template<class PK_t>
 void
 MPC<PK_t>::init_(Comm_ptr_type comm)
 {
@@ -283,7 +284,7 @@ MPC<PK_t>::init_(Comm_ptr_type comm)
 };
 
 
-template <class PK_t>
+template<class PK_t>
 Teuchos::RCP<Teuchos::ParameterList>
 MPC<PK_t>::getSubPKPlist_(int i)
 {
@@ -292,7 +293,7 @@ MPC<PK_t>::getSubPKPlist_(int i)
 }
 
 
-template <class PK_t>
+template<class PK_t>
 Teuchos::RCP<Teuchos::ParameterList>
 MPC<PK_t>::getSubPKPlist_(const std::string& name)
 {

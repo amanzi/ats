@@ -33,20 +33,21 @@ namespace Transport {
 // owned.
 void
 Transport_ATS::AddAdvection_FirstOrderUpwind_(
-  double t_old, double t_new,  // old and new time
-  const Epetra_MultiVector& tcc,  // concentration in a cell at old time [mols C / mols H2O]
-  Epetra_MultiVector& c_qty,  // component quantity in a cell [mols C]
-  Epetra_MultiVector& cq_flux)  // component flux across a face [mols C / s]
+  double t_old,
+  double t_new,                  // old and new time
+  const Epetra_MultiVector& tcc, // concentration in a cell at old time [mols C / mols H2O]
+  Epetra_MultiVector& c_qty,     // component quantity in a cell [mols C]
+  Epetra_MultiVector& cq_flux)   // component flux across a face [mols C / s]
 {
-  double dt = t_new - t_old;  // timestep [s]
+  double dt = t_new - t_old; // timestep [s]
 
   // total number of faces in the domain
   int nfaces_all =
     mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::ALL);
-  
-    // get water flux (water_flux_key_) for each face at next timestep (tag_next_)
-  const Epetra_MultiVector& flux = *S_->Get<CompositeVector>(water_flux_key_, tag_next_)
-    .ViewComponent("face", true);
+
+  // get water flux (water_flux_key_) for each face at next timestep (tag_next_)
+  const Epetra_MultiVector& flux =
+    *S_->Get<CompositeVector>(water_flux_key_, tag_next_).ViewComponent("face", true);
 
   // advance all components at once
   for (int f = 0; f < nfaces_all; f++) {
@@ -54,56 +55,56 @@ Transport_ATS::AddAdvection_FirstOrderUpwind_(
     // If ci < 0 || ci > ncells_owned -> indicates boundary or halo cells (i=1,2...)
     int c1 = (*upwind_cell_)[f];
     int c2 = (*downwind_cell_)[f];
-    double u = std::abs(flux[0][f]);  // magnitude of water flux [mols H2O /s]
+    double u = std::abs(flux[0][f]); // magnitude of water flux [mols H2O /s]
 
     if (c1 >= 0 && c1 < c_qty.MyLength() && c2 >= 0 && c2 < c_qty.MyLength()) {
       // Here c1 & c2 are inside local domain
       // Thus, update solute fluxes for both cells
       for (int i = 0; i < num_aqueous_; i++) {
-        double delta_c_mass = dt * u * tcc[i][c1];  // [mols C]
-        c_qty[i][c1] -= delta_c_mass;  // [mols C]
-        c_qty[i][c2] += delta_c_mass;  // [mols C]
-        cq_flux[i][f] = u * tcc[i][c1];  // tcc [mols C / mols H2O] --> cq_flux [mols C / s]
+        double delta_c_mass = dt * u * tcc[i][c1]; // [mols C]
+        c_qty[i][c1] -= delta_c_mass;              // [mols C]
+        c_qty[i][c2] += delta_c_mass;              // [mols C]
+        cq_flux[i][f] = u * tcc[i][c1]; // tcc [mols C / mols H2O] --> cq_flux [mols C / s]
       }
       // update (tag next) water fluxes for both cells
-      c_qty[num_aqueous_ + 1][c1] -= dt * u;  // [mols H2O]
-      c_qty[num_aqueous_ + 1][c2] += dt * u;  // [mols H2O]
+      c_qty[num_aqueous_ + 1][c1] -= dt * u; // [mols H2O]
+      c_qty[num_aqueous_ + 1][c2] += dt * u; // [mols H2O]
 
     } else if (c1 >= 0 && c1 < cq_flux.MyLength() && (c2 >= cq_flux.MyLength() || c2 < 0)) {
       // downind cell c2 is boundary or belong to another domain owned by other processors
       // update solute flux for c1 only
       for (int i = 0; i < num_aqueous_; i++) {
-        double delta_c_mass = dt * u * tcc[i][c1];  // [mols C]
-        c_qty[i][c1] -= delta_c_mass;  // [mols C]
-        cq_flux[i][f] = u * tcc[i][c1];  // [mols C / s]        
+        double delta_c_mass = dt * u * tcc[i][c1]; // [mols C]
+        c_qty[i][c1] -= delta_c_mass;              // [mols C]
+        cq_flux[i][f] = u * tcc[i][c1];            // [mols C / s]
       }
       // update or subtract (tag next) water fluxes for c1
-      c_qty[num_aqueous_ + 1][c1] -= dt * u;  // [mols H2O]
+      c_qty[num_aqueous_ + 1][c1] -= dt * u; // [mols H2O]
 
     } else if (c1 >= c_qty.MyLength() && c2 >= 0 && c2 < c_qty.MyLength()) {
       // upwind cell c1 is boundary or belong to another domain owned by other processors
       // update solute flux for c2 only
       for (int i = 0; i < num_aqueous_; i++) {
-        double delta_c_mass = dt * u * tcc[i][c1];  // [mols C]
-        c_qty[i][c2] += delta_c_mass;  // [mols C]
+        double delta_c_mass = dt * u * tcc[i][c1]; // [mols C]
+        c_qty[i][c2] += delta_c_mass;              // [mols C]
       }
       // update or add (tag next) water fluxes for c2
-      c_qty[num_aqueous_ + 1][c2] += dt * u;  // [mols H2O]
+      c_qty[num_aqueous_ + 1][c2] += dt * u; // [mols H2O]
 
     } else if (c2 < 0 && c1 >= 0 && c1 < c_qty.MyLength()) {
       // Negative cell value implies the face is a domain boundary.
       // This mean flux is going from a regular cell (c1) to a domain boundary (c2).
-      // Solute fluxes over domain boundaries are taken care of in the 
+      // Solute fluxes over domain boundaries are taken care of in the
       // below boundary loop, but water fluxes aren't because water
       // fluxes may not bring solute, so deal with water fluxes only here.
-      c_qty[num_aqueous_ + 1][c1] -= dt * u;  // [mols C]
+      c_qty[num_aqueous_ + 1][c1] -= dt * u; // [mols C]
 
     } else if (c1 < 0 && c2 >= 0 && c2 < c_qty.MyLength()) {
       // This mean flux is going from a domain boundary (c1) to a regular cell (c2).
       // Similarly, solute fluxes over domain boundaries are taken care
       // of in the below boundary loop. We only need to deal with
       // water fluxes here.
-      c_qty[num_aqueous_ + 1][c2] += dt * u;  // [mols C]
+      c_qty[num_aqueous_ + 1][c2] += dt * u; // [mols C]
     }
   }
 
@@ -112,13 +113,13 @@ Transport_ATS::AddAdvection_FirstOrderUpwind_(
   // Or is this hard-coded as just Dirichlet data? --ETC
   for (int m = 0; m < bcs_.size(); m++) {
     std::vector<int>& tcc_index = bcs_[m]->tcc_index();
-    int ncomp = tcc_index.size();  // number of components
+    int ncomp = tcc_index.size(); // number of components
 
     for (auto it = bcs_[m]->begin(); it != bcs_[m]->end(); ++it) {
-      int f = it->first;  // get face id
+      int f = it->first; // get face id
       std::vector<double>& values = it->second;
-      int c2 = (*downwind_cell_)[f];  // downwind cell id
-      int c1 = (*upwind_cell_)[f];  // upwind cell id
+      int c2 = (*downwind_cell_)[f]; // downwind cell id
+      int c1 = (*upwind_cell_)[f];   // upwind cell id
 
       double u = std::abs(flux[0][f]);
       // if downwind cell c2 is inside local domain, update solute fluxes for c2
@@ -126,8 +127,8 @@ Transport_ATS::AddAdvection_FirstOrderUpwind_(
         for (int i = 0; i < ncomp; i++) {
           int k = tcc_index[i];
           if (k < num_aqueous_) {
-            double delta_c_mass = dt * u * values[i];  // [mols C]
-            c_qty[k][c2] += delta_c_mass;  // [mols C]
+            double delta_c_mass = dt * u * values[i]; // [mols C]
+            c_qty[k][c2] += delta_c_mass;             // [mols C]
           }
         }
       }
@@ -138,10 +139,11 @@ Transport_ATS::AddAdvection_FirstOrderUpwind_(
 
 void
 Transport_ATS::AddAdvection_SecondOrderUpwind_(
-  double t_old, double t_new,  // old and new time
-  const Epetra_MultiVector& tcc,  // concentration in a cell at old time [mols C / mols H2O]
-  Epetra_MultiVector& c_qty,  // component quantity in a cell [mols C]
-  Epetra_MultiVector& cq_flux)  // component flux across a face [mols C / s]
+  double t_old,
+  double t_new,                  // old and new time
+  const Epetra_MultiVector& tcc, // concentration in a cell at old time [mols C / mols H2O]
+  Epetra_MultiVector& c_qty,     // component quantity in a cell [mols C]
+  Epetra_MultiVector& cq_flux)   // component flux across a face [mols C / s]
 {
   for (int i = 0; i != num_aqueous_; ++i) {
     AddAdvection_SecondOrderUpwind_(t_old, t_new, *tcc(i), *c_qty(i), *cq_flux(i), i);
@@ -155,14 +157,14 @@ Transport_ATS::AddAdvection_SecondOrderUpwind_(
 // DEV NOTE: requires that tcc is ghosted and scattered, while c_qty is
 // owned.
 void
-Transport_ATS::AddAdvection_SecondOrderUpwind_(
-  double t_old, double t_new,
-  const Epetra_Vector& tcc,
-  Epetra_Vector& c_qty,
-  Epetra_Vector& cq_flux,
-  int component)
+Transport_ATS::AddAdvection_SecondOrderUpwind_(double t_old,
+                                               double t_new,
+                                               const Epetra_Vector& tcc,
+                                               Epetra_Vector& c_qty,
+                                               Epetra_Vector& cq_flux,
+                                               int component)
 {
-  double dt = t_new - t_old;  // timestep [s]
+  double dt = t_new - t_old; // timestep [s]
 
   // number of faces owned by this processor
   // and total number of faces in the domain
@@ -172,7 +174,8 @@ Transport_ATS::AddAdvection_SecondOrderUpwind_(
     mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::ALL);
 
   // API funkiness
-  Teuchos::RCP<const Epetra_MultiVector> tcc_rcp = Teuchos::rcpFromRef<const Epetra_MultiVector>(tcc);
+  Teuchos::RCP<const Epetra_MultiVector> tcc_rcp =
+    Teuchos::rcpFromRef<const Epetra_MultiVector>(tcc);
   lifting_->Compute(tcc_rcp, 0);
 
   // populate boundary conditions for the current component
@@ -207,14 +210,14 @@ Transport_ATS::AddAdvection_SecondOrderUpwind_(
     const AmanziGeometry::Point& xf = mesh_->getFaceCentroid(f);
 
     double upwind_tcc, delta_c_mass;
-    if (c1 >= 0 && c1 < c_qty.MyLength() && c2 >= 0 && c2 < c_qty.MyLength() ) {
+    if (c1 >= 0 && c1 < c_qty.MyLength() && c2 >= 0 && c2 < c_qty.MyLength()) {
       upwind_tcc = limiter_->getValue(c1, xf);
       upwind_tcc = std::max(upwind_tcc, tccmin);
       upwind_tcc = std::min(upwind_tcc, tccmax);
 
       delta_c_mass = dt * u * upwind_tcc;
-      c_qty[c1] -= delta_c_mass;  // [mols C]
-      c_qty[c2] += delta_c_mass;  // [mols C]
+      c_qty[c1] -= delta_c_mass; // [mols C]
+      c_qty[c2] += delta_c_mass; // [mols C]
 
     } else if (c1 >= 0 && c1 < c_qty.MyLength() && (c2 >= c_qty.MyLength() || c2 < 0)) {
       upwind_tcc = limiter_->getValue(c1, xf);
@@ -222,7 +225,7 @@ Transport_ATS::AddAdvection_SecondOrderUpwind_(
       upwind_tcc = std::min(upwind_tcc, tccmax);
 
       delta_c_mass = dt * u * upwind_tcc;
-      c_qty[c1] -= delta_c_mass;  // [mols C]
+      c_qty[c1] -= delta_c_mass; // [mols C]
 
     } else if (c1 >= 0 && c1 < c_qty.MyLength() && (c2 < 0)) {
       upwind_tcc = tcc[c1];
@@ -230,43 +233,42 @@ Transport_ATS::AddAdvection_SecondOrderUpwind_(
       upwind_tcc = std::min(upwind_tcc, tccmax);
 
       delta_c_mass = dt * u * upwind_tcc;
-      c_qty[c1] -= delta_c_mass;  // [mols C]
+      c_qty[c1] -= delta_c_mass; // [mols C]
 
-    } else if (c1 >= c_qty.MyLength() && c2 >= 0 && c2 < c_qty.MyLength() ) {
+    } else if (c1 >= c_qty.MyLength() && c2 >= 0 && c2 < c_qty.MyLength()) {
       upwind_tcc = limiter_->getValue(c1, xf);
       upwind_tcc = std::max(upwind_tcc, tccmin);
       upwind_tcc = std::min(upwind_tcc, tccmax);
 
-      delta_c_mass = dt * u * upwind_tcc;  // [mols C]
+      delta_c_mass = dt * u * upwind_tcc; // [mols C]
       c_qty[c2] += delta_c_mass;
     }
-    cq_flux[f] = u * upwind_tcc;  // [mols C / s]
+    cq_flux[f] = u * upwind_tcc; // [mols C / s]
   }
 
   // boundary conditions for advection
   for (int m = 0; m < bcs_.size(); m++) {
     std::vector<int>& tcc_index = bcs_[m]->tcc_index();
-    int ncomp = tcc_index.size();  // number of components
+    int ncomp = tcc_index.size(); // number of components
 
     for (int i = 0; i < ncomp; i++) {
       if (component == tcc_index[i]) {
         for (auto it = bcs_[m]->begin(); it != bcs_[m]->end(); ++it) {
-          int f = it->first;  // get face id
-          std::vector<double>& values = it->second;  // concentration values [mols C / mols H2O]
-          int c2 = (*downwind_cell_)[f];  // get downwind cell id
+          int f = it->first;                        // get face id
+          std::vector<double>& values = it->second; // concentration values [mols C / mols H2O]
+          int c2 = (*downwind_cell_)[f];            // get downwind cell id
 
           // if downwind cell c2 is inside local domain and face id is owned by this processor
-          if (c2 >= 0 && f < nfaces_owned) {            
-            double u = std::abs((*flux)[0][f]);  // water flux [mols H2O / s]
-            double delta_c_mass = dt * u * values[i];  // [mols C]
-            c_qty[c2] += delta_c_mass;  // [mols C]
+          if (c2 >= 0 && f < nfaces_owned) {
+            double u = std::abs((*flux)[0][f]);       // water flux [mols H2O / s]
+            double delta_c_mass = dt * u * values[i]; // [mols C]
+            c_qty[c2] += delta_c_mass;                // [mols C]
           }
         }
       }
     }
   }
 }
-
 
 
 // Given the conserved quantity, computes new tcc
@@ -280,10 +282,10 @@ Transport_ATS::InvertTccNew_(const Epetra_MultiVector& conserve_qty,
                              bool include_current_water_mass)
 {
   // note this was updated in StableStep
-  const Epetra_MultiVector& lwc_new = *S_->Get<CompositeVector>(lwc_key_, tag_next_)
-    .ViewComponent("cell", false);
-  const Epetra_MultiVector& cv = *S_->Get<CompositeVector>(cv_key_, tag_next_)
-    .ViewComponent("cell", false);
+  const Epetra_MultiVector& lwc_new =
+    *S_->Get<CompositeVector>(lwc_key_, tag_next_).ViewComponent("cell", false);
+  const Epetra_MultiVector& cv =
+    *S_->Get<CompositeVector>(cv_key_, tag_next_).ViewComponent("cell", false);
 
   // calculate the new conc based on advected term
   for (int c = 0; c < conserve_qty.MyLength(); c++) {
@@ -321,9 +323,9 @@ Transport_ATS::InvertTccNew_(const Epetra_MultiVector& conserve_qty,
       // dissolve solid
       if (solid_qty &&
           water_total > water_tolerance_ / cv[0][c] && // water available for dissolution
-          (*solid_qty)[i][c] > 0. && // solid available to dissolve
+          (*solid_qty)[i][c] > 0. &&                   // solid available to dissolve
           tcc[i][c] < tcc_max) {
-        double dissolved_qty = std::min( (tcc_max - tcc[i][c]) * water_total, (*solid_qty)[i][c]);
+        double dissolved_qty = std::min((tcc_max - tcc[i][c]) * water_total, (*solid_qty)[i][c]);
         if (water_new > water_tolerance_ / cv[0][c]) {
           // new water -- dissolve in place
           tcc[i][c] += dissolved_qty / water_new;
@@ -332,7 +334,6 @@ Transport_ATS::InvertTccNew_(const Epetra_MultiVector& conserve_qty,
         (*solid_qty)[i][c] -= dissolved_qty;
         conserve_qty[i][c] += dissolved_qty;
       }
-
     }
   }
 }
@@ -344,9 +345,7 @@ Transport_ATS::InvertTccNew_(const Epetra_MultiVector& conserve_qty,
 * The routine treats two cases of tcc with one and all components.
 ****************************************************************** */
 void
-Transport_ATS::AddSourceTerms_(double t0,
-        double t1,
-        Epetra_MultiVector& conserve_qty)
+Transport_ATS::AddSourceTerms_(double t0, double t1, Epetra_MultiVector& conserve_qty)
 {
   // note: conserve_qty is OWNED vector
   double dt = t1 - t0;
@@ -354,8 +353,10 @@ Transport_ATS::AddSourceTerms_(double t0,
   // First add evaluator-based sources
   if (!source_key_.empty()) {
     S_->GetEvaluator(source_key_, tag_next_).Update(*S_, name_);
-    const Epetra_MultiVector& Q_c = *S_->Get<CompositeVector>(source_key_, tag_next_).ViewComponent("cell", false);
-    const Epetra_MultiVector& cv = *S_->Get<CompositeVector>(cv_key_, tag_next_).ViewComponent("cell", false);
+    const Epetra_MultiVector& Q_c =
+      *S_->Get<CompositeVector>(source_key_, tag_next_).ViewComponent("cell", false);
+    const Epetra_MultiVector& cv =
+      *S_->Get<CompositeVector>(cv_key_, tag_next_).ViewComponent("cell", false);
     // std::cout << "Source: " << Q_c[0][0] << ", " << Q_c[1][0] << std::endl;
     // std::cout << "CQ: " << conserve_qty[0][0] << ", " << conserve_qty[1][0] << std::endl;
 

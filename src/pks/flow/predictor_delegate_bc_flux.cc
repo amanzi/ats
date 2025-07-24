@@ -86,9 +86,9 @@ PredictorDelegateBCFlux::CreateFunctor_(int f, const Teuchos::Ptr<const Composit
 
 #if DEBUG_FLAG
   std::cout << "   Aff = ";
-  for (unsigned int i = 0; i != faces.size(); ++i) std::cout << (*Aff)[i] << ", ";
+  for (unsigned int i = 0; i != faces.size() ; ++i) std::cout << (*Aff)[i] << ", ";
   std::cout << std::endl << "   lambda = ";
-  for (unsigned int i = 0; i != faces.size(); ++i) std::cout << (*lambda)[i] << ", ";
+  for (unsigned int i = 0; i != faces.size() ; ++i) std::cout << (*lambda)[i] << ", ";
   std::cout << std::endl << "   p_cell = " << (*pres)("cell", c) << std::endl;
   std::cout << "    and init K_rel = "
             << wrms_->second[(*wrms_->first)[c]]->k_relative(

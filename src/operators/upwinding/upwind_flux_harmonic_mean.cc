@@ -53,7 +53,9 @@ UpwindFluxHarmonicMean::CalculateCoefficientsOnFaces(const CompositeVector& cell
   Teuchos::RCP<const AmanziMesh::Mesh> mesh = face_coef.Mesh();
 
   // initialize the face coefficients
-  if (face_coef.HasComponent("cell")) { face_coef.ViewComponent("cell", true)->PutScalar(1.0); }
+  if (face_coef.HasComponent("cell")) {
+    face_coef.ViewComponent("cell", true)->PutScalar(1.0);
+  }
 
   // communicate needed ghost values
   cell_coef.ScatterMasterToGhosted("cell");
@@ -132,10 +134,8 @@ UpwindFluxHarmonicMean::CalculateCoefficientsOnFaces(const CompositeVector& cell
     double amean_order_of_supression = 15.0;
 
     // Determine the coefficient
-    if (dw == -1)
-      coef_faces[0][f] = coefs[1];
-    else if (uw == -1)
-      coef_faces[0][f] = coefs[0];
+    if (dw == -1) coef_faces[0][f] = coefs[1];
+    else if (uw == -1) coef_faces[0][f] = coefs[0];
     else {
       double dist[2];
       dist[0] = AmanziGeometry::norm(mesh->getFaceCentroid(f) - mesh->getCellCentroid(uw));
@@ -170,8 +170,7 @@ UpwindFluxHarmonicMean::CalculateCoefficientsOnFaces(const CompositeVector& cell
         double param = std::abs(flux_v[0][f]) / flow_eps;
         double alt_coef_face = hmean + amean * amean_scaling[1];
         coef_faces[0][f] = param * coef_face + (1 - param) * alt_coef_face;
-      } else
-        coef_faces[0][f] = coef_face;
+      } else coef_faces[0][f] = coef_face;
     }
   }
 };

@@ -41,7 +41,8 @@ PK_BDF_Default::Setup()
     // check if continuation method and require continuation parameter
     // -- ETC Note this needs fixed if more than one continuation method used
     if (bdf_plist.isSublist("continuation parameters")) {
-      S_->Require<double>(Keys::cleanName(name_, true) + "_continuation_parameter", Tags::DEFAULT, name_);
+      S_->Require<double>(
+        Keys::cleanName(name_, true) + "_continuation_parameter", Tags::DEFAULT, name_);
     }
   }
 };
@@ -70,8 +71,8 @@ PK_BDF_Default::Initialize()
     // solution space is not known until after Setup() is complete.
     // -- construct the time integrator
     Teuchos::ParameterList& bdf_plist = plist_->sublist("time integrator");
-    time_stepper_ =
-      Teuchos::rcp(new BDF1_TI<TreeVector, TreeVectorSpace>(name()+"_TI", bdf_plist, *this, solution_->get_map(), S_));
+    time_stepper_ = Teuchos::rcp(new BDF1_TI<TreeVector, TreeVectorSpace>(
+      name() + "_TI", bdf_plist, *this, solution_->get_map(), S_));
 
     // -- set initial state
     time_stepper_->SetInitialState(S_->get_time(), solution_, solution_dot);
@@ -119,8 +120,7 @@ PK_BDF_Default::AdvanceStep(double t_old, double t_new, bool reinit)
 
   if (vo_->os_OK(Teuchos::VERB_LOW))
     *vo_->os() << "----------------------------------------------------------------" << std::endl
-               << "Advancing: t0 = " << t_old
-               << " t1 = " << t_new << " h = " << dt << std::endl
+               << "Advancing: t0 = " << t_old << " t1 = " << t_new << " h = " << dt << std::endl
                << "----------------------------------------------------------------" << std::endl;
 
   AMANZI_ASSERT(std::abs(S_->get_time(tag_current_) - t_old) < 1.e-4);
@@ -151,7 +151,8 @@ PK_BDF_Default::AdvanceStep(double t_old, double t_new, bool reinit)
 void
 PK_BDF_Default::UpdateContinuationParameter(double lambda)
 {
-  S_->Assign(Keys::cleanName(name_, true) + "_continuation_parameter", Tags::DEFAULT, name_, lambda);
+  S_->Assign(
+    Keys::cleanName(name_, true) + "_continuation_parameter", Tags::DEFAULT, name_, lambda);
   ChangedSolution();
 }
 

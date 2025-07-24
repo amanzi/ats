@@ -177,7 +177,9 @@ OverlandConductivityEvaluator::EvaluatePartialDerivative_(
       if (dens_) {
         const Epetra_MultiVector& dens_v =
           *S.Get<CompositeVector>(dens_key_, tag).ViewComponent(comp, false);
-        for (int i = 0; i != ncomp; ++i) { result_v[0][i] *= dens_v[0][i]; }
+        for (int i = 0; i != ncomp; ++i) {
+          result_v[0][i] *= dens_v[0][i];
+        }
       }
     }
 

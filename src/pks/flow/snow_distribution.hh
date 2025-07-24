@@ -95,8 +95,9 @@ class SnowDistribution : public PK_PhysicalBDF_Default {
   // error monitor
   double ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const TreeVector> du) override;
 
-  bool
-  ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::RCP<TreeVector> u) override;
+  bool ModifyPredictor(double h,
+                       Teuchos::RCP<const TreeVector> u0,
+                       Teuchos::RCP<TreeVector> u) override;
 
   // Choose a timestep compatible with physics.
   double get_dt() override { return dt_factor_; }

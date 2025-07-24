@@ -23,7 +23,7 @@ using the MFD method (and therefore have both cell and face unknowns), an
 approximation to the Jacobian is written as
 
 .. math::
-   
+
    \begin{bmatrix}
      \frac{dA^c}{dy_1^c}  & \frac{dA^c}{dy_1^f} & \frac{dA^c}{dy_2^c} & 0                   \\
      \frac{dA^f}{dy_1^c}  & \frac{dA^f}{dy_1^f} & 0                   & 0                   \\
@@ -44,7 +44,7 @@ mesh.  In the temperature/pressure system, these extra blocks correspond to
     \frac{\partial \Theta}{\partial T} \; , \; \frac{\partial E}{\partial p}
 
 `"PK type`" = `"mpc coupled cells`"
-    
+
 .. _pk-mpc-coupled-cells-spec:
 .. admonition:: pk-mpc-coupled-cells-spec
 
@@ -88,8 +88,8 @@ class MPCCoupledCells : public StrongMPC<PK_PhysicalBDF_Default> {
   virtual void Setup() override;
 
   // applies preconditioner to u and returns the result in Pu
-  virtual int
-  ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) override;
+  virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
+                                  Teuchos::RCP<TreeVector> Pu) override;
 
   // updates the preconditioner
   virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) override;

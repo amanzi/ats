@@ -53,7 +53,9 @@ OverlandPressureFlow::FunctionalResidual(double t_old,
   // debugging -- write primary variables to screen
   db_->WriteCellInfo(true);
   std::vector<std::string> vnames{ "p_old", "p_new" };
-  std::vector<Teuchos::Ptr<const CompositeVector>> vecs{ S_->GetPtr<CompositeVector>(key_, tag_current_).ptr(), u.ptr() };
+  std::vector<Teuchos::Ptr<const CompositeVector>> vecs{
+    S_->GetPtr<CompositeVector>(key_, tag_current_).ptr(), u.ptr()
+  };
   db_->WriteVectors(vnames, vecs, true);
 
   // update boundary conditions
@@ -67,15 +69,18 @@ OverlandPressureFlow::FunctionalResidual(double t_old,
   // more debugging -- write diffusion/flux variables to screen
   vnames = { "z", "h_old", "h_new", "h+z" };
   vecs = { S_->GetPtr<CompositeVector>(elev_key_, tag_next_).ptr(),
-    S_->GetPtr<CompositeVector>(pd_key_, tag_current_).ptr(),
-    S_->GetPtr<CompositeVector>(pd_key_, tag_next_).ptr(),
-    S_->GetPtr<CompositeVector>(potential_key_, tag_next_).ptr() };
+           S_->GetPtr<CompositeVector>(pd_key_, tag_current_).ptr(),
+           S_->GetPtr<CompositeVector>(pd_key_, tag_next_).ptr(),
+           S_->GetPtr<CompositeVector>(potential_key_, tag_next_).ptr() };
 
   if (plist_->isSublist("overland conductivity subgrid evaluator")) {
     vnames.emplace_back("pd - dd");
     vnames.emplace_back("frac_cond");
-    vecs.emplace_back(S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "mobile_depth"), tag_next_).ptr());
-    vecs.emplace_back(S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "fractional_conductance"), tag_next_).ptr());
+    vecs.emplace_back(
+      S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "mobile_depth"), tag_next_).ptr());
+    vecs.emplace_back(
+      S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "fractional_conductance"), tag_next_)
+        .ptr());
   }
 
 
@@ -119,7 +124,7 @@ OverlandPressureFlow::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
                                           Teuchos::RCP<TreeVector> Pu)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_HIGH)) *vo_->os() << "Precon application:" << std::endl;
+  if (vo_->os_OK(Teuchos::VERB_HIGH) ) *vo_->os() << "Precon application:" << std::endl;
   AMANZI_ASSERT(!precon_scaled_); // otherwise this factor was built into the matrix
 
   // apply the preconditioner
@@ -134,7 +139,9 @@ OverlandPressureFlow::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
   Epetra_MultiVector& Pu_c = *Pu->Data()->ViewComponent("cell", false);
 
   unsigned int ncells = Pu_c.MyLength();
-  for (unsigned int c = 0; c != ncells; ++c) { Pu_c[0][c] /= dh_dp[0][c]; }
+  for (unsigned int c = 0; c != ncells; ++c) {
+    Pu_c[0][c] /= dh_dp[0][c];
+  }
   db_->WriteVector("PC*h_res (p-coords)", Pu->Data().ptr(), true);
 
   return (ierr > 0) ? 0 : 1;
@@ -149,7 +156,7 @@ OverlandPressureFlow::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVect
 {
   // VerboseObject stuff.
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "Precon update at t = " << t << std::endl;
+  if (vo_->os_OK(Teuchos::VERB_EXTREME) ) *vo_->os() << "Precon update at t = " << t << std::endl;
 
   // update state with the solution up.
   if (std::abs(t - iter_counter_time_) / t > 1.e-4) {
@@ -244,7 +251,7 @@ OverlandPressureFlow::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVect
       S_->GetDerivativePtr<CompositeVector>(pd_key_, tag_next_, key_, tag_next_);
     preconditioner_->Rescale(*dh0_dp);
 
-    if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "  Right scaling TPFA" << std::endl;
+    if (vo_->os_OK(Teuchos::VERB_EXTREME) ) *vo_->os() << "  Right scaling TPFA" << std::endl;
     db_->WriteVector("    dh_dp", dh0_dp.ptr());
   }
 

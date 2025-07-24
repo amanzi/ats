@@ -70,8 +70,7 @@ class ManningCoefficientLitterEvaluator : public EvaluatorSecondaryMonotypeCV {
 
 
 // Non-member factory
-Teuchos::RCP<ManningCoefPartition>
-createManningCoefPartition(Teuchos::ParameterList& plist);
+Teuchos::RCP<ManningCoefPartition> createManningCoefPartition(Teuchos::ParameterList& plist);
 
 
 } // namespace Relations

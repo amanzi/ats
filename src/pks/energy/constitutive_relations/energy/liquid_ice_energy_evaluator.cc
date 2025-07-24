@@ -180,7 +180,7 @@ LiquidIceEnergyEvaluator::EvaluatePartialDerivative_(const State& S,
   Teuchos::RCP<const CompositeVector> cv = S.GetPtr<CompositeVector>(cv_key_, tag);
 
   if (wrt_key == phi_key_) {
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
       const Epetra_MultiVector& phi0_v = *phi0->ViewComponent(*comp, false);
@@ -212,7 +212,7 @@ LiquidIceEnergyEvaluator::EvaluatePartialDerivative_(const State& S,
     }
 
   } else if (wrt_key == phi0_key_) {
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
       const Epetra_MultiVector& phi0_v = *phi0->ViewComponent(*comp, false);
@@ -244,7 +244,7 @@ LiquidIceEnergyEvaluator::EvaluatePartialDerivative_(const State& S,
     }
 
   } else if (wrt_key == sl_key_) {
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
       const Epetra_MultiVector& phi0_v = *phi0->ViewComponent(*comp, false);
@@ -276,7 +276,7 @@ LiquidIceEnergyEvaluator::EvaluatePartialDerivative_(const State& S,
     }
 
   } else if (wrt_key == nl_key_) {
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
       const Epetra_MultiVector& phi0_v = *phi0->ViewComponent(*comp, false);
@@ -308,7 +308,7 @@ LiquidIceEnergyEvaluator::EvaluatePartialDerivative_(const State& S,
     }
 
   } else if (wrt_key == ul_key_) {
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
       const Epetra_MultiVector& phi0_v = *phi0->ViewComponent(*comp, false);
@@ -340,7 +340,7 @@ LiquidIceEnergyEvaluator::EvaluatePartialDerivative_(const State& S,
     }
 
   } else if (wrt_key == si_key_) {
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
       const Epetra_MultiVector& phi0_v = *phi0->ViewComponent(*comp, false);
@@ -372,7 +372,7 @@ LiquidIceEnergyEvaluator::EvaluatePartialDerivative_(const State& S,
     }
 
   } else if (wrt_key == ni_key_) {
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
       const Epetra_MultiVector& phi0_v = *phi0->ViewComponent(*comp, false);
@@ -404,7 +404,7 @@ LiquidIceEnergyEvaluator::EvaluatePartialDerivative_(const State& S,
     }
 
   } else if (wrt_key == ui_key_) {
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
       const Epetra_MultiVector& phi0_v = *phi0->ViewComponent(*comp, false);
@@ -436,7 +436,7 @@ LiquidIceEnergyEvaluator::EvaluatePartialDerivative_(const State& S,
     }
 
   } else if (wrt_key == rho_r_key_) {
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
       const Epetra_MultiVector& phi0_v = *phi0->ViewComponent(*comp, false);
@@ -468,7 +468,7 @@ LiquidIceEnergyEvaluator::EvaluatePartialDerivative_(const State& S,
     }
 
   } else if (wrt_key == ur_key_) {
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
       const Epetra_MultiVector& phi0_v = *phi0->ViewComponent(*comp, false);
@@ -500,7 +500,7 @@ LiquidIceEnergyEvaluator::EvaluatePartialDerivative_(const State& S,
     }
 
   } else if (wrt_key == cv_key_) {
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
       const Epetra_MultiVector& phi0_v = *phi0->ViewComponent(*comp, false);

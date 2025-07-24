@@ -67,7 +67,9 @@ class ManningCoefficientLitterVariableModel : public ManningCoefficientLitterMod
   {
     double n = 0.;
 
-    if (pd > 0 && pd > ld) { n = n_l_ / pd - n_bg_ / pd; }
+    if (pd > 0 && pd > ld) {
+      n = n_l_ / pd - n_bg_ / pd;
+    }
     return n;
   }
 
@@ -75,7 +77,9 @@ class ManningCoefficientLitterVariableModel : public ManningCoefficientLitterMod
   double DManningCoefficientDPondedDepth(double ld, double pd) const
   {
     double n = 0.;
-    if (pd > 0 && pd > ld) { n = n_bg_ / pd - (ld * n_l_ + n_bg_ * (-ld + pd)) / std::pow(pd, 2); }
+    if (pd > 0 && pd > ld) {
+      n = n_bg_ / pd - (ld * n_l_ + n_bg_ * (-ld + pd)) / std::pow(pd, 2);
+    }
     return n;
   }
 

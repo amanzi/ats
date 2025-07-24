@@ -22,7 +22,8 @@ const double FLOW_WRM_TOLERANCE = 1e-10;
 /* ******************************************************************
  * Setup fundamental parameters for this model.
  ****************************************************************** */
-WRMMacropore::WRMMacropore(Teuchos::ParameterList& plist) : plist_(plist)
+WRMMacropore::WRMMacropore(Teuchos::ParameterList& plist)
+  : plist_(plist)
 {
   InitializeFromPlist_();
 };

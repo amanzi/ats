@@ -152,7 +152,7 @@ MicroporeMacroporeFluxEvaluator::EvaluatePartialDerivative_(
   Teuchos::RCP<const CompositeVector> den = S.GetPtr<CompositeVector>(den_key_, tag);
 
   if (wrt_key == pm_key_) {
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       const Epetra_MultiVector& pm_v = *pm->ViewComponent(*comp, false);
       const Epetra_MultiVector& pM_v = *pM->ViewComponent(*comp, false);
@@ -171,7 +171,7 @@ MicroporeMacroporeFluxEvaluator::EvaluatePartialDerivative_(
     }
 
   } else if (wrt_key == pM_key_) {
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       const Epetra_MultiVector& pm_v = *pm->ViewComponent(*comp, false);
       const Epetra_MultiVector& pM_v = *pM->ViewComponent(*comp, false);
@@ -190,7 +190,7 @@ MicroporeMacroporeFluxEvaluator::EvaluatePartialDerivative_(
     }
 
   } else if (wrt_key == krM_key_) {
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       const Epetra_MultiVector& pm_v = *pm->ViewComponent(*comp, false);
       const Epetra_MultiVector& pM_v = *pM->ViewComponent(*comp, false);
@@ -209,7 +209,7 @@ MicroporeMacroporeFluxEvaluator::EvaluatePartialDerivative_(
     }
 
   } else if (wrt_key == krm_key_) {
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       const Epetra_MultiVector& pm_v = *pm->ViewComponent(*comp, false);
       const Epetra_MultiVector& pM_v = *pM->ViewComponent(*comp, false);
@@ -228,7 +228,7 @@ MicroporeMacroporeFluxEvaluator::EvaluatePartialDerivative_(
     }
 
   } else if (wrt_key == K_key_) {
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       const Epetra_MultiVector& pm_v = *pm->ViewComponent(*comp, false);
       const Epetra_MultiVector& pM_v = *pM->ViewComponent(*comp, false);
@@ -246,7 +246,7 @@ MicroporeMacroporeFluxEvaluator::EvaluatePartialDerivative_(
       }
     }
   } else if (wrt_key == den_key_) {
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       const Epetra_MultiVector& pm_v = *pm->ViewComponent(*comp, false);
       const Epetra_MultiVector& pM_v = *pM->ViewComponent(*comp, false);

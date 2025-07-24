@@ -28,9 +28,13 @@ class SurfaceIceEnergyModel {
 
   double Energy(double h, double eta, double nl, double ul, double ni, double ui, double cv) const;
 
-  double
-  DEnergyDPondedDepth(double h, double eta, double nl, double ul, double ni, double ui, double cv)
-    const;
+  double DEnergyDPondedDepth(double h,
+                             double eta,
+                             double nl,
+                             double ul,
+                             double ni,
+                             double ui,
+                             double cv) const;
   double DEnergyDUnfrozenFraction(double h,
                                   double eta,
                                   double nl,
@@ -66,9 +70,13 @@ class SurfaceIceEnergyModel {
                                    double ni,
                                    double ui,
                                    double cv) const;
-  double
-  DEnergyDCellVolume(double h, double eta, double nl, double ul, double ni, double ui, double cv)
-    const;
+  double DEnergyDCellVolume(double h,
+                            double eta,
+                            double nl,
+                            double ul,
+                            double ni,
+                            double ui,
+                            double cv) const;
 
  protected:
   void InitializeFromPlist_(Teuchos::ParameterList& plist);

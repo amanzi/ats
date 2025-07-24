@@ -10,8 +10,8 @@
 */
 
 /*
-This evaluator models stage-based pump station model inside 2D flow area. 
-Pump stations can be used to move water between any combination of river reaches, storage areas or catchment regions. 
+This evaluator models stage-based pump station model inside 2D flow area.
+Pump stations can be used to move water between any combination of river reaches, storage areas or catchment regions.
 Based on pump on-off conditions and pump-operation curve, water is moved from pump-inlet to -outlet region instantly.
 */
 
@@ -31,10 +31,11 @@ static const double NaN = std::numeric_limits<double>::signaling_NaN();
 
 // Helper function to compute area-weighted average
 inline double
-computeAreaWeightedAverage(const AmanziMesh::Mesh& mesh,
-                           const Amanzi::AmanziMesh::MeshCache<Amanzi::MemSpace_kind::HOST>::cEntity_ID_View& entity_list,
-                           const Epetra_MultiVector& cv,
-                           const Epetra_MultiVector& var)
+computeAreaWeightedAverage(
+  const AmanziMesh::Mesh& mesh,
+  const Amanzi::AmanziMesh::MeshCache<Amanzi::MemSpace_kind::HOST>::cEntity_ID_View& entity_list,
+  const Epetra_MultiVector& cv,
+  const Epetra_MultiVector& var)
 {
   double terms_local[2] = { 0, 0 };
   for (auto c : entity_list) {
@@ -74,7 +75,8 @@ SurfPumpEvaluator::SurfPumpEvaluator(Teuchos::ParameterList& plist)
 
   // need an extra flag stored in state to indiciate, from
   // timestep-to-timestep, that the pump is on or off.
-  pump_on_key_ = Keys::readKey(plist, domain, "pump on", Keys::getVarName(my_keys_.front().first)+"_pump_on_flag");
+  pump_on_key_ = Keys::readKey(
+    plist, domain, "pump on", Keys::getVarName(my_keys_.front().first) + "_pump_on_flag");
 
   pump_outlet_region_ = plist.get<std::string>("pump outlet region", "");
   pump_inlet_region_ = plist.get<std::string>("pump inlet region");
@@ -137,17 +139,17 @@ SurfPumpEvaluator::Evaluate_(const State& S,
 
   surf_src.PutScalar(0.); // initializing with zero
 
-  // collect gids in relevant regions 
+  // collect gids in relevant regions
   auto pump_inlet_id_list = mesh.getSetEntities(
     pump_inlet_region_, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
   Amanzi::AmanziMesh::MeshCache<Amanzi::MemSpace_kind::HOST>::cEntity_ID_View pump_outlet_id_list;
   if (!pump_outlet_region_.empty()) {
-      auto pump_outlet_id_list = mesh.getSetEntities(
+    auto pump_outlet_id_list = mesh.getSetEntities(
       pump_outlet_region_, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
   }
 
-  // stage_on value should be greater than elevation at inlet or inlet is the reference region 
+  // stage_on value should be greater than elevation at inlet or inlet is the reference region
   double avg_elev_inlet;
   if (on_off_region_.empty()) {
     avg_elev_inlet = computeAreaWeightedAverage(mesh, pump_inlet_id_list, cv, elev);
@@ -164,15 +166,15 @@ SurfPumpEvaluator::Evaluate_(const State& S,
   if (!pump_outlet_region_.empty()) {
     avg_pe_outlet = computeAreaWeightedAverage(mesh, pump_outlet_id_list, cv, pe);
   } else {
-    // if the pump is at the domain boundary pumping water out of the domain, 
+    // if the pump is at the domain boundary pumping water out of the domain,
     // need to provide max pumpline elevation
-    avg_pe_outlet = max_elev_pumpline_; 
+    avg_pe_outlet = max_elev_pumpline_;
   }
 
   double avg_pe_on_off = 0;
   if (on_off_region_.empty()) {
     avg_pe_on_off = avg_pe_inlet;
-  } else { // if on off region is separate from the inlet region 
+  } else { // if on off region is separate from the inlet region
     auto on_off_id_list = mesh.getSetEntities(
       on_off_region_, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
     avg_pe_on_off = computeAreaWeightedAverage(mesh, on_off_id_list, cv, pe);
@@ -188,12 +190,12 @@ SurfPumpEvaluator::Evaluate_(const State& S,
     // pass
   }
 
-  // Calculate pumpflow rate and distribute sources and sinks 
+  // Calculate pumpflow rate and distribute sources and sinks
   double Q_max;
   double Q;
   if (pump_on) {
     double head_diff = std::max(max_elev_pumpline_, avg_pe_outlet) - avg_pe_inlet;
-    Q_max = (*Q_pump_)(std::vector<double>{head_diff}); // m^3/s
+    Q_max = (*Q_pump_)(std::vector<double>{ head_diff }); // m^3/s
     Q = Q_max;
 
     // sink distribution proportional to available water
@@ -230,7 +232,7 @@ SurfPumpEvaluator::Evaluate_(const State& S,
   double mass_balance = 0.0;
   if (!pump_outlet_region_.empty()) {
     surf_src.Dot(cv, &mass_balance);
-    // Check if the mass balance is zero 
+    // Check if the mass balance is zero
     AMANZI_ASSERT(std::abs(mass_balance) < 1.e-10);
   } else { // Debug code
     for (auto c : pump_inlet_id_list) {

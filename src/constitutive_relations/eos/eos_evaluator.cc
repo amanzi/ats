@@ -112,13 +112,13 @@ EOSEvaluator::ParsePlistConc_()
   Tag tag = my_keys_.front().second;
 
   // -- concentration
-  conc_key_ =
-    Keys::readKeyTag(plist_, domain_name, "mole fraction", "mole_fraction", tag);
+  conc_key_ = Keys::readKeyTag(plist_, domain_name, "mole fraction", "mole_fraction", tag);
   dependencies_.insert(conc_key_);
 }
 
 
-EOSEvaluator::EOSEvaluator(Teuchos::ParameterList& plist) : EvaluatorSecondaryMonotypeCV(plist)
+EOSEvaluator::EOSEvaluator(Teuchos::ParameterList& plist)
+  : EvaluatorSecondaryMonotypeCV(plist)
 {
   ParsePlistKeys_();
 
@@ -126,9 +126,9 @@ EOSEvaluator::EOSEvaluator(Teuchos::ParameterList& plist) : EvaluatorSecondaryMo
   EOSFactory eos_fac;
   eos_ = eos_fac.createEOS(plist_.sublist("EOS parameters"));
 
-  if (eos_->IsMoleFraction()) ParsePlistConc_();
-  if (eos_->IsTemperature()) ParsePlistTemp_();
-  if (eos_->IsPressure()) ParsePlistPres_();
+  if (eos_->IsMoleFraction() ) ParsePlistConc_();
+  if (eos_->IsTemperature() ) ParsePlistTemp_();
+  if (eos_->IsPressure() ) ParsePlistPres_();
 
   // -- logging
   if (vo_.os_OK(Teuchos::VERB_EXTREME)) {
@@ -177,7 +177,7 @@ EOSEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& res
 
   if (molar_dens != nullptr) {
     // evaluate MolarDensity()
-    for (CompositeVector::name_iterator comp = molar_dens->begin(); comp != molar_dens->end();
+    for (CompositeVector::name_iterator comp = molar_dens->begin() ; comp != molar_dens->end();
          ++comp) {
       for (int k = 0; k < num_dep; k++) {
         dep_vec[k] = dep_cv[k]->ViewComponent(*comp, false).get();
@@ -186,7 +186,9 @@ EOSEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& res
       auto& dens_v = *(molar_dens->ViewComponent(*comp, false));
       int count = dens_v.MyLength();
       for (int id = 0; id != count; ++id) {
-        for (int k = 0; k < num_dep; k++) { eos_params[k] = (*dep_vec[k])[0][id]; }
+        for (int k = 0; k < num_dep; k++) {
+          eos_params[k] = (*dep_vec[k])[0][id];
+        }
         dens_v[0][id] = eos_->MolarDensity(eos_params);
         AMANZI_ASSERT(dens_v[0][id] > 0);
       }
@@ -194,7 +196,7 @@ EOSEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& res
   }
 
   if (mass_dens != nullptr) {
-    for (CompositeVector::name_iterator comp = mass_dens->begin(); comp != mass_dens->end();
+    for (CompositeVector::name_iterator comp = mass_dens->begin() ; comp != mass_dens->end();
          ++comp) {
       if (mode_ == EOS_MODE_BOTH && eos_->IsConstantMolarMass() &&
           molar_dens->HasComponent(*comp)) {
@@ -269,7 +271,7 @@ EOSEvaluator::EvaluatePartialDerivative_(const State& S,
 
   if (molar_dens != nullptr) {
     // evaluate MolarDensity()
-    for (CompositeVector::name_iterator comp = molar_dens->begin(); comp != molar_dens->end();
+    for (CompositeVector::name_iterator comp = molar_dens->begin() ; comp != molar_dens->end();
          ++comp) {
       for (int k = 0; k < num_dep; k++) {
         dep_vec[k] = dep_cv[k]->ViewComponent(*comp, false).get();
@@ -280,17 +282,23 @@ EOSEvaluator::EvaluatePartialDerivative_(const State& S,
 
       if (wrt == conc_key_) {
         for (int id = 0; id != count; ++id) {
-          for (int k = 0; k < num_dep; k++) { eos_params[k] = (*dep_vec[k])[0][id]; }
+          for (int k = 0; k < num_dep; k++) {
+            eos_params[k] = (*dep_vec[k])[0][id];
+          }
           dens_v[0][id] = eos_->DMolarDensityDMoleFraction(eos_params);
         }
       } else if (wrt == pres_key_) {
         for (int id = 0; id != count; ++id) {
-          for (int k = 0; k < num_dep; k++) { eos_params[k] = (*dep_vec[k])[0][id]; }
+          for (int k = 0; k < num_dep; k++) {
+            eos_params[k] = (*dep_vec[k])[0][id];
+          }
           dens_v[0][id] = eos_->DMolarDensityDp(eos_params);
         }
       } else if (wrt == temp_key_) {
         for (int id = 0; id != count; ++id) {
-          for (int k = 0; k < num_dep; k++) { eos_params[k] = (*dep_vec[k])[0][id]; }
+          for (int k = 0; k < num_dep; k++) {
+            eos_params[k] = (*dep_vec[k])[0][id];
+          }
           dens_v[0][id] = eos_->DMolarDensityDT(eos_params);
         }
       } else {
@@ -300,7 +308,7 @@ EOSEvaluator::EvaluatePartialDerivative_(const State& S,
   }
 
   if (mass_dens != nullptr) {
-    for (CompositeVector::name_iterator comp = mass_dens->begin(); comp != mass_dens->end();
+    for (CompositeVector::name_iterator comp = mass_dens->begin() ; comp != mass_dens->end();
          ++comp) {
       if (mode_ == EOS_MODE_BOTH && eos_->IsConstantMolarMass() &&
           molar_dens->HasComponent(*comp)) {

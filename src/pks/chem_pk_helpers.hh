@@ -20,19 +20,17 @@ class State;
 // -----------------------------------------------------------------------------
 // Helper functions for working with Amanzi's Chemistry PK
 // -----------------------------------------------------------------------------
-void
-convertConcentrationToMolFrac(State& S,
-        const KeyTag& tcc,
-        const KeyTag& mol_frac,
-        const KeyTag& mol_dens,
-        const std::string& passwd);
+void convertConcentrationToMolFrac(State& S,
+                                   const KeyTag& tcc,
+                                   const KeyTag& mol_frac,
+                                   const KeyTag& mol_dens,
+                                   const std::string& passwd);
 
 
-void
-convertMolFracToConcentration(State& S,
-        const KeyTag& mol_frac,
-        const KeyTag& tcc,
-        const KeyTag& mol_dens,
-        const std::string& passwd);
+void convertMolFracToConcentration(State& S,
+                                   const KeyTag& mol_frac,
+                                   const KeyTag& tcc,
+                                   const KeyTag& mol_dens,
+                                   const std::string& passwd);
 
 } // namespace Amanzi

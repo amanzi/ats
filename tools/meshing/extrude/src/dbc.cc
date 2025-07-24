@@ -14,7 +14,7 @@
 namespace DBC {
 
 Assertion::Assertion(const char* assertion, const char* filename, unsigned int line_number)
-  : assertion_(assertion), filename_(filename), line_number_(line_number){};
+  : assertion_(assertion), filename_(filename), line_number_(line_number) {};
 
 
 const char*

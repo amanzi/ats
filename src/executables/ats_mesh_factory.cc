@@ -150,7 +150,9 @@ createMeshLogical(const std::string& mesh_name,
     mesh = factory.createLogical(mesh_logical_plist);
   }
 
-  if (mesh != Teuchos::null) { checkVerifyMesh(*mesh_plist, mesh); }
+  if (mesh != Teuchos::null) {
+    checkVerifyMesh(*mesh_plist, mesh);
+  }
 
   bool deformable = mesh_plist->get<bool>("deformable mesh", false);
   S.RegisterMesh(mesh_name, mesh, deformable);
@@ -518,7 +520,7 @@ createDomainSetIndexed(const std::string& mesh_name_pristine,
     Teuchos::RCP<const AmanziMesh::Mesh> reference_mesh = Teuchos::null;
     if (is_reference_mesh) {
       reference_parent_name = ds_list->get<std::string>("referencing parent domain");
-      if (S.HasMesh(reference_parent_name)) reference_mesh = S.GetMesh(reference_parent_name);
+      if (S.HasMesh(reference_parent_name) ) reference_mesh = S.GetMesh(reference_parent_name);
     } else {
       reference_parent_name = "NONE";
     }
@@ -659,7 +661,7 @@ createDomainSetRegions(const std::string& mesh_name_pristine,
     Teuchos::RCP<const AmanziMesh::Mesh> reference_mesh = Teuchos::null;
     if (is_reference_mesh) {
       reference_parent_name = ds_list->get<std::string>("referencing parent domain");
-      if (S.HasMesh(reference_parent_name)) reference_mesh = S.GetMesh(reference_parent_name);
+      if (S.HasMesh(reference_parent_name) ) reference_mesh = S.GetMesh(reference_parent_name);
     } else {
       reference_parent_name = "NONE";
     }
@@ -855,7 +857,9 @@ createMeshes(const Teuchos::RCP<Teuchos::ParameterList>& global_list,
 void
 setDefaultParameters(Teuchos::ParameterList& plist, const Amanzi::VerboseObject& vo)
 {
-  if (!plist.isParameter("partitioner")) { plist.set<std::string>("partitioner", "zoltan_rcb"); }
+  if (!plist.isParameter("partitioner")) {
+    plist.set<std::string>("partitioner", "zoltan_rcb");
+  }
   if (!plist.isSublist("verbose object")) {
     plist.sublist("verbose object").set<std::string>("verbosity level", vo.getVerbLevelString());
   }

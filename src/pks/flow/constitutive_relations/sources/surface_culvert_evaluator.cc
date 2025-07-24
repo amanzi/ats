@@ -22,10 +22,11 @@ namespace Relations {
 
 // Helper function to compute area-weighted average of a variable over a set of mesh entities
 inline double
-computeAreaWeightedAverage(const AmanziMesh::Mesh& mesh,
-                          const Amanzi::AmanziMesh::MeshCache<Amanzi::MemSpace_kind::HOST>::cEntity_ID_View& entity_list,
-                          const Epetra_MultiVector& cv,
-                          const Epetra_MultiVector& var)
+computeAreaWeightedAverage(
+  const AmanziMesh::Mesh& mesh,
+  const Amanzi::AmanziMesh::MeshCache<Amanzi::MemSpace_kind::HOST>::cEntity_ID_View& entity_list,
+  const Epetra_MultiVector& cv,
+  const Epetra_MultiVector& var)
 {
   double terms_local[2] = { 0, 0 };
   for (auto c : entity_list) {
@@ -39,7 +40,8 @@ computeAreaWeightedAverage(const AmanziMesh::Mesh& mesh,
 
 
 // Constructor: Set up dependencies and culvert parameters
-SurfCulvertEvaluator::SurfCulvertEvaluator(Teuchos::ParameterList& plist) : EvaluatorSecondaryMonotypeCV(plist)
+SurfCulvertEvaluator::SurfCulvertEvaluator(Teuchos::ParameterList& plist)
+  : EvaluatorSecondaryMonotypeCV(plist)
 {
   domain_ = Keys::getDomain(my_keys_.front().first);
   auto tag = my_keys_.front().second;
@@ -78,7 +80,7 @@ SurfCulvertEvaluator::Evaluate_(const State& S, const std::vector<CompositeVecto
 {
   Tag tag = my_keys_.front().second;
   double dt = S.Get<double>("dt", tag);
-  
+
   // Get required field variables
   const auto& cv = *S.Get<CompositeVector>(cv_key_, tag).ViewComponent("cell", false);
   const auto& pd = *S.Get<CompositeVector>(pd_key_, tag).ViewComponent("cell", false);
@@ -108,10 +110,10 @@ SurfCulvertEvaluator::Evaluate_(const State& S, const std::vector<CompositeVecto
   double z_invert_feet = avg_elev_inlet * 3.28084;
 
   // Calculate culvert geometry parameters
-  double A = M_PI * D_feet_ * D_feet_ / 4.0;  // Cross-sectional area
-  double P = M_PI * D_feet_;                   // Wetted perimeter
-  double R = A / P;                            // Hydraulic radius
-  double d = h_up_feet - z_invert_feet;        // Depth at inlet
+  double A = M_PI * D_feet_ * D_feet_ / 4.0; // Cross-sectional area
+  double P = M_PI * D_feet_;                 // Wetted perimeter
+  double R = A / P;                          // Hydraulic radius
+  double d = h_up_feet - z_invert_feet;      // Depth at inlet
 
   // Calculate inlet head for discharge calculations based on different hydraulic regimes
   double d_eps = 0.01; // feet - small depth threshold

@@ -17,7 +17,7 @@ namespace Amanzi {
 
 
 // Approach 1: global face limiter on the correction size
-template <AmanziMesh::Entity_kind FaceEntity>
+template<AmanziMesh::Entity_kind FaceEntity>
 int
 MPCDelegateWater::ModifyCorrection_WaterFaceLimiter(double h,
                                                     Teuchos::RCP<const TreeVector> res,
@@ -46,7 +46,7 @@ MPCDelegateWater::ModifyCorrection_WaterFaceLimiter(double h,
 
 // Approach 2: damping of the spurt -- limit the max oversaturated pressure
 //  using a global damping term.
-template <AmanziMesh::Entity_kind FaceEntity>
+template<AmanziMesh::Entity_kind FaceEntity>
 double
 MPCDelegateWater::ModifyCorrection_WaterSpurtDamp(double h,
                                                   Teuchos::RCP<const TreeVector> res,
@@ -98,7 +98,7 @@ MPCDelegateWater::ModifyCorrection_WaterSpurtDamp(double h,
 
 // Approach 3: capping of the spurt -- limit the max oversaturated pressure
 //  if coming from undersaturated.
-template <AmanziMesh::Entity_kind FaceEntity>
+template<AmanziMesh::Entity_kind FaceEntity>
 int
 MPCDelegateWater::ModifyCorrection_WaterSpurtCap(double h,
                                                  Teuchos::RCP<const TreeVector> res,
@@ -159,7 +159,7 @@ MPCDelegateWater::ModifyCorrection_WaterSpurtCap(double h,
 
 // Approach 2: damping of the spurt -- limit the max oversaturated pressure
 //  using a global damping term.
-template <AmanziMesh::Entity_kind FaceEntity>
+template<AmanziMesh::Entity_kind FaceEntity>
 double
 MPCDelegateWater::ModifyCorrection_SaturatedSpurtDamp(double h,
                                                       Teuchos::RCP<const TreeVector> res,
@@ -206,7 +206,7 @@ MPCDelegateWater::ModifyCorrection_SaturatedSpurtDamp(double h,
 
 // Approach 3: capping of the spurt -- limit the max oversaturated pressure
 //  if coming from undersaturated.
-template <AmanziMesh::Entity_kind FaceEntity>
+template<AmanziMesh::Entity_kind FaceEntity>
 int
 MPCDelegateWater::ModifyCorrection_SaturatedSpurtCap(double h,
                                                      Teuchos::RCP<const TreeVector> res,
@@ -246,7 +246,7 @@ MPCDelegateWater::ModifyCorrection_SaturatedSpurtCap(double h,
 
 // Approach 2: damping of the spurt -- limit the max oversaturated pressure
 //  using a global damping term.
-template <AmanziMesh::Entity_kind FaceEntity>
+template<AmanziMesh::Entity_kind FaceEntity>
 double
 MPCDelegateWater::ModifyCorrection_DesaturatedSpurtDamp(double h,
                                                         Teuchos::RCP<const TreeVector> res,
@@ -293,7 +293,7 @@ MPCDelegateWater::ModifyCorrection_DesaturatedSpurtDamp(double h,
 
 // Approach 3: capping of the spurt -- limit the max oversaturated pressure
 //  if coming from undersaturated.
-template <AmanziMesh::Entity_kind FaceEntity>
+template<AmanziMesh::Entity_kind FaceEntity>
 int
 MPCDelegateWater::ModifyCorrection_DesaturatedSpurtCap(double h,
                                                        Teuchos::RCP<const TreeVector> res,
@@ -332,7 +332,7 @@ MPCDelegateWater::ModifyCorrection_DesaturatedSpurtCap(double h,
 
 
 // modify predictor via heuristic stops spurting in the surface flow
-template <AmanziMesh::Entity_kind FaceEntity>
+template<AmanziMesh::Entity_kind FaceEntity>
 bool
 MPCDelegateWater::ModifyPredictor_Heuristic(double h, const Teuchos::RCP<TreeVector>& u)
 {
@@ -391,7 +391,7 @@ MPCDelegateWater::ModifyPredictor_Heuristic(double h, const Teuchos::RCP<TreeVec
 //  using a global damping term.
 // Approach 3: capping of the spurt -- limit the max oversaturated pressure
 //  if coming from undersaturated.
-template <AmanziMesh::Entity_kind FaceEntity>
+template<AmanziMesh::Entity_kind FaceEntity>
 bool
 MPCDelegateWater::ModifyPredictor_WaterSpurtDamp(double h, const Teuchos::RCP<TreeVector>& u)
 {
@@ -493,7 +493,7 @@ MPCDelegateWater::ModifyPredictor_WaterSpurtDamp(double h, const Teuchos::RCP<Tr
 
 
 // modify predictor via heuristic stops spurting in the surface flow
-template <AmanziMesh::Entity_kind FaceEntity>
+template<AmanziMesh::Entity_kind FaceEntity>
 bool
 MPCDelegateWater::ModifyPredictor_TempFromSource(double h, const Teuchos::RCP<TreeVector>& u)
 {

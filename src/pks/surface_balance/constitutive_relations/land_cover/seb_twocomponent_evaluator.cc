@@ -287,10 +287,8 @@ SEBTwoComponentEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
         surf.ponded_depth = ponded_depth[0][c];
         surf.unfrozen_fraction = unfrozen_fraction[0][c];
         surf.roughness = lc.second.roughness_ground;
-        if (model_1p1_)
-          surf.density_w = 1000.;
-        else
-          surf.density_w = mass_dens[0][c];
+        if (model_1p1_) surf.density_w = 1000.;
+        else surf.density_w = mass_dens[0][c];
         surf.albedo = sg_albedo[0][c];
         surf.emissivity = emissivity[0][c];
 
@@ -363,10 +361,8 @@ SEBTwoComponentEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
         surf.rsoil = 0.;
         surf.unfrozen_fraction = unfrozen_fraction[0][c];
         surf.roughness = lc.second.roughness_ground;
-        if (model_1p1_)
-          surf.density_w = 1000;
-        else
-          surf.density_w = mass_dens[0][c];
+        if (model_1p1_) surf.density_w = 1000;
+        else surf.density_w = mass_dens[0][c];
         surf.albedo = sg_albedo[1][c];
         surf.emissivity = emissivity[1][c];
         surf.water_transition_depth = lc.second.water_transition_depth;

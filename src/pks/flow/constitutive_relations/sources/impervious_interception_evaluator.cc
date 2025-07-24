@@ -26,7 +26,8 @@ ImperviousInterceptionEvaluator::ImperviousInterceptionEvaluator(Teuchos::Parame
   imp_frac_key_ = Keys::readKey(plist, domain, "impervious fraction", "impervious_fraction");
   dependencies_.insert(KeyTag{ imp_frac_key_, tag });
 
-  imp_rec_id_key_ = Keys::readKey(plist, domain, "impervious runoff receiver", "impervious_runoff_receiver");
+  imp_rec_id_key_ =
+    Keys::readKey(plist, domain, "impervious runoff receiver", "impervious_runoff_receiver");
   dependencies_.insert(KeyTag{ imp_rec_id_key_, tag });
 
   src_key_ = Keys::readKey(plist, domain, "incoming water source", "precipitation_rain");
@@ -40,13 +41,15 @@ ImperviousInterceptionEvaluator::ImperviousInterceptionEvaluator(Teuchos::Parame
 
 
 void
-ImperviousInterceptionEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& result)
+ImperviousInterceptionEvaluator::Evaluate_(const State& S,
+                                           const std::vector<CompositeVector*>& result)
 {
   Tag tag = my_keys_.front().second;
   const auto& cv = *S.Get<CompositeVector>(cv_key_, tag).ViewComponent("cell", false);
   const auto& src = *S.Get<CompositeVector>(src_key_, tag).ViewComponent("cell", false);
   const auto& imp_frac = *S.Get<CompositeVector>(imp_frac_key_, tag).ViewComponent("cell", false);
-  const auto& imp_rec_id = *S.Get<CompositeVector>(imp_rec_id_key_, tag).ViewComponent("cell", false);
+  const auto& imp_rec_id =
+    *S.Get<CompositeVector>(imp_rec_id_key_, tag).ViewComponent("cell", false);
 
   Epetra_BlockMap natural_map(src.GlobalLength(), src.MyLength(), 1, 0, src.Comm());
   if (importer_ == Teuchos::null) {
@@ -59,7 +62,8 @@ ImperviousInterceptionEvaluator::Evaluate_(const State& S, const std::vector<Com
       target_id[c] = (target < 0) ? gid : target;
     }
 
-    Epetra_BlockMap target_map(src.GlobalLength(), src.MyLength(), target_id.data(), 1, 0, src.Comm());
+    Epetra_BlockMap target_map(
+      src.GlobalLength(), src.MyLength(), target_id.data(), 1, 0, src.Comm());
     importer_ = Teuchos::rcp(new Epetra_Import(target_map, natural_map));
   }
 

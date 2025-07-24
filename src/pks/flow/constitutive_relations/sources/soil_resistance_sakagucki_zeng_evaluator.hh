@@ -29,13 +29,13 @@ referred to Sakagucki and Zeng (2009).
        used to determine Clapp-Hornberger-b, which is the reciprocal of
        `"Brooks-Corey lambda [-]`".
      - `"residual saturation [-]`" ``[double]`` **0.0**
-     - `"dessicated zone thickness [m]`" ``[double]`` **0.1**  
+     - `"dessicated zone thickness [m]`" ``[double]`` **0.1**
 
    KEYS:
 
    - `"gas saturation`" Note only the column's top grid cell is used
    - `"porosity`" Note only the column's top grid cell is used
-     
+
 Example:
 
 .. code-block:: xml

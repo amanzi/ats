@@ -22,13 +22,10 @@ class Amanzi_exception : public std::exception {};
 enum Exception_action { RAISE, ABORT };
 
 // Functions for setting and querying the current exception behavior.
-void
-set_exception_behavior_raise();
-void
-set_exception_behavior_abort();
+void set_exception_behavior_raise();
+void set_exception_behavior_abort();
 void set_exception_behavior(Exception_action);
-Exception_action
-exception_behavior();
+Exception_action exception_behavior();
 
 } // namespace Exceptions
 
@@ -41,14 +38,12 @@ Exceptions::Exception_action behavior = Exceptions::RAISE;
 namespace Exceptions {
 
 // Either raise the given exception or abort, depending on the value of behavior.
-template <typename E>
+template<typename E>
 void
 amanzi_throw(const E& exception)
 {
-  if (behavior == Exceptions::RAISE)
-    throw exception;
-  else
-    abort();
+  if (behavior == Exceptions::RAISE) throw exception;
+  else abort();
 }
 
 } // namespace Exceptions

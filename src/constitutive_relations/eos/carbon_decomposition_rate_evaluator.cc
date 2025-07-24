@@ -24,7 +24,7 @@ CarbonDecomposeRateEvaluator::CarbonDecomposeRateEvaluator(Teuchos::ParameterLis
 {
   Tag tag = my_keys_.front().second;
   domain_ = Keys::getDomain(my_keys_.front().first); // column, domain
-  domain_surf_ = Keys::readDomainHint(plist, domain_, "subsurface", "surface"); 
+  domain_surf_ = Keys::readDomainHint(plist, domain_, "subsurface", "surface");
 
   temp_key_ = Keys::readKey(plist, domain_, "temperature", "temperature");
   dependencies_.insert(KeyTag{ temp_key_, tag });
@@ -71,7 +71,8 @@ CarbonDecomposeRateEvaluator::Evaluate_(const State& S, const std::vector<Compos
         double f_temp = Func_Temp(temp_c[0][col_cells[c]], q10_);
         double f_depth = Func_Depth(depth_c[0][col_cells[c]]);
         double f_pres_temp = Func_TempPres(temp_c[0][col_cells[c]], pres_c[0][col_cells[c]]);
-        res_c[0][col_cells[c]] = (f_temp * f_depth * f_pres_temp * dz) * (1 - por_c[0][col_cells[c]]);
+        res_c[0][col_cells[c]] =
+          (f_temp * f_depth * f_pres_temp * dz) * (1 - por_c[0][col_cells[c]]);
       } else {
         res_c[0][col_cells[c]] = 0.;
       }

@@ -35,7 +35,8 @@ class WRM;
 
 class WRMSutraPermafrostModel : public WRMPermafrostModel {
  public:
-  explicit WRMSutraPermafrostModel(Teuchos::ParameterList& plist) : WRMPermafrostModel(plist)
+  explicit WRMSutraPermafrostModel(Teuchos::ParameterList& plist)
+    : WRMPermafrostModel(plist)
   {
     T0_ = plist.get<double>("freezing point [K]", 273.15);
     dT_ = plist.get<double>("temperature transition [K]");

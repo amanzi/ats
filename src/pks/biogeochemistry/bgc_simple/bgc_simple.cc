@@ -88,7 +88,7 @@ BGCSimple::Setup()
   // -- PFTs -- old and new!
   Teuchos::ParameterList& pft_params = plist_->sublist("pft parameters");
   std::vector<std::string> pft_names;
-  for (Teuchos::ParameterList::ConstIterator lcv = pft_params.begin(); lcv != pft_params.end();
+  for (Teuchos::ParameterList::ConstIterator lcv = pft_params.begin() ; lcv != pft_params.end();
        ++lcv) {
     std::string pft_name = lcv->first;
     pft_names.push_back(pft_name);
@@ -284,7 +284,9 @@ BGCSimple::Initialize()
         int num_cols_ = mesh_surf_->getNumEntities(AmanziMesh::Entity_kind::CELL,
                                                    AmanziMesh::Parallel_kind::OWNED);
         for (int col = 0; col != num_cols_; ++col) {
-          for (int i = 0; i != bio.NumVectors(); ++i) { pfts_old_[col][i]->Bleaf = bio[i][col]; }
+          for (int i = 0; i != bio.NumVectors(); ++i) {
+            pfts_old_[col][i]->Bleaf = bio[i][col];
+          }
         }
       }
     }
@@ -318,7 +320,9 @@ BGCSimple::Initialize()
   // ensure all initialization in both PFTs?  Not sure this is
   // necessary -- likely done in initial call to commit-state --etc
   for (int col = 0; col != num_cols_; ++col) {
-    for (int i = 0; i != num_pfts_; ++i) { *pfts_[col][i] = *pfts_old_[col][i]; }
+    for (int i = 0; i != num_pfts_; ++i) {
+      *pfts_[col][i] = *pfts_old_[col][i];
+    }
   }
 }
 
@@ -334,7 +338,9 @@ BGCSimple::CommitStep(double told, double tnew, const Tag& tag)
   int num_cols_ =
     mesh_surf_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
   for (int col = 0; col != num_cols_; ++col) {
-    for (int i = 0; i != num_pfts_; ++i) { *pfts_old_[col][i] = *pfts_[col][i]; }
+    for (int i = 0; i != num_pfts_; ++i) {
+      *pfts_old_[col][i] = *pfts_[col][i];
+    }
   }
 }
 
@@ -357,7 +363,9 @@ BGCSimple::AdvanceStep(double t_old, double t_new, bool reinit)
   AmanziMesh::Entity_ID num_cols_ =
     mesh_surf_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
   for (AmanziMesh::Entity_ID col = 0; col != num_cols_; ++col) {
-    for (int i = 0; i != num_pfts_; ++i) { *pfts_[col][i] = *pfts_old_[col][i]; }
+    for (int i = 0; i != num_pfts_; ++i) {
+      *pfts_[col][i] = *pfts_old_[col][i];
+    }
   }
 
   // grab the required fields
@@ -530,7 +538,9 @@ BGCSimple::FieldToColumn_(AmanziMesh::Entity_ID col,
   }
 
   auto col_iter = mesh_->columns.getCells(col);
-  for (std::size_t i = 0; i != col_iter.size(); ++i) { (*col_vec)[i] = vec[col_iter[i]]; }
+  for (std::size_t i = 0; i != col_iter.size(); ++i) {
+    (*col_vec)[i] = vec[col_iter[i]];
+  }
 }
 
 // helper function for pushing field to column
@@ -541,7 +551,9 @@ BGCSimple::FieldToColumn_(AmanziMesh::Entity_ID col,
                           int ncol)
 {
   auto col_iter = mesh_->columns.getCells(col);
-  for (std::size_t i = 0; i != col_iter.size(); ++i) { col_vec[i] = vec[col_iter[i]]; }
+  for (std::size_t i = 0; i != col_iter.size(); ++i) {
+    col_vec[i] = vec[col_iter[i]];
+  }
 }
 
 

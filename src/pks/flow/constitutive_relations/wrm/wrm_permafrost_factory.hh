@@ -28,8 +28,8 @@ namespace Flow {
 
 class WRMPermafrostFactory : public Utils::Factory<WRMPermafrostModel> {
  public:
-  Teuchos::RCP<WRMPermafrostModel>
-  createWRMPermafrostModel(Teuchos::ParameterList& plist, const Teuchos::RCP<WRM>& wrm);
+  Teuchos::RCP<WRMPermafrostModel> createWRMPermafrostModel(Teuchos::ParameterList& plist,
+                                                            const Teuchos::RCP<WRM>& wrm);
 };
 
 } // namespace Flow

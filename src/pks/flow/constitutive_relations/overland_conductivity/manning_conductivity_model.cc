@@ -20,7 +20,7 @@ namespace Flow {
 ManningConductivityModel::ManningConductivityModel(Teuchos::ParameterList& plist)
 {
   slope_regularization_ = plist.get<double>("slope regularization epsilon", 1.e-8);
-  manning_exp_ = plist.get<double>("Manning exponent", 2./3);
+  manning_exp_ = plist.get<double>("Manning exponent", 2. / 3);
   depth_max_ = plist.get<double>("maximum ponded depth [m]", 1.e8);
 }
 

@@ -48,8 +48,12 @@ class ThermalRichardsModel : public EWCModel {
   ThermalRichardsModel() {}
   virtual void InitializeModel(const Teuchos::Ptr<State>& S);
   virtual void UpdateModel(const Teuchos::Ptr<State>& S, int c);
-  virtual int
-  Evaluate(double T, double p, double base_poro, double& energy, double& wc, bool verbose = false);
+  virtual int Evaluate(double T,
+                       double p,
+                       double base_poro,
+                       double& energy,
+                       double& wc,
+                       bool verbose = false);
   virtual int InverseEvaluate(double energy, double wc, double base_poro, double& T, double& p);
 
  protected:

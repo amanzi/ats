@@ -335,10 +335,8 @@ Radiation(double slope, double aspect, int doy, double hour, double lat, double 
 {
   auto facs = GeometricRadiationFactors(slope, aspect, doy, hour, lat);
   double fac = facs.first / facs.second;
-  if (fac > 6.)
-    fac = 6.;
-  else if (fac < 0.)
-    fac = 0.;
+  if (fac > 6.) fac = 6.;
+  else if (fac < 0.) fac = 0.;
   return qSWin * fac;
 }
 

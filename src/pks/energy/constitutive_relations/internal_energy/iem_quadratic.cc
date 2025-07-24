@@ -22,7 +22,8 @@ Quadratic internal energy model -- function of Cv and temperature
 namespace Amanzi {
 namespace Energy {
 
-IEMQuadratic::IEMQuadratic(Teuchos::ParameterList& plist) : plist_(plist)
+IEMQuadratic::IEMQuadratic(Teuchos::ParameterList& plist)
+  : plist_(plist)
 {
   InitializeFromPlist_();
 };

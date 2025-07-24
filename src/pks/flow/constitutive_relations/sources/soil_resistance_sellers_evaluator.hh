@@ -15,7 +15,7 @@ referred to Sellers et al. (1992).
 .. math::
 
       R_{soil} = \mathrm{exp}(8.206 - 4.255 s_l)
-   
+
 
 `"evaluator type`" = `"soil resistance, Sellers`"
 

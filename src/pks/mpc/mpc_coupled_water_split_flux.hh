@@ -15,7 +15,7 @@ To advance the coupled flow problem from :math:`t^n` to :math:`t^{n + 1}`, we
 perform two steps.  First, solve the diffusion wave equation:
 
 .. math::
-   
+
    \frac{\partial \Theta_s(p_s^*)}{\partial t} = \nabla k_s \cdot \nabla (z+h(p_s^*))
 
 for surface pressure :math:`p_s^*`.  This is colloquially called the "star"
@@ -65,7 +65,7 @@ on the nonlinear solver.
 Imposing the run-on as a source of water rather than as a initial pressure is
 much more stable for run-on.
 
-   
+
 **Hybrid Coupling**
 
 While the `"flux`" approach is more stable than `'pressure`" in cells
@@ -157,16 +157,14 @@ class MPCCoupledWaterSplitFlux : public MPCSubcycled {
     if (subcycling_[1])
       return Tag{ Keys::cleanName(tags_[1].second.get() + "_" +
                                   Keys::getDomainSetIndex(subdomain)) };
-    else
-      return Tag{ tags_[1].second };
+    else return Tag{ tags_[1].second };
   }
   Tag get_ds_tag_current_(const std::string& subdomain)
   {
     if (subcycling_[1])
       return Tag{ Keys::cleanName(tags_[1].first.get() + "_" +
                                   Keys::getDomainSetIndex(subdomain)) };
-    else
-      return Tag{ tags_[1].first };
+    else return Tag{ tags_[1].first };
   }
 
 

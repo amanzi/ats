@@ -91,7 +91,6 @@ TrappingRateEvaluator::Evaluate_(const State& S, const std::vector<CompositeVect
 
       result_c[0][c] +=
         sediment_density_ * tcc[0][c] * u_abs * eps * d_s * n_s * std::min(depth[0][c], h_s);
-
     }
   }
 }

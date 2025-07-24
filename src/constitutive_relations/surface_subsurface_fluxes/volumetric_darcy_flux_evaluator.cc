@@ -69,12 +69,10 @@ Volumetric_FluxEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
   for (int f = 0; f < nfaces_owned; f++) {
     auto cells = mesh.getFaceCells(f);
     double n_liq = 0.;
-    for (int c = 0; c < cells.size(); c++) n_liq += molar_density[0][c];
+    for (int c = 0; c < cells.size() ; c++) n_liq += molar_density[0][c];
     n_liq /= cells.size();
-    if (n_liq > 0)
-      res_v[0][f] = darcy_flux[0][f] / n_liq;
-    else
-      res_v[0][f] = 0.;
+    if (n_liq > 0) res_v[0][f] = darcy_flux[0][f] / n_liq;
+    else res_v[0][f] = 0.;
   }
 }
 

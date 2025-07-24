@@ -17,9 +17,9 @@ Computes the depth to the water table.
 .. admonition:: water-table-depth-spec
 
     * `"interpolate depth from pressure`" ``[bool]`` **false** Default to calculate
-      water table depth by locating the top face of the last continuously saturated 
-      cell from bottom upward. If true, use the height and pressure at the centroids 
-      of the last continuously saturated cell and its adjacent unsaturated cell to 
+      water table depth by locating the top face of the last continuously saturated
+      cell from bottom upward. If true, use the height and pressure at the centroids
+      of the last continuously saturated cell and its adjacent unsaturated cell to
       determine the water table depth through interpolation.
 
     KEYS:

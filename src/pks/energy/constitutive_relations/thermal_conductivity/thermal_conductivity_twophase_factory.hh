@@ -38,8 +38,8 @@ namespace Energy {
 
 class ThermalConductivityTwoPhaseFactory : public Utils::Factory<ThermalConductivityTwoPhase> {
  public:
-  Teuchos::RCP<ThermalConductivityTwoPhase>
-  createThermalConductivityModel(Teuchos::ParameterList& plist);
+  Teuchos::RCP<ThermalConductivityTwoPhase> createThermalConductivityModel(
+    Teuchos::ParameterList& plist);
 };
 
 } // namespace Energy

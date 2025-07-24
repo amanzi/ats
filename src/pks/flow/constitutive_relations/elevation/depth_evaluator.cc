@@ -14,7 +14,8 @@ namespace Amanzi {
 namespace Flow {
 
 
-DepthEvaluator::DepthEvaluator(Teuchos::ParameterList& plist) : EvaluatorIndependentCV(plist)
+DepthEvaluator::DepthEvaluator(Teuchos::ParameterList& plist)
+  : EvaluatorIndependentCV(plist)
 {
   algorithm_ = plist_.get<std::string>("algorithm", "mean face centroid");
   if (!(algorithm_ == "mean face centroid" || algorithm_ == "cell centroid")) {

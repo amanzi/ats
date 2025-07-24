@@ -189,7 +189,9 @@ MatrixMFD_Coupled_Surf::AssembleSchur_() const
     // ensure consistency of the sparsity structure, this can likely be
     // removed eventually.
     ASSERT(entriesA == entriesB);
-    for (int m = 0; m != entriesA; ++m) { ASSERT(indicesA[m] == indicesB[m]); }
+    for (int m = 0; m != entriesA; ++m) {
+      ASSERT(indicesA[m] == indicesB[m]);
+    }
 
     // Convert local cell numbers to domain's local face numbers
     AmanziMesh::Entity_ID frow = surface_mesh_->getEntityParent(AmanziMesh::Entity_kind::CELL, sc);
@@ -297,7 +299,9 @@ MatrixMFD_Coupled_Surf::AssembleAff_() const
     // ensure consistency of the sparsity structure, this can likely be
     // removed eventually.
     ASSERT(entriesA == entriesB);
-    for (int m = 0; m != entriesA; ++m) { ASSERT(indicesA[m] == indicesB[m]); }
+    for (int m = 0; m != entriesA; ++m) {
+      ASSERT(indicesA[m] == indicesB[m]);
+    }
 
     // Convert local cell numbers to domain's local face numbers
     AmanziMesh::Entity_ID frow = surface_mesh_->getEntityParent(AmanziMesh::Entity_kind::CELL, sc);

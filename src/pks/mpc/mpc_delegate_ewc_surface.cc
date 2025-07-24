@@ -58,7 +58,9 @@ MPCDelegateEWCSurface::modify_predictor_smart_ewc_(double h, Teuchos::RCP<TreeVe
   // Ensure the necessity of doing this... if max(pres_guess_c) < p_atm then there is no water anywhere.
   double p_max;
   p1.MaxValue(&p_max);
-  if (p_max < 101325.) { return false; }
+  if (p_max < 101325.) {
+    return false;
+  }
 
   // project energy and water content
   double dt_next = S_->get_time(tag_next_) - S_->get_time(tag_current_);
@@ -92,7 +94,7 @@ MPCDelegateEWCSurface::modify_predictor_smart_ewc_(double h, Teuchos::RCP<TreeVe
   int ncells = wc0.MyLength();
   for (int c = 0; c != ncells; ++c) {
     Teuchos::RCP<VerboseObject> dcvo = Teuchos::null;
-    if (vo_->os_OK(Teuchos::VERB_EXTREME)) dcvo = db_->GetVerboseObject(c, rank);
+    if (vo_->os_OK(Teuchos::VERB_EXTREME) ) dcvo = db_->GetVerboseObject(c, rank);
     Teuchos::OSTab dctab = dcvo == Teuchos::null ? vo_->getOSTab() : dcvo->getOSTab();
 
     AmanziGeometry::Point result(2);
@@ -227,7 +229,7 @@ MPCDelegateEWCSurface::precon_ewc_(Teuchos::RCP<const TreeVector> u, Teuchos::RC
   for (int c = 0; c != ncells; ++c) {
     // debugger
     Teuchos::RCP<VerboseObject> dcvo = Teuchos::null;
-    if (vo_->os_OK(Teuchos::VERB_EXTREME)) dcvo = db_->GetVerboseObject(c, rank);
+    if (vo_->os_OK(Teuchos::VERB_EXTREME) ) dcvo = db_->GetVerboseObject(c, rank);
     Teuchos::OSTab dctab = dcvo == Teuchos::null ? vo_->getOSTab() : dcvo->getOSTab();
 
     double T_prev = T_old[0][c];

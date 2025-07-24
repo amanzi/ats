@@ -64,7 +64,7 @@ solve all of these balances to convergence simultaneously.
 
    This evaluator also uses the :ref:`Land Cover` types.  From that struct, it
    requires the value of the following parameters:
-   
+
    - `"Beer's law extinction coefficient, shortwave [-]`"
    - `"Beer's law extinction coefficient, longwave [-]`"
    - `"albedo of canopy [-]`"
@@ -97,7 +97,8 @@ class CanopyRadiationEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
-  virtual void EnsureCompatibility_Structure_(State& S) override {
+  virtual void EnsureCompatibility_Structure_(State& S) override
+  {
     EnsureCompatibility_StructureSame_(S);
   }
 

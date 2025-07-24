@@ -247,7 +247,7 @@ passing info between an parent mesh and an extracted mesh.
      of this mesh is the same as the parent mesh.  If true, the communicator of
      this mesh is the subset of the parent mesh comm that has entries on the
      surface.
-     
+
 
 Aliased Mesh
 ============
@@ -437,101 +437,96 @@ namespace Mesh {
 //
 // Helper function
 //
-bool
-checkVerifyMesh(Teuchos::ParameterList& mesh_plist,
-                Teuchos::RCP<const Amanzi::AmanziMesh::Mesh> mesh);
+bool checkVerifyMesh(Teuchos::ParameterList& mesh_plist,
+                     Teuchos::RCP<const Amanzi::AmanziMesh::Mesh> mesh);
 
 //
 // Create mesh for each type
 //
-Teuchos::RCP<Amanzi::AmanziMesh::Mesh>
-createMeshFromFile(const std::string& mesh_name,
-                   const Teuchos::RCP<Teuchos::ParameterList>& mesh_plist,
-                   const Amanzi::Comm_ptr_type& comm,
-                   const Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel>& gm,
-                   Amanzi::State& S,
-                   Amanzi::VerboseObject& vo);
+Teuchos::RCP<Amanzi::AmanziMesh::Mesh> createMeshFromFile(
+  const std::string& mesh_name,
+  const Teuchos::RCP<Teuchos::ParameterList>& mesh_plist,
+  const Amanzi::Comm_ptr_type& comm,
+  const Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel>& gm,
+  Amanzi::State& S,
+  Amanzi::VerboseObject& vo);
 
-Teuchos::RCP<Amanzi::AmanziMesh::Mesh>
-createMeshGenerated(const std::string& mesh_name,
-                    const Teuchos::RCP<Teuchos::ParameterList>& mesh_plist,
-                    const Amanzi::Comm_ptr_type& comm,
-                    const Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel>& gm,
-                    Amanzi::State& S,
-                    Amanzi::VerboseObject& vo);
+Teuchos::RCP<Amanzi::AmanziMesh::Mesh> createMeshGenerated(
+  const std::string& mesh_name,
+  const Teuchos::RCP<Teuchos::ParameterList>& mesh_plist,
+  const Amanzi::Comm_ptr_type& comm,
+  const Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel>& gm,
+  Amanzi::State& S,
+  Amanzi::VerboseObject& vo);
 
-Teuchos::RCP<Amanzi::AmanziMesh::Mesh>
-createMeshLogical(const std::string& mesh_name,
-                  const Teuchos::RCP<Teuchos::ParameterList>& mesh_plist,
+Teuchos::RCP<Amanzi::AmanziMesh::Mesh> createMeshLogical(
+  const std::string& mesh_name,
+  const Teuchos::RCP<Teuchos::ParameterList>& mesh_plist,
+  const Amanzi::Comm_ptr_type& comm,
+  const Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel>& gm,
+  Amanzi::State& S,
+  Amanzi::VerboseObject& vo);
+
+Teuchos::RCP<const Amanzi::AmanziMesh::Mesh> createMeshAliased(
+  const std::string& mesh_name,
+  const Teuchos::RCP<Teuchos::ParameterList>& mesh_plist,
+  Amanzi::State& S,
+  Amanzi::VerboseObject& vo);
+
+Teuchos::RCP<Amanzi::AmanziMesh::Mesh> createMeshSurface(
+  const std::string& mesh_name,
+  const Teuchos::RCP<Teuchos::ParameterList>& mesh_plist,
+  const Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel>& gm,
+  Amanzi::State& S,
+  Amanzi::VerboseObject& vo);
+
+Teuchos::RCP<Amanzi::AmanziMesh::Mesh> createMeshExtracted(
+  const std::string& mesh_name,
+  const Teuchos::RCP<Teuchos::ParameterList>& mesh_plist,
+  const Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel>& gm,
+  Amanzi::State& S,
+  Amanzi::VerboseObject& vo);
+
+
+Teuchos::RCP<Amanzi::AmanziMesh::Mesh> createMeshColumn(
+  const std::string& mesh_name,
+  const Teuchos::RCP<Teuchos::ParameterList>& mesh_plist,
+  const Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel>& gm,
+  Amanzi::State& S,
+  Amanzi::VerboseObject& vo);
+
+Teuchos::RCP<Amanzi::AmanziMesh::Mesh> createMeshColumnSurface(
+  const std::string& mesh_name,
+  const Teuchos::RCP<Teuchos::ParameterList>& mesh_plist,
+  const Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel>& gm,
+  Amanzi::State& S,
+  Amanzi::VerboseObject& vo);
+
+void createDomainSetIndexed(const std::string& mesh_name_pristine,
+                            const Teuchos::RCP<Teuchos::ParameterList>& mesh_plist,
+                            const Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel>& gm,
+                            Amanzi::State& S,
+                            Amanzi::VerboseObject& vo);
+
+void createDomainSetRegions(const std::string& mesh_name_pristine,
+                            const Teuchos::RCP<Teuchos::ParameterList>& mesh_plist,
+                            const Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel>& gm,
+                            Amanzi::State& S,
+                            Amanzi::VerboseObject& vo);
+
+Teuchos::RCP<const Amanzi::AmanziMesh::Mesh> createMesh(
+  const Teuchos::RCP<Teuchos::ParameterList>& plist,
+  const Amanzi::Comm_ptr_type& comm,
+  const Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel>& gm,
+  Amanzi::State& s,
+  Amanzi::VerboseObject& vo);
+
+void createMeshes(const Teuchos::RCP<Teuchos::ParameterList>& plist,
                   const Amanzi::Comm_ptr_type& comm,
                   const Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel>& gm,
-                  Amanzi::State& S,
-                  Amanzi::VerboseObject& vo);
+                  Amanzi::State& s);
 
-Teuchos::RCP<const Amanzi::AmanziMesh::Mesh>
-createMeshAliased(const std::string& mesh_name,
-                  const Teuchos::RCP<Teuchos::ParameterList>& mesh_plist,
-                  Amanzi::State& S,
-                  Amanzi::VerboseObject& vo);
-
-Teuchos::RCP<Amanzi::AmanziMesh::Mesh>
-createMeshSurface(const std::string& mesh_name,
-                  const Teuchos::RCP<Teuchos::ParameterList>& mesh_plist,
-                  const Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel>& gm,
-                  Amanzi::State& S,
-                  Amanzi::VerboseObject& vo);
-
-Teuchos::RCP<Amanzi::AmanziMesh::Mesh>
-createMeshExtracted(const std::string& mesh_name,
-                    const Teuchos::RCP<Teuchos::ParameterList>& mesh_plist,
-                    const Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel>& gm,
-                    Amanzi::State& S,
-                    Amanzi::VerboseObject& vo);
-
-
-Teuchos::RCP<Amanzi::AmanziMesh::Mesh>
-createMeshColumn(const std::string& mesh_name,
-                 const Teuchos::RCP<Teuchos::ParameterList>& mesh_plist,
-                 const Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel>& gm,
-                 Amanzi::State& S,
-                 Amanzi::VerboseObject& vo);
-
-Teuchos::RCP<Amanzi::AmanziMesh::Mesh>
-createMeshColumnSurface(const std::string& mesh_name,
-                        const Teuchos::RCP<Teuchos::ParameterList>& mesh_plist,
-                        const Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel>& gm,
-                        Amanzi::State& S,
-                        Amanzi::VerboseObject& vo);
-
-void
-createDomainSetIndexed(const std::string& mesh_name_pristine,
-                       const Teuchos::RCP<Teuchos::ParameterList>& mesh_plist,
-                       const Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel>& gm,
-                       Amanzi::State& S,
-                       Amanzi::VerboseObject& vo);
-
-void
-createDomainSetRegions(const std::string& mesh_name_pristine,
-                       const Teuchos::RCP<Teuchos::ParameterList>& mesh_plist,
-                       const Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel>& gm,
-                       Amanzi::State& S,
-                       Amanzi::VerboseObject& vo);
-
-Teuchos::RCP<const Amanzi::AmanziMesh::Mesh>
-createMesh(const Teuchos::RCP<Teuchos::ParameterList>& plist,
-           const Amanzi::Comm_ptr_type& comm,
-           const Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel>& gm,
-           Amanzi::State& s,
-           Amanzi::VerboseObject& vo);
-
-void
-createMeshes(const Teuchos::RCP<Teuchos::ParameterList>& plist,
-             const Amanzi::Comm_ptr_type& comm,
-             const Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel>& gm,
-             Amanzi::State& s);
-
-void
-setDefaultParameters(Teuchos::ParameterList& plist, const Amanzi::VerboseObject& vo);
+void setDefaultParameters(Teuchos::ParameterList& plist, const Amanzi::VerboseObject& vo);
 
 } // namespace Mesh
 } // namespace ATS

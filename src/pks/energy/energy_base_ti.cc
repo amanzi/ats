@@ -121,7 +121,7 @@ EnergyBase::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<T
 {
 #if DEBUG_FLAG
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_HIGH)) *vo_->os() << "Precon application:" << std::endl;
+  if (vo_->os_OK(Teuchos::VERB_HIGH) ) *vo_->os() << "Precon application:" << std::endl;
   db_->WriteVector("T_res", u->Data().ptr(), true);
 #endif
 
@@ -144,7 +144,7 @@ EnergyBase::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, do
 {
   // VerboseObject stuff.
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_HIGH)) *vo_->os() << "Precon update at t = " << t << std::endl;
+  if (vo_->os_OK(Teuchos::VERB_HIGH) ) *vo_->os() << "Precon update at t = " << t << std::endl;
 
   // update state with the solution up.
   AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t) <= 1.e-4 * t);
@@ -343,8 +343,8 @@ EnergyBase::ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const TreeV
       double infnorm(0.);
       dvec_v.NormInf(&infnorm);
 
-      *vo_->os() << "  ENorm (" << *comp << ") = " << enorm_comp
-                 << " (" << infnorm << ")" << std::endl;
+      *vo_->os() << "  ENorm (" << *comp << ") = " << enorm_comp << " (" << infnorm << ")"
+                 << std::endl;
     }
 
     enorm_val = std::max(enorm_val, enorm_comp.value);

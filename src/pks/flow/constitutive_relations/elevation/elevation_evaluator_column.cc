@@ -122,7 +122,7 @@ ColumnElevationEvaluator::EvaluateElevationAndSlope_(const State& S,
 
       AmanziGeometry::Point fnor = S.GetMesh(my_name)->getFaceNormal(0); //0 is the id of top face
       Nor_avg = (nface_pcell - Normal.size()) * fnor;
-      for (int i = 0; i < Normal.size(); i++) Nor_avg += Normal[i];
+      for (int i = 0; i < Normal.size() ; i++) Nor_avg += Normal[i];
 
       Nor_avg /= nface_pcell;
       slope_c[0][c] =
@@ -144,7 +144,9 @@ ColumnElevationEvaluator::EvaluateElevationAndSlope_(const State& S,
     for (int f = 0; f != nfaces; ++f) {
       auto nadj_cellids = S.GetMesh(surface_domain_)->getFaceCells(f);
       double ef = 0;
-      for (int i = 0; i < nadj_cellids.size(); i++) { ef += elev_ngb_c[0][nadj_cellids[i]]; }
+      for (int i = 0; i < nadj_cellids.size(); i++) {
+        ef += elev_ngb_c[0][nadj_cellids[i]];
+      }
       elev_f[0][f] = ef / nadj_cellids.size();
     }
   }

@@ -29,7 +29,9 @@ UpwindPotentialDifference::UpwindPotentialDifference(const std::string& pkname,
                                                      const std::string& overlap)
   : pkname_(pkname), tag_(tag), potential_(potential), overlap_(overlap)
 {
-  if (overlap_ == std::string("")) { overlap_ = potential_; }
+  if (overlap_ == std::string("")) {
+    overlap_ = potential_;
+  }
 };
 
 
@@ -54,7 +56,9 @@ UpwindPotentialDifference::CalculateCoefficientsOnFaces(const CompositeVector& c
   AMANZI_ASSERT(cell_coef.Ghosted());
 
   // initialize the cell coefficients
-  if (face_coef.HasComponent("cell")) { face_coef.ViewComponent("cell", true)->PutScalar(1.0); }
+  if (face_coef.HasComponent("cell")) {
+    face_coef.ViewComponent("cell", true)->PutScalar(1.0);
+  }
 
   Teuchos::RCP<const AmanziMesh::Mesh> mesh = face_coef.Mesh();
   std::vector<int> dirs;
@@ -69,7 +73,7 @@ UpwindPotentialDifference::CalculateCoefficientsOnFaces(const CompositeVector& c
   const Epetra_MultiVector& overlap_c = *overlap.ViewComponent("cell", true);
   const Epetra_MultiVector& potential_c = *potential.ViewComponent("cell", true);
   Teuchos::RCP<const Epetra_MultiVector> potential_f;
-  if (potential.HasComponent("face")) potential_f = potential.ViewComponent("face", false);
+  if (potential.HasComponent("face") ) potential_f = potential.ViewComponent("face", false);
   const Epetra_MultiVector& cell_coef_c = *cell_coef.ViewComponent("cell", true);
 
   int nfaces = face_coef.size("face", false);
@@ -91,7 +95,9 @@ UpwindPotentialDifference::CalculateCoefficientsOnFaces(const CompositeVector& c
       double ol1 = std::max(0., overlap_c[0][cells[1]]);
 
       double flow_eps = 0.0;
-      if ((ol0 > 0) || (ol1 > 0)) { flow_eps = (ol0 * ol1) / (ol0 + ol1); }
+      if ((ol0 > 0) || (ol1 > 0)) {
+        flow_eps = (ol0 * ol1) / (ol0 + ol1);
+      }
       flow_eps = std::max(flow_eps, eps);
 
       // Determine the coefficient.
@@ -190,7 +196,9 @@ UpwindPotentialDifference::UpdateDerivatives(
       double ol1 = std::max(0., overlap_c[0][cells[1]]);
 
       double flow_eps = 0.0;
-      if ((ol0 > 0) || (ol1 > 0)) { flow_eps = (ol0 * ol1) / (ol0 + ol1); }
+      if ((ol0 > 0) || (ol1 > 0)) {
+        flow_eps = (ol0 * ol1) / (ol0 + ol1);
+      }
       flow_eps = std::max(flow_eps, eps);
 
       // Determine the coefficient.

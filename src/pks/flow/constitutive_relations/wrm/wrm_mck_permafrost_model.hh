@@ -27,7 +27,8 @@ class WRM;
 class WRMMCKPermafrostModel : public WRMPermafrostModel {
  public:
   double residualSaturation();
-  explicit WRMMCKPermafrostModel(Teuchos::ParameterList& plist) : WRMPermafrostModel(plist)
+  explicit WRMMCKPermafrostModel(Teuchos::ParameterList& plist)
+    : WRMPermafrostModel(plist)
   {
     T0_ = plist.get<double>("freezing point [K]", 273.15);
     w_ = plist.get<double>("sfc fitting coefficient", 3.0);

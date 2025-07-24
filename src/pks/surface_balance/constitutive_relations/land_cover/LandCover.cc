@@ -95,7 +95,9 @@ getLandCover(Teuchos::ParameterList plist, const std::vector<std::string>& requi
 {
   LandCoverMap lcm = Impl::getLandCover(plist);
   for (const auto& lc : lcm) {
-    for (const auto& par : required_pars) { Impl::checkValid(lc.first, lc.second, par); }
+    for (const auto& par : required_pars) {
+      Impl::checkValid(lc.first, lc.second, par);
+    }
   }
   return lcm;
 }
@@ -158,7 +160,8 @@ checkValid(const std::string& region, const LandCover& lc, const std::string& pa
   if (parname == "pt_alpha_transpiration" && std::isnan(lc.pt_alpha_transpiration))
     throwInvalid(region, "Priestley-Taylor alpha of transpiration [-]");
 
-  if (parname == "mannings_n" && std::isnan(lc.mannings_n)) throwInvalid(region, "Manning's n [?]");
+  if (parname == "mannings_n" && std::isnan(lc.mannings_n)
+    ) throwInvalid(region, "Manning's n [?]");
 
   if (parname == "leaf_on_doy" && std::isnan(lc.leaf_on_doy))
     throwInvalid(region, "leaf off time [doy]");

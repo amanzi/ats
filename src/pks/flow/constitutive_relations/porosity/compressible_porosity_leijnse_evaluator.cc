@@ -97,7 +97,7 @@ CompressiblePorosityLeijnseEvaluator::EvaluatePartialDerivative_(
 
   if (wrt_key == pres_key_) {
     // evaluate the model
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       AMANZI_ASSERT(
         *comp ==
@@ -115,7 +115,7 @@ CompressiblePorosityLeijnseEvaluator::EvaluatePartialDerivative_(
 
   } else if (wrt_key == poro_key_) {
     // evaluate the model
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       AMANZI_ASSERT(
         *comp ==

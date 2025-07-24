@@ -34,10 +34,10 @@ class PoolTransferEvaluator : public EvaluatorSecondaryMonotypeCV {
   // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
                               const std::vector<Teuchos::Ptr<CompositeVector>>& results);
-  virtual void
-  EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-                                  Key wrt_key,
-                                  const std::vector<Teuchos::Ptr<CompositeVector>>& results);
+  virtual void EvaluateFieldPartialDerivative_(
+    const Teuchos::Ptr<State>& S,
+    Key wrt_key,
+    const std::vector<Teuchos::Ptr<CompositeVector>>& results);
 
 
  protected:

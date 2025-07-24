@@ -63,7 +63,7 @@ class MPCFlowTransport : public MPCSubcycled {
       chemistry_(false),
       surface_(false),
       subsurface_(false)
-    {}
+  {}
 
   void parseParameterList() override;
   void CommitStep(double t_old, double t_new, const Tag& tag) override;
@@ -74,7 +74,6 @@ class MPCFlowTransport : public MPCSubcycled {
  private:
   // factory registration
   static RegisteredPKFactory<MPCFlowTransport> reg_;
-
 };
 
 } // namespace Amanzi

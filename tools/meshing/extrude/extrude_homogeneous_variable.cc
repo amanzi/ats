@@ -51,14 +51,11 @@ main()
         dzs[inode] = 0.0;
         continue;
       }
-      if (rem_soil[inode] > 2 * ref_soil_mlay_dz[ilay])
-        dzs[inode] = ref_soil_mlay_dz[ilay];
+      if (rem_soil[inode] > 2 * ref_soil_mlay_dz[ilay]) dzs[inode] = ref_soil_mlay_dz[ilay];
       else if (rem_soil[inode] > ref_soil_mlay_dz[ilay] + eps_dz)
         dzs[inode] = 0.5 * rem_soil[inode];
-      else if (rem_soil[inode] < ref_soil_mlay_dz[ilay] - eps_dz)
-        dzs[inode] = rem_soil[inode];
-      else
-        dzs[inode] = ref_soil_mlay_dz[ilay];
+      else if (rem_soil[inode] < ref_soil_mlay_dz[ilay] - eps_dz) dzs[inode] = rem_soil[inode];
+      else dzs[inode] = ref_soil_mlay_dz[ilay];
 
       rem_soil[inode] -= dzs[inode];
     }
@@ -86,14 +83,11 @@ main()
         dzs[inode] = 0.0;
         continue;
       }
-      if (rem_soil[inode] > 2 * ref_soil_mlay_dz[ilay])
-        dzs[inode] = ref_soil_mlay_dz[ilay];
+      if (rem_soil[inode] > 2 * ref_soil_mlay_dz[ilay]) dzs[inode] = ref_soil_mlay_dz[ilay];
       else if (rem_soil[inode] > ref_soil_mlay_dz[ilay] + eps_dz)
         dzs[inode] = 0.5 * rem_soil[inode];
-      else if (rem_soil[inode] < ref_soil_mlay_dz[ilay] - eps_dz)
-        dzs[inode] = rem_soil[inode];
-      else
-        dzs[inode] = ref_soil_mlay_dz[ilay];
+      else if (rem_soil[inode] < ref_soil_mlay_dz[ilay] - eps_dz) dzs[inode] = rem_soil[inode];
+      else dzs[inode] = ref_soil_mlay_dz[ilay];
 
       rem_soil[inode] -= dzs[inode];
     }

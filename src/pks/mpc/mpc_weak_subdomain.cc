@@ -47,8 +47,7 @@ MPCWeakSubdomain::parseParameterList()
   MPC<PK>::parseParameterList();
 
   if (internal_subcycling_) {
-    internal_subcycling_target_dt_ =
-      plist_->template get<double>("subcycling target timestep [s]");
+    internal_subcycling_target_dt_ = plist_->template get<double>("subcycling target timestep [s]");
   }
 };
 
@@ -127,10 +126,8 @@ MPCWeakSubdomain::get_ds_tag_next_(const std::string& subdomain)
 Tag
 MPCWeakSubdomain::get_ds_tag_current_(const std::string& subdomain)
 {
-  if (internal_subcycling_)
-    return Tag(Keys::getKey(subdomain, tag_current_.get()));
-  else
-    return tag_current_;
+  if (internal_subcycling_) return Tag(Keys::getKey(subdomain, tag_current_.get()));
+  else return tag_current_;
 }
 
 
@@ -173,10 +170,8 @@ MPCWeakSubdomain::Initialize()
 bool
 MPCWeakSubdomain::AdvanceStep(double t_old, double t_new, bool reinit)
 {
-  if (internal_subcycling_)
-    return AdvanceStep_InternalSubcycling_(t_old, t_new, reinit);
-  else
-    return AdvanceStep_Standard_(t_old, t_new, reinit);
+  if (internal_subcycling_) return AdvanceStep_InternalSubcycling_(t_old, t_new, reinit);
+  else return AdvanceStep_Standard_(t_old, t_new, reinit);
 }
 
 // -----------------------------------------------------------------------------
@@ -309,7 +304,9 @@ MPCWeakSubdomain::CommitStep(double t_old, double t_new, const Tag& tag_next)
         << "MPCWeakSubdomain, but not both.";
     Exceptions::amanzi_throw(msg);
   }
-  for (const auto& pk : sub_pks_) { pk->CommitStep(t_old, t_new, tag_next); }
+  for (const auto& pk : sub_pks_) {
+    pk->CommitStep(t_old, t_new, tag_next);
+  }
 }
 
 

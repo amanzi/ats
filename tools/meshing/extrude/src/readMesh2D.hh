@@ -42,13 +42,12 @@ struct PointFactory {
   std::vector<Point> points;
 };
 
-Mesh2D
-readMesh2D_text(const std::string& filename,
-                std::vector<int>& soil_type,
-                std::vector<int>& bedrock_type,
-                std::vector<double>& depth_to_bedrock,
-                double cut_x = 1.e80,
-                double cut_y = 1.e80);
+Mesh2D readMesh2D_text(const std::string& filename,
+                       std::vector<int>& soil_type,
+                       std::vector<int>& bedrock_type,
+                       std::vector<double>& depth_to_bedrock,
+                       double cut_x = 1.e80,
+                       double cut_y = 1.e80);
 
 } // namespace AmanziGeometry
 } // namespace Amanzi

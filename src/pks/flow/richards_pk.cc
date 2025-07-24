@@ -67,7 +67,6 @@ Richards::Richards(Teuchos::ParameterList& pk_tree,
 {}
 
 
-
 void
 Richards::parseParameterList()
 {
@@ -202,12 +201,11 @@ Richards::SetupRichardsFlow_()
 
   CompositeVectorSpace perm_space;
   perm_space.SetMesh(mesh_)->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  S_->Require<TensorVector, TensorVector_Factory>(perm_key_, tag_next_)
-    .set_map(perm_space);
+  S_->Require<TensorVector, TensorVector_Factory>(perm_key_, tag_next_).set_map(perm_space);
   S_->RequireEvaluator(perm_key_, tag_next_);
 
   // is dynamic mesh?  If so, get a key for indicating when the mesh has changed.
-  if (!deform_key_.empty()) S_->RequireEvaluator(deform_key_, tag_next_);
+  if (!deform_key_.empty() ) S_->RequireEvaluator(deform_key_, tag_next_);
 
   // data allocation -- move to State!
   unsigned int c_owned =
@@ -371,10 +369,12 @@ Richards::SetupRichardsFlow_()
     requireEvaluatorAtNext(source_key_, tag_next_, *S_)
       .SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-    if (!explicit_source_ && S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
+    if (!explicit_source_ &&
+        S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
       is_source_term_differentiable_ = true;
       // require derivative of source
-      S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(source_key_, tag_next_, key_, tag_next_);
+      S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
+        source_key_, tag_next_, key_, tag_next_);
     }
   }
 
@@ -533,7 +533,7 @@ void
 Richards::Initialize()
 {
   // Initialize via hydrostatic balance
-  if (!S_->GetRecordW(key_, tag_next_, name_).initialized()) InitializeHydrostatic_(tag_next_);
+  if (!S_->GetRecordW(key_, tag_next_, name_) .initialized()) InitializeHydrostatic_(tag_next_);
 
   // Initialize in the standard ways
   PK_PhysicalBDF_Default::Initialize();
@@ -602,7 +602,9 @@ Richards::InitializeHydrostatic_(const Tag& tag)
     { // context for viewcomponent -- do cells
       Epetra_MultiVector& pres_c = *pres->ViewComponent("cell", false);
       Teuchos::RCP<Epetra_MultiVector> pres_f = Teuchos::null;
-      if (pres->HasComponent("face")) { pres_f = pres->ViewComponent("face", false); }
+      if (pres->HasComponent("face")) {
+        pres_f = pres->ViewComponent("face", false);
+      }
 
       int ncells_per = -1;
       for (int col = 0; col != ncols; ++col) {
@@ -703,7 +705,9 @@ Richards::CommitStep(double t_old, double t_new, const Tag& tag_next)
 
   // also save saturation
   assign(sat_key_, tag_current, tag_next, *S_);
-  if (S_->HasRecordSet(sat_ice_key_)) { assign(sat_ice_key_, tag_current, tag_next, *S_); }
+  if (S_->HasRecordSet(sat_ice_key_)) {
+    assign(sat_ice_key_, tag_current, tag_next, *S_);
+  }
 };
 
 
@@ -714,7 +718,7 @@ bool
 Richards::IsValid(const Teuchos::RCP<const TreeVector>& u)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "Validating timestep." << std::endl;
+  if (vo_->os_OK(Teuchos::VERB_EXTREME) ) *vo_->os() << "Validating timestep." << std::endl;
 
   if (sat_change_limit_ > 0.0) {
     const Epetra_MultiVector& sl_new =
@@ -775,8 +779,9 @@ Richards::CalculateDiagnostics(const Tag& tag)
   Teuchos::RCP<const CompositeVector> rho = S_->GetPtr<CompositeVector>(mass_dens_key_, tag_next_);
 
   // update mass matrix?
-  if (S_->GetEvaluator(perm_key_, tag_next_).Update(*S_, name_+" matrix diff"))
-    matrix_diff_->SetTensorCoefficient(Teuchos::rcpFromRef(S_->Get<TensorVector>(perm_key_, tag_next_).data));
+  if (S_->GetEvaluator(perm_key_, tag_next_).Update(*S_, name_ + " matrix diff"))
+    matrix_diff_->SetTensorCoefficient(
+      Teuchos::rcpFromRef(S_->Get<TensorVector>(perm_key_, tag_next_).data));
 
   // update the stiffness matrix
   matrix_diff_->SetDensity(rho);
@@ -801,11 +806,12 @@ bool
 Richards::UpdatePermeabilityData_(const Tag& tag)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "  Updating permeability?";
+  if (vo_->os_OK(Teuchos::VERB_EXTREME) ) *vo_->os() << "  Updating permeability?";
   if (fixed_kr_) return false;
 
   Teuchos::RCP<const CompositeVector> rel_perm = S_->GetPtr<CompositeVector>(coef_key_, tag);
-  bool update_abs_perm = S_->GetEvaluator(perm_key_, tag_next_).Update(*S_, name_+"face matrix diff");
+  bool update_abs_perm =
+    S_->GetEvaluator(perm_key_, tag_next_).Update(*S_, name_ + "face matrix diff");
   bool update_perm = S_->GetEvaluator(coef_key_, tag).Update(*S_, name_);
   update_perm |= update_abs_perm;
 
@@ -824,7 +830,8 @@ Richards::UpdatePermeabilityData_(const Tag& tag)
       if ((!deform_key_.empty() &&
            S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_ + " flux dir")) ||
           update_abs_perm) {
-        face_matrix_diff_->SetTensorCoefficient(Teuchos::rcpFromRef(S_->Get<TensorVector>(perm_key_, tag_next_).data));
+        face_matrix_diff_->SetTensorCoefficient(
+          Teuchos::rcpFromRef(S_->Get<TensorVector>(perm_key_, tag_next_).data));
       }
       face_matrix_diff_->SetDensity(rho);
       face_matrix_diff_->UpdateMatrices(Teuchos::null, pres.ptr());
@@ -878,7 +885,9 @@ Richards::UpdatePermeabilityData_(const Tag& tag)
       const auto& bfmap = mesh_->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE, true);
       for (int bf = 0; bf != rel_perm_bf.MyLength(); ++bf) {
         auto f = fmap.LID(bfmap.GID(bf));
-        if (rel_perm_bf[0][bf] > uw_rel_perm_f[0][f]) { uw_rel_perm_f[0][f] = rel_perm_bf[0][bf]; }
+        if (rel_perm_bf[0][bf] > uw_rel_perm_f[0][f]) {
+          uw_rel_perm_f[0][f] = rel_perm_bf[0][bf];
+        }
       }
     } else if (clobber_policy_ == "unsaturated") {
       // clobber only when the interior cell is unsaturated
@@ -902,7 +911,9 @@ Richards::UpdatePermeabilityData_(const Tag& tag)
   }
 
   // debugging
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) { *vo_->os() << " " << update_perm << std::endl; }
+  if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
+    *vo_->os() << " " << update_perm << std::endl;
+  }
   return update_perm;
 };
 
@@ -911,7 +922,7 @@ bool
 Richards::UpdatePermeabilityDerivativeData_(const Tag& tag)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "  Updating permeability derivatives?";
+  if (vo_->os_OK(Teuchos::VERB_EXTREME) ) *vo_->os() << "  Updating permeability derivatives?";
   if (fixed_kr_) return false;
 
   bool update_perm = S_->GetEvaluator(coef_key_, tag).UpdateDerivative(*S_, name_, key_, tag);
@@ -931,7 +942,8 @@ Richards::UpdatePermeabilityDerivativeData_(const Tag& tag)
 
   std::vector<std::string> vnames{ "dkrel" };
   std::vector<Teuchos::Ptr<const CompositeVector>> vecs{
-    S_->GetDerivativePtr<CompositeVector>(coef_key_, tag, key_, tag).ptr() };
+    S_->GetDerivativePtr<CompositeVector>(coef_key_, tag, key_, tag).ptr()
+  };
   if (!duw_coef_key_.empty()) {
     vnames.emplace_back("uw_dkrel");
     vecs.emplace_back(S_->GetPtr<CompositeVector>(duw_coef_key_, tag).ptr());
@@ -939,7 +951,9 @@ Richards::UpdatePermeabilityDerivativeData_(const Tag& tag)
   db_->WriteVectors(vnames, vecs, true);
 
   // debugging
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) { *vo_->os() << " " << update_perm << std::endl; }
+  if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
+    *vo_->os() << " " << update_perm << std::endl;
+  }
   return update_perm;
 };
 
@@ -966,7 +980,7 @@ void
 Richards::UpdateBoundaryConditions_(const Tag& tag, bool kr)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "  Updating BCs." << std::endl;
+  if (vo_->os_OK(Teuchos::VERB_EXTREME) ) *vo_->os() << "  Updating BCs." << std::endl;
 
   auto& markers = bc_markers();
   auto& values = bc_values();
@@ -1285,7 +1299,7 @@ bool
 Richards::ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::RCP<TreeVector> u)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "Modifying predictor:" << std::endl;
+  if (vo_->os_OK(Teuchos::VERB_EXTREME) ) *vo_->os() << "Modifying predictor:" << std::endl;
 
   // update boundary conditions
   ComputeBoundaryConditions_(tag_next_);
@@ -1302,9 +1316,13 @@ Richards::ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::
     changed |= ModifyPredictorFluxBCs_(h, u);
   }
 
-  if (modify_predictor_wc_) { changed |= ModifyPredictorWC_(h, u); }
+  if (modify_predictor_wc_) {
+    changed |= ModifyPredictorWC_(h, u);
+  }
 
-  if (modify_predictor_with_consistent_faces_) { changed |= ModifyPredictorConsistentFaces_(h, u); }
+  if (modify_predictor_with_consistent_faces_) {
+    changed |= ModifyPredictorConsistentFaces_(h, u);
+  }
   return changed;
 }
 
@@ -1312,7 +1330,7 @@ Richards::ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::
 bool
 Richards::ModifyPredictorFluxBCs_(double h, Teuchos::RCP<TreeVector> u)
 {
-  if (!u->Data()->HasComponent("face")) return false;
+  if (!u->Data() ->HasComponent("face")) return false;
 
   auto& markers = bc_markers();
   auto& values = bc_values();
@@ -1336,8 +1354,9 @@ Richards::ModifyPredictorFluxBCs_(double h, Teuchos::RCP<TreeVector> u)
   Teuchos::RCP<const CompositeVector> pres = S_->GetPtr<CompositeVector>(key_, tag_next_);
 
   // update mass matrix?
-  if (S_->GetEvaluator(perm_key_, tag_next_).Update(*S_, name_+" matrix diff"))
-    matrix_diff_->SetTensorCoefficient(Teuchos::rcpFromRef(S_->Get<TensorVector>(perm_key_, tag_next_).data));
+  if (S_->GetEvaluator(perm_key_, tag_next_).Update(*S_, name_ + " matrix diff"))
+    matrix_diff_->SetTensorCoefficient(
+      Teuchos::rcpFromRef(S_->Get<TensorVector>(perm_key_, tag_next_).data));
 
   matrix_diff_->SetDensity(rho);
   matrix_diff_->UpdateMatrices(Teuchos::null, pres.ptr());
@@ -1422,7 +1441,9 @@ Richards::CalculateConsistentFaces(const Teuchos::Ptr<CompositeVector>& u)
     int ncells = cells.size();
 
     double face_value = 0.0;
-    for (int n = 0; n != ncells; ++n) { face_value += u_c[0][cells[n]]; }
+    for (int n = 0; n != ncells; ++n) {
+      face_value += u_c[0][cells[n]];
+    }
     u_f[0][f] = face_value / ncells;
   }
   ChangedSolution();
@@ -1440,8 +1461,9 @@ Richards::CalculateConsistentFaces(const Teuchos::Ptr<CompositeVector>& u)
   matrix_->Init();
 
   // update mass matrix?
-  if (S_->GetEvaluator(perm_key_, tag_next_).Update(*S_, name_+" matrix diff"))
-    matrix_diff_->SetTensorCoefficient(Teuchos::rcpFromRef(S_->Get<TensorVector>(perm_key_, tag_next_).data));
+  if (S_->GetEvaluator(perm_key_, tag_next_).Update(*S_, name_ + " matrix diff"))
+    matrix_diff_->SetTensorCoefficient(
+      Teuchos::rcpFromRef(S_->Get<TensorVector>(perm_key_, tag_next_).data));
 
   matrix_diff_->SetDensity(rho);
   matrix_diff_->SetScalarCoefficient(rel_perm, Teuchos::null);
@@ -1472,7 +1494,7 @@ bool
 Richards::IsAdmissible(Teuchos::RCP<const TreeVector> up)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "  Checking admissibility..." << std::endl;
+  if (vo_->os_OK(Teuchos::VERB_EXTREME) ) *vo_->os() << "  Checking admissibility..." << std::endl;
 
   // For some reason, wandering PKs break most frequently with an unreasonable
   // pressure.  This simply tries to catch that before it happens.
@@ -1525,7 +1547,7 @@ Richards::ModifyCorrection(double h,
   }
 
   // debugging -- remove me! --etc
-  for (CompositeVector::name_iterator comp = du->Data()->begin(); comp != du->Data()->end();
+  for (CompositeVector::name_iterator comp = du->Data() ->begin(); comp != du->Data()->end();
        ++comp) {
     Epetra_MultiVector& du_c = *du->Data()->ViewComponent(*comp, false);
     double max, l2;
@@ -1543,7 +1565,7 @@ Richards::ModifyCorrection(double h,
   int n_limited_spurt = 0;
   if (patm_limit_ > 0.) {
     double patm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
-    for (CompositeVector::name_iterator comp = du->Data()->begin(); comp != du->Data()->end();
+    for (CompositeVector::name_iterator comp = du->Data() ->begin(); comp != du->Data()->end();
          ++comp) {
       Epetra_MultiVector& du_c = *du->Data()->ViewComponent(*comp, false);
       const Epetra_MultiVector& u_c = *u->Data()->ViewComponent(*comp, false);
@@ -1562,11 +1584,13 @@ Richards::ModifyCorrection(double h,
   }
 
   if (n_limited_spurt > 0) {
-    if (vo_->os_OK(Teuchos::VERB_HIGH)) { *vo_->os() << "  limiting the spurt." << std::endl; }
+    if (vo_->os_OK(Teuchos::VERB_HIGH)) {
+      *vo_->os() << "  limiting the spurt." << std::endl;
+    }
   }
 
   // debugging -- remove me! --etc
-  for (CompositeVector::name_iterator comp = du->Data()->begin(); comp != du->Data()->end();
+  for (CompositeVector::name_iterator comp = du->Data() ->begin(); comp != du->Data()->end();
        ++comp) {
     Epetra_MultiVector& du_c = *du->Data()->ViewComponent(*comp, false);
     double max, l2;
@@ -1582,7 +1606,7 @@ Richards::ModifyCorrection(double h,
   my_limited = 0;
   int n_limited_change = 0;
   if (p_limit_ >= 0.) {
-    for (CompositeVector::name_iterator comp = du->Data()->begin(); comp != du->Data()->end();
+    for (CompositeVector::name_iterator comp = du->Data() ->begin(); comp != du->Data()->end();
          ++comp) {
       Epetra_MultiVector& du_c = *du->Data()->ViewComponent(*comp, false);
 
@@ -1604,7 +1628,7 @@ Richards::ModifyCorrection(double h,
   }
 
   // debugging -- remove me! --etc
-  for (CompositeVector::name_iterator comp = du->Data()->begin(); comp != du->Data()->end();
+  for (CompositeVector::name_iterator comp = du->Data() ->begin(); comp != du->Data()->end();
        ++comp) {
     Epetra_MultiVector& du_c = *du->Data()->ViewComponent(*comp, false);
     double max, l2;
@@ -1617,7 +1641,9 @@ Richards::ModifyCorrection(double h,
   }
 
   if (n_limited_change > 0) {
-    if (vo_->os_OK(Teuchos::VERB_HIGH)) { *vo_->os() << "  limited by pressure." << std::endl; }
+    if (vo_->os_OK(Teuchos::VERB_HIGH)) {
+      *vo_->os() << "  limited by pressure." << std::endl;
+    }
   }
 
   if (n_limited_spurt > 0) {

@@ -30,8 +30,7 @@ namespace Transport {
 * Calculates extrema of specified solutes and print them.
 ******************************************************************* */
 void
-Transport_ATS::PrintSoluteExtrema(const Epetra_MultiVector& tcc_next,
-        double dT_MPC)
+Transport_ATS::PrintSoluteExtrema(const Epetra_MultiVector& tcc_next, double dT_MPC)
 {
   int num_components_ = tcc_next.NumVectors();
   double tccmin_vec[num_components_];
@@ -40,8 +39,10 @@ Transport_ATS::PrintSoluteExtrema(const Epetra_MultiVector& tcc_next,
   tcc_next.MinValue(tccmin_vec);
   tcc_next.MaxValue(tccmax_vec);
 
-  const Epetra_MultiVector& flux = *S_->Get<CompositeVector>(flux_key_, tag_next_).ViewComponent("face", true);
-  const Epetra_MultiVector& phi = *S_->Get<CompositeVector>(porosity_key_, tag_next_).ViewComponent("cell", false);
+  const Epetra_MultiVector& flux =
+    *S_->Get<CompositeVector>(flux_key_, tag_next_).ViewComponent("face", true);
+  const Epetra_MultiVector& phi =
+    *S_->Get<CompositeVector>(porosity_key_, tag_next_).ViewComponent("cell", false);
 
   for (int n = 0; n < runtime_solutes_.size(); n++) {
     int i = FindComponentNumber_(runtime_solutes_[n]);

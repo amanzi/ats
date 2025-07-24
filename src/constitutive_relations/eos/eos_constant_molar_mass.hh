@@ -27,8 +27,12 @@ namespace Relations {
 
 class EOSConstantMolarMass : public EOS {
  public:
-  EOSConstantMolarMass() : M_(0.0) {}
-  explicit EOSConstantMolarMass(double M) : M_(M) {}
+  EOSConstantMolarMass()
+    : M_(0.0)
+  {}
+  explicit EOSConstantMolarMass(double M)
+    : M_(M)
+  {}
 
   virtual double MolarDensity(std::vector<double>& params) { return MassDensity(params) / M_; }
 

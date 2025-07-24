@@ -26,10 +26,11 @@ namespace Relations {
 
 // Helper function to compute area-weighted average
 inline double
-computeAreaWeightedAverage(const AmanziMesh::Mesh& mesh,
-                           const Amanzi::AmanziMesh::MeshCache<Amanzi::MemSpace_kind::HOST>::cEntity_ID_View& entity_list,
-                           const Epetra_MultiVector& cv,
-                           const Epetra_MultiVector& var)
+computeAreaWeightedAverage(
+  const AmanziMesh::Mesh& mesh,
+  const Amanzi::AmanziMesh::MeshCache<Amanzi::MemSpace_kind::HOST>::cEntity_ID_View& entity_list,
+  const Epetra_MultiVector& cv,
+  const Epetra_MultiVector& var)
 {
   double terms_local[2] = { 0, 0 };
   for (auto c : entity_list) {
@@ -110,15 +111,15 @@ SurfGateEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>
   if (is_ponded_depth_function_) {
     double avg_pd_inlet = computeAreaWeightedAverage(mesh, gate_intake_id_list, cv, pd);
     // test that for zero ponded depth, the function returns zero flow
-    double Q0 = (*Q_gate_)(std::vector<double>{0});
+    double Q0 = (*Q_gate_)(std::vector<double>{ 0 });
     AMANZI_ASSERT(Q0 == 0);
-    Q = (*Q_gate_)(std::vector<double>{avg_pd_inlet}); // m^3/s
+    Q = (*Q_gate_)(std::vector<double>{ avg_pd_inlet }); // m^3/s
   } else {
     double avg_pe_inlet = computeAreaWeightedAverage(mesh, gate_intake_id_list, cv, pe);
     double avg_elev_inlet = computeAreaWeightedAverage(mesh, gate_intake_id_list, cv, elev);
-    double Q0 = (*Q_gate_)(std::vector<double>{avg_elev_inlet});
+    double Q0 = (*Q_gate_)(std::vector<double>{ avg_elev_inlet });
     AMANZI_ASSERT(Q0 == 0);
-    Q = (*Q_gate_)(std::vector<double>{avg_pe_inlet});
+    Q = (*Q_gate_)(std::vector<double>{ avg_pe_inlet });
   }
 
   // to overcome "bang-bang" behavior, we use a smooth transition

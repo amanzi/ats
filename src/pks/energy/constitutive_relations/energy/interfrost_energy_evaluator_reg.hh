@@ -12,8 +12,8 @@
 namespace Amanzi {
 namespace Energy {
 
-Utils::RegisteredFactory<Evaluator, InterfrostEnergyEvaluator>
-  InterfrostEnergyEvaluator::reg_("interfrost energy");
+Utils::RegisteredFactory<Evaluator, InterfrostEnergyEvaluator> InterfrostEnergyEvaluator::reg_(
+  "interfrost energy");
 
 } // namespace Energy
 } // namespace Amanzi

@@ -402,8 +402,8 @@ FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit)
   bool run_photo = false;
   bool run_veg_dym = false;
 
-  if (fabs(t_new - (t_photosynthesis_ + dt_photosynthesis_)) < 1e-12 * t_new) run_photo = true;
-  if (fabs(t_new - (t_site_dym_ + dt_site_dym_)) < 1e-12 * t_new) run_veg_dym = true;
+  if (fabs(t_new - (t_photosynthesis_ + dt_photosynthesis_) ) < 1e-12 * t_new) run_photo = true;
+  if (fabs(t_new - (t_site_dym_ + dt_site_dym_) ) < 1e-12 * t_new) run_veg_dym = true;
 
 
   if (run_photo) {
@@ -449,7 +449,7 @@ FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit)
           FieldToColumn_(c, suc_vec, suc_.data() + c * ncells_per_col_, ncells_per_col_);
 
         } else {
-          for (int i = 0; i < suc_.size(); i++) suc_[i] = 0.; // No suction is defined in State;
+          for (int i = 0; i < suc_.size() ; i++) suc_[i] = 0.; // No suction is defined in State;
         }
       }
     }
@@ -615,7 +615,9 @@ FATES_PK::FieldToColumn_(AmanziMesh::Entity_ID col,
                          int ncol)
 {
   auto& col_iter = mesh_->columns.getCells(col);
-  for (std::size_t i = 0; i != col_iter.size(); ++i) { col_vec[i] = vec[col_iter[i]]; }
+  for (std::size_t i = 0; i != col_iter.size(); ++i) {
+    col_vec[i] = vec[col_iter[i]];
+  }
 }
 
 // helper function for collecting column dz and depth

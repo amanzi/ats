@@ -80,7 +80,7 @@ SoilResistanceSellersEvaluator::EvaluatePartialDerivative_(
 
   if (wrt_key == sat_key_) {
     // evaluate the model
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       AMANZI_ASSERT(*comp == "cell"); // partition on cell only
       const Epetra_MultiVector& sat_v = *(sat->ViewComponent(*comp, false));

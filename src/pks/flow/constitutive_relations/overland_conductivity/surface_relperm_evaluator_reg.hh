@@ -18,8 +18,8 @@ namespace Amanzi {
 namespace Flow {
 
 // registry of method
-Utils::RegisteredFactory<Evaluator, SurfaceRelPermEvaluator>
-  SurfaceRelPermEvaluator::fac_("surface rel perm");
+Utils::RegisteredFactory<Evaluator, SurfaceRelPermEvaluator> SurfaceRelPermEvaluator::fac_(
+  "surface rel perm");
 
 } // namespace Flow
 } // namespace Amanzi

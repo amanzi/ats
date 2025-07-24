@@ -10,7 +10,7 @@
 /*
 
  Determining erosion rate into sediment transport
-  
+
 */
 
 #include "erosion_evaluator.hh"
@@ -31,7 +31,7 @@ ErosionRateEvaluator ::ErosionRateEvaluator(Teuchos::ParameterList& plist)
   gamma_ = plist_.get<double>("specific weight of water");
   Cf_ = plist_.get<double>("drag coefficient");
 
-  dependencies_.insert(KeyTag{ velocity_key_, tag});
+  dependencies_.insert(KeyTag{ velocity_key_, tag });
   dependencies_.insert(KeyTag{ pres_key, Tags::NEXT });
 }
 
@@ -46,7 +46,6 @@ ErosionRateEvaluator ::ErosionRateEvaluator(const ErosionRateEvaluator& other)
   // lambda_ = other.lambda_;
   // umax_ = other.umax_;
   // xi_ = other.xi_;
-
 }
 
 
@@ -83,7 +82,7 @@ ErosionRateEvaluator::Evaluate_(const State& S, const std::vector<CompositeVecto
     }
   }
 
-  std::cout<<"max_tau "<<max_tau<<" max v2 "<<max_v2<<"\n";
+  std::cout << "max_tau " << max_tau << " max v2 " << max_v2 << "\n";
 }
 
 void

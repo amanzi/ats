@@ -17,7 +17,9 @@ namespace SurfaceBalance {
 namespace Relations {
 
 // Constructor from ParameterList
-PlantWiltingFactorModel::PlantWiltingFactorModel(const LandCover& lc) : lc_(lc) {}
+PlantWiltingFactorModel::PlantWiltingFactorModel(const LandCover& lc)
+  : lc_(lc)
+{}
 
 // main method
 double

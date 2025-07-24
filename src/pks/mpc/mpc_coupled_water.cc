@@ -80,7 +80,7 @@ MPCCoupledWater::Setup()
   precon_->set_inverse_parameters(inv_list);
 
   // -- push the surface local ops into the subsurface global operator
-  for (Operators::Operator::op_iterator op = precon_surf_->begin(); op != precon_surf_->end();
+  for (Operators::Operator::op_iterator op = precon_surf_->begin() ; op != precon_surf_->end();
        ++op) {
     precon_->OpPushBack(*op);
   }
@@ -183,7 +183,7 @@ int
 MPCCoupledWater::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "Precon application:" << std::endl;
+  if (vo_->os_OK(Teuchos::VERB_EXTREME) ) *vo_->os() << "Precon application:" << std::endl;
 
   // call the precon's inverse
   if (vo_->os_OK(Teuchos::VERB_EXTREME))

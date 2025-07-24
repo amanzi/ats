@@ -118,7 +118,9 @@ CarbonSimple::FunctionalTimeDerivative(const double t, const TreeVector& u, Tree
   const Epetra_MultiVector& cv =
     *S_->Get<CompositeVector>(cell_vol_key_, tag_current_).ViewComponent("cell", false);
   Epetra_MultiVector& dudt_c = *dudt->ViewComponent("cell", false);
-  for (int c = 0; c != dudt_c.MyLength(); ++c) { dudt_c[0][c] *= cv[0][c]; }
+  for (int c = 0; c != dudt_c.MyLength(); ++c) {
+    dudt_c[0][c] *= cv[0][c];
+  }
 }
 
 

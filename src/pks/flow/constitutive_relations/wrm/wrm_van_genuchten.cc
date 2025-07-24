@@ -23,7 +23,8 @@ const double FLOW_WRM_TOLERANCE = 1e-10;
 /* ******************************************************************
  * Setup fundamental parameters for this model.
  ****************************************************************** */
-WRMVanGenuchten::WRMVanGenuchten(Teuchos::ParameterList& plist) : plist_(plist)
+WRMVanGenuchten::WRMVanGenuchten(Teuchos::ParameterList& plist)
+  : plist_(plist)
 {
   InitializeFromPlist_();
 };
@@ -69,8 +70,7 @@ WRMVanGenuchten::d_k_relative(double s)
     double dkdse;
     if (function_ == FLOW_WRM_MUALEM)
       dkdse = (1.0 - y) * (l_ * (1.0 - y) + 2 * x * y / (1.0 - x)) * pow(se, l_ - 1.0);
-    else
-      dkdse = (2 * (1.0 - y) + x / (1.0 - x)) * se;
+    else dkdse = (2 * (1.0 - y) + x / (1.0 - x)) * se;
 
     return dkdse / (1 - sr_);
 
@@ -220,10 +220,14 @@ WRMVanGenuchten::InitializeFromPlist_()
   }
 
   s0_ = 1.0 - plist_.get<double>("smoothing interval width [saturation]", 0.0);
-  if (s0_ < 1.) { fit_kr_.Setup(s0_, k_relative(s0_), d_k_relative(s0_), 1.0, 1.0, 0.0); }
+  if (s0_ < 1.) {
+    fit_kr_.Setup(s0_, k_relative(s0_), d_k_relative(s0_), 1.0, 1.0, 0.0);
+  }
 
   pc0_ = plist_.get<double>("saturation smoothing interval [Pa]", 0.0);
-  if (pc0_ > 0.) { fit_s_.Setup(0.0, 1.0, 0.0, pc0_, saturation(pc0_), d_saturation(pc0_)); }
+  if (pc0_ > 0.) {
+    fit_s_.Setup(0.0, 1.0, 0.0, pc0_, saturation(pc0_), d_saturation(pc0_));
+  }
 };
 
 /* ******************************************************************

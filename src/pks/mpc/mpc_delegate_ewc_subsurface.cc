@@ -97,7 +97,7 @@ MPCDelegateEWCSubsurface::modify_predictor_smart_ewc_(double h, Teuchos::RCP<Tre
   int ncells = wc0.MyLength();
   for (int c = 0; c != ncells; ++c) {
     Teuchos::RCP<VerboseObject> dcvo = Teuchos::null;
-    if (vo_->os_OK(Teuchos::VERB_EXTREME)) dcvo = db_->GetVerboseObject(c, rank);
+    if (vo_->os_OK(Teuchos::VERB_EXTREME) ) dcvo = db_->GetVerboseObject(c, rank);
     Teuchos::OSTab dctab = dcvo == Teuchos::null ? vo_->getOSTab() : dcvo->getOSTab();
 
     AmanziGeometry::Point result(2);
@@ -265,7 +265,7 @@ MPCDelegateEWCSubsurface::modify_predictor_smart_ewc_(double h, Teuchos::RCP<Tre
           }
         }
 
-#  if EWC_INCREASING_PRESSURE
+#if EWC_INCREASING_PRESSURE
       } else { // increasing, becoming saturated
         if (dcvo != Teuchos::null && dcvo->os_OK(Teuchos::VERB_EXTREME))
           *dcvo->os() << "   increasing pressures..." << std::endl;
@@ -306,7 +306,7 @@ MPCDelegateEWCSubsurface::modify_predictor_smart_ewc_(double h, Teuchos::RCP<Tre
             }
           }
         }
-#  endif
+#endif
       }
     }
 #endif
@@ -357,7 +357,7 @@ MPCDelegateEWCSubsurface::precon_ewc_(Teuchos::RCP<const TreeVector> u, Teuchos:
   for (int c = 0; c != ncells; ++c) {
     // debugger
     Teuchos::RCP<VerboseObject> dcvo = Teuchos::null;
-    if (vo_->os_OK(Teuchos::VERB_EXTREME)) dcvo = db_->GetVerboseObject(c, rank);
+    if (vo_->os_OK(Teuchos::VERB_EXTREME) ) dcvo = db_->GetVerboseObject(c, rank);
     Teuchos::OSTab dctab = dcvo == Teuchos::null ? vo_->getOSTab() : dcvo->getOSTab();
 
     double T_prev = T_old[0][c];
@@ -586,7 +586,7 @@ MPCDelegateEWCSubsurface::precon_ewc_(Teuchos::RCP<const TreeVector> u, Teuchos:
             }
           }
 
-#  if EWC_PC_INCREASING_PRESSURE
+#if EWC_PC_INCREASING_PRESSURE
         } else { // increasing, thawing
           if (dcvo != Teuchos::null && dcvo->os_OK(Teuchos::VERB_EXTREME))
             *dcvo->os() << "   increasing pressures..." << std::endl;
@@ -655,7 +655,7 @@ MPCDelegateEWCSubsurface::precon_ewc_(Teuchos::RCP<const TreeVector> u, Teuchos:
               }
             }
           }
-#  endif
+#endif
         }
       }
 #endif

@@ -28,24 +28,21 @@ class BiomassEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-                            const std::vector<CompositeVector*>& results) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& results) override;
 
   virtual void EvaluatePartialDerivative_(const State& S,
                                           const Key& wrt_key,
                                           const Tag& wrt_tag,
-                                          const std::vector<CompositeVector*>& results) override {
+                                          const std::vector<CompositeVector*>& results) override
+  {
     AMANZI_ASSERT(0);
   }
 
-  virtual void EnsureCompatibility_Structure_(State& S) {
-    EnsureCompatibility_StructureSame_(S);
-  }
+  virtual void EnsureCompatibility_Structure_(State& S) { EnsureCompatibility_StructureSame_(S); }
 
   void InitializeFromPlist_();
 
  protected:
-
   int nspecies_, type_;
   std::vector<double> alpha_n, alpha_h, alpha_d, alpha_a;
   std::vector<double> beta_n, beta_h, beta_d, beta_a;

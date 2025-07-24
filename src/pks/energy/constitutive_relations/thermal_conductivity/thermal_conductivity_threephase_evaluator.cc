@@ -44,7 +44,7 @@ ThermalConductivityThreePhaseEvaluator::ThermalConductivityThreePhaseEvaluator(
 
   ThermalConductivityThreePhaseFactory fac;
 
-  for (Teuchos::ParameterList::ConstIterator lcv = tc_sublist.begin(); lcv != tc_sublist.end();
+  for (Teuchos::ParameterList::ConstIterator lcv = tc_sublist.begin() ; lcv != tc_sublist.end();
        ++lcv) {
     std::string name = lcv->first;
     if (tc_sublist.isSublist(name)) {
@@ -90,7 +90,7 @@ ThermalConductivityThreePhaseEvaluator::Evaluate_(const State& S,
     const Epetra_MultiVector& sat2_v = *sat2->ViewComponent(*comp, false);
     Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
 
-    for (std::vector<RegionModelPair>::const_iterator lcv = tcs_.begin(); lcv != tcs_.end();
+    for (std::vector<RegionModelPair>::const_iterator lcv = tcs_.begin() ; lcv != tcs_.end();
          ++lcv) {
       std::string region_name = lcv->first;
       if (mesh->isValidSetName(region_name, AmanziMesh::Entity_kind::CELL)) {
@@ -140,7 +140,7 @@ ThermalConductivityThreePhaseEvaluator::EvaluatePartialDerivative_(
     Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
 
     if (wrt_key == poro_key_) {
-      for (std::vector<RegionModelPair>::const_iterator lcv = tcs_.begin(); lcv != tcs_.end();
+      for (std::vector<RegionModelPair>::const_iterator lcv = tcs_.begin() ; lcv != tcs_.end();
            ++lcv) {
         std::string region_name = lcv->first;
         if (mesh->isValidSetName(region_name, AmanziMesh::Entity_kind::CELL)) {
@@ -162,7 +162,7 @@ ThermalConductivityThreePhaseEvaluator::EvaluatePartialDerivative_(
       }
 
     } else if (wrt_key == sat_key_) {
-      for (std::vector<RegionModelPair>::const_iterator lcv = tcs_.begin(); lcv != tcs_.end();
+      for (std::vector<RegionModelPair>::const_iterator lcv = tcs_.begin() ; lcv != tcs_.end();
            ++lcv) {
         std::string region_name = lcv->first;
         if (mesh->isValidSetName(region_name, AmanziMesh::Entity_kind::CELL)) {
@@ -184,7 +184,7 @@ ThermalConductivityThreePhaseEvaluator::EvaluatePartialDerivative_(
       }
 
     } else if (wrt_key == sat2_key_) {
-      for (std::vector<RegionModelPair>::const_iterator lcv = tcs_.begin(); lcv != tcs_.end();
+      for (std::vector<RegionModelPair>::const_iterator lcv = tcs_.begin() ; lcv != tcs_.end();
            ++lcv) {
         std::string region_name = lcv->first;
         if (mesh->isValidSetName(region_name, AmanziMesh::Entity_kind::CELL)) {
@@ -206,7 +206,7 @@ ThermalConductivityThreePhaseEvaluator::EvaluatePartialDerivative_(
       }
 
     } else if (wrt_key == temp_key_) {
-      for (std::vector<RegionModelPair>::const_iterator lcv = tcs_.begin(); lcv != tcs_.end();
+      for (std::vector<RegionModelPair>::const_iterator lcv = tcs_.begin() ; lcv != tcs_.end();
            ++lcv) {
         std::string region_name = lcv->first;
         if (mesh->isValidSetName(region_name, AmanziMesh::Entity_kind::CELL)) {

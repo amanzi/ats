@@ -126,7 +126,7 @@ WRMEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& res
 
   // If needed, also do gas saturation
   if (calc_other_sat_) {
-    for (CompositeVector::name_iterator comp = results[1]->begin(); comp != results[1]->end();
+    for (CompositeVector::name_iterator comp = results[1]->begin() ; comp != results[1]->end();
          ++comp) {
       if (results[0]->HasComponent(*comp)) {
         // sat_g = 1 - sat_l
@@ -195,7 +195,7 @@ WRMEvaluator::EvaluatePartialDerivative_(const State& S,
 
   // If needed, also do gas saturation
   if (calc_other_sat_) {
-    for (CompositeVector::name_iterator comp = results[1]->begin(); comp != results[1]->end();
+    for (CompositeVector::name_iterator comp = results[1]->begin() ; comp != results[1]->end();
          ++comp) {
       if (results[0]->HasComponent(*comp)) {
         // d_sat_g =  - d_sat_l

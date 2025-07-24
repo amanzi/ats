@@ -29,8 +29,9 @@ Richards::ApplyDiffusion_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& g
   // force mass matrices to change
   if ((!deform_key_.empty() &&
        S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_ + " matrix")) ||
-      S_->GetEvaluator(perm_key_, tag_next_).Update(*S_, name_+" matrix diff"))
-    matrix_diff_->SetTensorCoefficient(Teuchos::rcpFromRef(S_->Get<TensorVector>(perm_key_, tag_next_).data));
+      S_->GetEvaluator(perm_key_, tag_next_).Update(*S_, name_ + " matrix diff"))
+    matrix_diff_->SetTensorCoefficient(
+      Teuchos::rcpFromRef(S_->Get<TensorVector>(perm_key_, tag_next_).data));
 
   // update the rel perm according to the scheme of choice
   UpdatePermeabilityData_(tag);
@@ -106,7 +107,9 @@ Richards::AddSources_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& g)
 
     // Add into residual
     unsigned int ncells = g_c.MyLength();
-    for (unsigned int c = 0; c != ncells; ++c) { g_c[0][c] -= source1[0][c] * cv[0][c]; }
+    for (unsigned int c = 0; c != ncells; ++c) {
+      g_c[0][c] -= source1[0][c] * cv[0][c];
+    }
 
     db_->WriteVector("  source", S_->GetPtr<CompositeVector>(source_key_, tag).ptr(), false);
     db_->WriteVector("res (src)", g, false);
@@ -167,7 +170,9 @@ Richards::UpdateVelocity_(const Tag& tag)
       for (int i = 0; i != d; ++i) {
         rhs[i] += normal[i] * flux[0][f];
         matrix(i, i) += normal[i] * normal[i];
-        for (int j = i + 1; j < d; ++j) { matrix(j, i) = matrix(i, j) += normal[i] * normal[j]; }
+        for (int j = i + 1; j < d; ++j) {
+          matrix(j, i) = matrix(i, j) += normal[i] * normal[j];
+        }
       }
     }
 

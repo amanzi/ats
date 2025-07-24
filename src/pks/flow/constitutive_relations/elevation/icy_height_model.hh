@@ -17,15 +17,21 @@ namespace Flow {
 
 class IcyHeightModel {
  public:
-  explicit IcyHeightModel(Teuchos::ParameterList& plist) : plist_(plist) {}
+  explicit IcyHeightModel(Teuchos::ParameterList& plist)
+    : plist_(plist)
+  {}
 
   double Height(double pres, double eta, double rhol, double rhoi, double p_atm, double g_z)
   {
     return (pres - p_atm) / ((eta * rhol + (1. - eta) * rhoi) * g_z);
   }
 
-  double
-  DHeightDPressure(double pres, double eta, double rhol, double rhoi, double p_atm, double g_z)
+  double DHeightDPressure(double pres,
+                          double eta,
+                          double rhol,
+                          double rhoi,
+                          double p_atm,
+                          double g_z)
   {
     return 1. / ((eta * rhol + (1. - eta) * rhoi) * g_z);
   }

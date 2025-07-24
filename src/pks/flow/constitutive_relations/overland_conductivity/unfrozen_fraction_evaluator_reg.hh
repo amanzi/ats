@@ -18,8 +18,8 @@ namespace Amanzi {
 namespace Flow {
 
 // registry of method
-Utils::RegisteredFactory<Evaluator, UnfrozenFractionEvaluator>
-  UnfrozenFractionEvaluator::fac_("unfrozen fraction");
+Utils::RegisteredFactory<Evaluator, UnfrozenFractionEvaluator> UnfrozenFractionEvaluator::fac_(
+  "unfrozen fraction");
 
 } // namespace Flow
 } // namespace Amanzi

@@ -66,7 +66,7 @@ StandaloneElevationEvaluator::EvaluateElevationAndSlope_(
   // Evaluate the functions.
   elevation_function_->Compute(S.get_time(), elev);
   slope_function_->Compute(S.get_time(), slope);
-  if (aspect_function_.get()) aspect_function_->Compute(S.get_time(), aspect);
+  if (aspect_function_.get() ) aspect_function_->Compute(S.get_time(), aspect);
 };
 
 

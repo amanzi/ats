@@ -17,9 +17,9 @@ Computes the depth to the perched water table.
 .. admonition:: perched-water-table-depth-spec
 
     * `"interpolate depth from pressure`" ``[bool]`` **false** Default to calculate
-      perched water table depth by locating the bottom face of the last continuously 
-      unsaturated cell from top downward. If true, use the height and pressure at the 
-      centroids of the last continuously unsaturated cell and its adjacent saturated 
+      perched water table depth by locating the bottom face of the last continuously
+      unsaturated cell from top downward. If true, use the height and pressure at the
+      centroids of the last continuously unsaturated cell and its adjacent saturated
       cell to determine the perched water table depth through interpolation.
 
     KEYS:
@@ -49,8 +49,8 @@ struct ParserPerchedWaterTableDepth {
 class IntegratorPerchedWaterTableDepth {
  public:
   IntegratorPerchedWaterTableDepth(Teuchos::ParameterList& plist,
-                            std::vector<const Epetra_MultiVector*>& deps,
-                            const AmanziMesh::Mesh* mesh);
+                                   std::vector<const Epetra_MultiVector*>& deps,
+                                   const AmanziMesh::Mesh* mesh);
   int scan(AmanziMesh::Entity_ID col, AmanziMesh::Entity_ID c, AmanziGeometry::Point& p);
   double coefficient(AmanziMesh::Entity_ID col);
 

@@ -113,10 +113,10 @@ evaluator`".
      there *must* be in [mol m^-2 s^-1], *not* in [m s^-1] as is an option for
      that PK (e.g. `"water source in meters`" must be set to `"false`" in the
      overland flow PK).
-      
+
      The injection rate of a solute [molC s^-1], when given as the product of a
      concentration and a water source, is evaluated as:
-      
+
         Concentration [mol C L^-1] :math:`\times`
         1000 [L m^-3] of water :math:`\times`
         water source [mol m^-3 s^-1] :math:`\times`
@@ -124,7 +124,7 @@ evaluator`".
         molar density of water [mol m^-3]
 
 
-Note, this is not dispersion, but strictly isotropic diffusion.        
+Note, this is not dispersion, but strictly isotropic diffusion.
 
 .. _molecular-diffusivity-spec:
 .. admonition:: molecular-diffusivity-spec
@@ -189,8 +189,8 @@ Note, this is not dispersion, but strictly isotropic diffusion.
 #include <string>
 
 #ifdef ALQUIMIA_ENABLED
-#  include "Alquimia_PK.hh"
-#  include "ChemistryEngine.hh"
+#include "Alquimia_PK.hh"
+#include "ChemistryEngine.hh"
 #endif
 
 // Transport
@@ -233,19 +233,16 @@ class Transport_ATS : public PK_Physical_Default {
   virtual void Initialize() override;
 
   virtual double get_dt() override;
-  virtual void set_dt(double dt) override{};
+  virtual void set_dt(double dt) override {};
 
   virtual bool AdvanceStep(double t_old, double t_new, bool reinit = false) override;
   virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
-  virtual void CalculateDiagnostics(const Tag& tag) override{};
+  virtual void CalculateDiagnostics(const Tag& tag) override {};
 
   // -- helper functions
-  int get_num_aqueous_component() const {
-    return num_aqueous_;
-  }
+  int get_num_aqueous_component() const { return num_aqueous_; }
 
  protected:
-
   // component-based or phase-based parameters
   using ParameterMap = std::map<std::string, double>;
   ParameterMap readParameterMapByComponent(Teuchos::ParameterList& plist, double default_val);
@@ -258,7 +255,7 @@ class Transport_ATS : public PK_Physical_Default {
   // -- setup/initialize helper functions
   void InitializeFields_();
 
-  virtual void SetupTransport_ ();
+  virtual void SetupTransport_();
   virtual void SetupPhysicalEvaluators_();
 
   // -- advance members -- portions of the operator
@@ -272,25 +269,23 @@ class Transport_ATS : public PK_Physical_Default {
   // -- helper functions used in AdvanceAdvectionSources*
   void IdentifyUpwindCells_();
   void AddAdvection_FirstOrderUpwind_(double t_old,
-          double t_new,
-          const Epetra_MultiVector& tcc,
-          Epetra_MultiVector& conserve_qty,
-          Epetra_MultiVector& f);
+                                      double t_new,
+                                      const Epetra_MultiVector& tcc,
+                                      Epetra_MultiVector& conserve_qty,
+                                      Epetra_MultiVector& f);
   void AddAdvection_SecondOrderUpwind_(double t_old,
-          double t_new,
-          const Epetra_MultiVector& tcc,
-          Epetra_MultiVector& conserve_qty,
-          Epetra_MultiVector& f);
+                                       double t_new,
+                                       const Epetra_MultiVector& tcc,
+                                       Epetra_MultiVector& conserve_qty,
+                                       Epetra_MultiVector& f);
   void AddAdvection_SecondOrderUpwind_(double t_old,
-          double t_new,
-          const Epetra_Vector& tcc,
-          Epetra_Vector& conserve_qty,          
-          Epetra_Vector& f,
-          int component);
+                                       double t_new,
+                                       const Epetra_Vector& tcc,
+                                       Epetra_Vector& conserve_qty,
+                                       Epetra_Vector& f,
+                                       int component);
 
-  virtual void AddSourceTerms_(double t_old,
-                       double t_new,
-                       Epetra_MultiVector& conserve_qty);
+  virtual void AddSourceTerms_(double t_old, double t_new, Epetra_MultiVector& conserve_qty);
 
   void InvertTccNew_(const Epetra_MultiVector& conserve_qty,
                      Epetra_MultiVector& tcc,
@@ -306,24 +301,24 @@ class Transport_ATS : public PK_Physical_Default {
   // void AddMultiscalePorosity_(double t_old, double t_new, double t_int1, double t_int2);
 
   // miscillaneous methods
-  int FindComponentNumber_(const std::string& component_name) {
+  int FindComponentNumber_(const std::string& component_name)
+  {
     auto comp = std::find(component_names_.begin(), component_names_.end(), component_name);
-    if (comp == component_names_.end()) return -1;
+    if (comp == component_names_.end() ) return -1;
     else return comp - component_names_.begin();
   }
 
  protected:
-
   // dependencies
   Key water_flux_key_; // advecting water flux [mol / s] on faces
-  Key lwc_key_; // liquid water content [mol]
+  Key lwc_key_;        // liquid water content [mol]
   Key source_key_;
   bool is_source_term_;
   Key cv_key_;
 
   // workspace
   Key solid_residue_mass_key_; // residue -- mass that was left behind by water
-                               // sinks that do not carry aqueous species, e.g. freezing or evaporation
+    // sinks that do not carry aqueous species, e.g. freezing or evaporation
   Key conserve_qty_key_;
   Key mass_flux_advection_key_;
   Key mass_flux_diffusion_key_;
@@ -335,11 +330,11 @@ class Transport_ATS : public PK_Physical_Default {
 
   // parameters
   ParameterMap molar_masses_; // molar mass [kg / mol C] by component
-  ParameterMap tcc_max_; // maximum valid concentration [mol C / mol H2O] by component
+  ParameterMap tcc_max_;      // maximum valid concentration [mol C / mol H2O] by component
 
   ParameterMap molec_diff_; // molecular diffusivity by component [m^2 s^-1]
   ParameterMap tortuosity_; // phase-based tortuosity [-]
-  double water_tolerance_; // mol H2O / m^d (d = 2 for surface, d = 3 for subsurface)
+  double water_tolerance_;  // mol H2O / m^d (d = 2 for surface, d = 3 for subsurface)
 
 #ifdef ALQUIMIA_ENABLED
   Teuchos::RCP<AmanziChemistry::Alquimia_PK> chem_pk_;
@@ -396,8 +391,7 @@ class Transport_ATS : public PK_Physical_Default {
 };
 
 // helper functions
-void CheckGEDProperty(const Epetra_MultiVector& tracer,
-                      double t_physics);
+void CheckGEDProperty(const Epetra_MultiVector& tracer, double t_physics);
 
 void CheckTracerBounds(const Epetra_MultiVector& tcc,
                        const Epetra_MultiVector& tcc_prev,

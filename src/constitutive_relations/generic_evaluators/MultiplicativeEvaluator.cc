@@ -71,7 +71,9 @@ MultiplicativeEvaluator::Evaluate_(const State& S, const std::vector<CompositeVe
 
     if (positive_) {
       for (int c = 0; c != res_c.MyLength(); ++c) {
-        for (int i = 0; i != res_c.NumVectors(); ++i) { res_c[i][c] = std::max(res_c[i][c], 0.); }
+        for (int i = 0; i != res_c.NumVectors(); ++i) {
+          res_c[i][c] = std::max(res_c[i][c], 0.);
+        }
       }
     }
   }
@@ -104,7 +106,9 @@ MultiplicativeEvaluator::EvaluatePartialDerivative_(const State& S,
                                .ViewComponent(lcv_name, false);
       for (int c = 0; c != res_c.MyLength(); ++c) {
         for (int i = 0; i != res_c.NumVectors(); ++i) {
-          if (value_c[i][c] == 0) { res_c[i][c] = 0.; }
+          if (value_c[i][c] == 0) {
+            res_c[i][c] = 0.;
+          }
         }
       }
     }

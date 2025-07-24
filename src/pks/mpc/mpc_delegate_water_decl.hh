@@ -109,54 +109,54 @@ class MPCDelegateWater {
     i_Tsurf_ = i_Tsurf;
   }
 
-  template <AmanziMesh::Entity_kind FaceEntity>
+  template<AmanziMesh::Entity_kind FaceEntity>
   bool ModifyPredictor_Heuristic(double h, const Teuchos::RCP<TreeVector>& u);
 
-  template <AmanziMesh::Entity_kind FaceEntity>
+  template<AmanziMesh::Entity_kind FaceEntity>
   bool ModifyPredictor_WaterSpurtDamp(double h, const Teuchos::RCP<TreeVector>& u);
 
-  template <AmanziMesh::Entity_kind FaceEntity>
+  template<AmanziMesh::Entity_kind FaceEntity>
   bool ModifyPredictor_TempFromSource(double h, const Teuchos::RCP<TreeVector>& u);
 
-  template <AmanziMesh::Entity_kind FaceEntity>
+  template<AmanziMesh::Entity_kind FaceEntity>
   int ModifyCorrection_WaterFaceLimiter(double h,
                                         Teuchos::RCP<const TreeVector> res,
                                         Teuchos::RCP<const TreeVector> u,
                                         Teuchos::RCP<TreeVector> du);
 
-  template <AmanziMesh::Entity_kind FaceEntity>
+  template<AmanziMesh::Entity_kind FaceEntity>
   double ModifyCorrection_WaterSpurtDamp(double h,
                                          Teuchos::RCP<const TreeVector> res,
                                          Teuchos::RCP<const TreeVector> u,
                                          Teuchos::RCP<TreeVector> du);
 
-  template <AmanziMesh::Entity_kind FaceEntity>
+  template<AmanziMesh::Entity_kind FaceEntity>
   int ModifyCorrection_WaterSpurtCap(double h,
                                      Teuchos::RCP<const TreeVector> res,
                                      Teuchos::RCP<const TreeVector> u,
                                      Teuchos::RCP<TreeVector> du,
                                      double damping);
 
-  template <AmanziMesh::Entity_kind FaceEntity>
+  template<AmanziMesh::Entity_kind FaceEntity>
   double ModifyCorrection_DesaturatedSpurtDamp(double h,
                                                Teuchos::RCP<const TreeVector> res,
                                                Teuchos::RCP<const TreeVector> u,
                                                Teuchos::RCP<TreeVector> du);
 
-  template <AmanziMesh::Entity_kind FaceEntity>
+  template<AmanziMesh::Entity_kind FaceEntity>
   int ModifyCorrection_DesaturatedSpurtCap(double h,
                                            Teuchos::RCP<const TreeVector> res,
                                            Teuchos::RCP<const TreeVector> u,
                                            Teuchos::RCP<TreeVector> du,
                                            double damping);
 
-  template <AmanziMesh::Entity_kind FaceEntity>
+  template<AmanziMesh::Entity_kind FaceEntity>
   double ModifyCorrection_SaturatedSpurtDamp(double h,
                                              Teuchos::RCP<const TreeVector> res,
                                              Teuchos::RCP<const TreeVector> u,
                                              Teuchos::RCP<TreeVector> du);
 
-  template <AmanziMesh::Entity_kind FaceEntity>
+  template<AmanziMesh::Entity_kind FaceEntity>
   int ModifyCorrection_SaturatedSpurtCap(double h,
                                          Teuchos::RCP<const TreeVector> res,
                                          Teuchos::RCP<const TreeVector> u,

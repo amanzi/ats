@@ -101,7 +101,7 @@ namespace Transport {
 
 
 class SedimentTransport_PK : public Transport_ATS {
-public:
+ public:
   SedimentTransport_PK(Teuchos::ParameterList& pk_tree,
                        const Teuchos::RCP<Teuchos::ParameterList>& glist,
                        const Teuchos::RCP<State>& S,
@@ -111,13 +111,12 @@ public:
   void Initialize() override;
 
  protected:
-
   void SetupPhysicalEvaluators_() override;
-  void AddSourceTerms_(double t0, double t1,
-        Epetra_MultiVector& conserve_qty)  override;;
+  void AddSourceTerms_(double t0, double t1, Epetra_MultiVector& conserve_qty) override;
+  ;
 
 
-  Key sd_trapping_key_, sd_settling_key_, sd_erosion_key_, horiz_mixing_key_,  sd_organic_key_;
+  Key sd_trapping_key_, sd_settling_key_, sd_erosion_key_, horiz_mixing_key_, sd_organic_key_;
   Key elevation_increase_key_;
   Key porosity_key_;
   Key plant_area_key_, stem_diameter_key_, stem_height_key_, stem_density_key_;
@@ -129,7 +128,6 @@ public:
  private:
   // factory registration
   static RegisteredPKFactory<SedimentTransport_PK> reg_;
-
 };
 
 } // namespace Transport

@@ -174,7 +174,9 @@ SUITE(ATS_MESH_FACTORY)
     Epetra_MultiVector vec(S->GetMesh("domain")->getMap(AmanziMesh::Entity_kind::CELL, false), 1);
     vec.PutScalar(-1);
 
-    for (const auto& subdomain : *ds) { ds->doImport(subdomain, *subdomain_vecs[subdomain], vec); }
+    for (const auto& subdomain : *ds) {
+      ds->doImport(subdomain, *subdomain_vecs[subdomain], vec);
+    }
 
     double result;
     vec.MinValue(&result);
@@ -371,7 +373,9 @@ SUITE(ATS_MESH_FACTORY)
         ds->doImport(subdomain, vec_l, vec2);
 
         // fill via column
-        for (const auto& c : S->GetMesh("domain")->columns.getCells(col)) { vec1[0][c] = index; }
+        for (const auto& c : S->GetMesh("domain")->columns.getCells(col)) {
+          vec1[0][c] = index;
+        }
         col++;
       }
 

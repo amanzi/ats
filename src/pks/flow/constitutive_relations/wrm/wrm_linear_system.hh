@@ -34,7 +34,7 @@ Note this is mostly for testing.
 
    END
 
-  
+
 */
 
 #ifndef _FLOWRELATIONS_WRM_LINEAR_SYSTEM_

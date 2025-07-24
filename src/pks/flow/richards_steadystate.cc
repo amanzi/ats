@@ -126,12 +126,16 @@ RichardsSteadyState::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVecto
 {
   // VerboseObject stuff.
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_HIGH)) { *vo_->os() << "Precon update at t = " << t << std::endl; }
+  if (vo_->os_OK(Teuchos::VERB_HIGH)) {
+    *vo_->os() << "Precon update at t = " << t << std::endl;
+  }
 
   // Recreate mass matrices
-  if ((!deform_key_.empty() && S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_ + " precon")) ||
-      S_->GetEvaluator(perm_key_, tag_next_).Update(*S_, name_+" precon"))
-    preconditioner_diff_->SetTensorCoefficient(Teuchos::rcpFromRef(S_->Get<TensorVector>(perm_key_, tag_next_).data));
+  if ((!deform_key_.empty() &&
+       S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_ + " precon")) ||
+      S_->GetEvaluator(perm_key_, tag_next_).Update(*S_, name_ + " precon"))
+    preconditioner_diff_->SetTensorCoefficient(
+      Teuchos::rcpFromRef(S_->Get<TensorVector>(perm_key_, tag_next_).data));
 
   AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t) <= 1.e-4 * t);
   PK_PhysicalBDF_Default::Solution_to_State(*up, tag_next_);

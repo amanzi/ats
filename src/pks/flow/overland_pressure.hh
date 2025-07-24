@@ -60,7 +60,7 @@ pressure as a primary variable:
      Typically not provided by users, as defaults are sufficient.
 
    Globalization:
-     
+
    * `"limit correction to pressure change [Pa]`" ``[double]`` **-1** If > 0,
      this limits an iterate's max pressure change to this value.  Not usually
      helpful.
@@ -79,7 +79,7 @@ pressure as a primary variable:
      tidal boundary condition.  TODO: This should live in the BC spec?
 
    Algorithmic physics control:
-     
+
    * `"coupled to subsurface via flux`" ``[bool]`` **false** Set by MPC.
    * `"coupled to subsurface via head`" ``[bool]`` **false** Set by MPC.
 
@@ -170,24 +170,25 @@ class OverlandPressureFlow : public PK_PhysicalBDF_Default {
                           Teuchos::RCP<TreeVector> g) override;
 
   // applies preconditioner to u and returns the result in Pu
-  virtual int
-  ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) override;
+  virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
+                                  Teuchos::RCP<TreeVector> Pu) override;
 
   // updates the preconditioner
   virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) override;
 
-  virtual bool
-  ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::RCP<TreeVector> u) override;
+  virtual bool ModifyPredictor(double h,
+                               Teuchos::RCP<const TreeVector> u0,
+                               Teuchos::RCP<TreeVector> u) override;
 
   // evaluating consistent faces for given BCs and cell values
   virtual void CalculateConsistentFaces(const Teuchos::Ptr<CompositeVector>& u);
 
   // -- Possibly modify the correction before it is applied
-  virtual AmanziSolvers::FnBaseDefs::ModifyCorrectionResult
-  ModifyCorrection(double h,
-                   Teuchos::RCP<const TreeVector> res,
-                   Teuchos::RCP<const TreeVector> u,
-                   Teuchos::RCP<TreeVector> du) override;
+  virtual AmanziSolvers::FnBaseDefs::ModifyCorrectionResult ModifyCorrection(
+    double h,
+    Teuchos::RCP<const TreeVector> res,
+    Teuchos::RCP<const TreeVector> u,
+    Teuchos::RCP<TreeVector> du) override;
 
  protected:
   // setup methods
@@ -200,8 +201,8 @@ class OverlandPressureFlow : public PK_PhysicalBDF_Default {
   virtual void ApplyBoundaryConditions_(const Teuchos::Ptr<CompositeVector>& u,
                                         const Teuchos::Ptr<const CompositeVector>& elev);
 
-  virtual void
-  FixBCsForOperator_(const Tag& tag, const Teuchos::Ptr<Operators::PDE_Diffusion>& diff_op);
+  virtual void FixBCsForOperator_(const Tag& tag,
+                                  const Teuchos::Ptr<Operators::PDE_Diffusion>& diff_op);
   virtual void FixBCsForPrecon_(const Tag& tag);
 
   // computational concerns in managing abs, rel perm

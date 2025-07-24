@@ -15,9 +15,9 @@
 #include "erosion_evaluator.hh"
 
 namespace Amanzi {
-  
+
 // registry of method
-Utils::RegisteredFactory<Evaluator, ErosionRateEvaluator>
-  ErosionRateEvaluator ::factory_("erosion rate");
+Utils::RegisteredFactory<Evaluator, ErosionRateEvaluator> ErosionRateEvaluator ::factory_(
+  "erosion rate");
 
 } // namespace Amanzi

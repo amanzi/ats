@@ -167,10 +167,8 @@ PermafrostModel::UpdateModel(const Teuchos::Ptr<State>& S, int c)
   poro_ = (*S->Get<CompositeVector>(Keys::getKey(domain, "base_porosity"), tag_)
               .ViewComponent("cell"))[0][c];
   wrm_ = wrms_->second[(*wrms_->first)[c]];
-  if (!poro_leij_)
-    poro_model_ = poro_models_->second[(*poro_models_->first)[c]];
-  else
-    poro_leij_model_ = poro_leij_models_->second[(*poro_leij_models_->first)[c]];
+  if (!poro_leij_) poro_model_ = poro_models_->second[(*poro_models_->first)[c]];
+  else poro_leij_model_ = poro_leij_models_->second[(*poro_leij_models_->first)[c]];
 
   AMANZI_ASSERT(IsSetUp_());
 }
@@ -257,7 +255,9 @@ PermafrostModel::EvaluateSaturations(double T,
     s_ice = sats[2];
 
   } catch (const Exceptions::Amanzi_exception& e) {
-    if (e.what() == std::string("Cut timestep")) { ierr = 1; }
+    if (e.what() == std::string("Cut timestep")) {
+      ierr = 1;
+    }
   }
 
   return ierr;
@@ -274,10 +274,8 @@ PermafrostModel::EvaluateEnergyAndWaterContent_(double T, double p, AmanziGeomet
 
   try {
     double poro;
-    if (!poro_leij_)
-      poro = poro_model_->Porosity(poro_, p, p_atm_);
-    else
-      poro = poro_leij_model_->Porosity(poro_, p, p_atm_);
+    if (!poro_leij_) poro = poro_model_->Porosity(poro_, p, p_atm_);
+    else poro = poro_leij_model_->Porosity(poro_, p, p_atm_);
 
     double eff_p = std::max(p_atm_, p);
 
@@ -319,7 +317,9 @@ PermafrostModel::EvaluateEnergyAndWaterContent_(double T, double p, AmanziGeomet
     result[0] = poro * (u_l * rho_l * s_l + u_i * rho_i * s_i + u_g * rho_g * s_g) +
                 (1.0 - poro_) * (rho_rock_ * u_rock);
   } catch (const Exceptions::Amanzi_exception& e) {
-    if (e.what() == std::string("Cut timestep")) { ierr = 1; }
+    if (e.what() == std::string("Cut timestep")) {
+      ierr = 1;
+    }
   }
 
   return ierr;

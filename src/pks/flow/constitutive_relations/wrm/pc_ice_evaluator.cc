@@ -18,7 +18,8 @@
 namespace Amanzi {
 namespace Flow {
 
-PCIceEvaluator::PCIceEvaluator(Teuchos::ParameterList& plist) : EvaluatorSecondaryMonotypeCV(plist)
+PCIceEvaluator::PCIceEvaluator(Teuchos::ParameterList& plist)
+  : EvaluatorSecondaryMonotypeCV(plist)
 {
   Key domain_name = Keys::getDomain(my_keys_.front().first);
   Tag tag = my_keys_.front().second;
@@ -87,7 +88,7 @@ PCIceEvaluator::EvaluatePartialDerivative_(const State& S,
 
   if (wrt_key == temp_key_) {
     // evaluate d/dT( pc )
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       const Epetra_MultiVector& temp_v = *(temp->ViewComponent(*comp, false));
       const Epetra_MultiVector& dens_v = *(dens->ViewComponent(*comp, false));
@@ -100,7 +101,7 @@ PCIceEvaluator::EvaluatePartialDerivative_(const State& S,
     }
   } else if (wrt_key == dens_key_) {
     // evaluate d/drho( pc )
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       const Epetra_MultiVector& temp_v = *(temp->ViewComponent(*comp, false));
       const Epetra_MultiVector& dens_v = *(dens->ViewComponent(*comp, false));

@@ -105,7 +105,9 @@ void
 OverlandSourceFromSubsurfaceFluxEvaluator::Evaluate_(const State& S,
                                                      const std::vector<CompositeVector*>& result)
 {
-  if (face_and_dirs_ == Teuchos::null) { IdentifyFaceAndDirection_(S); }
+  if (face_and_dirs_ == Teuchos::null) {
+    IdentifyFaceAndDirection_(S);
+  }
   auto tag = my_keys_.front().second;
 
   Teuchos::RCP<const AmanziMesh::Mesh> subsurface = S.GetMesh(domain_sub_);

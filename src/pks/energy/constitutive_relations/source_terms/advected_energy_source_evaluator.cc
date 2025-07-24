@@ -80,14 +80,18 @@ AdvectedEnergySourceEvaluator::Evaluate_(const State& S,
 
   if (source_units_ == SOURCE_UNITS_MOLS_PER_SECOND) {
     unsigned int ncells = res.MyLength();
-    for (unsigned int c = 0; c != ncells; ++c) { res[0][c] /= cv[0][c]; }
+    for (unsigned int c = 0; c != ncells; ++c) {
+      res[0][c] /= cv[0][c];
+    }
   }
 
   if (include_conduction_) {
     const Epetra_MultiVector& cond =
       *S.GetPtr<CompositeVector>(conducted_source_key_, tag)->ViewComponent("cell", false);
     unsigned int ncells = res.MyLength();
-    for (unsigned int c = 0; c != ncells; ++c) { res[0][c] += cond[0][c]; }
+    for (unsigned int c = 0; c != ncells; ++c) {
+      res[0][c] += cond[0][c];
+    }
   }
 }
 

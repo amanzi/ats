@@ -85,7 +85,8 @@ BGCAdvance(double t,
   //----------------------------------------------------------------------
   // loop through the list of PFTs
 
-  for (std::vector<Teuchos::RCP<PFT>>::iterator pft_iter = pftarr.begin(); pft_iter != pftarr.end();
+  for (std::vector<Teuchos::RCP<PFT>>::iterator pft_iter = pftarr.begin()
+    ; pft_iter != pftarr.end();
        ++pft_iter) {
     PFT& pft = *(*pft_iter);
     pft.GPP = 0.0;
@@ -111,7 +112,9 @@ BGCAdvance(double t,
             pft.Bleafmemory = pft.bleafon * pft.leafondays;
           }
 
-          if (pft.leafoffdaysi < pft.leafoffdays) { pft.leafoffdaysi += dt_days; }
+          if (pft.leafoffdaysi < pft.leafoffdays) {
+            pft.leafoffdaysi += dt_days;
+          }
         }
 
         if (pft.leafstatus == 2) {
@@ -394,7 +397,9 @@ BGCAdvance(double t,
           totalNonStoreB / (1.0 / pft.leaf2rootratio + 1.0 + 1.0 / pft.leaf2stemratio);
 
         double tarLAI = tarBleaf * pft.SLA / gridarea;
-        if (tarLAI > pft.maxLAI) { tarBleaf = pft.maxLAI / pft.SLA * gridarea; }
+        if (tarLAI > pft.maxLAI) {
+          tarBleaf = pft.maxLAI / pft.SLA * gridarea;
+        }
         double tarBroot = tarBleaf / pft.leaf2rootratio;
         double tarBstem = tarBleaf / pft.leaf2stemratio;
         double tarBtotal = tarBleaf + tarBstem + tarBroot;
@@ -472,21 +477,29 @@ BGCAdvance(double t,
                                                       HighTLim(SoilTArr[k] - 273.15);
             double soil_wp = std::max(std::min((SoilWPArr[k] - p_atm) / 1.e6, wp_max), wp_min);
             double WFactor = std::max((soil_wp - pft.minLeafWP) / (-0.05 - pft.minLeafWP), 0.);
-            if (SoilDArr[k] >= thawD) { WFactor = 0.0; }
+            if (SoilDArr[k] >= thawD) {
+              WFactor = 0.0;
+            }
             weightArr[k] = pft.BRootSoil[k] * TFactor * WFactor;
             totalweights += weightArr[k];
           }
 
           if (totalweights <= 0.0) { //completely frozen
             totalweights = pft.Broot;
-            for (int k = 0; k != ncells; ++k) { weightArr[k] = pft.BRootSoil[k]; }
+            for (int k = 0; k != ncells; ++k) {
+              weightArr[k] = pft.BRootSoil[k];
+            }
           }
 
-          for (int k = 0; k != ncells; ++k) { weightArr[k] /= totalweights; }
+          for (int k = 0; k != ncells; ++k) {
+            weightArr[k] /= totalweights;
+          }
           //---------------------------------------
           // Check root mass balance
           double sumWeight = 0.0;
-          for (int k = 0; k != (ncells - 1); ++k) { sumWeight = sumWeight + weightArr[k]; }
+          for (int k = 0; k != (ncells - 1); ++k) {
+            sumWeight = sumWeight + weightArr[k];
+          }
           pft.AssertRootBalance_or_die();
 
           //-------------------------------------------------------------
@@ -504,7 +517,9 @@ BGCAdvance(double t,
             }
           } else {
             // grow horizontally
-            for (int k = 0; k != ncells; ++k) { pft.BRootSoil[k] += grwBroot * weightArr[k]; }
+            for (int k = 0; k != ncells; ++k) {
+              pft.BRootSoil[k] += grwBroot * weightArr[k];
+            }
           }
 
           pft.Broot = pft.Broot + grwBroot;
@@ -595,7 +610,9 @@ BGCAdvance(double t,
         }
 
         // zero out annual variables
-        for (int i = 0; i != max_leaf_layers; ++i) { pft.annCBalance[i] = 0; }
+        for (int i = 0; i != max_leaf_layers; ++i) {
+          pft.annCBalance[i] = 0;
+        }
         pft.annNPP = 0.0;
       }
 
@@ -675,7 +692,9 @@ BGCAdvance(double t,
       if (std::fmod(t_days, 365.25) > std::fmod(t_days + dt_days, 365.25)) {
         // year rolled over
         // annual setup
-        for (int i = 0; i != max_leaf_layers; ++i) { pft.annCBalance[i] = 0; }
+        for (int i = 0; i != max_leaf_layers; ++i) {
+          pft.annCBalance[i] = 0;
+        }
 
         //seed rain
         pft.Bleaf = pft.seedrainlai * gridarea / pft.SLA;
@@ -699,13 +718,14 @@ BGCAdvance(double t,
         pft.Bstore += pft.Broot / (pft.Bleaf + pft.Bleafmemory) * storagecleaf *
                       pft.storagecroot2sw / pft.storagecleaf2sw;
       } //end of year check
-    }   //biomass check
-  }     // loop for different PFTs
+    } //biomass check
+  } // loop for different PFTs
 
   //---------------------------------------------------------------------------------
   //calculate shaded radiations for soil
   double radi = met.qSWin;
-  for (std::vector<Teuchos::RCP<PFT>>::iterator pft_iter = pftarr.begin(); pft_iter != pftarr.end();
+  for (std::vector<Teuchos::RCP<PFT>>::iterator pft_iter = pftarr.begin()
+    ; pft_iter != pftarr.end();
        ++pft_iter) {
     //    std::cout << "wtf: (" << (*pft_iter)->pft_type << ") " << (*pft_iter)->LER << ", " << (*pft_iter)->lai << ", " << radi << std::endl;
     radi *= std::exp(-(*pft_iter)->LER * (*pft_iter)->lai);
@@ -807,17 +827,23 @@ Cryoturbate(double dt,
     } else {
       Epetra_SerialDenseVector& C_up = soilcarr[k - 1]->SOM;
       double dz_up = SoilDArr[k] - SoilDArr[k - 1];
-      for (int l = 0; l != npools; ++l) { dC_up[l] = (C[l] - C_up[l]) / dz_up; }
+      for (int l = 0; l != npools; ++l) {
+        dC_up[l] = (C[l] - C_up[l]) / dz_up;
+      }
     }
 
     // dC/dz on the face below
     if ((k == ncells - 1) || k + 1 >= k_frozen) {
       // boundary case
-      for (int l = 0; l != npools; ++l) { dC_dn[l] = 0; }
+      for (int l = 0; l != npools; ++l) {
+        dC_dn[l] = 0;
+      }
     } else {
       Epetra_SerialDenseVector& C_dn = soilcarr[k + 1]->SOM;
       double dz_dn = SoilDArr[k + 1] - SoilDArr[k];
-      for (int l = 0; l != npools; ++l) { dC_dn[l] = (C_dn[l] - C[l]) / dz_dn; }
+      for (int l = 0; l != npools; ++l) {
+        dC_dn[l] = (C_dn[l] - C[l]) / dz_dn;
+      }
     }
 
     // dC = dt * D * (dC/dz_below - dC/dz_above) / dz
@@ -836,7 +862,9 @@ Cryoturbate(double dt,
     Epetra_SerialDenseVector& C_k = soilcarr[k]->SOM;
     Epetra_SerialDenseVector& dC_k = dC[k];
 
-    for (int l = 0; l != npools; ++l) { C_k[l] += dC_k[l]; }
+    for (int l = 0; l != npools; ++l) {
+      C_k[l] += dC_k[l];
+    }
     k++;
   }
 }

@@ -9,7 +9,7 @@
 /*
 
   Determining input organic matter into sediment transport
-  
+
 */
 
 #include "organic_matter_evaluator.hh"
@@ -48,7 +48,9 @@ OrganicMatterRateEvaluator::Evaluate_(const State& S, const std::vector<Composit
 
   result_c.PutScalar(0.);
   for (int c = 0; c < result_c.MyLength(); c++) {
-    for (int j = 0; j < bio.NumVectors(); j++) { result_c[0][c] += Q_on_Bmax_ * bio[j][c]; }
+    for (int j = 0; j < bio.NumVectors(); j++) {
+      result_c[0][c] += Q_on_Bmax_ * bio[j][c];
+    }
   }
 }
 

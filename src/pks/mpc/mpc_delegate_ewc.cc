@@ -182,7 +182,9 @@ MPCDelegateEWC::ModifyPredictor(double h, Teuchos::RCP<TreeVector> up)
       //      modified = modify_predictor_ewc_(h,up);
     }
   } else if (predictor_type_ == PREDICTOR_SMART_EWC) {
-    if (dt_prev > 0.) { modified = modify_predictor_smart_ewc_(h, up); }
+    if (dt_prev > 0.) {
+      modified = modify_predictor_smart_ewc_(h, up);
+    }
   }
   return modified;
 }
@@ -209,8 +211,7 @@ MPCDelegateEWC::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::R
   int ierr = 0;
   if ((precon_type_ == PRECON_EWC) || (precon_type_ == PRECON_SMART_EWC)) {
     precon_ewc_(u, Pu);
-  } else
-    ierr = 1;
+  } else ierr = 1;
 
   return ierr;
 }

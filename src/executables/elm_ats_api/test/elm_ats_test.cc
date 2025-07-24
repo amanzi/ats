@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <filesystem>
 
@@ -29,25 +28,26 @@
 #include "elm_ats_driver.hh"
 #include "elm_ats_api.h"
 
-int main(int argc, char *argv[])
+int
+main(int argc, char* argv[])
 {
-
 #ifdef AMANZI_USE_FENV
   //  feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
   feraiseexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
 #endif
 
-  Teuchos::GlobalMPISession mpiSession(&argc,&argv,0);
+  Teuchos::GlobalMPISession mpiSession(&argc, &argv, 0);
   int rank = mpiSession.getRank();
 
   std::string input_filename;
-  if ((argc >= 2) && (argv[argc-1][0] != '-')) {
-    input_filename = std::string(argv[argc-1]);
+  if ((argc >= 2) && (argv[argc - 1][0] != '-')) {
+    input_filename = std::string(argv[argc - 1]);
     argc--;
   }
 
   Teuchos::CommandLineProcessor clp;
-  clp.setDocString("Run ATS simulations for ecosystem hydrology.\n\nStandard usage: ats input.xml\n");
+  clp.setDocString(
+    "Run ATS simulations for ecosystem hydrology.\n\nStandard usage: ats input.xml\n");
 
   std::string opt_input_filename = "";
   clp.setOption("xml_file", &opt_input_filename, "XML input file");
@@ -56,10 +56,13 @@ int main(int argc, char *argv[])
   clp.setOption("version", "no_version", &version, "Print version number and exit.");
 
   bool print_version(false);
-  clp.setOption("print_version", "no_print_version", &print_version, "Print full version info and exit.");
+  clp.setOption(
+    "print_version", "no_print_version", &print_version, "Print full version info and exit.");
 
   std::string verbosity;
-  clp.setOption("verbosity", &verbosity, "Default verbosity level: \"none\", \"low\", \"medium\", \"high\", \"extreme\".");
+  clp.setOption("verbosity",
+                &verbosity,
+                "Default verbosity level: \"none\", \"low\", \"medium\", \"high\", \"extreme\".");
 
   clp.throwExceptions(false);
   clp.recogniseAllOptions(true);
@@ -102,7 +105,8 @@ int main(int argc, char *argv[])
   MPI_Fint comm = 0;
 
   // test driver directly
-  auto driver = std::unique_ptr<ATS::ELM_ATSDriver>(ATS::createELM_ATSDriver(&comm, input_filename.data()));
+  auto driver =
+    std::unique_ptr<ATS::ELM_ATSDriver>(ATS::createELM_ATSDriver(&comm, input_filename.data()));
   driver->setup();
   //driver->get_mesh_info(ncols_local, ncols_global, lat.data(), lon.data(), elev.data(), surf_area_m2.data(), pft_i.data(), ncells_per_col, depth.data());
   driver->initialize();

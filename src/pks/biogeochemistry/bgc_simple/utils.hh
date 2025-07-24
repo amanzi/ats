@@ -33,17 +33,14 @@ struct MetData {
   double lat;
 };
 
-double
-PermafrostDepth(const Epetra_SerialDenseVector& SoilTArr,
-                const Epetra_SerialDenseVector& SoilThicknessArr,
-                double freeze_temp);
+double PermafrostDepth(const Epetra_SerialDenseVector& SoilTArr,
+                       const Epetra_SerialDenseVector& SoilThicknessArr,
+                       double freeze_temp);
 
-int
-PermafrostDepthIndex(const Epetra_SerialDenseVector& SoilTArr, double freeze_temp);
+int PermafrostDepthIndex(const Epetra_SerialDenseVector& SoilTArr, double freeze_temp);
 
 // This function calculate the effect of temperature on biological process.
-double
-TEffectsQ10(double Q10, double T, double refT);
+double TEffectsQ10(double Q10, double T, double refT);
 
 } // namespace BGC
 } // namespace Amanzi

@@ -128,7 +128,7 @@ IncidentShortwaveRadiationEvaluator::EvaluatePartialDerivative_(
   double time = S.get_time();
 
   if (wrt_key == slope_key_) {
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       const Epetra_MultiVector& slope_v = *slope->ViewComponent(*comp, false);
       const Epetra_MultiVector& aspect_v = *aspect->ViewComponent(*comp, false);
@@ -143,7 +143,7 @@ IncidentShortwaveRadiationEvaluator::EvaluatePartialDerivative_(
     }
 
   } else if (wrt_key == aspect_key_) {
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       const Epetra_MultiVector& slope_v = *slope->ViewComponent(*comp, false);
       const Epetra_MultiVector& aspect_v = *aspect->ViewComponent(*comp, false);
@@ -158,7 +158,7 @@ IncidentShortwaveRadiationEvaluator::EvaluatePartialDerivative_(
     }
 
   } else if (wrt_key == qSWin_key_) {
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
          ++comp) {
       const Epetra_MultiVector& slope_v = *slope->ViewComponent(*comp, false);
       const Epetra_MultiVector& aspect_v = *aspect->ViewComponent(*comp, false);
