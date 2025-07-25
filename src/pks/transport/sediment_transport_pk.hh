@@ -9,16 +9,23 @@
 
 /*!
 
-This PK solves sediment transport in surface flows. The assumpotion is that there is only one sediment component which
-is called 'sediment'. The advection-diffusion equation for this component
+This PK solves sediment transport in surface flows. The assumpotion is that
+there is only one sediment component which is called 'sediment'. The
+advection-diffusion equation for this component
 
 .. math::
-  \frac{\partial (\Theta \chi_i)}{\partial t} = - \boldsymbol{\nabla} \cdot (\boldsymbol{q} \chi_i)
-  + \boldsymbol{\nabla} \cdot ( \tau \, \boldsymbol{\nabla} \chi_i) + Q_e - Q_t - Q_s,
+
+   \frac{\partial (\Theta \chi_i)}{\partial t} = - \boldsymbol{\nabla} \cdot (\boldsymbol{q} \chi_i)
+   + \boldsymbol{\nabla} \cdot ( \tau \, \boldsymbol{\nabla} \chi_i) + Q_e - Q_t - Q_s,
 
 
 As well as in transport ATS PK the primary variable is the **mole fraction** of a sediment with units of
 [mol i mol liquid^-1]
+
+`"PK type`" = `"sediment transport`"
+
+.. _pk-sediment-transport-spec:
+.. admonition:: pk-sediment-transport-spec
 
    * `"sediment diffusion coefficient [m^2 s^-1]`" ``[molecular-diffusivity-spec]`` See
      below.
@@ -55,6 +62,7 @@ As well as in transport ATS PK the primary variable is the **mole fraction** of 
      advection schemes.  See :ref:`Reconstructions`.
 
    KEYS
+
    - `"primary variable`" **"mole_fraction"** [mol C mol H2O^-1]
    - `"liquid water content`" **"water_content"** This variable is a multiplier
      in in the accumulation term. This is often just `"water_content`", but
@@ -71,8 +79,10 @@ As well as in transport ATS PK the primary variable is the **mole fraction** of 
      that PK (e.g. `"water source in meters`" must be set to `"false`" in the
      overland flow PK).
 
-     The sources for sediments transport are defined via "erosion rate", :math:`Q_e`, "traping rate", :math:`Q_t`, "settling rate", :math:`Q_s`
-     evaluators. These evaluators are defined in unit of [m/s]. Moreover sediment density has to be defined as a scalar value.
+     The sources for sediments transport are defined via "erosion rate",
+     :math:`Q_e`, "traping rate", :math:`Q_t`, "settling rate", :math:`Q_s`
+     evaluators. These evaluators are defined in unit of [m/s]. Moreover
+     sediment density has to be defined as a scalar value.
 
 */
 
