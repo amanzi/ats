@@ -24,7 +24,7 @@ copyright = '202X, jointly shared by contributor institutions'
 author = 'Ethan Coon'
 
 # The short X.Y version
-version = 'v1.6'
+version = '1.6'
 # The full version, including alpha/beta/rc tags
 release = 'v1.6'
 
