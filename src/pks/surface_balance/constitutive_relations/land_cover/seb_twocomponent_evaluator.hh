@@ -115,6 +115,14 @@ class SEBTwoComponentEvaluator : public EvaluatorSecondaryMonotypeCV {
     return Teuchos::rcp(new SEBTwoComponentEvaluator(*this));
   }
 
+  virtual bool IsDifferentiableWRT(const State& S,
+                                   const Key& wrt_key,
+                                   const Tag& wrt_tag) const override
+  {
+    // manually turn off derivatives
+    return false;
+  }
+
  protected:
   // some variables on the surface mesh, others on the subsurface mesh
   virtual void EnsureCompatibility_ToDeps_(State& S) override;

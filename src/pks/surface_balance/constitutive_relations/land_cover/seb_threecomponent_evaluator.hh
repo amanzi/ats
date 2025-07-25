@@ -114,6 +114,14 @@ class SEBThreeComponentEvaluator : public EvaluatorSecondaryMonotypeCV {
     return Teuchos::rcp(new SEBThreeComponentEvaluator(*this));
   }
 
+  virtual bool IsDifferentiableWRT(const State& S,
+                                   const Key& wrt_key,
+                                   const Tag& wrt_tag) const override
+  {
+    // manually turn off derivatives
+    return false;
+  }
+
  protected:
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
