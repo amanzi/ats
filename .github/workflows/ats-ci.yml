@@ -22,7 +22,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: amanzi/amanzi
-        ref: master
+        ref: amanzi-1.6
         submodules: recursive
     - name: Extract the ATS branch name
       id: branch
