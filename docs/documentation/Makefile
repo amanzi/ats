@@ -39,7 +39,12 @@ input_spec:
 	$(MAKE) -C source/input_spec clean rst
 
 deploy_master:
+	mkdir -p deploy/html/dev
 	cp -r build/html/* deploy/html/dev/
+
+deploy_stable:
+	mkdir -p deploy/html/stable
+	cp -r build/html/* deploy/html/stable/
 
 deploy:
 	cd deploy/html && \
