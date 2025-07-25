@@ -1,13 +1,12 @@
 
-
 <!DOCTYPE html>
 
 
-<html lang="en" data-content_root="" >
+<html lang="en" data-content_root="../../../" >
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Base MPCs &#8212; Amanzi-ATS</title>
   
@@ -17,49 +16,54 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../../../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
-<link href="../../../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
-<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link href="../../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
-  
-  <link href="../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
-
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/styles/custom_theme.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/custom_theme.css?v=a03f4c85" />
   
+  <!-- So that users can add custom icons -->
+  <script src="../../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
-<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
-  <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../../_static/jquery.js"></script>
-    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-    <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../../_static/documentation_options.js?v=3ce10a4d"></script>
+    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'input_spec/process_kernels/mpcs/base';</script>
     <script>
-        DOCUMENTATION_OPTIONS.theme_version = '0.15.3';
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
-        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.6';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
         </script>
     <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
-    <script src="../../../_static/main.js"></script>
+    <script src="../../../_static/main.js?v=b10558fa"></script>
     <link rel="icon" href="../../../_static/favicon.ico"/>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-    <link rel="next" title="Physical MPCs" href="physical.html" />
+    <link rel="next" title="Tightly Coupled MPCs" href="tightly_coupled.html" />
     <link rel="prev" title="MPC" href="index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="dev" />
   </head>
   
   
@@ -75,19 +79,8 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
-  
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
-  
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="../../../search.html"
       method="get">
@@ -95,7 +88,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search the docs ..."
          aria-label="Search the docs ..."
          autocomplete="off"
@@ -103,8 +95,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -113,7 +105,7 @@
   
     <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
 <div class="bd-header__inner bd-page-width">
-  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
     <span class="fa-solid fa-bars"></span>
   </button>
   
@@ -122,6 +114,8 @@
     
       <div class="navbar-item">
 
+  
+    
   
 
 <a class="navbar-brand logo" href="../../../index.html">
@@ -136,7 +130,7 @@
     
     
     <img src="../../../_static/logo_full.png" class="logo__image only-light" alt="Amanzi-ATS documentation -- Home"/>
-    <script>document.write(`<img src="../../../_static/logo_full.png" class="logo__image only-dark" alt="Amanzi-ATS documentation -- Home"/>`);</script>
+    <img src="../../../_static/logo_full.png" class="logo__image only-dark pst-js-only" alt="Amanzi-ATS documentation -- Home"/>
   
   
 </a></div>
@@ -148,17 +142,17 @@
     <div class="me-auto navbar-header-items__center">
       
         <div class="navbar-item">
-<nav class="navbar-nav">
+<nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item pst-header-nav-item">
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../../../demos.html">
     ATS Demo Problems
   </a>
 </li>
 
 
-<li class="nav-item pst-header-nav-item current active">
+<li class="nav-item current active">
   <a class="nav-link nav-internal" href="../../index.html">
     ATS Input Specification
   </a>
@@ -175,29 +169,21 @@
         <div class="navbar-item navbar-persistent--container">
           
 
- <script>
- document.write(`
-   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
         </div>
       
       
         <div class="navbar-item">
 
-<script>
-document.write(`
-  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
-    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
-    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
-  </button>
-`);
-</script></div>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
       
     </div>
     
@@ -206,15 +192,11 @@ document.write(`
   
     <div class="navbar-persistent--mobile">
 
- <script>
- document.write(`
-   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
     </div>
   
 
@@ -229,7 +211,8 @@ document.write(`
       
       
       
-      <div class="bd-sidebar-primary bd-sidebar">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -241,17 +224,17 @@ document.write(`
           
           
             <div class="navbar-item">
-<nav class="navbar-nav">
+<nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item pst-header-nav-item">
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../../../demos.html">
     ATS Demo Problems
   </a>
 </li>
 
 
-<li class="nav-item pst-header-nav-item current active">
+<li class="nav-item current active">
   <a class="nav-link nav-internal" href="../../index.html">
     ATS Input Specification
   </a>
@@ -269,15 +252,11 @@ document.write(`
         
           <div class="navbar-item">
 
-<script>
-document.write(`
-  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
-    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
-    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
-  </button>
-`);
-</script></div>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
         
       </div>
     
@@ -285,30 +264,26 @@ document.write(`
   
     <div class="sidebar-primary-items__start sidebar-primary__section">
         <div class="sidebar-primary-item"><!-- This will display the version of the docs -->
-Version 1.5</div>
+Version dev</div>
         <div class="sidebar-primary-item">
-<script>
-document.write(`
-  <div class="version-switcher__container dropdown">
-    <button id="pst-version-switcher-button-2"
-      type="button"
-      class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle"
-      data-bs-toggle="dropdown"
-      aria-haspopup="listbox"
-      aria-controls="pst-version-switcher-list-2"
-      aria-label="Version switcher list"
-    >
-      Choose version  <!-- this text may get changed later by javascript -->
-      <span class="caret"></span>
-    </button>
-    <div id="pst-version-switcher-list-2"
-      class="version-switcher__menu dropdown-menu list-group-flush py-0"
-      role="listbox" aria-labelledby="pst-version-switcher-button-2">
-      <!-- dropdown will be populated by javascript on page load -->
-    </div>
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
   </div>
-`);
-</script></div>
+</div></div>
         <div class="sidebar-primary-item">
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
@@ -324,22 +299,24 @@ document.write(`
 <li class="toctree-l2"><a class="reference internal" href="../../io/visualization.html">Visualization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../io/observations.html">Observations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../io/checkpoint.html">Checkpoint</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../io/logfile.html">Logfile Control</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html">Process Kernels</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../base.html">Base PKs</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../physical/index.html">Physical PKs</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../physical/flow.html">Flow PKs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../physical/transport.html">Transport PK</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../physical/transport.html">Geochemical Transport</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../physical/energy.html">Energy PKs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../physical/seb.html">Surface Energy Balance PKs</a></li>
-
-
+<li class="toctree-l3"><a class="reference internal" href="../physical/bgc.html">Biogeochemistry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../physical/deformation.html">Deformation</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="index.html">MPC</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l3 current active"><a class="current reference internal" href="#">Base MPCs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="physical.html">Physical MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tightly_coupled.html">Tightly Coupled MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="multiple_domain.html">Multiple Domain MPCs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="globalization.html">Globalization Delegates</a></li>
 </ul>
 </details></li>
@@ -347,20 +324,24 @@ document.write(`
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../state/index.html">State</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../state/primary.html">Primary Variables</a></li>
+
 <li class="toctree-l2"><a class="reference internal" href="../../state/independent.html">Independent Variables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/secondary.html">Secondary Variables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/conserved.html">Conserved quantities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/subsurface_flow.html">Subsurface flow evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/surface_flow.html">Surface flow evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/thermo.html">Thermodynamic evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/eos.html">Equations of State</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/seb.html">Surface energy balance evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/snow.html">Snow evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/canopy.html">Canopy evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/bgc.html">Carbon and Biogeochemistry Models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/multiscale.html">Multiscale Models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/geometric.html">Geometric evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/generic.html">Generic evaluators</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../state/secondary.html">Secondary Variables</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../state/conserved.html">Conserved quantities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/subsurface_flow.html">Subsurface Flow Evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/surface_flow.html">Surface Flow Evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/transport.html">Transport evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/thermo.html">Thermodynamic evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/eos.html">Equations of State</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/seb.html">Surface Energy Balance Evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/snow.html">Snow evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/canopy.html">Canopy evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/bgc.html">Carbon and Biogeochemistry Models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/multiscale.html">Multiscale Models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/geometric.html">Geometric evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/generic.html">Generic evaluators</a></li>
+</ul>
+</details></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../math/index.html">Time integrators, solvers, and other mathematical specs</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -384,17 +365,24 @@ document.write(`
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mpc">MPC</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#weakmpc">WeakMPC</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#strongmpc">StrongMPC</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#strong-mpc">Strong MPC</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#weak-mpc">Weak MPC</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#subcycling-mpc">Subcycling MPC</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#weakly-coupled-subdomains">Weakly Coupled Subdomains</a></li>
 </ul>
   </nav></div>
     </div>
   
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
   </div>
-  
-  <div id="rtd-footer-container"></div>
 
 
       </div>
@@ -412,10 +400,6 @@ document.write(`
       
         <div class="header-article-item">
 
-
-
-
-
 <nav aria-label="Breadcrumb" class="d-print-none">
   <ul class="bd-breadcrumbs">
     
@@ -428,12 +412,12 @@ document.write(`
     <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">ATS Input Specification</a></li>
     
     
-    <li class="breadcrumb-item"><i class="fa-solid fa-ellipsis"></i></li>
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Process Kernels</a></li>
     
     
     <li class="breadcrumb-item"><a href="index.html" class="nav-link">MPC</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page">Base MPCs</li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Base MPCs</span></li>
   </ul>
 </nav>
 </div>
@@ -451,23 +435,21 @@ document.write(`
                 <article class="bd-article">
                   
   <section id="base-mpcs">
-<h1>Base MPCs<a class="headerlink" href="#base-mpcs" title="Permalink to this heading">#</a></h1>
+<h1>Base MPCs<a class="headerlink" href="#base-mpcs" title="Link to this heading">#</a></h1>
 <section id="mpc">
-<h2>MPC<a class="headerlink" href="#mpc" title="Permalink to this heading">#</a></h2>
-<blockquote>
-<div><p>Multi process coupler base class.</p>
-</div></blockquote>
-<p>A multi process coupler is a PK (process kernel) which coordinates and couples
-several PKs.  Each of these coordinated PKs may be MPCs themselves, or physical
-PKs.  Note this does NOT provide a full implementation of PK – it does not
-supply the AdvanceStep() method.  Therefore this class cannot be instantiated, but
-must be inherited by derived classes which finish supplying the functionality.
+<h2>MPC<a class="headerlink" href="#mpc" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/mpc/mpc.hh">src/physics/ats/src/pks/mpc/mpc.hh</a></p>
+<p>A multi process coupler is a PK which coordinates and couples several PKs.
+Each of these coordinated PKs may be MPCs themselves, or physical PKs.  Note
+this does NOT provide a full implementation of PK – it does not supply the
+AdvanceStep() method.  Therefore this class cannot be instantiated, but must be
+inherited by derived classes which finish supplying the functionality.
 Instead, this provides the data structures and methods (which may be overridden
 by derived classes) for managing multiple PKs.</p>
 <p>Most of these methods simply loop through the coordinated PKs, calling their
 respective methods.</p>
-<div class="admonition-mpc-spec admonition" id="mpc-spec">
-<p class="admonition-title">mpc-spec</p>
+<div class="admonition-pk-mpc-spec admonition" id="pk-mpc-spec">
+<p class="admonition-title">pk-mpc-spec</p>
 <ul class="simple">
 <li><p><cite>“PKs order</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> Provide a specific order to the
 sub-PKs; most methods loop over all sub-PKs, and will call the sub-PK
@@ -475,37 +457,84 @@ method in this order.</p></li>
 </ul>
 <p>INCLUDES:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">[pk-spec]</span></code> <em>Is a</em> <a href="#id1"><span class="problematic" id="id2">PK_</span></a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[pk-spec]</span></code> <em>Is a</em> <a class="reference internal" href="../base.html#pk"><span class="std std-ref">PK</span></a>.</p></li>
 </ul>
 </div>
 </section>
-<section id="weakmpc">
-<h2>WeakMPC<a class="headerlink" href="#weakmpc" title="Permalink to this heading">#</a></h2>
-<blockquote>
-<div><p>Multi process coupler for sequential coupling.</p>
-</div></blockquote>
+<section id="strong-mpc">
+<h2>Strong MPC<a class="headerlink" href="#strong-mpc" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/mpc/strong_mpc.hh">src/physics/ats/src/pks/mpc/strong_mpc.hh</a></p>
+<p>Globally implicit coupling solves all sub-PKs as a single system of equations.
+This can be completely automated when all PKs are also <a class="reference internal" href="../base.html#pk-bdf"><span class="std std-ref">PK: BDF</span></a> PKs,
+using a block-diagonal preconditioner where each diagonal block is provided by
+its own sub-PK.</p>
+<p><cite>“PK type</cite>” = <cite>“strong MPC</cite>”</p>
+<div class="admonition-pk-strong-mpc-spec admonition" id="pk-strong-mpc-spec">
+<p class="admonition-title">pk-strong-mpc-spec</p>
+<p>INCLUDES:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[mpc-spec]</span></code> <em>Is a</em> <a class="reference internal" href="#mpc"><span class="std std-ref">MPC</span></a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[pk-bdf-default-spec]</span></code> <em>Is a</em> <a class="reference internal" href="../base.html#pk-bdf"><span class="std std-ref">PK: BDF</span></a>.</p></li>
+</ul>
+</div>
+</section>
+<section id="weak-mpc">
+<h2>Weak MPC<a class="headerlink" href="#weak-mpc" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/mpc/weak_mpc.hh">src/physics/ats/src/pks/mpc/weak_mpc.hh</a></p>
 <p>Noniterative sequential coupling simply calls each PK’s AdvanceStep() method in
 order.</p>
-<div class="admonition-weak-mpc-spec admonition" id="weak-mpc-spec">
-<p class="admonition-title">weak-mpc-spec</p>
+<p><cite>“PK type</cite>” = <cite>“weak MPC</cite>”</p>
+<div class="admonition-pk-weak-mpc-spec admonition" id="pk-weak-mpc-spec">
+<p class="admonition-title">pk-weak-mpc-spec</p>
 <p>INCLUDES:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">[mpc-spec]</span></code> <em>Is a</em> <a class="reference internal" href="#mpc">MPC</a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[mpc-spec]</span></code> <em>Is a</em> <a class="reference internal" href="#mpc"><span class="std std-ref">MPC</span></a>.</p></li>
 </ul>
 </div>
 </section>
-<section id="strongmpc">
-<h2>StrongMPC<a class="headerlink" href="#strongmpc" title="Permalink to this heading">#</a></h2>
-<blockquote>
-<div><p>Multi process coupler for globally implicit (strong) coupling.</p>
-</div></blockquote>
-<p>Globally implicit coupling solves all sub-PKs as a single system of equations.  This can be completely automated when all PKs are also <a href="#id3"><span class="problematic" id="id4">`PK: BDF`_</span></a> PKs, using a block-diagonal preconditioner where each diagonal block is provided by its own sub-PK.</p>
-<div class="admonition-strong-mpc-spec admonition" id="strong-mpc-spec">
-<p class="admonition-title">strong-mpc-spec</p>
+<section id="subcycling-mpc">
+<h2>Subcycling MPC<a class="headerlink" href="#subcycling-mpc" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/mpc/mpc_subcycled.hh">src/physics/ats/src/pks/mpc/mpc_subcycled.hh</a></p>
+<p>A generic MPC that weakly couples N PKs, potentially subcycling any of them.</p>
+<p><cite>“PK type</cite>” = <cite>“subcycling MPC</cite>”</p>
+<div class="admonition-pk-subcycling-mpc-spec admonition" id="pk-subcycling-mpc-spec">
+<p class="admonition-title">pk-subcycling-mpc-spec</p>
+<ul class="simple">
+<li><p><cite>“subcycle</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(bool)]</span></code> Array of the same length as sub_pks.</p></li>
+<li><p><cite>“subcycling target timestep [s]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>optional</strong> If provided,
+this target dt is included, setting a ceiling on the largest timestep size
+and therefore setting a max dt over which we let the sub-PKs step
+independently without synchronization.  This is required if all sub-PKs are
+being subcycled.</p></li>
+</ul>
 <p>INCLUDES:</p>
 <ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[mpc-spec]</span></code> <em>Is a</em> <a class="reference internal" href="#mpc"><span class="std std-ref">MPC</span></a>.</p></li>
+</ul>
+</div>
+</section>
+<section id="weakly-coupled-subdomains">
+<h2>Weakly Coupled Subdomains<a class="headerlink" href="#weakly-coupled-subdomains" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/mpc/mpc_weak_subdomain.hh">src/physics/ats/src/pks/mpc/mpc_weak_subdomain.hh</a></p>
+<p>A weak MPC that couples the same PK across many subdomains.  Note that this
+means that the number of PKs is not known a priori – it depends on a domain
+set.  It may also subcycle all or none of its child PKs.</p>
+<p><cite>“PK type</cite>” = <cite>“domain set weak MPC</cite>”</p>
+<div class="admonition-pk-domain-set-weak-mpc-spec admonition" id="pk-domain-set-weak-mpc-spec">
+<p class="admonition-title">pk-domain-set-weak-mpc-spec</p>
+<p>IF</p>
+<ul class="simple">
+<li><p><cite>“subcycle</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Subcycle the sub PKs or not.</p></li>
+</ul>
+<p>THEN</p>
+<ul class="simple">
+<li><p><cite>“subcycling target timestep [s]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> timestep over which to
+syncronize the sub PKs.</p></li>
+</ul>
+<p>END</p>
+<p>INCLUDES</p>
+<ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">[mpc-spec]</span></code> <em>Is a</em> <a class="reference internal" href="#mpc">MPC</a>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[pk-bdf-default-spec]</span></code> <em>Is a</em> <a href="#id5"><span class="problematic" id="id6">`PK: BDF`_</span></a>.</p></li>
 </ul>
 </div>
 </section>
@@ -531,11 +560,11 @@ order.</p>
       </div>
     </a>
     <a class="right-next"
-       href="physical.html"
+       href="tightly_coupled.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Physical MPCs</p>
+        <p class="prev-next-title">Tightly Coupled MPCs</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -557,8 +586,8 @@ order.</p>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
-<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -578,7 +607,7 @@ order.</p>
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.2.1.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
     <br/>
   </p>
 </div>
@@ -591,7 +620,8 @@ order.</p>
       
         <div class="footer-item">
 <p class="theme-version">
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.3.
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
 </p></div>
       
     </div>

@@ -19,3 +19,17 @@ spec for this evaluator is written by that PK.
 
 
 
+
+Aliased Variables
+-----------------
+`src/state/evaluators/EvaluatorAlias.hh <https://github.com/amanzi/amanzi/blob/master/src/state/evaluators/EvaluatorAlias.hh>`_
+
+
+An evaluator that aliases to another key/tag pair, doing no work itself.
+
+Note this may alias to any type of evaluator -- primary, secondary, or
+independent.  These are typically not specified by the user in the input spec,
+but instead manually constructed by a PK or MPC.
+
+
+

@@ -6,10 +6,12 @@ functions via the input spec.
 
 Additive
 ^^^^^^^^
- A generic evaluator for summing a collection of fields.
+`src/physics/ats/src/constitutive_relations/generic_evaluators/AdditiveEvaluator.hh <https://github.com/amanzi/ats/blob/master/src/constitutive_relations/generic_evaluators/AdditiveEvaluator.hh>`_
 
-.. _additive-evaluator-spec:
-.. admonition:: additive-evaluator-spec
+A generic evaluator for summing a collection of fields.
+
+.. _evaluator-additive-spec:
+.. admonition:: evaluator-additive-spec
    * `"constant shift`" ``[double]`` **0** A constant value to add to the sum.
 
    * `"enforce positivity`" ``[bool]`` **false** If true, max the result with 0.
@@ -32,10 +34,12 @@ Additive
 
 Multiplicative
 ^^^^^^^^^^^^^^
- A generic evaluator for multiplying a collection of fields.
+`src/physics/ats/src/constitutive_relations/generic_evaluators/MultiplicativeEvaluator.hh <https://github.com/amanzi/ats/blob/master/src/constitutive_relations/generic_evaluators/MultiplicativeEvaluator.hh>`_
 
-.. _multiplicative-evaluator-spec:
-.. admonition:: multiplicative-evaluator-spec
+A generic evaluator for multiplying a collection of fields.
+
+.. _evaluator-multiplicative-spec:
+.. admonition:: evaluator-multiplicative-spec
    * `"coefficient`" ``[double]`` **1** A constant prefix to the product.
 
    * `"enforce positivity`" ``[bool]`` **false** If true, max the result with 0.
@@ -61,7 +65,9 @@ Multiplicative
 
 Column summation
 ^^^^^^^^^^^^^^^^
- Sums a subsurface field vertically only a surface field.
+`src/physics/ats/src/constitutive_relations/column_integrators/ColumnSumEvaluator.hh <https://github.com/amanzi/ats/blob/master/src/constitutive_relations/column_integrators/ColumnSumEvaluator.hh>`_
+
+Sums a subsurface field vertically only a surface field.
 
 Simple vertical sum of all cells below each surface cell.  Note that their are
 options for including volume factors (multiply by subsurface cell volume, sum,
@@ -69,8 +75,8 @@ divide by surface cell area) and density (useful for the most common use case
 of summing fluxes onto the surface and converting to m/s instead of mol/m^2/s).
 
 
-.. _column-sum-evaluator-spec:
-.. admonition:: column-sum-evaluator-spec
+.. _evaluator-column-sum-spec:
+.. admonition:: evaluator-column-sum-spec
 
    * `"include volume factor`" ``[bool]`` **true** In summing, multiply the
      summand subsurface cell volume, then divide the sum by the surface cell
@@ -97,10 +103,12 @@ of summing fluxes onto the surface and converting to m/s instead of mol/m^2/s).
 
 Top cell
 ^^^^^^^^
+`src/physics/ats/src/constitutive_relations/surface_subsurface_fluxes/top_cells_surface_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/constitutive_relations/surface_subsurface_fluxes/top_cells_surface_evaluator.hh>`_
 
 
 Arbitrary function
 ^^^^^^^^^^^^^^^^^^
+`src/state/evaluators/EvaluatorSecondaryMonotypeFromFunction.hh <https://github.com/amanzi/amanzi/blob/master/src/state/evaluators/EvaluatorSecondaryMonotypeFromFunction.hh>`_
 
 Uses functions to evaluate arbitrary algebraic functions of its dependencies.
 
@@ -142,6 +150,62 @@ Example:
    </ParameterList>
 
 
+
+
+
+Perched Water Table Depth
+^^^^^^^^^^^^^^^^^^^^^^^^^
+`src/physics/ats/src/constitutive_relations/column_integrators/perched_water_table_depth_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/constitutive_relations/column_integrators/perched_water_table_depth_evaluator.hh>`_
+
+
+Computes the depth to the perched water table.
+
+`"evaluator type`" = `"perched water table depth`"
+
+.. _perched-water-table-depth-spec:
+.. admonition:: perched-water-table-depth-spec
+
+    * `"interpolate depth from pressure`" ``[bool]`` **false** Default to calculate
+      perched water table depth by locating the bottom face of the last continuously
+      unsaturated cell from top downward. If true, use the height and pressure at the
+      centroids of the last continuously unsaturated cell and its adjacent saturated
+      cell to determine the perched water table depth through interpolation.
+
+    KEYS:
+
+    - `"saturation of gas`" **SUBSURFACE_DOMAIN-saturation-gas**
+    - `"pressure`" **SUBSURFACE_DOMAIN-pressure**
+    - `"subsurface cell volume`" **SUBSURFACE_DOMAIN-cell_volume**
+    - `"surface cell volume`" **DOMAIN-cell_volume**
+
+
+
+
+
+Water Table Depth
+^^^^^^^^^^^^^^^^^
+`src/physics/ats/src/constitutive_relations/column_integrators/water_table_depth_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/constitutive_relations/column_integrators/water_table_depth_evaluator.hh>`_
+
+
+Computes the depth to the water table.
+
+`"evaluator type`" = `"water table depth`"
+
+.. _water-table-depth-spec:
+.. admonition:: water-table-depth-spec
+
+    * `"interpolate depth from pressure`" ``[bool]`` **false** Default to calculate
+      water table depth by locating the top face of the last continuously saturated
+      cell from bottom upward. If true, use the height and pressure at the centroids
+      of the last continuously saturated cell and its adjacent unsaturated cell to
+      determine the water table depth through interpolation.
+
+    KEYS:
+
+    - `"saturation of gas`" **SUBSURFACE_DOMAIN-saturation-gas**
+    - `"pressure`" **SUBSURFACE_DOMAIN-pressure**
+    - `"subsurface cell volume`" **SUBSURFACE_DOMAIN-cell_volume**
+    - `"surface cell volume`" **DOMAIN-cell_volume**
 
 
 

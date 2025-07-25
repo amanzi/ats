@@ -1,0 +1,695 @@
+
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Base PKs &#8212; Amanzi-ATS</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/custom_theme.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'input_spec/process_kernels/base';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.15.3';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
+        </script>
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
+    <script src="../../_static/main.js"></script>
+    <link rel="icon" href="../../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Physical PKs" href="physical/index.html" />
+    <link rel="prev" title="Process Kernels" href="index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/logo_full.png" class="logo__image only-light" alt="Amanzi-ATS documentation -- Home"/>
+    <script>document.write(`<img src="../../_static/logo_full.png" class="logo__image only-dark" alt="Amanzi-ATS documentation -- Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../demos.html">
+    ATS Demo Problems
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    ATS Input Specification
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../demos.html">
+    ATS Demo Problems
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    ATS Input Specification
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item"><!-- This will display the version of the docs -->
+Version 1.5</div>
+        <div class="sidebar-primary-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="pst-version-switcher-button-2"
+      type="button"
+      class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-2"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="pst-version-switcher-list-2"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-2">
+      <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">About the Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html">Main</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="../mesh.html">Mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../region.html">Region</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../io/index.html">IO</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../io/ioevent.html">IOEvent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../io/visualization.html">Visualization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../io/observations.html">Observations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../io/checkpoint.html">Checkpoint</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Process Kernels</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Base PKs</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="physical/index.html">Physical PKs</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="physical/flow.html">Flow PKs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="physical/transport.html">Transport PK</a></li>
+<li class="toctree-l3"><a class="reference internal" href="physical/energy.html">Energy PKs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="physical/seb.html">Surface Energy Balance PKs</a></li>
+
+
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="mpcs/index.html">MPC</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="mpcs/base.html">Base MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpcs/physical.html">Physical MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpcs/globalization.html">Globalization Delegates</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../state/index.html">State</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../state/primary.html">Primary Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../state/independent.html">Independent Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../state/secondary.html">Secondary Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../state/conserved.html">Conserved quantities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../state/subsurface_flow.html">Subsurface flow evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../state/surface_flow.html">Surface flow evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../state/thermo.html">Thermodynamic evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../state/eos.html">Equations of State</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../state/seb.html">Surface energy balance evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../state/snow.html">Snow evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../state/canopy.html">Canopy evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../state/bgc.html">Carbon and Biogeochemistry Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../state/multiscale.html">Multiscale Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../state/geometric.html">Geometric evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../state/generic.html">Generic evaluators</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../math/index.html">Time integrators, solvers, and other mathematical specs</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../math/time_integrators.html">Time Integrators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math/nonlinear_solvers.html">Nonlinear Solver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math/linear_solvers.html">Linear Solvers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math/preconditioners.html">Preconditioners</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math/operators.html">Operators</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../common.html">Shared Specs</a></li>
+</ul>
+</div>
+</nav></div>
+        <div class="sidebar-primary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pk-base-class">PK base class</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pk-physical">PK: Physical</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pk-bdf">PK: BDF</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pk-physical-and-bdf">PK: Physical and BDF</a></li>
+</ul>
+  </nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">ATS Input Specification</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Process Kernels</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">Base PKs</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="base-pks">
+<h1>Base PKs<a class="headerlink" href="#base-pks" title="Permalink to this heading">#</a></h1>
+<p>There are several types of PKs, and each PK has its own valid input
+spec.  However, there are three main types of PKs, from which nearly
+all PKs derive.  Note that none of these are true PKs and cannot stand
+alone.</p>
+<section id="pk-base-class">
+<h2>PK base class<a class="headerlink" href="#pk-base-class" title="Permalink to this heading">#</a></h2>
+<blockquote>
+<div><p>The interface for a Process Kernel, an equation or system of equations.</p>
+</div></blockquote>
+<p>A process kernel represents a single or system of partial/ordinary
+differential equation(s) or conservation law(s), and is used as the
+fundamental unit for coupling strategies.</p>
+<p>Implementations of this interface typically are either an MPC
+(multi-process coupler) whose job is to heirarchically couple several
+other PKs and represent the system of equations, or a Physical PK,
+which represents a single equation.</p>
+<p>Note there are two PK specs – the first is the “typed” spec, which appears in
+the “cycle driver” list in the PK tree and has no other parameters other than
+its type and its children.  The second is the spec for the base class PK, which
+is inherited and included by each actual PK, lives in the “PKs” sublist of
+“main”, and has all needed parameters.</p>
+<div class="admonition-pk-typed-spec admonition" id="pk-typed-spec">
+<p class="admonition-title">pk-typed-spec</p>
+<ul class="simple">
+<li><p><cite>“PK type</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> One of the registered PK types</p></li>
+</ul>
+</div>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;PK tree&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;Top level MPC&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;PK type&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;strong MPC&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;sub PK 1&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span>...
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;sub PK 2&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span>...
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span>...
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+<div class="admonition-pk-spec admonition" id="pk-spec">
+<p class="admonition-title">pk-spec</p>
+<ul class="simple">
+<li><p><cite>“PK type</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> One of the registered PK types.  Note this must
+match the corresponding entry in the <code class="docutils literal notranslate"><span class="pre">[pk-typed-spec]</span></code></p></li>
+<li><p><cite>“verbose object</cite>” <code class="docutils literal notranslate"><span class="pre">[verbose-object-spec]</span></code> <strong>optional</strong> See <a href="#id1"><span class="problematic" id="id2">`Verbose Object`_</span></a></p></li>
+</ul>
+</div>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;PKs&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;my cool PK&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;PK type&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;my cool PK&quot;</span><span class="nt">/&gt;</span>
+<span class="w">     </span>...
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="pk-physical">
+<h2>PK: Physical<a class="headerlink" href="#pk-physical" title="Permalink to this heading">#</a></h2>
+<blockquote>
+<div><p>A base class with default implementations of methods for a leaf of the PK tree (a conservation equation, or similar).</p>
+</div></blockquote>
+<p><cite>PKPhysicalBase</cite> is a base class providing some functionality for PKs which
+are defined on a single mesh, and represent a single process model.  Typically
+all leaves of the PK tree will inherit from <cite>PKPhysicalBase</cite>.</p>
+<div class="admonition-pk-physical-default-spec admonition" id="pk-physical-default-spec">
+<p class="admonition-title">pk-physical-default-spec</p>
+<ul class="simple">
+<li><p><cite>“domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Name from the <a href="#id3"><span class="problematic" id="id4">Mesh_</span></a> list on which this PK is defined.</p></li>
+<li><p><cite>“primary variable key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> The primary variable
+e.g. <cite>“pressure</cite>”, or <cite>“temperature</cite>”.  Most PKs supply sane defaults.</p></li>
+<li><p><cite>“initial condition</cite>” <code class="docutils literal notranslate"><span class="pre">[initial-conditions-spec]</span></code>  See <a href="#id5"><span class="problematic" id="id6">InitialConditions_</span></a>.</p></li>
+<li><p><cite>“max valid change</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>-1</strong> Sets a limiter on what is a
+valid change in a single timestep.  Changes larger than this are declared
+invalid and the timestep shrinks.  By default, any change is valid.
+Units are the same as the primary variable.</p></li>
+</ul>
+<p>INCLUDES:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[pk-spec]</span></code> This <em>is a</em> <a href="#id7"><span class="problematic" id="id8">PK_</span></a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[debugger-spec]</span></code> Uses a <a href="#id9"><span class="problematic" id="id10">Debugger_</span></a></p></li>
+</ul>
+</div>
+</section>
+<section id="pk-bdf">
+<h2>PK: BDF<a class="headerlink" href="#pk-bdf" title="Permalink to this heading">#</a></h2>
+<blockquote>
+<div><p>A base class with default implementations of methods for a PK that can be implicitly integrated in time.</p>
+</div></blockquote>
+<p><cite>PKBDFBase</cite> is a base class from which PKs that want to use the <cite>BDF</cite>
+series of implicit time integrators must derive.  It specifies both the
+<cite>BDFFnBase</cite> interface and implements some basic functionality for <cite>BDF</cite>
+PKs.</p>
+<div class="admonition-pk-bdf-default-spec admonition" id="pk-bdf-default-spec">
+<p class="admonition-title">pk-bdf-default-spec</p>
+<ul class="simple">
+<li><p><cite>“initial time step [s]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.</strong> Initial time step size [s]</p></li>
+<li><p><cite>“assemble preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>true</strong> A flag, typically not set
+by user but by an MPC.</p></li>
+<li><p><cite>“time integrator</cite>” <code class="docutils literal notranslate"><span class="pre">[bdf1-ti-spec]</span></code> <strong>optional</strong>
+A <a href="#id11"><span class="problematic" id="id12">TimeIntegrator_</span></a>.  Note that this is only required if this PK is not
+strongly coupled to other PKs.</p></li>
+<li><p><cite>“inverse</cite>” <code class="docutils literal notranslate"><span class="pre">[inverse-typed-spec]</span></code> <strong>optional</strong> A <a href="#id13"><span class="problematic" id="id14">Preconditioner_</span></a>.
+Note that this is only used if this PK is not strongly coupled to other PKs.</p></li>
+</ul>
+<p>INCLUDES:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[pk-spec]</span></code> This <em>is a</em> <a href="#id15"><span class="problematic" id="id16">PK_</span></a>.</p></li>
+</ul>
+</div>
+</section>
+<section id="pk-physical-and-bdf">
+<h2>PK: Physical and BDF<a class="headerlink" href="#pk-physical-and-bdf" title="Permalink to this heading">#</a></h2>
+<blockquote>
+<div><p>Default implementation of both BDF and Physical PKs.</p>
+</div></blockquote>
+<p>A base class for all PKs that are both physical, in the sense that they
+implement an equation and are not couplers, and BDF, in the sense that they
+support the implicit integration interface.  This largely just supplies a
+default error norm based on error in conservation relative to the extent of the
+conserved quantity.</p>
+<p>By default, the error norm used by solvers is given by:</p>
+<p><span class="math notranslate nohighlight">\(ENORM(u, du) = |du| / ( a_tol + r_tol * |u| )\)</span></p>
+<p>The defaults here are typically good, or else good defaults are set in the
+code, so usually are not supplied by the user.</p>
+<div class="admonition-pk-physical-bdf-default-spec admonition" id="pk-physical-bdf-default-spec">
+<p class="admonition-title">pk-physical-bdf-default-spec</p>
+<ul class="simple">
+<li><p><cite>“conserved quantity key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Name of the conserved quantity.
+Usually a sane default is set by the PK.</p></li>
+<li><p><cite>“absolute error tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.0</strong> Absolute tolerance,
+<span class="math notranslate nohighlight">\(a_tol\)</span> in the equation above.  Unit are the same as the conserved
+quantity.  Note that this default is often overridden by PKs with more
+physical values, and very rarely are these set by the user.</p></li>
+<li><p><cite>“relative error tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.0</strong> Relative tolerance,
+<span class="math notranslate nohighlight">\(r_tol\)</span> in the equation above.  <code class="docutils literal notranslate"><span class="pre">[-]</span></code> Note that this default can
+be overridden by PKs with more physical values, and very rarely are these
+set by the user.</p></li>
+<li><p><cite>“flux error tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.0</strong> Relative tolerance on the
+flux.  Note that this default is often overridden by PKs with more physical
+values, and very rarely are these set by the user.</p></li>
+</ul>
+<p>INCLUDES:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[pk-bdf-default-spec]</span></code> <em>Is a</em> <a class="reference internal" href="#pk-bdf">PK: BDF</a></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[pk-physical-default-spec]</span></code> <em>Is a</em> <a class="reference internal" href="#pk-physical">PK: Physical</a></p></li>
+</ul>
+</div>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Process Kernels</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="physical/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Physical PKs</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 202X, jointly shared by contributor institutions.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.2.1.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.3.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

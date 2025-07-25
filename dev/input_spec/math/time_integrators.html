@@ -51,7 +51,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.6';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             false;
         </script>
@@ -325,6 +325,7 @@ Version dev</div>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../state/index.html">State</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../state/primary.html">Primary Variables</a></li>
+
 <li class="toctree-l2"><a class="reference internal" href="../state/independent.html">Independent Variables</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../state/secondary.html">Secondary Variables</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../state/conserved.html">Conserved quantities</a></li>
@@ -518,15 +519,17 @@ loosen the nonlinear tolerance on the first several timesteps after the
 time integrator restart. The default value is 1, while a reasonable value
 may be as large as 1000.</p></li>
 <li><p><cite>“restart tolerance relaxation factor damping</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1</strong>
-Controls how fast the loosened nonlinear tolerance will revert back to
-the one specified in <cite>“nonlinear tolerance</cite>”. If the nonlinear tolerance
-is “tol”, the relaxation factor is “factor”, and the damping is “d”, and
-the timestep count is “n” then the actual nonlinear tolerance is “tol *
+Controls how fast the loosened nonlinear tolerance will revert back to the
+one specified in <cite>“nonlinear tolerance</cite>”. If the nonlinear tolerance is
+“tol”, the relaxation factor is “factor”, and the damping is “d”, and the
+timestep count is “n” then the actual nonlinear tolerance is “tol *
 max(1.0, factor * d ** n)”. Reasonable values are between 0 and 1.</p></li>
 </ul>
-<p>INCLUDES
-- <code class="docutils literal notranslate"><span class="pre">[solver-typed-spec]</span></code> <em>Uses a</em> <a href="#id7"><span class="problematic" id="id8">Solver_</span></a>.
-- <code class="docutils literal notranslate"><span class="pre">[timestep-controller-typed-spec]</span></code> <em>Uses a</em> <a class="reference internal" href="#timestep-controller">Timestep Controller</a></p>
+<p>INCLUDES</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[solver-typed-spec]</span></code> <em>Uses a</em> <a href="#id7"><span class="problematic" id="id8">Solver_</span></a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[timestep-controller-typed-spec]</span></code> <em>Uses a</em> <a class="reference internal" href="#timestep-controller">Timestep Controller</a></p></li>
+</ul>
 </div>
 <p>Note this also accepts an object that provides the <a class="reference internal" href="#bdf1-solver-interface">BDF1 Solver Interface</a>.</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;time integrator&quot;</span><span class="nt">&gt;</span>

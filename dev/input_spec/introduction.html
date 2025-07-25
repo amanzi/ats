@@ -31,7 +31,7 @@
 <link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/custom_theme.css?v=a03f4c85" />
   
@@ -51,7 +51,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.6';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             false;
         </script>
@@ -325,6 +325,7 @@ Version dev</div>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="state/index.html">State</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="state/primary.html">Primary Variables</a></li>
+
 <li class="toctree-l2"><a class="reference internal" href="state/independent.html">Independent Variables</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="state/secondary.html">Secondary Variables</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="state/conserved.html">Conserved quantities</a></li>
@@ -429,7 +430,7 @@ Version dev</div>
                 <article class="bd-article">
                   
   <section id="about-the-specification">
-<h1><a class="toc-backref" href="#id1" role="doc-backlink">About the Specification</a><a class="headerlink" href="#about-the-specification" title="Link to this heading">#</a></h1>
+<h1>About the Specification<a class="headerlink" href="#about-the-specification" title="Link to this heading">#</a></h1>
 <p>ATS, and Amanzi’s “native” specificiation, is an xml file following
 Trilinos’s Teuchos ParameterList schema.  There are only two types of
 tags used – <cite>“Parameter</cite>” and <cite>“ParameterList</cite>”.  <cite>“Parameter</cite>”
@@ -449,7 +450,7 @@ the resulting xml file.</p>
 <p>Here we document the input spec by defining what each possible element
 used by the code needs to be well posed.</p>
 <section id="specs">
-<h2><a class="toc-backref" href="#id2" role="doc-backlink">Specs</a><a class="headerlink" href="#specs" title="Link to this heading">#</a></h2>
+<h2>Specs<a class="headerlink" href="#specs" title="Link to this heading">#</a></h2>
 <p>In many cases, the input specifies data for a particular parameterized
 model, and ATS supports a number of parameterizations.  For example,
 initial data might be uniform (the value is required), or linear in y
@@ -500,7 +501,7 @@ in the name of the parameter.</p>
 </div>
 </section>
 <section id="syntax">
-<h2><a class="toc-backref" href="#id3" role="doc-backlink">Syntax</a><a class="headerlink" href="#syntax" title="Link to this heading">#</a></h2>
+<h2>Syntax<a class="headerlink" href="#syntax" title="Link to this heading">#</a></h2>
 <ul class="simple">
 <li><p>Reserved keywords and labels are <cite>“quoted and italicized</cite>” – these
 labels or values of parameters in user-generated input files must
@@ -515,7 +516,7 @@ is not provided.</p></li>
 </ul>
 </section>
 <section id="units">
-<h2><a class="toc-backref" href="#id4" role="doc-backlink">Units</a><a class="headerlink" href="#units" title="Link to this heading">#</a></h2>
+<h2>Units<a class="headerlink" href="#units" title="Link to this heading">#</a></h2>
 <p>Wherever possible, units for a parameter are included in the parameter
 name, in brackets, and in SI units.  When there are common alternative
 units (e.g. g/mL) we sometimes provide a second parameter option with
@@ -526,7 +527,7 @@ prescribing the density of water might be: <cite>“density of water [kg
 m^-3]</cite>”.</p>
 </section>
 <section id="variable-naming">
-<h2><a class="toc-backref" href="#id5" role="doc-backlink">Variable Naming</a><a class="headerlink" href="#variable-naming" title="Link to this heading">#</a></h2>
+<h2>Variable Naming<a class="headerlink" href="#variable-naming" title="Link to this heading">#</a></h2>
 <p>Unlike parameters (which can only be spelled one way), variables are
 often named with user-defined strings which have a default value.  For
 instance, a Richards equation might need a variable defining the
@@ -561,6 +562,16 @@ an index across the collection, e.g. <cite>“column:4</cite>”.  So
 <cite>“column:4-temperature</cite>” is the temperature on the 4th domain of the
 domain set <cite>“column</cite>”.</p></li>
 </ul>
+<p>Additionally, a variable name may include a <strong>component name</strong> and a
+<strong>subfield name</strong>, e.g. ROOT_NAME.COMPONENT_NAME.SUBFIELD_NAME.  The
+component name refers to a component of the field, and typically is
+named according to the entity on which it is defined, e.g. <cite>“cell</cite>” or
+<cite>“face</cite>”.  The SUBFIELD_NAME refers to a name for each degree of
+freedom in the vector.  Typically this is used for n-dimensional
+vector-valued fields such as velocity, where the names are e.g. <cite>“x</cite>”,
+<cite>“y</cite>”, and <cite>“z</cite>”, or chemical specie names.  If multiple degrees of
+freedom are needed but subfield names are not provided, they are
+assigned integer values indexing the degree of freedom.</p>
 <p><strong>Tags</strong> indicate the use of a variable at a specific time in the
 discretized time interval.  Default tags include <cite>“current</cite>” and
 <cite>“next</cite>” indicating the variable at the beginning and end of the
@@ -574,35 +585,17 @@ equivalent to <cite>“next</cite>”.</p>
 character, e.g. <cite>“dsurface-water_content|dsurface-pressure</cite>” is the
 derivative of the <cite>“water_content</cite>” variable on the <cite>“surface</cite>” domain
 with respect to the <cite>“pressure</cite>” on the same domain.</p>
-<p>As a result of these conventions, none of the above individual strings,
-(root names, domains, domain sets, or IDs) can contain any of the
-following reserved characters: <cite>:</cite>, <cite>-</cite>, <cite>|</cite>, <cite>&#64;</cite>.</p>
+<p>As a result of these conventions, none of the above individual
+strings, (root names, domains, domain sets, or IDs) can contain any of
+the following reserved characters: <cite>:</cite>, <cite>-</cite>, <cite>|</cite>, <cite>&#64;</cite>.  The lone
+exception to this rule is that subfield names may include trailing <cite>-</cite>
+characters to indicate charge,
+e.g. <cite>total_component_concentration.NO3-</cite>.</p>
 <p>Avoid including spaces in variable names.  This doesn’t break the
 code, but it does break some visualization tools.</p>
 </section>
 <section id="default-names-symbols-and-units">
-<h2><a class="toc-backref" href="#id6" role="doc-backlink">Default Names, Symbols, and Units</a><a class="headerlink" href="#default-names-symbols-and-units" title="Link to this heading">#</a></h2>
-<blockquote>
-<div><dl class="field-list simple">
-<dt class="field-odd">Author<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Coon</p>
-</dd>
-</dl>
-</div></blockquote>
-<nav class="contents" id="contents">
-<p class="topic-title">Contents</p>
-<ul class="simple">
-<li><p><a class="reference internal" href="#about-the-specification" id="id1">About the Specification</a></p>
-<ul>
-<li><p><a class="reference internal" href="#specs" id="id2">Specs</a></p></li>
-<li><p><a class="reference internal" href="#syntax" id="id3">Syntax</a></p></li>
-<li><p><a class="reference internal" href="#units" id="id4">Units</a></p></li>
-<li><p><a class="reference internal" href="#variable-naming" id="id5">Variable Naming</a></p></li>
-<li><p><a class="reference internal" href="#default-names-symbols-and-units" id="id6">Default Names, Symbols, and Units</a></p></li>
-</ul>
-</li>
-</ul>
-</nav>
+<h2>Default Names, Symbols, and Units<a class="headerlink" href="#default-names-symbols-and-units" title="Link to this heading">#</a></h2>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Variable Root Name</p></th>

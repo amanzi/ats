@@ -1,13 +1,12 @@
 
-
 <!DOCTYPE html>
 
 
-<html lang="en" data-content_root="" >
+<html lang="en" data-content_root="../../" >
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Time Integrators &#8212; Amanzi-ATS</title>
   
@@ -17,43 +16,47 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
-<link href="../../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
-<link href="../../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link href="../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
-  
-  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
-
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/styles/custom_theme.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/custom_theme.css?v=a03f4c85" />
   
+  <!-- So that users can add custom icons -->
+  <script src="../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
-<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
-  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../_static/documentation_options.js?v=3ce10a4d"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'input_spec/math/time_integrators';</script>
     <script>
-        DOCUMENTATION_OPTIONS.theme_version = '0.15.3';
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
-        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.6';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
         </script>
     <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
-    <script src="../../_static/main.js"></script>
+    <script src="../../_static/main.js?v=b10558fa"></script>
     <link rel="icon" href="../../_static/favicon.ico"/>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -61,6 +64,7 @@
     <link rel="prev" title="Time integrators, solvers, and other mathematical specs" href="index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="dev" />
   </head>
   
   
@@ -76,19 +80,8 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
-  
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
-  
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="../../search.html"
       method="get">
@@ -96,7 +89,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search the docs ..."
          aria-label="Search the docs ..."
          autocomplete="off"
@@ -104,8 +96,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -114,7 +106,7 @@
   
     <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
 <div class="bd-header__inner bd-page-width">
-  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
     <span class="fa-solid fa-bars"></span>
   </button>
   
@@ -123,6 +115,8 @@
     
       <div class="navbar-item">
 
+  
+    
   
 
 <a class="navbar-brand logo" href="../../index.html">
@@ -137,7 +131,7 @@
     
     
     <img src="../../_static/logo_full.png" class="logo__image only-light" alt="Amanzi-ATS documentation -- Home"/>
-    <script>document.write(`<img src="../../_static/logo_full.png" class="logo__image only-dark" alt="Amanzi-ATS documentation -- Home"/>`);</script>
+    <img src="../../_static/logo_full.png" class="logo__image only-dark pst-js-only" alt="Amanzi-ATS documentation -- Home"/>
   
   
 </a></div>
@@ -149,17 +143,17 @@
     <div class="me-auto navbar-header-items__center">
       
         <div class="navbar-item">
-<nav class="navbar-nav">
+<nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item pst-header-nav-item">
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../../demos.html">
     ATS Demo Problems
   </a>
 </li>
 
 
-<li class="nav-item pst-header-nav-item current active">
+<li class="nav-item current active">
   <a class="nav-link nav-internal" href="../index.html">
     ATS Input Specification
   </a>
@@ -176,29 +170,21 @@
         <div class="navbar-item navbar-persistent--container">
           
 
- <script>
- document.write(`
-   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
         </div>
       
       
         <div class="navbar-item">
 
-<script>
-document.write(`
-  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
-    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
-    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
-  </button>
-`);
-</script></div>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
       
     </div>
     
@@ -207,15 +193,11 @@ document.write(`
   
     <div class="navbar-persistent--mobile">
 
- <script>
- document.write(`
-   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
     </div>
   
 
@@ -230,7 +212,8 @@ document.write(`
       
       
       
-      <div class="bd-sidebar-primary bd-sidebar">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -242,17 +225,17 @@ document.write(`
           
           
             <div class="navbar-item">
-<nav class="navbar-nav">
+<nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item pst-header-nav-item">
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../../demos.html">
     ATS Demo Problems
   </a>
 </li>
 
 
-<li class="nav-item pst-header-nav-item current active">
+<li class="nav-item current active">
   <a class="nav-link nav-internal" href="../index.html">
     ATS Input Specification
   </a>
@@ -270,15 +253,11 @@ document.write(`
         
           <div class="navbar-item">
 
-<script>
-document.write(`
-  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
-    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
-    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
-  </button>
-`);
-</script></div>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
         
       </div>
     
@@ -286,30 +265,26 @@ document.write(`
   
     <div class="sidebar-primary-items__start sidebar-primary__section">
         <div class="sidebar-primary-item"><!-- This will display the version of the docs -->
-Version 1.5</div>
+Version dev</div>
         <div class="sidebar-primary-item">
-<script>
-document.write(`
-  <div class="version-switcher__container dropdown">
-    <button id="pst-version-switcher-button-2"
-      type="button"
-      class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle"
-      data-bs-toggle="dropdown"
-      aria-haspopup="listbox"
-      aria-controls="pst-version-switcher-list-2"
-      aria-label="Version switcher list"
-    >
-      Choose version  <!-- this text may get changed later by javascript -->
-      <span class="caret"></span>
-    </button>
-    <div id="pst-version-switcher-list-2"
-      class="version-switcher__menu dropdown-menu list-group-flush py-0"
-      role="listbox" aria-labelledby="pst-version-switcher-button-2">
-      <!-- dropdown will be populated by javascript on page load -->
-    </div>
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
   </div>
-`);
-</script></div>
+</div></div>
         <div class="sidebar-primary-item">
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
@@ -325,22 +300,24 @@ document.write(`
 <li class="toctree-l2"><a class="reference internal" href="../io/visualization.html">Visualization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../io/observations.html">Observations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../io/checkpoint.html">Checkpoint</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../io/logfile.html">Logfile Control</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../process_kernels/index.html">Process Kernels</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../process_kernels/base.html">Base PKs</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../process_kernels/physical/index.html">Physical PKs</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../process_kernels/physical/flow.html">Flow PKs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../process_kernels/physical/transport.html">Transport PK</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../process_kernels/physical/transport.html">Geochemical Transport</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../process_kernels/physical/energy.html">Energy PKs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../process_kernels/physical/seb.html">Surface Energy Balance PKs</a></li>
-
-
+<li class="toctree-l3"><a class="reference internal" href="../process_kernels/physical/bgc.html">Biogeochemistry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../process_kernels/physical/deformation.html">Deformation</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../process_kernels/mpcs/index.html">MPC</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../process_kernels/mpcs/base.html">Base MPCs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../process_kernels/mpcs/physical.html">Physical MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../process_kernels/mpcs/tightly_coupled.html">Tightly Coupled MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../process_kernels/mpcs/multiple_domain.html">Multiple Domain MPCs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../process_kernels/mpcs/globalization.html">Globalization Delegates</a></li>
 </ul>
 </details></li>
@@ -348,20 +325,24 @@ document.write(`
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../state/index.html">State</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../state/primary.html">Primary Variables</a></li>
+
 <li class="toctree-l2"><a class="reference internal" href="../state/independent.html">Independent Variables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../state/secondary.html">Secondary Variables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../state/conserved.html">Conserved quantities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../state/subsurface_flow.html">Subsurface flow evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../state/surface_flow.html">Surface flow evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../state/thermo.html">Thermodynamic evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../state/eos.html">Equations of State</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../state/seb.html">Surface energy balance evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../state/snow.html">Snow evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../state/canopy.html">Canopy evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../state/bgc.html">Carbon and Biogeochemistry Models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../state/multiscale.html">Multiscale Models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../state/geometric.html">Geometric evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../state/generic.html">Generic evaluators</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../state/secondary.html">Secondary Variables</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../state/conserved.html">Conserved quantities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../state/subsurface_flow.html">Subsurface Flow Evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../state/surface_flow.html">Surface Flow Evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../state/transport.html">Transport evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../state/thermo.html">Thermodynamic evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../state/eos.html">Equations of State</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../state/seb.html">Surface Energy Balance Evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../state/snow.html">Snow evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../state/canopy.html">Canopy evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../state/bgc.html">Carbon and Biogeochemistry Models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../state/multiscale.html">Multiscale Models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../state/geometric.html">Geometric evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../state/generic.html">Generic evaluators</a></li>
+</ul>
+</details></li>
 </ul>
 </details></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Time integrators, solvers, and other mathematical specs</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
@@ -403,9 +384,14 @@ document.write(`
   
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
   </div>
-  
-  <div id="rtd-footer-container"></div>
 
 
       </div>
@@ -423,8 +409,6 @@ document.write(`
       
         <div class="header-article-item">
 
-
-
 <nav aria-label="Breadcrumb" class="d-print-none">
   <ul class="bd-breadcrumbs">
     
@@ -439,7 +423,7 @@ document.write(`
     
     <li class="breadcrumb-item"><a href="index.html" class="nav-link">Time integrators, solvers, and other mathematical specs</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page">Time Integrators</li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Time Integrators</span></li>
   </ul>
 </nav>
 </div>
@@ -457,15 +441,14 @@ document.write(`
                 <article class="bd-article">
                   
   <section id="time-integrators">
-<h1>Time Integrators<a class="headerlink" href="#time-integrators" title="Permalink to this heading">#</a></h1>
+<h1>Time Integrators<a class="headerlink" href="#time-integrators" title="Link to this heading">#</a></h1>
 <p>Currently there are two classes of time integration schemes used in
 ATS: explicit (including a range of single and multi-stage) methods
 and BDF1, or Backward Euler.</p>
 <section id="explicit-time-integration">
-<h2>Explicit Time Integration<a class="headerlink" href="#explicit-time-integration" title="Permalink to this heading">#</a></h2>
-<blockquote>
-<div><p>Explicit time integration methods in a generalized form.</p>
-</div></blockquote>
+<h2>Explicit Time Integration<a class="headerlink" href="#explicit-time-integration" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/time_integration/Explicit_TI_RK.hh">src/time_integration/Explicit_TI_RK.hh</a></p>
+<p>Explicit time integration methods in a generalized form.</p>
 <p>This class implements several explicit Runge Kutta methods:</p>
 <ul class="simple">
 <li><p>forward Euler     (1st order)  –&gt; “forward_euler”</p></li>
@@ -500,10 +483,9 @@ that are not listed in this tableau are not used</p>
 </div>
 </section>
 <section id="backward-euler">
-<h2>Backward Euler<a class="headerlink" href="#backward-euler" title="Permalink to this heading">#</a></h2>
-<blockquote>
-<div><p>Solves globally implicit systems using backward Euler</p>
-</div></blockquote>
+<h2>Backward Euler<a class="headerlink" href="#backward-euler" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/time_integration/BDF1_TI.hh">src/time_integration/BDF1_TI.hh</a></p>
+<p>Solves globally implicit systems using backward Euler</p>
 <p>Backward Euler is the simplest of the implicit methods.  It solves time
 integration schemes by evaluating all time derivatives at the new time.  This
 makes it unconditionally stable, though potentially not very accurate.  This
@@ -533,19 +515,21 @@ defines extrapolation algorithm. Zero value implies no extrapolation.</p></li>
 <li><p><cite>“restart tolerance relaxation factor</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1</strong> Changes the
 nonlinear tolerance on restart. The time integrator is usually restarted
 when a boundary condition changes drastically. It may be beneficial to
-loosen the nonlinear tolerance on the first several time steps after the
+loosen the nonlinear tolerance on the first several timesteps after the
 time integrator restart. The default value is 1, while a reasonable value
 may be as large as 1000.</p></li>
 <li><p><cite>“restart tolerance relaxation factor damping</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1</strong>
-Controls how fast the loosened nonlinear tolerance will revert back to
-the one specified in <cite>“nonlinear tolerance</cite>”. If the nonlinear tolerance
-is “tol”, the relaxation factor is “factor”, and the damping is “d”, and
-the time step count is “n” then the actual nonlinear tolerance is “tol *
+Controls how fast the loosened nonlinear tolerance will revert back to the
+one specified in <cite>“nonlinear tolerance</cite>”. If the nonlinear tolerance is
+“tol”, the relaxation factor is “factor”, and the damping is “d”, and the
+timestep count is “n” then the actual nonlinear tolerance is “tol *
 max(1.0, factor * d ** n)”. Reasonable values are between 0 and 1.</p></li>
 </ul>
-<p>INCLUDES
-- <code class="docutils literal notranslate"><span class="pre">[solver-typed-spec]</span></code> <em>Uses a</em> <a href="#id7"><span class="problematic" id="id8">Solver_</span></a>.
-- <code class="docutils literal notranslate"><span class="pre">[timestep-controller-typed-spec]</span></code> <em>Uses a</em> <a class="reference internal" href="#timestep-controller">Timestep Controller</a></p>
+<p>INCLUDES</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[solver-typed-spec]</span></code> <em>Uses a</em> <a href="#id7"><span class="problematic" id="id8">Solver_</span></a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[timestep-controller-typed-spec]</span></code> <em>Uses a</em> <a class="reference internal" href="#timestep-controller">Timestep Controller</a></p></li>
+</ul>
 </div>
 <p>Note this also accepts an object that provides the <a class="reference internal" href="#bdf1-solver-interface">BDF1 Solver Interface</a>.</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;time integrator&quot;</span><span class="nt">&gt;</span>
@@ -572,14 +556,14 @@ max(1.0, factor * d ** n)”. Reasonable values are between 0 and 1.</p></li>
 </pre></div>
 </div>
 <section id="bdf1-solver-interface">
-<h3>BDF1 Solver Interface<a class="headerlink" href="#bdf1-solver-interface" title="Permalink to this heading">#</a></h3>
+<h3>BDF1 Solver Interface<a class="headerlink" href="#bdf1-solver-interface" title="Link to this heading">#</a></h3>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/time_integration/BDF1_SolverFnBase.hh">src/time_integration/BDF1_SolverFnBase.hh</a></p>
 </section>
 </section>
 <section id="timestep-controller">
-<h2>Timestep Controller<a class="headerlink" href="#timestep-controller" title="Permalink to this heading">#</a></h2>
-<blockquote>
-<div><p>Factory for creating TimestepController objects</p>
-</div></blockquote>
+<h2>Timestep Controller<a class="headerlink" href="#timestep-controller" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/time_integration/TimestepControllerFactory.hh">src/time_integration/TimestepControllerFactory.hh</a></p>
+<p>Factory for creating TimestepController objects</p>
 <p>A TimestepController object sets what size timestep to take.  This can be a
 variety of things, from fixed timestep size, to adaptive based upon error
 control, to adapter based upon simple nonlinear iteration counts.</p>
@@ -589,7 +573,7 @@ control, to adapter based upon simple nonlinear iteration counts.</p>
 <li><p><a class="reference internal" href="#timestep-controller-standard">Timestep Controller Standard</a> (type <cite>‘standard</cite>”), an adaptive timestep based upon nonlinear iterations</p></li>
 <li><p><a class="reference internal" href="#timestep-controller-smarter">Timestep Controller Smarter</a> (type <cite>‘smarter</cite>”), an adaptive timestep based upon nonlinear iterations with more control</p></li>
 <li><p><a class="reference internal" href="#timestep-controller-adaptive">Timestep Controller Adaptive</a> (type <cite>“adaptive</cite>”), an adaptive timestep based upon error control.</p></li>
-<li><p><a class="reference internal" href="#timestep-controller-from-file">Timestep Controller From File</a> (type <cite>“from file</cite>”), uses a timestep history loaded from an HDF5 file.  (Usually only used for regression testing.)</p></li>
+<li><p><a class="reference internal" href="#timestep-controller-from-file">Timestep Controller From File</a> (type <cite>“from file</cite>”), uses a timestep history loaded from a file.  (Usually only used for regression testing.)</p></li>
 </ul>
 <div class="admonition-timestep-controller-typed-spec admonition" id="timestep-controller-typed-spec">
 <p class="admonition-title">timestep-controller-typed-spec</p>
@@ -599,20 +583,21 @@ control, to adapter based upon simple nonlinear iteration counts.</p>
 </ul>
 </div>
 <section id="timestep-controller-fixed">
-<h3>Timestep Controller Fixed<a class="headerlink" href="#timestep-controller-fixed" title="Permalink to this heading">#</a></h3>
-<blockquote>
-<div><p>Timestep controller providing constant timestep size.</p>
-</div></blockquote>
-<p><code class="docutils literal notranslate"><span class="pre">TimestepControllerFixed</span></code> is a simple timestep control mechanism which sets
-a constant timestep size.  Note that the actual timestep size is given by the
-minimum of PK’s initial timestep sizes.</p>
-<p>No parameters are required.</p>
+<h3>Timestep Controller Fixed<a class="headerlink" href="#timestep-controller-fixed" title="Link to this heading">#</a></h3>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/time_integration/TimestepControllerFixed.hh">src/time_integration/TimestepControllerFixed.hh</a></p>
+<p>A fixed timestep controller simply sets a constant timestep size.</p>
+<p><cite>“timestep controller type</cite>” = <cite>“fixed</cite>”</p>
+<div class="admonition-timestep-controller-fixed-spec admonition" id="timestep-controller-fixed-spec">
+<p class="admonition-title">timestep-controller-fixed-spec</p>
+<ul class="simple">
+<li><p><cite>“initial timestep [s]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> The fixed timestep size.</p></li>
+</ul>
+</div>
 </section>
 <section id="timestep-controller-standard">
-<h3>Timestep Controller Standard<a class="headerlink" href="#timestep-controller-standard" title="Permalink to this heading">#</a></h3>
-<blockquote>
-<div><p>Simple timestep control based upon previous iteration count.</p>
-</div></blockquote>
+<h3>Timestep Controller Standard<a class="headerlink" href="#timestep-controller-standard" title="Link to this heading">#</a></h3>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/time_integration/TimestepControllerStandard.hh">src/time_integration/TimestepControllerStandard.hh</a></p>
+<p>Simple timestep control based upon previous iteration count.</p>
 <p>This is a simple timestep control mechanism
 which sets the next timestep based upon the previous timestep and how many
 nonlinear iterations the previous timestep took to converge.</p>
@@ -629,10 +614,12 @@ nonlinear iterations required to solve step <span class="math notranslate nohigh
 <ul class="simple">
 <li><p><cite>“max iterations</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <span class="math notranslate nohighlight">\(N^{max}\)</span>, decrease the timestep if the previous step took more than this.</p></li>
 <li><p><cite>“min iterations</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <span class="math notranslate nohighlight">\(N^{min}\)</span>, increase the timestep if the previous step took less than this.</p></li>
-<li><p><cite>“time step reduction factor</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <span class="math notranslate nohighlight">\(f_{reduction}\)</span>, reduce the previous timestep by this multiple.</p></li>
-<li><p><cite>“time step increase factor</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <span class="math notranslate nohighlight">\(f_{increase}\)</span>, increase the previous timestep by this multiple.</p></li>
-<li><p><cite>“max time step</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> The max timestep size allowed.</p></li>
-<li><p><cite>“min time step</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> The min timestep size allowed.  If the step has failed and the new step is below this cutoff, the simulation fails.</p></li>
+<li><p><cite>“timestep reduction factor</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <span class="math notranslate nohighlight">\(f_{reduction}\)</span>, reduce the previous timestep by this multiple.</p></li>
+<li><p><cite>“timestep increase factor</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <span class="math notranslate nohighlight">\(f_{increase}\)</span>, increase the previous timestep by this multiple.</p></li>
+</ul>
+<p>INCLUDES:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[timestep-controller-recoverable-spec]</span></code></p></li>
 </ul>
 </div>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;BDF1&quot;</span><span class="nt">&gt;</span><span class="w"> </span><span class="cm">&lt;!-- parent list --&gt;</span>
@@ -640,25 +627,25 @@ nonlinear iterations required to solve step <span class="math notranslate nohigh
 <span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;timestep controller standard parameters&quot;</span><span class="nt">&gt;</span>
 <span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;min iterations&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;int&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;10&quot;</span><span class="nt">/&gt;</span>
 <span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;max iterations&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;int&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;15&quot;</span><span class="nt">/&gt;</span>
-<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;time step increase factor&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;1.2&quot;</span><span class="nt">/&gt;</span>
-<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;time step reduction factor&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.5&quot;</span><span class="nt">/&gt;</span>
-<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;max time step&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;1e+9&quot;</span><span class="nt">/&gt;</span>
-<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;min time step&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.0&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;timestep increase factor&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;1.2&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;timestep reduction factor&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.5&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;max timestep [s]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;1e+9&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;min timestep [s]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.0&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;initial timestep [s]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;86400&quot;</span><span class="nt">/&gt;</span>
 <span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
 <span class="nt">&lt;/ParameterList&gt;</span>
 </pre></div>
 </div>
-<p>In this example, the time step is increased by factor 1.2 when the nonlinear
+<p>In this example, the timestep is increased by factor 1.2 when the nonlinear
 solver converges in 10 or less iterations.
-The time step is not changed when the number of nonlinear iterations is
+The timestep is not changed when the number of nonlinear iterations is
 between 11 and 15.
-The time step will be cut twice if the number of nonlinear iterations exceeds 15.</p>
+The timestep will be cut twice if the number of nonlinear iterations exceeds 15.</p>
 </section>
 <section id="timestep-controller-smarter">
-<h3>Timestep Controller Smarter<a class="headerlink" href="#timestep-controller-smarter" title="Permalink to this heading">#</a></h3>
-<blockquote>
-<div><p>Slightly smarter timestep controller based upon a history of previous timesteps.</p>
-</div></blockquote>
+<h3>Timestep Controller Smarter<a class="headerlink" href="#timestep-controller-smarter" title="Link to this heading">#</a></h3>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/time_integration/TimestepControllerSmarter.hh">src/time_integration/TimestepControllerSmarter.hh</a></p>
+<p>Slightly smarter timestep controller based upon a history of previous timesteps.</p>
 <p>This is based on <a class="reference internal" href="#timestep-controller-standard">Timestep Controller Standard</a>, but also tries to be a bit
 smarter to avoid repeated increase/decrease loops where the step size
 decreases, converges in few iterations, increases, but then fails again.  It
@@ -667,28 +654,40 @@ nonlinearities.</p>
 <div class="admonition-timestep-controller-smarter-spec admonition" id="timestep-controller-smarter-spec">
 <p class="admonition-title">timestep-controller-smarter-spec</p>
 <ul class="simple">
-<li><p><cite>“max iterations</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <span class="math notranslate nohighlight">\(N^{max}\)</span>, decrease the timestep if the previous step took more than this.</p></li>
-<li><p><cite>“min iterations</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <span class="math notranslate nohighlight">\(N^{min}\)</span>, increase the timestep if the previous step took less than this.</p></li>
-<li><p><cite>“time step reduction factor</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <span class="math notranslate nohighlight">\(f_{reduction}\)</span>, reduce the previous timestep by this multiple.</p></li>
-<li><p><cite>“time step increase factor</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <span class="math notranslate nohighlight">\(f_{increase}\)</span>, increase the previous timestep by this multiple.  Note that this can be modified geometrically in the case of repeated successful steps.</p></li>
-<li><p><cite>“max time step increase factor</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>10.</strong> The max <span class="math notranslate nohighlight">\(f_{increase}\)</span> will ever get.</p></li>
-<li><p><cite>“growth wait after fail</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> Wait at least this many timesteps before attempting to grow the timestep after a failed timestep.</p></li>
-<li><p><cite>“count before increasing increase factor</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> Require this many successive increasions before multiplying <span class="math notranslate nohighlight">\(f_{increase}\)</span> by itself.</p></li>
+<li><dl class="simple">
+<dt><cite>“max iterations</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <span class="math notranslate nohighlight">\(N^{max}\)</span>, decrease the timestep if the</dt><dd><p>previous step took more than this.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><cite>“min iterations</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <span class="math notranslate nohighlight">\(N^{min}\)</span>, increase the timestep if the</dt><dd><p>previous step took less than this.</p>
+</dd>
+</dl>
+</li>
+<li><p><cite>“timestep reduction factor</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <span class="math notranslate nohighlight">\(f_{reduction}\)</span>, reduce
+the previous timestep by this multiple.</p></li>
+<li><p><cite>“timestep increase factor</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <span class="math notranslate nohighlight">\(f_{increase}\)</span>, increase
+the previous timestep by this multiple.  Note that this can be modified
+geometrically in the case of repeated successful steps.</p></li>
+<li><p><cite>“max timestep increase factor</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>10.</strong> The max
+<span class="math notranslate nohighlight">\(f_{increase}\)</span> will ever get.</p></li>
+<li><p><cite>“growth wait after fail</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> Wait at least this many timesteps
+before attempting to grow the timestep after a failed timestep.</p></li>
+<li><p><cite>“count before increasing increase factor</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> Require this many
+successive increasions before multiplying <span class="math notranslate nohighlight">\(f_{increase}\)</span> by itself.</p></li>
 </ul>
 </div>
 </section>
 <section id="timestep-controller-adaptive">
-<h3>Timestep Controller Adaptive<a class="headerlink" href="#timestep-controller-adaptive" title="Permalink to this heading">#</a></h3>
-<blockquote>
-<div><p>Adaptive timestep control based upon previous iteration count.</p>
-</div></blockquote>
+<h3>Timestep Controller Adaptive<a class="headerlink" href="#timestep-controller-adaptive" title="Link to this heading">#</a></h3>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/time_integration/TimestepControllerAdaptive.hh">src/time_integration/TimestepControllerAdaptive.hh</a></p>
+<p>Adaptive timestep control based upon previous iteration count.</p>
 <p>This is under development and is based on a posteriori error estimates.</p>
 </section>
 <section id="timestep-controller-from-file">
-<h3>Timestep Controller From File<a class="headerlink" href="#timestep-controller-from-file" title="Permalink to this heading">#</a></h3>
-<blockquote>
-<div><p>Timestep controller which loads a timestep history from file.</p>
-</div></blockquote>
+<h3>Timestep Controller From File<a class="headerlink" href="#timestep-controller-from-file" title="Link to this heading">#</a></h3>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/time_integration/TimestepControllerFromFile.hh">src/time_integration/TimestepControllerFromFile.hh</a></p>
+<p>Timestep controller which loads a timestep history from file.</p>
 <p>This loads a timestep history from a file, then advances the step size with
 those values.  This is mostly used for testing purposes, where we need to force
 the same timestep history as previous runs to do regression testing.  Otherwise
@@ -752,8 +751,8 @@ cause doubt over their correctness.</p>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
-<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+  <script defer src="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -773,7 +772,7 @@ cause doubt over their correctness.</p>
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.2.1.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
     <br/>
   </p>
 </div>
@@ -786,7 +785,8 @@ cause doubt over their correctness.</p>
       
         <div class="footer-item">
 <p class="theme-version">
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.3.
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
 </p></div>
       
     </div>

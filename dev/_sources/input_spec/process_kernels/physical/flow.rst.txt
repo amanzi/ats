@@ -75,7 +75,7 @@ Solves Richards equation:
      face unknowns on diffusion discretizations that are cell-only (e.g. FV).
      This can be useful for surface flow or other wierd boundary conditions.
      Usually provided by MPCs that need them.
-     
+
    * `"accumulation preconditioner`" ``[pde-accumulation-spec]`` **optional**
      The inverse of the accumulation operator.  See :ref:`Accumulation`.
      Typically not provided by users, as defaults are sufficient.
@@ -279,7 +279,7 @@ pressure as a primary variable:
      Typically not provided by users, as defaults are sufficient.
 
    Globalization:
-     
+
    * `"limit correction to pressure change [Pa]`" ``[double]`` **-1** If > 0,
      this limits an iterate's max pressure change to this value.  Not usually
      helpful.
@@ -298,7 +298,7 @@ pressure as a primary variable:
      tidal boundary condition.  TODO: This should live in the BC spec?
 
    Algorithmic physics control:
-     
+
    * `"coupled to subsurface via flux`" ``[bool]`` **false** Set by MPC.
    * `"coupled to subsurface via head`" ``[bool]`` **false** Set by MPC.
 

@@ -270,8 +270,8 @@ defaults for US temperate forests).
 
    - `"leaf on time [doy]`"
    - `"leaf off time [doy]`"
-     
-     
+
+
 
 
 
@@ -406,13 +406,13 @@ referred to Sakagucki and Zeng (2009).
        used to determine Clapp-Hornberger-b, which is the reciprocal of
        `"Brooks-Corey lambda [-]`".
      - `"residual saturation [-]`" ``[double]`` **0.0**
-     - `"dessicated zone thickness [m]`" ``[double]`` **0.1**  
+     - `"dessicated zone thickness [m]`" ``[double]`` **0.1**
 
    KEYS:
 
    - `"gas saturation`" Note only the column's top grid cell is used
    - `"porosity`" Note only the column's top grid cell is used
-     
+
 Example:
 
 .. code-block:: xml
@@ -454,7 +454,7 @@ referred to Sellers et al. (1992).
 .. math::
 
       R_{soil} = \mathrm{exp}(8.206 - 4.255 s_l)
-   
+
 
 `"evaluator type`" = `"soil resistance, Sellers`"
 
@@ -560,7 +560,7 @@ Computes:
    - `"canopy radiation balance`"
 
    DEPENDENCIES:
-     
+
    - `"surface albedos`" **SURFACE_DOMAIN-albedos**
    - `"surface emissivities`" **SURFACE_DOMAIN-emissivities**
    - `"incoming shortwave radiation`" **SURFACE_DOMAIN-incoming_shortwave_radiation**
@@ -581,7 +581,7 @@ Computes:
    - `"Beer's law extinction coefficient, longwave [-]`"
    - `"albedo of canopy [-]`"
 
-     
+
 Note that this is a *superset* of the physics in the "canopy radiation
 evaluator," and is therefore mutually exclusive with that model.
 
@@ -649,7 +649,7 @@ solve all of these balances to convergence simultaneously.
 
    This evaluator also uses the :ref:`Land Cover` types.  From that struct, it
    requires the value of the following parameters:
-   
+
    - `"Beer's law extinction coefficient, shortwave [-]`"
    - `"Beer's law extinction coefficient, longwave [-]`"
    - `"albedo of canopy [-]`"

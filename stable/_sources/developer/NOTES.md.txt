@@ -7,7 +7,7 @@ guidelines when using these levels in your code:
 
 - `Teuchos::VERB_NONE` Really, don't ever use this.  Don't do output at all.
 
-- `Teuchos::VERB_LOW` Should be used by time step-level work only.  It
+- `Teuchos::VERB_LOW` Should be used by timestep-level work only.  It
   should print a message saying "start a timestep" and the result of
   that timestep (success/fail).  So really almost exclusively in a
   PK's AdvanceStep() and ValidStep() methods, if they exist.

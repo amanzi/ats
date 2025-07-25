@@ -31,7 +31,7 @@
 <link href="../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
-    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/custom_theme.css?v=a03f4c85" />
   
@@ -50,7 +50,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.6';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             false;
         </script>
@@ -425,29 +425,15 @@ Version dev</div>
 </pre></div>
 </div>
 </div>
-<div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  Test log file : LOGS/ats-tests-2024-04-22_12-15-32.testlog
-Running ATS demo problems :
-04_integrated_hydro  | .
-
-----------------------------------------------------------------------
-Regression test summary:
-    Total run time: 5.01331 [s]
-    Total tests : 1
-    Tests run : 1
-    All tests passed.
-</pre></div>
-</div>
-</div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># load the ATS solution</span>
 <span class="n">directory</span> <span class="o">=</span> <span class="s2">&quot;./column.demo&quot;</span>
-<span class="n">vis</span> <span class="o">=</span> <span class="n">ats_xdmf</span><span class="o">.</span><span class="n">VisFile</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">time_unit</span><span class="o">=</span><span class="s1">&#39;d&#39;</span><span class="p">)</span>
+<span class="n">vis</span> <span class="o">=</span> <span class="n">ats_xdmf</span><span class="o">.</span><span class="n">VisFile</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">output_time_unit</span><span class="o">=</span><span class="s1">&#39;d&#39;</span><span class="p">)</span>
 <span class="n">vis</span><span class="o">.</span><span class="n">loadMesh</span><span class="p">(</span><span class="n">columnar</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-<span class="n">vis_surf</span> <span class="o">=</span> <span class="n">ats_xdmf</span><span class="o">.</span><span class="n">VisFile</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="s1">&#39;surface&#39;</span><span class="p">,</span> <span class="n">time_unit</span><span class="o">=</span><span class="s1">&#39;d&#39;</span><span class="p">)</span>
+<span class="n">vis_surf</span> <span class="o">=</span> <span class="n">ats_xdmf</span><span class="o">.</span><span class="n">VisFile</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="s1">&#39;surface&#39;</span><span class="p">,</span> <span class="n">output_time_unit</span><span class="o">=</span><span class="s1">&#39;d&#39;</span><span class="p">)</span>
 <span class="n">vis</span><span class="o">.</span><span class="n">loadMesh</span><span class="p">(</span><span class="n">columnar</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -473,7 +459,7 @@ Regression test summary:
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/06ca616809f8817fd50bc803887ccaeaa5ef5651826fb2ab514da060a89378d3.png" src="../../_images/06ca616809f8817fd50bc803887ccaeaa5ef5651826fb2ab514da060a89378d3.png" />
+<img alt="../../_images/f967584a57c02a050c18ebb06b8f1f03bcc412a6f702e41a5d7674b7a49511b5.png" src="../../_images/f967584a57c02a050c18ebb06b8f1f03bcc412a6f702e41a5d7674b7a49511b5.png" />
 </div>
 </div>
 </section>
@@ -484,20 +470,6 @@ Regression test summary:
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># run the simulation</span>
 <span class="n">run_demos</span><span class="o">.</span><span class="n">run_demo_local</span><span class="p">([</span><span class="s1">&#39;saturation_limited1&#39;</span><span class="p">,</span> <span class="s1">&#39;saturation_limited2&#39;</span><span class="p">,</span> <span class="s1">&#39;infiltration_limited1&#39;</span><span class="p">,</span> <span class="s1">&#39;infiltration_limited2&#39;</span><span class="p">])</span>
-</pre></div>
-</div>
-</div>
-<div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  Test log file : LOGS/ats-tests-2024-04-22_12-15-38.testlog
-Running ATS demo problems :
-04_integrated_hydro  | ....
-
-----------------------------------------------------------------------
-Regression test summary:
-    Total run time: 18.0182 [s]
-    Total tests : 4
-    Tests run : 4
-    All tests passed.
 </pre></div>
 </div>
 </div>
@@ -533,7 +505,7 @@ Regression test summary:
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/952521db2a8971c00e15f586865fa9c980e2cff650e7654890664264bdfc0abe.png" src="../../_images/952521db2a8971c00e15f586865fa9c980e2cff650e7654890664264bdfc0abe.png" />
+<img alt="../../_images/e3d3fa507e34c11d90d8e6b8e7ab6b9a5de0958d8716d93b988b1bf96f2ef3ec.png" src="../../_images/e3d3fa507e34c11d90d8e6b8e7ab6b9a5de0958d8716d93b988b1bf96f2ef3ec.png" />
 </div>
 </div>
 </section>
@@ -544,20 +516,6 @@ Regression test summary:
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># run the demos.  Note this should only run two runs if you have previously run the last set of demos.</span>
 <span class="n">run_demos</span><span class="o">.</span><span class="n">run_demo_local</span><span class="p">([</span><span class="s1">&#39;saturation_limited1&#39;</span><span class="p">,</span> <span class="s1">&#39;saturation_limited3&#39;</span><span class="p">,</span> <span class="s1">&#39;infiltration_limited1&#39;</span><span class="p">,</span> <span class="s1">&#39;infiltration_limited3&#39;</span><span class="p">])</span>
-</pre></div>
-</div>
-</div>
-<div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  Test log file : LOGS/ats-tests-2024-04-22_12-15-56.testlog
-Running ATS demo problems :
-04_integrated_hydro  | ..
-
-----------------------------------------------------------------------
-Regression test summary:
-    Total run time: 8.01383 [s]
-    Total tests : 2
-    Tests run : 2
-    All tests passed.
 </pre></div>
 </div>
 </div>
@@ -595,7 +553,7 @@ Regression test summary:
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/a8ae9293defacda9aa0abf868d6a46f5339b97410646aaf0643bfd6ff5e65422.png" src="../../_images/a8ae9293defacda9aa0abf868d6a46f5339b97410646aaf0643bfd6ff5e65422.png" />
+<img alt="../../_images/9ec551f93622deb4cd01fefa9d1b964736b7470c01cc0803a3ebb5ebc46cfa3d.png" src="../../_images/9ec551f93622deb4cd01fefa9d1b964736b7470c01cc0803a3ebb5ebc46cfa3d.png" />
 </div>
 </div>
 </section>
@@ -610,31 +568,17 @@ Regression test summary:
 </pre></div>
 </div>
 </div>
-<div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  Test log file : LOGS/ats-tests-2024-04-22_12-16-04.testlog
-Running ATS demo problems :
-04_integrated_hydro  | .
-
-----------------------------------------------------------------------
-Regression test summary:
-    Total run time: 6.01323 [s]
-    Total tests : 1
-    Tests run : 1
-    All tests passed.
-</pre></div>
-</div>
-</div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># plot the saturation at a few times</span>
 <span class="n">directory</span> <span class="o">=</span> <span class="s2">&quot;transect.demo&quot;</span>
 
-<span class="n">vis</span> <span class="o">=</span> <span class="n">ats_xdmf</span><span class="o">.</span><span class="n">VisFile</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">time_unit</span><span class="o">=</span><span class="s1">&#39;d&#39;</span><span class="p">)</span>
+<span class="n">vis</span> <span class="o">=</span> <span class="n">ats_xdmf</span><span class="o">.</span><span class="n">VisFile</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">output_time_unit</span><span class="o">=</span><span class="s1">&#39;d&#39;</span><span class="p">)</span>
 <span class="n">vis</span><span class="o">.</span><span class="n">filterIndices</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">21</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
 <span class="n">vis</span><span class="o">.</span><span class="n">loadMeshPolygons</span><span class="p">()</span>
 
-<span class="n">vis_surf</span> <span class="o">=</span> <span class="n">ats_xdmf</span><span class="o">.</span><span class="n">VisFile</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="s1">&#39;surface&#39;</span><span class="p">,</span> <span class="n">time_unit</span><span class="o">=</span><span class="s1">&#39;d&#39;</span><span class="p">)</span>
+<span class="n">vis_surf</span> <span class="o">=</span> <span class="n">ats_xdmf</span><span class="o">.</span><span class="n">VisFile</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="s1">&#39;surface&#39;</span><span class="p">,</span> <span class="n">output_time_unit</span><span class="o">=</span><span class="s1">&#39;d&#39;</span><span class="p">)</span>
 <span class="n">vis_surf</span><span class="o">.</span><span class="n">filterIndices</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">21</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
 <span class="n">vis_surf</span><span class="o">.</span><span class="n">loadMesh</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span><span class="s1">&#39;z&#39;</span><span class="p">])</span>
 
@@ -666,7 +610,7 @@ Regression test summary:
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/b09ceb7f0c70ec8ab434625c93f444384470ae47032c922a9fd2d3e841449114.png" src="../../_images/b09ceb7f0c70ec8ab434625c93f444384470ae47032c922a9fd2d3e841449114.png" />
+<img alt="../../_images/13f4eadbb934b8bc17922ed1f6ef09114993bb3d6b28520034eea8013ffb5a9b.png" src="../../_images/13f4eadbb934b8bc17922ed1f6ef09114993bb3d6b28520034eea8013ffb5a9b.png" />
 </div>
 </div>
 </section>
@@ -681,31 +625,17 @@ Regression test summary:
 </pre></div>
 </div>
 </div>
-<div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  Test log file : LOGS/ats-tests-2024-04-22_12-16-11.testlog
-Running ATS demo problems :
-04_integrated_hydro  | .
-
-----------------------------------------------------------------------
-Regression test summary:
-    Total run time: 103.022 [s]
-    Total tests : 1
-    Tests run : 1
-    All tests passed.
-</pre></div>
-</div>
-</div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># plot the saturation at a few times</span>
 <span class="n">directory</span> <span class="o">=</span> <span class="s2">&quot;superslab.demo&quot;</span>
 
-<span class="n">vis</span> <span class="o">=</span> <span class="n">ats_xdmf</span><span class="o">.</span><span class="n">VisFile</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">time_unit</span><span class="o">=</span><span class="s1">&#39;d&#39;</span><span class="p">)</span>
+<span class="n">vis</span> <span class="o">=</span> <span class="n">ats_xdmf</span><span class="o">.</span><span class="n">VisFile</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">output_time_unit</span><span class="o">=</span><span class="s1">&#39;d&#39;</span><span class="p">)</span>
 <span class="n">vis</span><span class="o">.</span><span class="n">filterIndices</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">2</span><span class="p">)))</span>
 <span class="n">vis</span><span class="o">.</span><span class="n">loadMeshPolygons</span><span class="p">()</span>
 
-<span class="n">vis_surf</span> <span class="o">=</span> <span class="n">ats_xdmf</span><span class="o">.</span><span class="n">VisFile</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="s1">&#39;surface&#39;</span><span class="p">,</span> <span class="n">time_unit</span><span class="o">=</span><span class="s1">&#39;d&#39;</span><span class="p">)</span>
+<span class="n">vis_surf</span> <span class="o">=</span> <span class="n">ats_xdmf</span><span class="o">.</span><span class="n">VisFile</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="s1">&#39;surface&#39;</span><span class="p">,</span> <span class="n">output_time_unit</span><span class="o">=</span><span class="s1">&#39;d&#39;</span><span class="p">)</span>
 <span class="n">vis_surf</span><span class="o">.</span><span class="n">filterIndices</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">2</span><span class="p">)))</span>
 <span class="n">vis_surf</span><span class="o">.</span><span class="n">loadMesh</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span><span class="s1">&#39;z&#39;</span><span class="p">])</span>
 
@@ -737,7 +667,7 @@ Regression test summary:
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/a2d5cb1a5a959c3e6a34787b7758e060f4547cbf2f1d3a8410f008547db50fd7.png" src="../../_images/a2d5cb1a5a959c3e6a34787b7758e060f4547cbf2f1d3a8410f008547db50fd7.png" />
+<img alt="../../_images/1019a372bb0ad646678766e3b03ab21e2be885dd50b0c5c24e877040f21a4a31.png" src="../../_images/1019a372bb0ad646678766e3b03ab21e2be885dd50b0c5c24e877040f21a4a31.png" />
 </div>
 </div>
 </section>

@@ -93,40 +93,41 @@ via the time discretization scheme:
 .. _bdf1-ti-spec:
 .. admonition:: bdf1-ti-spec
 
-    * `"verbose object`" ``[verbose-object-spec]`` A `Verbose Object`_
+   * `"verbose object`" ``[verbose-object-spec]`` A `Verbose Object`_
 
-    * `"residual debugger`" ``[residual-debugger-spec]`` A `Residual Debugger`_ object.
+   * `"residual debugger`" ``[residual-debugger-spec]`` A `Residual Debugger`_ object.
 
-    * `"max preconditioner lag iterations`" ``[int]`` **0** specifies frequency
-      of preconditioner recalculation.
+   * `"max preconditioner lag iterations`" ``[int]`` **0** specifies frequency
+     of preconditioner recalculation.
 
-    * `"freeze preconditioner`" ``[bool]`` **false** enforces preconditioner to
-      be updated only once per non-linear solver. When set to true, the above
-      parameter is ignored.
+   * `"freeze preconditioner`" ``[bool]`` **false** enforces preconditioner to
+     be updated only once per non-linear solver. When set to true, the above
+     parameter is ignored.
 
-    * `"extrapolate initial guess`" ``[bool]`` **true** identifies forward time
-      extrapolation of the initial guess.
+   * `"extrapolate initial guess`" ``[bool]`` **true** identifies forward time
+     extrapolation of the initial guess.
 
-    * `"nonlinear iteration initial guess extrapolation order`" ``[int]`` **1**
-      defines extrapolation algorithm. Zero value implies no extrapolation.
+   * `"nonlinear iteration initial guess extrapolation order`" ``[int]`` **1**
+     defines extrapolation algorithm. Zero value implies no extrapolation.
 
-    * `"restart tolerance relaxation factor`" ``[double]`` **1** Changes the
-      nonlinear tolerance on restart. The time integrator is usually restarted
-      when a boundary condition changes drastically. It may be beneficial to
-      loosen the nonlinear tolerance on the first several timesteps after the
-      time integrator restart. The default value is 1, while a reasonable value
-      may be as large as 1000.
+   * `"restart tolerance relaxation factor`" ``[double]`` **1** Changes the
+     nonlinear tolerance on restart. The time integrator is usually restarted
+     when a boundary condition changes drastically. It may be beneficial to
+     loosen the nonlinear tolerance on the first several timesteps after the
+     time integrator restart. The default value is 1, while a reasonable value
+     may be as large as 1000.
 
-    * `"restart tolerance relaxation factor damping`" ``[double]`` **1**
-      Controls how fast the loosened nonlinear tolerance will revert back to
-      the one specified in `"nonlinear tolerance`". If the nonlinear tolerance
-      is "tol", the relaxation factor is "factor", and the damping is "d", and
-      the timestep count is "n" then the actual nonlinear tolerance is "tol *
-      max(1.0, factor * d ** n)". Reasonable values are between 0 and 1.
+   * `"restart tolerance relaxation factor damping`" ``[double]`` **1**
+     Controls how fast the loosened nonlinear tolerance will revert back to the
+     one specified in `"nonlinear tolerance`". If the nonlinear tolerance is
+     "tol", the relaxation factor is "factor", and the damping is "d", and the
+     timestep count is "n" then the actual nonlinear tolerance is "tol *
+     max(1.0, factor * d ** n)". Reasonable values are between 0 and 1.
 
-    INCLUDES
-    - ``[solver-typed-spec]`` *Uses a* Solver_.
-    - ``[timestep-controller-typed-spec]`` *Uses a* `Timestep Controller`_
+   INCLUDES
+
+   - ``[solver-typed-spec]`` *Uses a* Solver_.
+   - ``[timestep-controller-typed-spec]`` *Uses a* `Timestep Controller`_
 
 
 Note this also accepts an object that provides the `BDF1 Solver Interface`_.

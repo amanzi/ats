@@ -1,0 +1,1655 @@
+
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Shared Specs &#8212; Amanzi-ATS</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/custom_theme.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'input_spec/common';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.15.3';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
+        </script>
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
+    <script src="../_static/main.js"></script>
+    <link rel="icon" href="../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="Operators" href="math/operators.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/logo_full.png" class="logo__image only-light" alt="Amanzi-ATS documentation -- Home"/>
+    <script>document.write(`<img src="../_static/logo_full.png" class="logo__image only-dark" alt="Amanzi-ATS documentation -- Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../demos.html">
+    ATS Demo Problems
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    ATS Input Specification
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../demos.html">
+    ATS Demo Problems
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    ATS Input Specification
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item"><!-- This will display the version of the docs -->
+Version 1.5</div>
+        <div class="sidebar-primary-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="pst-version-switcher-button-2"
+      type="button"
+      class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-2"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="pst-version-switcher-list-2"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-2">
+      <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">About the Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main.html">Main</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="mesh.html">Mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="region.html">Region</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="io/index.html">IO</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="io/ioevent.html">IOEvent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="io/visualization.html">Visualization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="io/observations.html">Observations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="io/checkpoint.html">Checkpoint</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="process_kernels/index.html">Process Kernels</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="process_kernels/base.html">Base PKs</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="process_kernels/physical/index.html">Physical PKs</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="process_kernels/physical/flow.html">Flow PKs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_kernels/physical/transport.html">Transport PK</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_kernels/physical/energy.html">Energy PKs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_kernels/physical/seb.html">Surface Energy Balance PKs</a></li>
+
+
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="process_kernels/mpcs/index.html">MPC</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="process_kernels/mpcs/base.html">Base MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_kernels/mpcs/physical.html">Physical MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_kernels/mpcs/globalization.html">Globalization Delegates</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="state/index.html">State</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="state/primary.html">Primary Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/independent.html">Independent Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/secondary.html">Secondary Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/conserved.html">Conserved quantities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/subsurface_flow.html">Subsurface flow evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/surface_flow.html">Surface flow evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/thermo.html">Thermodynamic evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/eos.html">Equations of State</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/seb.html">Surface energy balance evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/snow.html">Snow evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/canopy.html">Canopy evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/bgc.html">Carbon and Biogeochemistry Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/multiscale.html">Multiscale Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/geometric.html">Geometric evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/generic.html">Generic evaluators</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="math/index.html">Time integrators, solvers, and other mathematical specs</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="math/time_integrators.html">Time Integrators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="math/nonlinear_solvers.html">Nonlinear Solver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="math/linear_solvers.html">Linear Solvers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="math/preconditioners.html">Preconditioners</a></li>
+<li class="toctree-l2"><a class="reference internal" href="math/operators.html">Operators</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Shared Specs</a></li>
+</ul>
+</div>
+</nav></div>
+        <div class="sidebar-primary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#initial-conditions">Initial Conditions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#boundary-conditions">Boundary Conditions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#flow-specific-boundary-conditions">Flow-specific Boundary Conditions</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#dirichlet-pressure-boundary-conditions">Dirichlet (pressure) boundary conditions</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#dirichlet-head-boundary-conditions">Dirichlet (head) boundary conditions</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#dirichlet-fixed-level-boundary-conditions">Dirichlet (fixed level) boundary conditions</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#neumann-water-flux-boundary-conditions">Neumann (water flux) boundary conditions</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#neumann-fix-level-flux-boundary-conditions">Neumann (fix level flux) boundary conditions</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seepage-face-boundary-conditions">Seepage face boundary conditions</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#zero-head-gradient-boundary-conditions">Zero head gradient boundary conditions</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#critical-depth-boundary-conditions">Critical depth boundary conditions</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#dynamic-boundary-condutions">Dynamic boundary condutions</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#transport-specific-boundary-conditions">Transport-specific Boundary Conditions</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#energy-specific-boundary-conditions">Energy-specific Boundary Conditions</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#dirichlet-temperature-boundary-conditions">Dirichlet (temperature) boundary conditions</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#neumann-diffusive-energy-flux-boundary-conditions">Neumann (diffusive energy flux) boundary conditions</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#neumann-total-energy-flux-boundary-conditions">Neumann (total energy flux) boundary conditions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#constant-function">Constant Function</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tabular-function">Tabular Function</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#smooth-step-function">Smooth step Function</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#polynomial-function">Polynomial Function</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#multi-variable-linear-function">Multi-variable linear Function</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#separable-function">Separable Function</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#additive-function">Additive Function</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#multiplicative-function">Multiplicative Function</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#composition-function">Composition Function</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#piecewise-bilinear-function">Piecewise Bilinear Function</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#distance-function">Distance Function</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#monomial-function">Monomial Function</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#standard-math-function">Standard Math Function</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pde-advection">PDE_Advection</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#field-initializers">Field Initializers</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#function-initialization">Function Initialization</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#column-file-initialization">Column File Initialization</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#exodus-file-initialization">Exodus File Initialization</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">ATS Input Specification</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">Shared Specs</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="shared-specs">
+<h1>Shared Specs<a class="headerlink" href="#shared-specs" title="Permalink to this heading">#</a></h1>
+<section id="initial-conditions">
+<h2>Initial Conditions<a class="headerlink" href="#initial-conditions" title="Permalink to this heading">#</a></h2>
+<p>Initial condition specs are used in three places:</p>
+<ul class="simple">
+<li><p>In the <cite>“initial conditions</cite>” sublist of state, in which the value
+of atomic constants are provided (not really initial conditions and
+should be renamed).  These atomic values are not controlled by
+evaluators, and are not included in the DaG.</p></li>
+<li><p>Within the <a href="#id1"><span class="problematic" id="id2">PK_</span></a> spec which describes the initial condition of primary variables (true
+initial conditions).</p></li>
+<li><p>In <a class="reference internal" href="state/independent.html#independent-variable-constant"><span class="std std-ref">Independent Variable Constant</span></a></p></li>
+</ul>
+<p>The first may be of multiple types of data, while the latter two are
+nearly always fields on a mesh (e.g. CompositeVectors).  The specific
+available options for initializing various data in state differ by
+data type.</p>
+<div class="admonition-constants-scalar-spec admonition" id="constants-scalar-spec">
+<p class="admonition-title">constants-scalar-spec</p>
+<ul class="simple">
+<li><p><cite>“value</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> Value of a scalar constant</p></li>
+</ul>
+</div>
+<div class="admonition-constants-dense-vector-spec admonition" id="constants-dense-vector-spec">
+<p class="admonition-title">constants-dense-vector-spec</p>
+<ul class="simple">
+<li><p><cite>“value</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> Value of a dense, local vector.</p></li>
+</ul>
+</div>
+<div class="admonition-constants-point-spec admonition" id="constants-point-spec">
+<p class="admonition-title">constants-point-spec</p>
+<ul class="simple">
+<li><p><cite>“value</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> Array containing the values of the point.</p></li>
+</ul>
+</div>
+<div class="admonition-constants-composite-vector-spec admonition" id="constants-composite-vector-spec">
+<p class="admonition-title">constants-composite-vector-spec</p>
+<ul class="simple">
+<li><p><cite>“constant</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>optional</strong> Constant value.</p></li>
+<li><p><cite>“value</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>optional</strong> Constant value, same as <cite>“constant</cite>” above.</p></li>
+<li><p><cite>“function</cite>” <code class="docutils literal notranslate"><span class="pre">[composite-vector-function-spec-list]</span></code> <strong>optional</strong>
+Initialize from a function, see <a class="reference internal" href="#compositevectorfunction">CompositeVectorFunction</a></p></li>
+<li><p><cite>“restart file</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>optional</strong> Path to a checkpoint file from
+which to read the values.</p></li>
+<li><p><cite>“cells from file</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>optional</strong> Same as <cite>“restart file</cite>”,
+but only reads the cell component.</p></li>
+<li><p><cite>“exodus file initialization</cite>” <code class="docutils literal notranslate"><span class="pre">[exodus-file-initialization-spec]</span></code>
+<strong>optional</strong> See <a class="reference internal" href="#exodus-file-initialization">Exodus File Initialization</a>.</p></li>
+<li><p><cite>“initialize from 1D column</cite>” <code class="docutils literal notranslate"><span class="pre">[column-file-initialization-spec]</span></code>
+<strong>optional</strong> See <a class="reference internal" href="#column-file-initialization">Column File Initialization</a>.</p></li>
+</ul>
+</div>
+</section>
+<section id="boundary-conditions">
+<h2>Boundary Conditions<a class="headerlink" href="#boundary-conditions" title="Permalink to this heading">#</a></h2>
+<p>In general, boundary conditions are provided in a hierarchical list by
+boundary condition type, then functional form.  Boundary condition specs are
+split between two types – those which require a user-provided function
+(i.e. Dirichlet data, etc) and those which do not (i.e. zero gradient
+conditions).</p>
+<p>A list of conditions might pull in both Dirichlet and Neumann data on
+different regions, or use different functions on different regions.  The
+following example illustrates how boundary conditions are prescribed across
+the domain for a typical PK:</p>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;boundary conditions&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;DIRICHLET_TYPE&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;BC west&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;regions&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{west}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;DIRICHLET_FUNCTION_NAME&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function-constant&quot;</span><span class="nt">&gt;</span>
+<span class="w">          </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;value&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;101325.0&quot;</span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;BC east&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;regions&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{east}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;DIRICHLET_FUNCTION_NAME&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function-constant&quot;</span><span class="nt">&gt;</span>
+<span class="w">          </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;value&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;102325.&quot;</span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;water flux&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;BC north&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;regions&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{north}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;outward water flux&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function-constant&quot;</span><span class="nt">&gt;</span>
+<span class="w">          </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;value&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.&quot;</span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;zero gradient&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;BC south&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;regions&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{south}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+<p>Different PKs populate this general format with different names, replacing
+DIRICHLET_TYPE and DIRICHLET_FUNCTION_NAME.</p>
+<section id="flow-specific-boundary-conditions">
+<h3>Flow-specific Boundary Conditions<a class="headerlink" href="#flow-specific-boundary-conditions" title="Permalink to this heading">#</a></h3>
+<p>Flow boundary conditions must follow the general format shown in
+<a href="#id3"><span class="problematic" id="id4">BoundaryConditions_</span></a>.  Specific conditions implemented include:</p>
+<section id="dirichlet-pressure-boundary-conditions">
+<h4>Dirichlet (pressure) boundary conditions<a class="headerlink" href="#dirichlet-pressure-boundary-conditions" title="Permalink to this heading">#</a></h4>
+<p>Used for both surface and subsurface flows, this provides pressure data on
+boundaries (in [Pa]).</p>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;boundary conditions&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;pressure&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;BC west&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;regions&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{west}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;boundary pressure&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function-constant&quot;</span><span class="nt">&gt;</span>
+<span class="w">          </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;value&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;101325.0&quot;</span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="dirichlet-head-boundary-conditions">
+<h4>Dirichlet (head) boundary conditions<a class="headerlink" href="#dirichlet-head-boundary-conditions" title="Permalink to this heading">#</a></h4>
+<p>Used for both surface and subsurface flows, this provides head data (in [m]
+above the land surface), typically as a function of x &amp; y.  In the subsurface
+case, the z-value is given by hydrostatic relative to that head.</p>
+<div class="math notranslate nohighlight">
+\[p = p_{atm} + rho * g * (h(x,y) + z_{surf} - z)\]</div>
+<p>where h is the head function provided.</p>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;boundary conditions&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;head&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;BC west&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;regions&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{west}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;boundary head&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function-constant&quot;</span><span class="nt">&gt;</span>
+<span class="w">          </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;value&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.01&quot;</span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="dirichlet-fixed-level-boundary-conditions">
+<h4>Dirichlet (fixed level) boundary conditions<a class="headerlink" href="#dirichlet-fixed-level-boundary-conditions" title="Permalink to this heading">#</a></h4>
+<p>This fixes the water table at a constant elevation.  It is a head condition
+that adapts to the surface elevation, adjusting the head to a datum that is a
+fixed absolute z coordinate.</p>
+<div class="math notranslate nohighlight">
+\[p = p_{atm} + rho * g * (h(x,y) - z)\]</div>
+<p>where h is the head function provided.</p>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;boundary conditions&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;fixed level&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;BC west&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;regions&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{west}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;fixed level&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function-constant&quot;</span><span class="nt">&gt;</span>
+<span class="w">          </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;value&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.0&quot;</span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="neumann-water-flux-boundary-conditions">
+<h4>Neumann (water flux) boundary conditions<a class="headerlink" href="#neumann-water-flux-boundary-conditions" title="Permalink to this heading">#</a></h4>
+<p>Used for both surface and subsurface flows, this provides water flux data (in [mol m^-2 s^-1], for the subsurface, or [mol m^-1 s^-1] for the surface, in the outward normal direction) on boundaries.</p>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;boundary conditions&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;water flux&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;BC west&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;regions&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{west}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;outward water flux&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function-constant&quot;</span><span class="nt">&gt;</span>
+<span class="w">          </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;value&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;-1.e-3&quot;</span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="neumann-fix-level-flux-boundary-conditions">
+<h4>Neumann (fix level flux) boundary conditions<a class="headerlink" href="#neumann-fix-level-flux-boundary-conditions" title="Permalink to this heading">#</a></h4>
+<p>Used for surface only,  this provides fixed level ([m])  velocity data (in [m s^-1], in the outward normal direction on boundaries.</p>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="w"> </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;boundary conditions&quot;</span><span class="nt">&gt;</span>
+<span class="w">   </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;fixed level flux&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;river level south&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;regions&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{river south}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;fixed level&quot;</span><span class="nt">&gt;</span>
+<span class="w">           </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function-constant&quot;</span><span class="nt">&gt;</span>
+<span class="w">             </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;value&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.5&quot;</span><span class="nt">/&gt;</span>
+<span class="w">           </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">        </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">        </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;velocity&quot;</span><span class="nt">&gt;</span>
+<span class="w">           </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function-constant&quot;</span><span class="nt">&gt;</span>
+<span class="w">             </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;value&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;2.5&quot;</span><span class="nt">/&gt;</span>
+<span class="w">           </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">        </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">   </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="seepage-face-boundary-conditions">
+<h4>Seepage face boundary conditions<a class="headerlink" href="#seepage-face-boundary-conditions" title="Permalink to this heading">#</a></h4>
+<p>A variety of seepage face boundary conditions are permitted for both surface
+and subsurface flow PKs.  Typically seepage conditions are of the form:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>if <span class="math notranslate nohighlight">\(q \cdot \hat{n} &lt; 0\)</span>, then <span class="math notranslate nohighlight">\(q = 0\)</span></p></li>
+<li><p>if <span class="math notranslate nohighlight">\(p &gt; p0\)</span>, then <span class="math notranslate nohighlight">\(p = p0\)</span></p></li>
+</ul>
+</div></blockquote>
+<p>This ensures that flow is only out of the domain, but that the max pressure on
+the boundary is specified by <span class="math notranslate nohighlight">\(p0\)</span>.</p>
+<p>Example: pressure (for surface or subsurface)</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;boundary conditions&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;seepage face pressure&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;BC west&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;regions&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{west}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;boundary pressure&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function-constant&quot;</span><span class="nt">&gt;</span>
+<span class="w">          </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;value&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;101325.&quot;</span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+<p>Example: head (for surface)</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;boundary conditions&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;seepage face head&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;BC west&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;regions&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{west}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;boundary head&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function-constant&quot;</span><span class="nt">&gt;</span>
+<span class="w">          </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;value&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.0&quot;</span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+<p>Additionally, an infiltration flux may be prescribed, which describes the max
+flux.  This is for surface faces on which a typical precipitation rate might
+be prescribed, to be enforced until the water table rises to the surface, at
+which point the precip is turned off and water seeps into runoff.  This
+capability is experimental and has not been well tested.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>if <span class="math notranslate nohighlight">\(q \cdot \hat{n} &lt; q_0\)</span>, then <span class="math notranslate nohighlight">\(q = q_0\)</span></p></li>
+<li><p>if <span class="math notranslate nohighlight">\(p &gt; p_{atm}\)</span>, then <span class="math notranslate nohighlight">\(p = p_{atm}\)</span></p></li>
+</ul>
+</div></blockquote>
+<p>Note the condition also accepts a parameter:</p>
+<ul class="simple">
+<li><p><cite>“explicit time index</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> If true, the _type_ of the BC is
+evaluated at the old time, keeping it fixed while the nonlinear solve
+iterates.</p></li>
+</ul>
+<p>Example: seepage with infiltration</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;boundary conditions&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;seepage face with infiltration&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;BC west&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;explicit time index&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;bool&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;true&quot;</span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;regions&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{west}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;outward water flux&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function-constant&quot;</span><span class="nt">&gt;</span>
+<span class="w">          </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;value&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;-1.e-5&quot;</span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+<p>Note it would be straightforward to add both p0 and q0 in the same condition;
+this has simply not had a use case yet.</p>
+</section>
+<section id="zero-head-gradient-boundary-conditions">
+<h4>Zero head gradient boundary conditions<a class="headerlink" href="#zero-head-gradient-boundary-conditions" title="Permalink to this heading">#</a></h4>
+<p>Used for surface flows, this is an “outlet” boundary condition which looks to
+enforce the condition that</p>
+<div class="math notranslate nohighlight">
+\[\div h \cdot \hat{n} = 0\]</div>
+<p>for head <span class="math notranslate nohighlight">\(h\)</span> and outward normal <span class="math notranslate nohighlight">\(\hat{n}\)</span>.  Note that this is an
+“outlet” boundary, in the sense that it should really not be used on a
+boundary in which</p>
+<div class="math notranslate nohighlight">
+\[\div z \cdot \hat{n} &gt; 0.\]</div>
+<p>This makes it a useful boundary condition for benchmark and 2D problems, where
+the elevation gradient is clear, but not so useful for DEM-based meshes.</p>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;boundary conditions&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;zero gradient&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;BC west&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;regions&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{west}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="critical-depth-boundary-conditions">
+<h4>Critical depth boundary conditions<a class="headerlink" href="#critical-depth-boundary-conditions" title="Permalink to this heading">#</a></h4>
+<p>Also for surface flows, this is an “outlet” boundary condition which looks to
+set an outward flux to take away runoff.  This condition is given by:</p>
+<div class="math notranslate nohighlight">
+\[q = \sqrt{g \hat{z}} n_{liq} h^1.5\]</div>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;boundary conditions&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;critical depth&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;BC west&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;regions&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{west}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="dynamic-boundary-condutions">
+<h4>Dynamic boundary condutions<a class="headerlink" href="#dynamic-boundary-condutions" title="Permalink to this heading">#</a></h4>
+<p>The type of boundary conditions maybe changed in time depending on the switch function of TIME.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;dynamic&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;regions&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{surface west}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;switch function&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function-tabular&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;file&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;../data/floodplain2.h5&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;x header&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;Time&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;y header&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;Switch&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;form&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{constant}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;bcs&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;bc types&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{head, water flux}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;bc functions&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{boundary head, outward water flux}&quot;</span><span class="nt">/&gt;</span>
+
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;water flux&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;BC west&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;regions&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{surface west}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;outward water flux&quot;</span><span class="nt">&gt;</span>
+<span class="w">          </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function-tabular&quot;</span><span class="nt">&gt;</span>
+<span class="w">            </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;file&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;../data/floodplain2.h5&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">            </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;x header&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;Time&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">            </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;y header&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;Flux&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">            </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;form&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{linear}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">          </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">         </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">       </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;head&quot;</span><span class="nt">&gt;</span>
+<span class="w">       </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;BC west&quot;</span><span class="nt">&gt;</span>
+<span class="w">         </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;regions&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{surface west}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">         </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;boundary head&quot;</span><span class="nt">&gt;</span>
+<span class="w">           </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function-tabular&quot;</span><span class="nt">&gt;</span>
+<span class="w">              </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;file&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;../data/floodplain2.h5&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">              </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;x header&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;Time&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">              </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;y header&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;Head&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">              </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;form&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{linear}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">            </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">         </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">       </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">     </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="transport-specific-boundary-conditions">
+<h3>Transport-specific Boundary Conditions<a class="headerlink" href="#transport-specific-boundary-conditions" title="Permalink to this heading">#</a></h3>
+</section>
+<section id="energy-specific-boundary-conditions">
+<h3>Energy-specific Boundary Conditions<a class="headerlink" href="#energy-specific-boundary-conditions" title="Permalink to this heading">#</a></h3>
+<p>Energy boundary conditions must follow the general format shown in
+<a href="#id5"><span class="problematic" id="id6">BoundaryConditions_</span></a>.  Energy-specific conditions implemented include:</p>
+<section id="dirichlet-temperature-boundary-conditions">
+<h4>Dirichlet (temperature) boundary conditions<a class="headerlink" href="#dirichlet-temperature-boundary-conditions" title="Permalink to this heading">#</a></h4>
+<p>Provide temperature data in units of [K].</p>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;boundary conditions&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;temperature&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;BC west&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;regions&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{west}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;boundary temperature&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function-constant&quot;</span><span class="nt">&gt;</span>
+<span class="w">          </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;value&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;276.15.&quot;</span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="neumann-diffusive-energy-flux-boundary-conditions">
+<h4>Neumann (diffusive energy flux) boundary conditions<a class="headerlink" href="#neumann-diffusive-energy-flux-boundary-conditions" title="Permalink to this heading">#</a></h4>
+<p>Note that for an energy equation, there are two mechanisms by which energy can
+be fluxed into the domain: through diffusion and through advection.  This
+boundary condition sets the diffusive flux of energy, and allows the advective
+flux to be whatever it may be.  Frequently this is used in combination with
+boundaries where water is expected to be advected out of the domain, and we
+wish to allow the energy of that water to be advected away with it, but wish to
+independently specify diffusive fluxes.  This can also be used in cases where
+the mass flux is prescribed to be zero (e.g. bottom boundaries, where this
+might be the geothermal gradient).</p>
+<p>Units are in <strong>[MW m^-2]</strong>, noting the deviation from SI units!</p>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="w"> </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;boundary conditions&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;diffusive flux&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;BC west&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;regions&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{west}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;outward diffusive flux&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function-constant&quot;</span><span class="nt">&gt;</span>
+<span class="w">          </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;value&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.&quot;</span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+<p>Note that another commonly implemented boundary condition is one where the
+diffusive flux is prescribed, and also the temperature of incoming water is
+prescribed.  This is not currently implemented, but would be straightforward to
+do so if requested.</p>
+</section>
+<section id="neumann-total-energy-flux-boundary-conditions">
+<h4>Neumann (total energy flux) boundary conditions<a class="headerlink" href="#neumann-total-energy-flux-boundary-conditions" title="Permalink to this heading">#</a></h4>
+<p>This boundary condition sets the total flux of energy, from both advection and
+diffusion.  This is not used all that often in real applications, but is common
+for benchmarks or other testing.</p>
+<p>Units are in <strong>[MW m^-2]</strong>, noting the deviation from SI units!</p>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="w"> </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;boundary conditions&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;enthalpy flux&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;BC west&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;regions&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{west}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;outward enthalpy flux&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function-constant&quot;</span><span class="nt">&gt;</span>
+<span class="w">          </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;value&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.&quot;</span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this heading">#</a></h2>
+<blockquote>
+<div><p>A base class for all functions of space and time.</p>
+</div></blockquote>
+<p>Analytic, algabraic functions of space and time are used for a variety of
+purposes, including boundary conditions, initial conditions, and independent
+variables.</p>
+<p>For initial conditions, functions are prescribed of space only, i.e.</p>
+<div class="math notranslate nohighlight">
+\[u = f(x,y,z)\]</div>
+<p>For boundary conditions and independent variables, functions are also a
+function of time:</p>
+<div class="math notranslate nohighlight">
+\[u = f(t,x,y,z)\]</div>
+<p>It is straightforward to add new functions as needed.</p>
+<section id="constant-function">
+<h3>Constant Function<a class="headerlink" href="#constant-function" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>FunctionConstant: Implements the Function interface using a constant value.</p>
+</div></blockquote>
+<p>Constant function is defined as <span class="math notranslate nohighlight">\(f(x) = a\)</span>, for all <span class="math notranslate nohighlight">\(x\)</span>.</p>
+<ul class="simple">
+<li><p><cite>“value</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> The constant to be applied.</p></li>
+</ul>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function-constant&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;value&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;1.0&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="tabular-function">
+<h3>Tabular Function<a class="headerlink" href="#tabular-function" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>FunctionTabular: Piecewise-defined function.</p>
+</div></blockquote>
+<p>A piecewise function of one variable.</p>
+<p>A tabular function is tabulated on a series of intervals; given values
+<span class="math notranslate nohighlight">\({{x_i}}, {{y_i}},, i=0, ... n-1\)</span> and functional forms <span class="math notranslate nohighlight">\({{f_j}},,
+j=0, ... n-2\)</span> a tabular function <span class="math notranslate nohighlight">\(f(x)\)</span> is defined as:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{matrix}
+f(x) &amp;=&amp; y_0, &amp; x \le x_0,\\
+f(x) &amp;=&amp; f_{{i-1}}(x)  &amp; x \in (x_{{i-1}}, x_i],\\
+f(x) &amp;=&amp; y_{{n-1}}, &amp; x &gt; x_{{n-1}}.
+\end{matrix}\end{split}\]</div>
+<p>The functional forms <span class="math notranslate nohighlight">\({f_j}\)</span> may be constant, which uses the left endpoint, i.e.</p>
+<p><span class="math notranslate nohighlight">\(f_i(x) = y_i\)</span>,</p>
+<p>linear, i.e.</p>
+<p><span class="math notranslate nohighlight">\(f_i(x) = ( y_i * (x - x_i) + y_{{i+1}} * (x_{{i+1}} - x) ) / (x_{{i+1}} - x_i)\)</span></p>
+<p>or arbitrary, in which the <span class="math notranslate nohighlight">\(f_j\)</span> must be provided.</p>
+<p>The <span class="math notranslate nohighlight">\(x_i\)</span> and <span class="math notranslate nohighlight">\(y_i\)</span> may be provided in one of two ways – explicitly in the input spec or from an HDF5 file.  The length of these must be equal, and the <span class="math notranslate nohighlight">\(x_i\)</span> must be monotonically increasing.  Forms, as defined on intervals, must be of length equal to the length of the <span class="math notranslate nohighlight">\(x_i\)</span> less one.</p>
+<p>Explicitly specifying the data:</p>
+<div class="admonition-function-tabular-spec admonition" id="function-tabular-spec">
+<p class="admonition-title">function-tabular-spec</p>
+<ul class="simple">
+<li><p><cite>“x values</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> the <span class="math notranslate nohighlight">\(x_i\)</span></p></li>
+<li><p><cite>“y values</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> the <span class="math notranslate nohighlight">\(y_i\)</span></p></li>
+<li><p><cite>“forms</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> <strong>optional</strong> Form of the interpolant, either
+<cite>“constant</cite>”, <cite>“linear</cite>”, or <cite>“USER_DEFINED</cite>” Default is linear for each *
+interval.  Note the length of this array should be one per interval, or
+one less than len of x and y values.</p></li>
+<li><p><cite>“USER_DEFINED</cite>” <code class="docutils literal notranslate"><span class="pre">[function-spec]</span></code> <strong>optional</strong> user-provided functional
+forms on the interval</p></li>
+<li><p><cite>“x coordinate</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>t</strong>, <cite>“x</cite>”, <cite>“y</cite>”, <cite>“z</cite>” defines which
+coordinate direction the <span class="math notranslate nohighlight">\(x_i\)</span> are formed, defaulting to time.</p></li>
+</ul>
+</div>
+<p>The below example defines a function that is zero on interval <span class="math notranslate nohighlight">\((-\infty,\,0]\)</span>,
+linear on interval <span class="math notranslate nohighlight">\((0,\,1]\)</span>, constant (<cite>f(x)=1</cite>) on interval <span class="math notranslate nohighlight">\((1,\,2]\)</span>,
+square root of <cite>t</cite> on interval <span class="math notranslate nohighlight">\((2,\,3]\)</span>,
+and constant (<cite>f(x)=2</cite>) on interval <span class="math notranslate nohighlight">\((3,\,\infty]\)</span>.</p>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function-tabular&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;x values&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(double)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{0.0, 1.0, 2.0, 3.0}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;x coordinate&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;t&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;y values&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(double)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{0.0, 1.0, 2.0, 2.0}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;forms&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{linear, constant, USER_FUNC}&quot;</span><span class="nt">/&gt;</span>
+
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;USER_FUNC&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function-standard-math&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;operator&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;sqrt&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+<p>Loading table from file.  (Note that <cite>“USER_DEFINED</cite>” is not an option here,
+but could be made so if requested).</p>
+<div class="admonition-function-tabular-fromfile-spec admonition" id="function-tabular-fromfile-spec">
+<p class="admonition-title">function-tabular-fromfile-spec</p>
+<ul class="simple">
+<li><p><cite>“file</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> filename of the HDF5 data</p></li>
+<li><p><cite>“x header</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> name of the dataset for the <span class="math notranslate nohighlight">\(x_i\)</span> in the file</p></li>
+<li><p><cite>“y header</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> name of the dataset for the <span class="math notranslate nohighlight">\(y_i\)</span> in the file</p></li>
+<li><p><cite>“forms</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>optional</strong>, Form of the interpolant, either
+<cite>“constant</cite>” or <cite>“linear</cite>”</p></li>
+</ul>
+</div>
+<p>The example below would perform linear-interpolation on the intervals provided by data within the hdf5 file <cite>“my_data.h5</cite>”.</p>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function-tabular&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;file&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;my_data.h5&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;x coordinate&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;t&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;x header&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;/time&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;y header&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;/data&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="smooth-step-function">
+<h3>Smooth step Function<a class="headerlink" href="#smooth-step-function" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>FunctionSmoothStep: a smoothed discontinuity.</p>
+</div></blockquote>
+<p>A smooth <span class="math notranslate nohighlight">\(C^2\)</span> function <cite>f(x)</cite> on interval <span class="math notranslate nohighlight">\([x_0,\,x_1]\)</span> is
+defined such that <cite>f(x) = y_0</cite> for <cite>x &lt; x0</cite>, <cite>f(x) = y_1</cite> for <cite>x &gt; x_1</cite>, and
+monotonically increasing for <span class="math notranslate nohighlight">\(x \in [x_0, x_1]\)</span> through cubic
+interpolation.</p>
+<div class="admonition-function-smooth-step-spec admonition" id="function-smooth-step-spec">
+<p class="admonition-title">function-smooth-step-spec</p>
+<ul class="simple">
+<li><p><cite>“x0</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> First fitting point</p></li>
+<li><p><cite>“y0</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> First fitting value</p></li>
+<li><p><cite>“x1</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> Second fitting point</p></li>
+<li><p><cite>“y1</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> Second fitting value</p></li>
+</ul>
+</div>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function-smooth-step&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;x0&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.0&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;y0&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.0&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;x1&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;1.0&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;y1&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;2.0&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="polynomial-function">
+<h3>Polynomial Function<a class="headerlink" href="#polynomial-function" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>FunctionPolynomial: a polynomial</p>
+</div></blockquote>
+<p>A generic polynomial function is given by the following expression:</p>
+<div class="math notranslate nohighlight">
+\[f(x) = \sum_{{j=0}}^n c_j (x - x_0)^{{p_j}}\]</div>
+<p>where <span class="math notranslate nohighlight">\(c_j\)</span> are coefficients of monomials,
+<span class="math notranslate nohighlight">\(p_j\)</span> are integer exponents, and <span class="math notranslate nohighlight">\(x_0\)</span> is the reference point.</p>
+<div class="admonition-function-polynomial-spec admonition" id="function-polynomial-spec">
+<p class="admonition-title">function-polynomial-spec</p>
+<ul class="simple">
+<li><p><cite>“coefficients</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> c_j polynomial coefficients</p></li>
+<li><p><cite>“exponents</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(int)]</span></code> p_j polynomail exponents</p></li>
+<li><p><cite>“reference point</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> x0 to which polynomial argument is normalized.</p></li>
+</ul>
+</div>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function-polynomial&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;coefficients&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(double)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{1.0, 1.0}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;exponents&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(int)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{2, 4}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;reference point&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.0&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="multi-variable-linear-function">
+<h3>Multi-variable linear Function<a class="headerlink" href="#multi-variable-linear-function" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>FunctionLinear: a multivariate linear function.</p>
+</div></blockquote>
+<p>A multi-variable linear function is formally defined by</p>
+<div class="math notranslate nohighlight">
+\[f(x) = y_0 + \sum_{{j=0}}^{{n-1}} g_j (x_j - x_{{0,j}})\]</div>
+<p>with the constant term “math:<cite>y_0</cite> and gradient <span class="math notranslate nohighlight">\(g_0,\, g_1\,..., g_{{n-1}}\)</span>.
+If the reference point <span class="math notranslate nohighlight">\(x_0\)</span> is specified, it must have the same
+number of values as the gradient.  Otherwise, it defaults to zero.
+Note that one of the parameters in a multi-valued linear function can be time.</p>
+<div class="admonition-function-linear-spec admonition" id="function-linear-spec">
+<p class="admonition-title">function-linear-spec</p>
+<ul class="simple">
+<li><p><cite>“y0</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> y_0 in f = y0 + g * (x - x0)</p></li>
+<li><p><cite>“gradient</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> g in f = y0 + g * (x - x0)</p></li>
+<li><p><cite>“x0</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> x0 in f = y0 + g * (x - x0)</p></li>
+</ul>
+</div>
+<p>Conditions:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">len</span><span class="p">(</span><span class="n">x0</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradient</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function-linear&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;y0&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;1.0&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;gradient&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(double)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{1.0, 2.0, 3.0}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;x0&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(double)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{2.0, 3.0, 1.0}&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="separable-function">
+<h3>Separable Function<a class="headerlink" href="#separable-function" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>FunctionSeparable: f(x,y) = f1(x)*f2(y)</p>
+</div></blockquote>
+<p>A separable function is defined as the product of other functions such as</p>
+<div class="math notranslate nohighlight">
+\[f(x_0, x_1,...,x_{{n-1}}) = f_1(x_0)\, f_2(x_1,...,x_{{n-1}})\]</div>
+<p>where <span class="math notranslate nohighlight">\(f_1\)</span> is defined by the <cite>“function1</cite>” sublist, and
+<span class="math notranslate nohighlight">\(f_2\)</span> by the <cite>“function2</cite>” sublist.</p>
+<div class="admonition-function-separable-spec admonition" id="function-separable-spec">
+<p class="admonition-title">function-separable-spec</p>
+<ul class="simple">
+<li><p><cite>“function1</cite>” <code class="docutils literal notranslate"><span class="pre">[function-spec]</span></code> <span class="math notranslate nohighlight">\(f_1\)</span> in <span class="math notranslate nohighlight">\(f(x) = f_1(x0) * f_2(x1...)\)</span></p></li>
+<li><p><cite>“function2</cite>” <code class="docutils literal notranslate"><span class="pre">[function-spec]</span></code> <span class="math notranslate nohighlight">\(f_2\)</span> in <span class="math notranslate nohighlight">\(f(x) = f_1(x0) * f_2(x1...)\)</span></p></li>
+</ul>
+</div>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function-separable&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function1&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span>function-specification
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function2&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span>function-specification
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="additive-function">
+<h3>Additive Function<a class="headerlink" href="#additive-function" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>FunctionAdditive: f(x,y) = f1(x,y) + f2(x,y)</p>
+</div></blockquote>
+<p>An additive function simply adds two other function results together.</p>
+<div class="math notranslate nohighlight">
+\[f(x) = f_1(x) + f_2(x)\]</div>
+<p>where <span class="math notranslate nohighlight">\(f_1\)</span> is defined by the <cite>“function1</cite>” sublist, and
+<span class="math notranslate nohighlight">\(f_2\)</span> by the <cite>“function2</cite>” sublist.</p>
+<div class="admonition-function-additive-spec admonition" id="function-additive-spec">
+<p class="admonition-title">function-additive-spec</p>
+<ul class="simple">
+<li><p><cite>“function1</cite>” <code class="docutils literal notranslate"><span class="pre">[function-typedinline-spec]</span></code> <span class="math notranslate nohighlight">\(f_1\)</span> in <span class="math notranslate nohighlight">\(f(x) = f_1(x) + f_2(x)\)</span></p></li>
+<li><p><cite>“function2</cite>” <code class="docutils literal notranslate"><span class="pre">[function-typedinline-spec]</span></code> <span class="math notranslate nohighlight">\(f_2\)</span> in <span class="math notranslate nohighlight">\(f(x) = f_1(x) + f_2(x)\)</span></p></li>
+</ul>
+</div>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function-additive&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function1&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span>function-specification
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function2&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span>function-specification
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="multiplicative-function">
+<h3>Multiplicative Function<a class="headerlink" href="#multiplicative-function" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>FunctionMultiplicative: f(x,y) = f1(x,y) * f2(x,y)</p>
+</div></blockquote>
+<p>A multiplicative function simply multiplies two other function results together.</p>
+<div class="math notranslate nohighlight">
+\[f(x) = f_1(x) * f_2(x)\]</div>
+<p>where <span class="math notranslate nohighlight">\(f_1\)</span> is defined by the <cite>“function1</cite>” sublist, and
+<span class="math notranslate nohighlight">\(f_2\)</span> by the <cite>“function2</cite>” sublist.</p>
+<div class="admonition-function-multiplicative-spec admonition" id="function-multiplicative-spec">
+<p class="admonition-title">function-multiplicative-spec</p>
+<ul class="simple">
+<li><p><cite>“function1</cite>” <code class="docutils literal notranslate"><span class="pre">[function-typedinline-spec]</span></code> <span class="math notranslate nohighlight">\(f_1\)</span> in <span class="math notranslate nohighlight">\(f(x) = f_1(x) * f_2(x)\)</span></p></li>
+<li><p><cite>“function2</cite>” <code class="docutils literal notranslate"><span class="pre">[function-typedinline-spec]</span></code> <span class="math notranslate nohighlight">\(f_2\)</span> in <span class="math notranslate nohighlight">\(f(x) = f_1(x) * f_2(x)\)</span></p></li>
+</ul>
+</div>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function-multiplicative&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function1&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span>function-specification
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function2&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span>function-specification
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="composition-function">
+<h3>Composition Function<a class="headerlink" href="#composition-function" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>FunctionComposition: f(x,y) = f1(x,y) * f2(x,y)</p>
+</div></blockquote>
+<p>Function composition simply applies one function to the result of another.</p>
+<div class="math notranslate nohighlight">
+\[f(x) = f_1( f_2(x) )\]</div>
+<p>where <span class="math notranslate nohighlight">\(f_1\)</span> is defined by the <cite>“function1</cite>” sublist, and
+<span class="math notranslate nohighlight">\(f_2\)</span> by the <cite>“function2</cite>” sublist.</p>
+<div class="admonition-function-composition-spec admonition" id="function-composition-spec">
+<p class="admonition-title">function-composition-spec</p>
+<ul class="simple">
+<li><p><cite>“function1</cite>” <code class="docutils literal notranslate"><span class="pre">[function-typedinline-spec]</span></code> <span class="math notranslate nohighlight">\(f_1\)</span> in <span class="math notranslate nohighlight">\(f(x) = f_1(f_2(x))\)</span></p></li>
+<li><p><cite>“function2</cite>” <code class="docutils literal notranslate"><span class="pre">[function-typedinline-spec]</span></code> <span class="math notranslate nohighlight">\(f_2\)</span> in <span class="math notranslate nohighlight">\(f(x) = f_1(f_2(x))\)</span></p></li>
+</ul>
+</div>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function-composition&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function1&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span>function-specification
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function2&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span>function-specification
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="piecewise-bilinear-function">
+<h3>Piecewise Bilinear Function<a class="headerlink" href="#piecewise-bilinear-function" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>FunctionBilinear: a piecewise bilinear function.</p>
+</div></blockquote>
+<p>A piecewise bilinear function extends the linear form of the tabular function to two variables.</p>
+<p>Define <span class="math notranslate nohighlight">\(i(x) = i : x_i &lt; x &lt;= x_{{i+1}}\)</span> and similarly <span class="math notranslate nohighlight">\(j(y) = j : y_j &lt; y &lt;= y_{{j+1}}\)</span> for monotonically increasing <span class="math notranslate nohighlight">\(x_i\)</span> and <span class="math notranslate nohighlight">\(y_j\)</span>.</p>
+<p>Given a two-dimensional array <span class="math notranslate nohighlight">\(u_{i,j}\)</span>, <span class="math notranslate nohighlight">\(f\)</span> is then defined by
+bilinear interpolation on <span class="math notranslate nohighlight">\(u_{i(x),j(y)}, u_{i(x)+1,j(y)}, u_{i(x),j(y)+1}, u_{i(x)+1,j(y)+1}\)</span>,
+if <span class="math notranslate nohighlight">\((x,y)\)</span> is in <span class="math notranslate nohighlight">\([x_0,x_n] \times [y_0,y_m]\)</span>, linear interpolation if one of <span class="math notranslate nohighlight">\(x,y\)</span>
+are out of those bounds, and constant at the corner value if both are out of
+bounds.</p>
+<div class="admonition-function-bilinear-spec admonition" id="function-bilinear-spec">
+<p class="admonition-title">function-bilinear-spec</p>
+<ul class="simple">
+<li><p><cite>“file</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> HDF5 filename of the data</p></li>
+<li><p><cite>“row header</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> name of the row dataset, the <span class="math notranslate nohighlight">\(x_i\)</span></p></li>
+<li><p><cite>“row coordinate</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> one of <cite>“t</cite>”,`”x`”,`”y`”,`”z`”</p></li>
+<li><p><cite>“column header</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> name of the column dataset, the <span class="math notranslate nohighlight">\(y_i\)</span></p></li>
+<li><p><cite>“column coordinate</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> one of <cite>“t</cite>”,`”x`”,`”y`”,`”z`”</p></li>
+<li><p><cite>“value header</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> name of the values dataset, the <span class="math notranslate nohighlight">\(u_{{i,j}}\)</span></p></li>
+</ul>
+</div>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function-bilinear&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;file&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;pressure.h5&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;row header&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;/time&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;row coordinate&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;t&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;column header&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;/x&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;column coordinate&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;x&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;value header&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;/pressure&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="distance-function">
+<h3>Distance Function<a class="headerlink" href="#distance-function" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>FunctionDistance: distance from a reference point.</p>
+</div></blockquote>
+<p>A distance function calculates distance from reference point <span class="math notranslate nohighlight">\(x_0\)</span>
+using by the following expression:</p>
+<div class="math notranslate nohighlight">
+\[f(x) = \sqrt( \sum_{j=0}^{n} m_j (x_j - x_{0,j})^2 )\]</div>
+<p>Note that the first parameter in <span class="math notranslate nohighlight">\(x\)</span> can be time.</p>
+<div class="admonition-function-distance-spec admonition" id="function-distance-spec">
+<p class="admonition-title">function-distance-spec</p>
+<ul class="simple">
+<li><p><cite>“x0</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> Point from which distance is measured.</p></li>
+<li><p><cite>“metric</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> Linear scaling metric, typically all 1s.</p></li>
+</ul>
+</div>
+<p>Here is an example of a distance function using isotropic metric:</p>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function-distance&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;x0&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(double)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{1.0, 3.0, 0.0}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;metric&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(double)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{1.0, 1.0, 1.0}&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="monomial-function">
+<h3>Monomial Function<a class="headerlink" href="#monomial-function" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>FunctionMonomial: a multivariate monomial function.</p>
+</div></blockquote>
+<p>A multi-variable monomial function is given by the following expression:</p>
+<div class="math notranslate nohighlight">
+\[f(x) = c \prod_{j=0}^{n} (x_j - x_{0,j})^{p_j}\]</div>
+<p>with the constant factor <span class="math notranslate nohighlight">\(c\)</span>, the reference point <span class="math notranslate nohighlight">\(x_0\)</span>, and
+integer exponents <span class="math notranslate nohighlight">\(p_j\)</span>.
+Note that the first parameter in <span class="math notranslate nohighlight">\(x\)</span> can be time.</p>
+<div class="admonition-function-monomial-spec admonition" id="function-monomial-spec">
+<p class="admonition-title">function-monomial-spec</p>
+<ul class="simple">
+<li><p><cite>“c</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> c in <span class="math notranslate nohighlight">\(f = c \prod_{j=0}^{n} (x_j - x_{0,j})^{p_j}\)</span></p></li>
+<li><p><cite>“x0</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> x0 in <span class="math notranslate nohighlight">\(f = c \prod_{j=0}^{n} (x_j - x_{0,j})^{p_j}\)</span></p></li>
+<li><p><cite>“exponents</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(int)]</span></code> p in <span class="math notranslate nohighlight">\(f = c \prod_{j=0}^{n} (x_j - x_{0,j})^{p_j}\)</span></p></li>
+</ul>
+</div>
+<p>Conditions:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">len</span><span class="p">(</span><span class="n">x0</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">exponents</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Here is an example of monomial of degree 6 in three variables:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function-monomial&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;c&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;1.0&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;x0&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(double)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{1.0, 3.0, 0.0}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;exponents&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(int)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{2, 3, 1}&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="standard-math-function">
+<h3>Standard Math Function<a class="headerlink" href="#standard-math-function" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>Provides access to many common mathematical functions.</p>
+</div></blockquote>
+<p>These functions allow to set up non-trivial time-dependent boundary conditions
+which increases a set of analytic solutions that can be used in convergence
+analysis tests.</p>
+<div class="math notranslate nohighlight">
+\[f(x) = A * operator( p * (x - s) )\]</div>
+<p>or</p>
+<div class="math notranslate nohighlight">
+\[f(x) = A * operator(x-s, p)\]</div>
+<p>Note that these operate only on the first coordinate, which is often time.
+Function composition can be used to apply these to other coordinates (or
+better yet a dimension could/should be added upon request).</p>
+<div class="admonition-function-standard-math-spec admonition" id="function-standard-math-spec">
+<p class="admonition-title">function-standard-math-spec</p>
+<ul class="simple">
+<li><p><cite>“operator</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> specifies the name of a standard mathematical
+function.  Available options are:</p>
+<ul>
+<li><p>trigonometric operators: <cite>“cos</cite>”, <cite>“sin</cite>”, <cite>“tan</cite>”, <cite>“acos</cite>”, <cite>“asin</cite>”,
+<cite>“atan</cite>”</p></li>
+<li><p>hyperbolic trig operators: <cite>“cosh</cite>”, <cite>“sinh</cite>”, <cite>“tanh</cite>”</p></li>
+<li><p>power/log operators: <cite>“pow</cite>”, <cite>“exp</cite>”, <cite>“log</cite>”, <cite>“log10</cite>”, <cite>“sqrt</cite>”,</p></li>
+<li><p>integral operators: <cite>“ceil</cite>”, <cite>“floor</cite>”, <cite>“mod</cite>”,</p></li>
+<li><p><cite>“abs</cite>”, <cite>“fabs</cite>”, <cite>“positive</cite>” (0 for negative values), <cite>“negative</cite>” (0
+for positive values), <cite>“heaviside</cite>”, <cite>“sign</cite>”</p></li>
+</ul>
+</li>
+<li><p><cite>“amplitude</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> specifies a multiplication factor <cite>a</cite> in
+formula <cite>a f(x)</cite>.  The multiplication factor is ignored by function
+<cite>mod</cite>. Default value is 1.</p></li>
+<li><p><cite>“parameter</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.0</strong> specifies additional parameter <cite>p</cite> for
+math functions with two arguments. These functions are <cite>“a pow(x[0], p)</cite>”
+and <cite>“a mod(x[0], p)</cite>”.  Alternative, scales the argument before
+application, for use in changing the period of trig functions.</p></li>
+<li><p><cite>“shift</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> specifies a shift of the function argument. Default
+is 0.</p></li>
+</ul>
+</div>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function-standard-math&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;operator&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;sqrt&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;amplitude&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;1e-7&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;shift&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.1&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+<p>This example defines function <cite>1e-7 sqrt(t-0.1)</cite>.</p>
+</section>
+<section id="pde-advection">
+<h3>PDE_Advection<a class="headerlink" href="#pde-advection" title="Permalink to this heading">#</a></h3>
+<p>A high-order advection operator may have different domain and range and therefore requires two schemas.
+The structure of the new schema is described in the previous section.
+A high-order advection operator has two terms in a weak formulation, corresponding to
+volume and surface integrals. These two terms are discretixed using two operators with
+matrix of types <em>advection</em> and <em>flux</em>, respectively.</p>
+<ul class="simple">
+<li><p><cite>“pks operator name</cite>” [list] a PK specific name for the advection operator.</p>
+<ul>
+<li><p><cite>“method</cite>” [string] defines a discretization method. The available option is <cite>“dg modal</cite>”.</p></li>
+<li><p><cite>“method order</cite>” [int] defines method order. For example, the classical low-order finite
+volume scheme is equivalent to DG of order 0.</p></li>
+<li><p><cite>“matrix type</cite>” [string] defines matrix type. The supported options are <cite>“advection</cite>”
+and <cite>“flux</cite>”.</p></li>
+<li><p><cite>“dg basis</cite>” [string] defines bases for DG schemes. The available options are
+<cite>“regularized</cite>” (recommended), <cite>“normalized</cite>”, <cite>“orthonormalized</cite>”, and <cite>“natural</cite>”
+(not recommended).</p></li>
+<li><p><cite>“gradient operator on test function</cite>” [bool] defines place of the gradient operator.
+For integration by parts schemes, the gradient is transfered to a test function.
+This option is needed for discretizing volumetric integrals.</p></li>
+<li><p><cite>“jump operator on test function</cite>” [bool] defines place of the jump operator.
+For integration by parts schemes, the jump operator is applied to a test function.
+This option is needed for discretizing surface fluxes.</p></li>
+<li><p><cite>“flux formula</cite>” [string] defines type of the flux. The available options
+are <cite>“Rusanov</cite>” (default), <cite>“upwind</cite>”, <cite>“downwind</cite>”, and <cite>“NavierStokes</cite>”.</p></li>
+<li><p><cite>“schema domain</cite>” [list] defines a discretization schema for the operator domain.</p></li>
+<li><p><cite>“schema range</cite>” [list] defines a discretization schema for the operator range.</p></li>
+</ul>
+</li>
+</ul>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;pks operator name&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;method&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;dg modal&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;method order&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;int&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;2&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;flux formula&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;Rusanov&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;matrix type&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;flux&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;jump operator on test function&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;bool&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;true&quot;</span><span class="nt">/&gt;</span>
+
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;schema domain&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;base&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;cell&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;location&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{node, face}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;type&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{scalar, normal component}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;number&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(int)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{2, 1}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;schema range&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;base&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;cell&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;location&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{cell}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;type&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{scalar}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;number&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(int)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{1}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+<p>In this example, we construct an operator for volumetric integrals in a weak formulation
+of advection problem.</p>
+<p>The only low-order advection operator in Amanzi is the upwind operator.
+It employes the old schema.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;pks operator name&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;base&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;face&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;schema&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{cell}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;method order&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;int&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;matrix type&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;advection&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">PDE_AdvectionUpwind</span></code> assembles the discrete form of:</p>
+<div class="math notranslate nohighlight">
+\[\nabla \cdot (q C)\]</div>
+<p>which advects quantity <span class="math notranslate nohighlight">\(C\)</span> with fluxes <span class="math notranslate nohighlight">\(q\)</span>.</p>
+<p>This is a simple, first-order donor-upwind scheme, and is recommended
+for use in diffusion-dominated advection-diffusion equations.</p>
+</section>
+</section>
+<section id="field-initializers">
+<h2>Field Initializers<a class="headerlink" href="#field-initializers" title="Permalink to this heading">#</a></h2>
+<p>Fields, also known by their underlying datatype, the CompositeVector,
+can be initialized in a variety of ways.  These are used in a variety
+of places as generic capability.</p>
+<section id="function-initialization">
+<h3>Function Initialization<a class="headerlink" href="#function-initialization" title="Permalink to this heading">#</a></h3>
+<blockquote id="compositevectorfunction">
+<div><p>Mesh Functions, evaluate a function on a mesh and stick the result in a vector.</p>
+</div></blockquote>
+<p>CompositeVectorFunctions are ways of evaluating a piecewise function on a
+mesh and sticking the result into a CompositeVector.</p>
+<p>This is used in a variety of ways – Initial Conditions, Boundary
+Conditions, and Independent Variable Evaluators.</p>
+<p>Typically any containing object of this spec is a list of these specs.  The
+list is indexed by Region, and the regions (logically) should partition the
+domain (or boundary of the domain in the case of BCs).</p>
+<p>Each entry in that list is a:</p>
+<div class="admonition-composite-vector-function-spec admonition" id="composite-vector-function-spec">
+<p class="admonition-title">composite-vector-function-spec</p>
+<p>ONE OF</p>
+<ul class="simple">
+<li><p><cite>“region</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Region on which this function is evaluated.</p></li>
+</ul>
+<p>OR</p>
+<ul class="simple">
+<li><p><cite>“regions</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> List of regions on which this function is evaluated.</p></li>
+</ul>
+<p>END</p>
+<p>ONE OF</p>
+<ul class="simple">
+<li><p><cite>“component</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Mesh component to evaluate this on.  This is
+one of “cell”, “face”, “node”, “edge”, or “boundary_face”. The last two
+may require additional conditions, such as a proper mesh initialization.
+The mask “*” could be used in place of the component name.</p></li>
+</ul>
+<p>OR</p>
+<ul class="simple">
+<li><p><cite>“components</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> Mesh components to evaluate this on.
+This is some collection of “cell”, “face”, “node”, “edge”, and/or
+“boundary_face”. The last two may require additional conditions, such as a
+proper mesh initialization.  The array with the single entry “*” could be
+used to initialize all existing components.</p></li>
+</ul>
+<p>END</p>
+<ul class="simple">
+<li><p><cite>“function</cite>” <code class="docutils literal notranslate"><span class="pre">[function-typedinline-spec]</span></code> The spec to provide the actual algebraic function.</p></li>
+</ul>
+</div>
+</section>
+<section id="column-file-initialization">
+<h3>Column File Initialization<a class="headerlink" href="#column-file-initialization" title="Permalink to this heading">#</a></h3>
+<p>Interpolate a depth-based, 1D column of data onto a mesh.  Values are
+prescribed only to cells.  Expected is an HDF5 file in the format:</p>
+<p>Depth coordinates z:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>/z[:] = (z_0, z_1, … , z_n)</dt><dd><p>z_0 = 0.0
+z_n &gt;= max depth of mesh
+z_i &gt; z_(i-1)</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>Function values u:</p>
+<blockquote>
+<div><p>/f[:] = (f_0(z_0), f_1(z_1), …, f_n(z_n))</p>
+</div></blockquote>
+<div class="admonition-column-initialization-spec admonition" id="column-initialization-spec">
+<p class="admonition-title">column-initialization-spec</p>
+<ul class="simple">
+<li><p><cite>“file</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> HDF5 filename</p></li>
+<li><p><cite>“z header</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> name of the z-coordinate data: <cite>z</cite> above.  Depth
+coordinates (positive downward from the surface), [m]</p></li>
+<li><p><cite>“f header</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> name of the function data: <cite>f</cite> above.</p></li>
+</ul>
+</div>
+</section>
+<section id="exodus-file-initialization">
+<h3>Exodus File Initialization<a class="headerlink" href="#exodus-file-initialization" title="Permalink to this heading">#</a></h3>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="math/operators.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Operators</p>
+      </div>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 202X, jointly shared by contributor institutions.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.2.1.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.3.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

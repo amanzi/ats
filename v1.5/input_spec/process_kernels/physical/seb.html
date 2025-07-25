@@ -1,0 +1,799 @@
+
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Surface Energy Balance PKs &#8212; Amanzi-ATS</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+
+  
+  <link href="../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/custom_theme.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
+  <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/sphinx_highlight.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'input_spec/process_kernels/physical/seb';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.15.3';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
+        </script>
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
+    <script src="../../../_static/main.js"></script>
+    <link rel="icon" href="../../../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="MPC" href="../mpcs/index.html" />
+    <link rel="prev" title="Energy PKs" href="energy.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../_static/logo_full.png" class="logo__image only-light" alt="Amanzi-ATS documentation -- Home"/>
+    <script>document.write(`<img src="../../../_static/logo_full.png" class="logo__image only-dark" alt="Amanzi-ATS documentation -- Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../demos.html">
+    ATS Demo Problems
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="../../index.html">
+    ATS Input Specification
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../demos.html">
+    ATS Demo Problems
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="../../index.html">
+    ATS Input Specification
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item"><!-- This will display the version of the docs -->
+Version 1.5</div>
+        <div class="sidebar-primary-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="pst-version-switcher-button-2"
+      type="button"
+      class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-2"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="pst-version-switcher-list-2"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-2">
+      <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../introduction.html">About the Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main.html">Main</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="../../mesh.html">Mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../region.html">Region</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../io/index.html">IO</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../io/ioevent.html">IOEvent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../io/visualization.html">Visualization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../io/observations.html">Observations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../io/checkpoint.html">Checkpoint</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html">Process Kernels</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../base.html">Base PKs</a></li>
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="index.html">Physical PKs</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="flow.html">Flow PKs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="transport.html">Transport PK</a></li>
+<li class="toctree-l3"><a class="reference internal" href="energy.html">Energy PKs</a></li>
+<li class="toctree-l3 current active"><a class="current reference internal" href="#">Surface Energy Balance PKs</a></li>
+
+
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../mpcs/index.html">MPC</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../mpcs/base.html">Base MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../mpcs/physical.html">Physical MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../mpcs/globalization.html">Globalization Delegates</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../state/index.html">State</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../state/primary.html">Primary Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../state/independent.html">Independent Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../state/secondary.html">Secondary Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../state/conserved.html">Conserved quantities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../state/subsurface_flow.html">Subsurface flow evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../state/surface_flow.html">Surface flow evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../state/thermo.html">Thermodynamic evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../state/eos.html">Equations of State</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../state/seb.html">Surface energy balance evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../state/snow.html">Snow evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../state/canopy.html">Canopy evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../state/bgc.html">Carbon and Biogeochemistry Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../state/multiscale.html">Multiscale Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../state/geometric.html">Geometric evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../state/generic.html">Generic evaluators</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../math/index.html">Time integrators, solvers, and other mathematical specs</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../math/time_integrators.html">Time Integrators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math/nonlinear_solvers.html">Nonlinear Solver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math/linear_solvers.html">Linear Solvers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math/preconditioners.html">Preconditioners</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math/operators.html">Operators</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../common.html">Shared Specs</a></li>
+</ul>
+</div>
+</nav></div>
+        <div class="sidebar-primary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Surface Energy Balance PKs</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#balance-equation">Balance Equation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#snow-balance-equation">Snow Balance Equation</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#biogeochemistry">Biogeochemistry</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#biogeochemistry-monolithic-version">Biogeochemistry – Monolithic Version</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#deformation">Deformation</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#volumetric-deformation">Volumetric Deformation</a></li>
+</ul>
+</li>
+</ul>
+
+  </nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">ATS Input Specification</a></li>
+    
+    
+    <li class="breadcrumb-item"><i class="fa-solid fa-ellipsis"></i></li>
+    
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Physical PKs</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">Surface...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="surface-energy-balance-pks">
+<h1>Surface Energy Balance PKs<a class="headerlink" href="#surface-energy-balance-pks" title="Permalink to this heading">#</a></h1>
+<p>Integrated hydrology is not much use without significant process
+complexity in source terms coming from the ecohydrologic environment.
+These include straightforward sources, like precipitation, but also
+more complicated ones such as evaporation and transpiration.</p>
+<p>These terms are almost always tied up in a surface energy balance –
+evaporation and transpiration are driven by vapor pressure gradients
+between the atmosphere and the surface (either snow, ponded water,
+soil, or leaf).  Solving a surface energy balance often requires
+providing a bunch of terms, including radiated energy, conducted
+energy, latent and sensible heat models, etc.</p>
+<p>ATS currently has several approaches to calculating these – see
+<a class="reference external" href="https://github.com/amanzi/ats-demos">ats-demos</a> examples on
+ecohydrology for a more in-depth discussion.</p>
+<section id="balance-equation">
+<h2>Balance Equation<a class="headerlink" href="#balance-equation" title="Permalink to this heading">#</a></h2>
+<blockquote>
+<div><p>A simple conservation ODE.</p>
+</div></blockquote>
+<p>This is a very simple vector of ODEs, useful in balance equations, where the
+time derivative of a conserved quantity is determined by a bunch of sources and
+sinks.</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial \Phi }{\partial t} = \sum_i Q_i\]</div>
+<div class="admonition-balance-pk-spec admonition" id="balance-pk-spec">
+<p class="admonition-title">balance-pk-spec</p>
+<ul class="simple">
+<li><p><cite>“primary variable key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> The primary variable associated with
+this PK.  Note there is no default – this must be provided by the user.</p></li>
+<li><p><cite>“conserved quantity key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> The conserved quantity <span class="math notranslate nohighlight">\(\Phi\)</span></p></li>
+<li><p><cite>“source key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-source_sink</strong> Units are in conserved
+quantity per second per cell volume.</p></li>
+<li><p><cite>“time discretization theta</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.0</strong> <span class="math notranslate nohighlight">\(\theta\)</span> in a
+Crank-Nicholson time integration scheme.  1.0 implies fully implicit, 0.0
+implies explicit, 0.5 implies C-N.</p></li>
+<li><p><cite>“modify predictor positivity preserving</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> If true,
+predictors are modified to ensure that the conserved quantity is always &gt; 0.</p></li>
+<li><p><cite>“absolute error tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>550.0</strong> a_tol in the standard
+error norm calculation.  Defaults to a small amount of water.  Units are
+the same as the conserved quantity.</p></li>
+</ul>
+<p>INCLUDES:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[pk-physical-bdf-default-spec]</span></code></p></li>
+</ul>
+</div>
+</section>
+<section id="snow-balance-equation">
+<h2>Snow Balance Equation<a class="headerlink" href="#snow-balance-equation" title="Permalink to this heading">#</a></h2>
+<blockquote>
+<div><p>An implicit PK for surface balance snow SWE conservation.</p>
+</div></blockquote>
+<p>This is a balance PK whose conserved quantity is snow SWE.  The energy balance
+comes in as it provides the energy needed to melt snow.  So source terms
+include snow precipitation and snowmelt.  It also manages snow density, which
+should get rethought a bit.</p>
+<p>There is also some wierd hackiness here about area fractions – see ATS Issue
+#8</p>
+<div class="admonition-subgrid-balance-pk-spec admonition" id="subgrid-balance-pk-spec">
+<p class="admonition-title">subgrid-balance-pk-spec</p>
+<ul class="simple">
+<li><p><cite>“absolute error tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.01</strong> <code class="docutils literal notranslate"><span class="pre">[m]</span></code></p></li>
+</ul>
+<p>INCLUDES:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[balance-pk-spec]</span></code> This <em>is a</em> <a class="reference internal" href="#balance-equation">Balance Equation</a></p></li>
+</ul>
+<p>Not typically set by user, defaults work:</p>
+<ul class="simple">
+<li><p><cite>“conserved quantity key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-snow_water_equivalent</strong>
+Sets the default conserved quantity key, so this is likely not supplied
+by the user. <cite>[m]</cite></p></li>
+<li><p><cite>“snow density key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-density</strong> Default snow density
+key. <cite>[kg m^-3]</cite></p></li>
+<li><p><cite>“snow age key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-age</strong> Default snow age key. <cite>[d]</cite></p></li>
+<li><p><cite>“new snow key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-source</strong> Default new snow key. <cite>[m SWE s^-1]</cite></p></li>
+<li><p><cite>“area fractions key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-fractional_areas</strong> Subgrid
+model fractional areas, see note above. <cite>[-]</cite></p></li>
+<li><p><cite>“snow death rate key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-death_rate</strong> Deals with last
+tiny bit of snowmelt.</p></li>
+</ul>
+</div>
+</section>
+</section>
+<section id="biogeochemistry">
+<h1>Biogeochemistry<a class="headerlink" href="#biogeochemistry" title="Permalink to this heading">#</a></h1>
+<p>To accurately predict watershed ecohydrology, a carbon cycle model is
+needed to predict transpiration.  By simulating a carbon cycle, we are
+able to predict the rate of photosynthesis as a function of space and
+time, and photosynthesis governs root water uptake.  Currently only
+one big-leaf model is available, but ongoing work is wrapping a
+generalized Common/Colorado Land Model based on that developed within
+the ParFlow team, and another ongoing project is working on wrapping
+kernels from E3SM’s Land Model.</p>
+<section id="biogeochemistry-monolithic-version">
+<h2>Biogeochemistry – Monolithic Version<a class="headerlink" href="#biogeochemistry-monolithic-version" title="Permalink to this heading">#</a></h2>
+<blockquote>
+<div><p>Above and below-ground carbon cycle model.</p>
+</div></blockquote>
+<p>This is a multi-leaf layer, big-leaf vegetation model coupled to a Century
+model for belowground carbon decomposition.</p>
+<p>It leverages a PFT-based structure which allows multiple height-sorted PFTs to
+coexist on the same grid cells, with the shorter PFTs getting whatever light is
+left in the understory.</p>
+<p>The implementation is based on an old, standalone code by Chonggang Xu, and
+adapted for ATS.  While this is not simple, it is called BGC simple as it is
+about the least amount of complexity required to get a reasonable carbon cycle
+into ATS.</p>
+<p>Outputs of this include transpiration, a critical sink for hydrology, as it
+solves photosynthesis based on water availability.</p>
+<p>Note this is an “explicit update PK,” or effectively a forward Euler timestep
+that is not written in ODE form.</p>
+<p>Note this works on both the surface (vegetation) and subsurface (decomposition)
+meshes.  <strong>It is required</strong> that the subsurface mesh is a “columnar” mesh, and
+that build_columns in the subsurface <a href="#id1"><span class="problematic" id="id2">Mesh_</span></a> spec has been supplied.</p>
+<div class="admonition-bgc-simple-spec admonition" id="bgc-simple-spec">
+<p class="admonition-title">bgc-simple-spec</p>
+<ul class="simple">
+<li><p><cite>“initial time step</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.0</strong> Initial time step size <cite>[s]</cite></p></li>
+<li><p><cite>“number of carbon pools</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>7</strong> Unclear whether this can actually change?</p></li>
+<li><p><cite>“soil carbon parameters</cite>” <code class="docutils literal notranslate"><span class="pre">[soil-carbon-spec-list]</span></code> List of soil carbon parameters by soil mesh partition region name.</p></li>
+<li><p><cite>“pft parameters</cite>” <code class="docutils literal notranslate"><span class="pre">[pft-spec-list]</span></code> List of PFT parameters by PFT name.</p></li>
+<li><p><cite>“latitude [degrees]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>60</strong> Latitude of the simulation in degrees.  Used in radiation balance.</p></li>
+<li><p><cite>“wind speed reference height [m]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>2.0</strong> Reference height of the wind speed dataset.</p></li>
+<li><p><cite>“cryoturbation mixing coefficient [cm^2/yr]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>5.0</strong> Controls diffusion of carbon into the subsurface via cryoturbation.</p></li>
+<li><p><cite>“leaf biomass initial condition</cite>” <code class="docutils literal notranslate"><span class="pre">[initial-conditions-spec]</span></code> Sets the leaf biomass IC.</p></li>
+<li><p><cite>“domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>domain</strong></p></li>
+<li><p><cite>“surface domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>surface</strong></p></li>
+<li><p><cite>“transpiration key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-transpiration</strong> The distributed transpiration flux <cite>[mol s^-1]</cite></p></li>
+<li><p><cite>“shaded shortwave radiation key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code>
+<strong>SURFACE_DOMAIN-shaded_shortwave_radiation</strong> Shortwave radiation that gets
+past the canopy and teo the bare ground for soil evaporation. <cite>[W m^-2]</cite></p></li>
+<li><p><cite>“total leaf area index key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>SURFACE_DOMAIN-total_leaf_area_index</strong> Total LAI across all PFTs.</p></li>
+</ul>
+<p>EVALUATORS:</p>
+<ul class="simple">
+<li><p><cite>“temperature</cite>” The soil temperature <cite>[K]</cite></p></li>
+<li><p><cite>“pressure</cite>” soil mafic potential <cite>[Pa]</cite></p></li>
+<li><p><cite>“surface-cell_volume</cite>” <cite>[m^2]</cite></p></li>
+<li><p><cite>“surface-incoming shortwave radiation</cite>” <cite>[W m^-2]</cite></p></li>
+<li><p><cite>“surface-air_temperature</cite>” <cite>[K]</cite></p></li>
+<li><p><cite>“surface-vapor_pressure_air</cite>” <cite>[Pa]</cite></p></li>
+<li><p><cite>“surface-wind_speed</cite>” <cite>[m s^-1]</cite></p></li>
+<li><p><cite>“surface-co2_concentration</cite>” <cite>[ppm]</cite></p></li>
+</ul>
+</div>
+</section>
+</section>
+<section id="deformation">
+<h1>Deformation<a class="headerlink" href="#deformation" title="Permalink to this heading">#</a></h1>
+<p>The unstructured mesh framework we use provides the opportunity to
+include deformation of the mesh.  This deformation can be done in two
+ways – either node coordinate changes are provided, or volumetric
+changes are provided, and the code attempts to iterate toward a global
+coordinate change that satisfies these volumetric changes.  The latter
+can be somewhat fragile for large deformation, but it does allow
+simple deformation such as small, somewhat uniform subsidence.  The
+volumetric deformation PK below does this based on a volumetric change
+given by loss of bulk ice.</p>
+<section id="volumetric-deformation">
+<h2>Volumetric Deformation<a class="headerlink" href="#volumetric-deformation" title="Permalink to this heading">#</a></h2>
+<blockquote>
+<div><p>Subsidence through bulk ice loss and cell volumetric change.</p>
+</div></blockquote>
+<p>This process kernel provides for going from a cell volumetric change to an
+updated unstructured mesh, and can be coupled sequentially with flow to solve
+problems of flow in a subsiding porous media.</p>
+<p>Note that this PK is slaved to the flow PK.  This PK must be advanced first,
+and be weakly coupled to the flow PK (or an MPC that advances the flow PK), and
+the timestep of this PK must match that of the flow PK (e.g. do not try to
+subcyle one or the other).  This uses a rather hacky, unconventional use of
+time tags, where we use saturations and porosities at the NEXT time, but ASSUME
+they are actually the values of the CURRENT time.  This saves having to stash a
+copy of these variables at the CURRENT time, which would otherwise not be used.</p>
+<p>Note that all deformation here is vertical, and we assume that the subsurface
+mesh is <strong>perfectly columnar</strong> and that the “build columns” parameter has been
+given to the subsurface mesh.  See the <a href="#id3"><span class="problematic" id="id4">Mesh_</span></a> spec for more.</p>
+<p>The process here is governed through two options, the “deformation mode” and
+the “deformation strategy.”</p>
+<p>The deformation mode describes how the cell volume change is calculated.  There
+are three options here:</p>
+<ul class="simple">
+<li><p>“prescribed” uses a function to precribe the volume changes as a function of (t,x,y,z).</p></li>
+<li><p>“structural” decreases the cell volume if the porosity is above a prescribed
+“structurally connected matrix” porosity.  Think of this as bulk ice
+“propping up” the soil grains – as that bulk ice melts, it reduces porosity
+toward the porosity in at which grains start to touch again and can be
+structurally sound.</p></li>
+<li><p>“saturation” is a heuristic that considers the liquid saturation directly,
+and tries to relax the liquid saturation back toward a value that is
+consistent with what the thawed soil should be.</p></li>
+</ul>
+<p>The deformation strategy describes how the cell volume change is turned into
+node coordinate changes.  Three options are available:</p>
+<ul class="simple">
+<li><p>“average” simply takes the average of volume change/surface area and
+horizontally averages this quantity across all neighbors.  While this has the
+advantage of being simple, it has issues when thaw gradients in the
+horizontal are not zero, as it may result in the loss of volume in a fully
+frozen cell, blowing up the pressure and breaking the code.  This is great
+when it works, but it almost never works in real problems, except in
+column-based models, where it is perfect.</p></li>
+<li><p>“mstk implementation” MSTK implements an iterated, local optimization method
+that, one-at-a-time, moves nodes to try and match the volumes.  This has
+fewer issues with overfitting, but doesn’t always do sane things, and can be
+expensive if iterations don’t work well.  This is not particularly robust
+either, but it seems to be the preferred method for 2D/3D problems.</p></li>
+<li><p>“global optimization” attempts to directly form and solve the minimization
+problem to find the nodal changes that result in the target volumetric
+changes.  Note this has issues with overfitting, so penalty methods are used
+to smooth the solution of the problem.  This is currently disabled.</p></li>
+</ul>
+<p>NOTE: all deformation options are treated EXPLICITLY, and depend only upon
+values from the old time.</p>
+<div class="admonition-volumetric-deformation-pk-spec admonition" id="volumetric-deformation-pk-spec">
+<p class="admonition-title">volumetric-deformation-pk-spec</p>
+<ul class="simple">
+<li><p><cite>“max time step [s]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>inf</strong> Sets a maximum time step size.</p></li>
+<li><p><cite>“deformation mode</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>prescribed</strong> See above for
+descriptions.  One of: <cite>“prescribed</cite>”, <cite>“structural</cite>”, or <cite>“saturation</cite>”.</p></li>
+<li><p><cite>“deformation strategy</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>global optimization</strong> See above
+for descriptions.  One of <cite>“average</cite>”, <cite>“global optimization</cite>”, or <cite>“mstk
+implementation</cite>”</p></li>
+<li><p><cite>“domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>domain</strong>  The mesh to deform.</p></li>
+<li><p><cite>“surface domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>surface</strong> The surface mesh.</p></li>
+<li><p><cite>“deformation function</cite>” <code class="docutils literal notranslate"><span class="pre">[function-spec]</span></code> <strong>optional</strong> Only used if
+“deformation mode” == “prescribed”</p></li>
+</ul>
+<p>EVALUATORS:</p>
+<ul class="simple">
+<li><p><cite>“saturation_ice</cite>” <strong>DOMAIN-saturation_ice</strong></p></li>
+<li><p><cite>“saturation_liquid</cite>” <strong>DOMAIN-saturation_liquid</strong></p></li>
+<li><p><cite>“saturation_gas</cite>” <strong>DOMAIN-saturation_gas</strong></p></li>
+<li><p><cite>“porosity</cite>” <strong>DOMAIN-porosity</strong></p></li>
+<li><p><cite>“cell volume</cite>” <strong>DOMAIN-cell_volume</strong></p></li>
+</ul>
+<p>INCLUDES:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[pk-physical-default-spec]</span></code></p></li>
+</ul>
+</div>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="energy.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Energy PKs</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../mpcs/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">MPC</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
+<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 202X, jointly shared by contributor institutions.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.2.1.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.3.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

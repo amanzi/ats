@@ -1,13 +1,12 @@
 
-
 <!DOCTYPE html>
 
 
-<html lang="en" data-content_root="" >
+<html lang="en" data-content_root="../../" >
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Arctic Permafrost Modeling &#8212; Amanzi-ATS</title>
   
@@ -17,42 +16,46 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
-<link href="../../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
-<link href="../../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link href="../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
-  
-  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
-
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/styles/custom_theme.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/custom_theme.css?v=a03f4c85" />
   
+  <!-- So that users can add custom icons -->
+  <script src="../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
-<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
-  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../_static/documentation_options.js?v=3ce10a4d"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'ats_demos/06_arctic_hydrology/arctic_hydrology';</script>
     <script>
-        DOCUMENTATION_OPTIONS.theme_version = '0.15.3';
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
-        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.6';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
         </script>
     <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
-    <script src="../../_static/main.js"></script>
+    <script src="../../_static/main.js?v=b10558fa"></script>
     <link rel="icon" href="../../_static/favicon.ico"/>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -60,6 +63,7 @@
     <link rel="prev" title="Temperate Ecohydrology" href="../05_ecohydrology/ecohydrology.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="dev" />
   </head>
   
   
@@ -75,19 +79,8 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
-  
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
-  
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="../../search.html"
       method="get">
@@ -95,7 +88,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search the docs ..."
          aria-label="Search the docs ..."
          autocomplete="off"
@@ -103,8 +95,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -113,7 +105,7 @@
   
     <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
 <div class="bd-header__inner bd-page-width">
-  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
     <span class="fa-solid fa-bars"></span>
   </button>
   
@@ -122,6 +114,8 @@
     
       <div class="navbar-item">
 
+  
+    
   
 
 <a class="navbar-brand logo" href="../../index.html">
@@ -136,7 +130,7 @@
     
     
     <img src="../../_static/logo_full.png" class="logo__image only-light" alt="Amanzi-ATS documentation -- Home"/>
-    <script>document.write(`<img src="../../_static/logo_full.png" class="logo__image only-dark" alt="Amanzi-ATS documentation -- Home"/>`);</script>
+    <img src="../../_static/logo_full.png" class="logo__image only-dark pst-js-only" alt="Amanzi-ATS documentation -- Home"/>
   
   
 </a></div>
@@ -148,17 +142,17 @@
     <div class="me-auto navbar-header-items__center">
       
         <div class="navbar-item">
-<nav class="navbar-nav">
+<nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item pst-header-nav-item current active">
+<li class="nav-item current active">
   <a class="nav-link nav-internal" href="../../demos.html">
     ATS Demo Problems
   </a>
 </li>
 
 
-<li class="nav-item pst-header-nav-item">
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../../input_spec/index.html">
     ATS Input Specification
   </a>
@@ -175,29 +169,21 @@
         <div class="navbar-item navbar-persistent--container">
           
 
- <script>
- document.write(`
-   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
         </div>
       
       
         <div class="navbar-item">
 
-<script>
-document.write(`
-  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
-    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
-    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
-  </button>
-`);
-</script></div>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
       
     </div>
     
@@ -206,15 +192,11 @@ document.write(`
   
     <div class="navbar-persistent--mobile">
 
- <script>
- document.write(`
-   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
     </div>
   
 
@@ -229,7 +211,8 @@ document.write(`
       
       
       
-      <div class="bd-sidebar-primary bd-sidebar">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -241,17 +224,17 @@ document.write(`
           
           
             <div class="navbar-item">
-<nav class="navbar-nav">
+<nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item pst-header-nav-item current active">
+<li class="nav-item current active">
   <a class="nav-link nav-internal" href="../../demos.html">
     ATS Demo Problems
   </a>
 </li>
 
 
-<li class="nav-item pst-header-nav-item">
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../../input_spec/index.html">
     ATS Input Specification
   </a>
@@ -269,15 +252,11 @@ document.write(`
         
           <div class="navbar-item">
 
-<script>
-document.write(`
-  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
-    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
-    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
-  </button>
-`);
-</script></div>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
         
       </div>
     
@@ -285,30 +264,26 @@ document.write(`
   
     <div class="sidebar-primary-items__start sidebar-primary__section">
         <div class="sidebar-primary-item"><!-- This will display the version of the docs -->
-Version 1.5</div>
+Version dev</div>
         <div class="sidebar-primary-item">
-<script>
-document.write(`
-  <div class="version-switcher__container dropdown">
-    <button id="pst-version-switcher-button-2"
-      type="button"
-      class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle"
-      data-bs-toggle="dropdown"
-      aria-haspopup="listbox"
-      aria-controls="pst-version-switcher-list-2"
-      aria-label="Version switcher list"
-    >
-      Choose version  <!-- this text may get changed later by javascript -->
-      <span class="caret"></span>
-    </button>
-    <div id="pst-version-switcher-list-2"
-      class="version-switcher__menu dropdown-menu list-group-flush py-0"
-      role="listbox" aria-labelledby="pst-version-switcher-button-2">
-      <!-- dropdown will be populated by javascript on page load -->
-    </div>
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
   </div>
-`);
-</script></div>
+</div></div>
         <div class="sidebar-primary-item">
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
@@ -353,9 +328,14 @@ document.write(`
   
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
   </div>
-  
-  <div id="rtd-footer-container"></div>
 
 
       </div>
@@ -373,8 +353,6 @@ document.write(`
       
         <div class="header-article-item">
 
-
-
 <nav aria-label="Breadcrumb" class="d-print-none">
   <ul class="bd-breadcrumbs">
     
@@ -386,7 +364,7 @@ document.write(`
     
     <li class="breadcrumb-item"><a href="../../demos.html" class="nav-link">ATS Demo Problems</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page">Arctic...</li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Arctic Permafrost Modeling</span></li>
   </ul>
 </nav>
 </div>
@@ -404,7 +382,7 @@ document.write(`
                 <article class="bd-article">
                   
   <section id="arctic-permafrost-modeling">
-<h1>Arctic Permafrost Modeling<a class="headerlink" href="#arctic-permafrost-modeling" title="Permalink to this heading">#</a></h1>
+<h1>Arctic Permafrost Modeling<a class="headerlink" href="#arctic-permafrost-modeling" title="Link to this heading">#</a></h1>
 <p>ATS was initially developed out of a desire to model Arctic permafrost using the best available understanding of cryosphere processes, including subsurface flow in partially saturated, partially frozen soils.  These simulations form the basis for doing this work, and represent an approach designed for continuous permafrost.</p>
 <p>This demo also is useful for seeing how layering works in ATS, as there are heterogeneous properties throughout (peat and mineral soil layers).</p>
 <p>The spinup of this sequence is as follows:</p>
@@ -420,24 +398,24 @@ document.write(`
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
-<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span><span class="o">,</span><span class="nn">os</span>
 <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;ATS_SRC_DIR&#39;</span><span class="p">],</span><span class="s1">&#39;tools&#39;</span><span class="p">,</span> <span class="s1">&#39;utils&#39;</span><span class="p">))</span>
 <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;ATS_SRC_DIR&#39;</span><span class="p">],</span><span class="s1">&#39;docs&#39;</span><span class="p">,</span> <span class="s1">&#39;documentation&#39;</span><span class="p">,</span> <span class="s1">&#39;source&#39;</span><span class="p">,</span> <span class="s1">&#39;ats_demos&#39;</span><span class="p">))</span>
 
-<span class="kn">import</span> <span class="nn">ats_xdmf</span>
-<span class="kn">import</span> <span class="nn">plot_column_data</span>
-<span class="kn">import</span> <span class="nn">colors</span>
-<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">islice</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">matplotlib.cm</span>
-<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
-<span class="kn">import</span> <span class="nn">run_demos</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">ats_xdmf</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">plot_column_data</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">colors</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">itertools</span><span class="w"> </span><span class="kn">import</span> <span class="n">islice</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.cm</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">run_demos</span>
 </pre></div>
 </div>
 </div>
 </div>
 <section id="spinup-freeze-steady-state-to-generate-ice-column">
-<h2>spinup: Freeze steady-state to generate ice column<a class="headerlink" href="#spinup-freeze-steady-state-to-generate-ice-column" title="Permalink to this heading">#</a></h2>
+<h2>spinup: Freeze steady-state to generate ice column<a class="headerlink" href="#spinup-freeze-steady-state-to-generate-ice-column" title="Link to this heading">#</a></h2>
 <p>Transient simulations in areas of continuous permafrost are initialized in the winter to make spinup simpler.  Therefore we start from a fully frozen domain (instead of the partially frozen domain that would be required for starting any other time of year).</p>
 <p>Transient simulations in areas of seasonally frozen ground, however, would typically be started in the summer for the same reason.  Transient simulations in areas of discontinuous permafrost or areas with taliks are challenging, and typically need more extensive spinup processes.</p>
 <p>For continuous permafrost, to establish this fully-frozen domain, we freeze the hydrostatic water column from below until the solution reaches steady-state again.  This “pseudo-transient” approach is easier for solvers than solving the steady-state problem.  This is done in the subsurface only, solving coupled Richards and energy equations.</p>
@@ -450,7 +428,7 @@ document.write(`
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#</span>
 <span class="c1"># plot the solution</span>
 <span class="c1">#</span>
-<span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span> <span class="n">axs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span> <span class="n">axs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A generic plotting function that plots saturation as a function of depth.&quot;&quot;&quot;</span>
 
     <span class="n">plot_column_data</span><span class="o">.</span><span class="n">plot_subsurface</span><span class="p">(</span><span class="n">vis</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;pressure&#39;</span><span class="p">,],</span> <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;jet&#39;</span><span class="p">)</span>
@@ -461,7 +439,7 @@ document.write(`
     <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;saturation [-]&#39;</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;z [m]&#39;</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="n">testname</span><span class="p">,</span> <span class="n">axs</span><span class="p">,</span> <span class="n">style</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot</span><span class="p">(</span><span class="n">testname</span><span class="p">,</span> <span class="n">axs</span><span class="p">,</span> <span class="n">style</span><span class="p">):</span>
     <span class="n">directory</span> <span class="o">=</span> <span class="n">testname</span><span class="o">+</span><span class="s2">&quot;.demo&quot;</span>
     <span class="n">run_demos</span><span class="o">.</span><span class="n">run_demo_local</span><span class="p">(</span><span class="n">testname</span><span class="p">)</span>
     
@@ -494,7 +472,7 @@ document.write(`
         <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">dati</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="n">i</span><span class="p">,:],</span><span class="n">z</span><span class="p">,</span> <span class="n">style</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">ice</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
         <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">dati</span><span class="p">[</span><span class="mi">4</span><span class="p">,</span><span class="n">i</span><span class="p">,:],</span><span class="n">z</span><span class="p">,</span> <span class="n">style</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">gas</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
 
-<span class="k">def</span> <span class="nf">decorate</span><span class="p">(</span><span class="n">axs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">decorate</span><span class="p">(</span><span class="n">axs</span><span class="p">):</span>
     <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;saturation [-]&#39;</span><span class="p">)</span>
     <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;z-coordinate [m]&#39;</span><span class="p">)</span>
     <span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;pressure [Pa]&#39;</span><span class="p">)</span>
@@ -529,13 +507,25 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/6f32b1242855ccca24b9de8d2cbd6eb42cd5633de55a0dca7bf968c6b107b9b6.png" src="../../_images/6f32b1242855ccca24b9de8d2cbd6eb42cd5633de55a0dca7bf968c6b107b9b6.png" />
-<img alt="../../_images/160a99a63589498e3f428de0f9c277e8313cc6e0af5b48846f6866ea5997d0e0.png" src="../../_images/160a99a63589498e3f428de0f9c277e8313cc6e0af5b48846f6866ea5997d0e0.png" />
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  Test log file : LOGS/ats-tests-2024-04-22_13-35-49.testlog
+Running ATS demo problems :
+06_arctic_hydrology  | .
+
+----------------------------------------------------------------------
+Regression test summary:
+    Total run time: 64.0219 [s]
+    Total tests : 1
+    Tests run : 1
+    All tests passed.
+</pre></div>
+</div>
+<img alt="../../_images/4683c0e81116a3c049718cf8c30b7fb0ba02517534511f312443c230dd73b42d.png" src="../../_images/4683c0e81116a3c049718cf8c30b7fb0ba02517534511f312443c230dd73b42d.png" />
+<img alt="../../_images/877b92dd011696032c808e6eb4b9c5831d4d622bde8fbda19635039dca435548.png" src="../../_images/877b92dd011696032c808e6eb4b9c5831d4d622bde8fbda19635039dca435548.png" />
 </div>
 </div>
 </section>
 <section id="dynamic-fully-coupled-run-with-annual-cyclic-steady-state-forcing">
-<h2>Dynamic fully coupled run with annual cyclic steady state forcing<a class="headerlink" href="#dynamic-fully-coupled-run-with-annual-cyclic-steady-state-forcing" title="Permalink to this heading">#</a></h2>
+<h2>Dynamic fully coupled run with annual cyclic steady state forcing<a class="headerlink" href="#dynamic-fully-coupled-run-with-annual-cyclic-steady-state-forcing" title="Link to this heading">#</a></h2>
 <p>Next, the permafrost_column run demonstrates the typical transient column run.  This includes all thermal hydrology processes:</p>
 <ul class="simple">
 <li><p>subsurface flow (modified Richards)</p></li>
@@ -552,7 +542,7 @@ document.write(`
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># plot the solution</span>
-<span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="n">testname</span><span class="p">,</span> <span class="n">axs</span><span class="p">,</span> <span class="n">style</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot</span><span class="p">(</span><span class="n">testname</span><span class="p">,</span> <span class="n">axs</span><span class="p">,</span> <span class="n">style</span><span class="p">):</span>
     <span class="n">directory</span> <span class="o">=</span> <span class="n">testname</span><span class="o">+</span><span class="s2">&quot;.demo&quot;</span>
     <span class="n">run_demos</span><span class="o">.</span><span class="n">run_demo_local</span><span class="p">(</span><span class="n">testname</span><span class="p">)</span>
     
@@ -611,7 +601,7 @@ document.write(`
     <span class="n">snow_T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span> <span class="c1"># this is initially zero which screws up the plot</span>
     <span class="n">axs</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">snow_T</span><span class="p">,</span> <span class="s1">&#39;m&#39;</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">decorate</span><span class="p">(</span><span class="n">axs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">decorate</span><span class="p">(</span><span class="n">axs</span><span class="p">):</span>
     <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="o">-</span><span class="mf">.1</span><span class="p">,</span><span class="mf">1.1</span><span class="p">])</span>
     <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;saturation [-]&#39;</span><span class="p">)</span>
     <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;z-coordinate [m]&#39;</span><span class="p">)</span>
@@ -652,18 +642,35 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/39eac278ccc66909726a11a6daff5f2f0a86870ed302fc509be1e3c305e1e486.png" src="../../_images/39eac278ccc66909726a11a6daff5f2f0a86870ed302fc509be1e3c305e1e486.png" />
-<img alt="../../_images/1d1dfa8fe433ba6914ff1ced0212db7fc2a37d616ae29ac26633a2cd59026807.png" src="../../_images/1d1dfa8fe433ba6914ff1ced0212db7fc2a37d616ae29ac26633a2cd59026807.png" />
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  Test log file : LOGS/ats-tests-2024-04-22_13-36-54.testlog
+Running ATS demo problems :
+06_arctic_hydrology  | .
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>No artists with labels found to put in legend.  Note that artists whose label start with an underscore are ignored when legend() is called with no argument.
+No artists with labels found to put in legend.  Note that artists whose label start with an underscore are ignored when legend() is called with no argument.
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>----------------------------------------------------------------------
+Regression test summary:
+    Total run time: 20.0399 [s]
+    Total tests : 1
+    Tests run : 1
+    All tests passed.
+</pre></div>
+</div>
+<img alt="../../_images/c88ec8446a6bc475794d140a67e63d7d708b9103a193c0b10c790a11fb800512.png" src="../../_images/c88ec8446a6bc475794d140a67e63d7d708b9103a193c0b10c790a11fb800512.png" />
+<img alt="../../_images/20c471d64da23e39576076860eb0affd1f24c853d898a4513d91fbfb0465d026.png" src="../../_images/20c471d64da23e39576076860eb0affd1f24c853d898a4513d91fbfb0465d026.png" />
 </div>
 </div>
 </section>
 <section id="permafrost-transect-dynamic-run-with-snow-distribution">
-<h2>permafrost_transect: Dynamic run with snow distribution<a class="headerlink" href="#permafrost-transect-dynamic-run-with-snow-distribution" title="Permalink to this heading">#</a></h2>
+<h2>permafrost_transect: Dynamic run with snow distribution<a class="headerlink" href="#permafrost-transect-dynamic-run-with-snow-distribution" title="Link to this heading">#</a></h2>
 <p>For 2D permafrost runs including topography variation, it is often crucial to allow snow to preferentially accumulate in low-lying areas, as is typical of wind-blow snow.  ATS has a very simple version of this.  The 2D demo, <code class="docutils literal notranslate"><span class="pre">permafrost_transect</span></code>, would run for longer times, but would typically be done on a few cores for a longer time, so we simply demonstrate the snow drifting here by running the first 10 days.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># plot the solution</span>
-<span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="n">testname</span><span class="p">,</span> <span class="n">axs</span><span class="p">,</span> <span class="n">style</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot</span><span class="p">(</span><span class="n">testname</span><span class="p">,</span> <span class="n">axs</span><span class="p">,</span> <span class="n">style</span><span class="p">):</span>
     <span class="n">directory</span> <span class="o">=</span> <span class="n">testname</span><span class="o">+</span><span class="s2">&quot;.demo&quot;</span>
     <span class="n">run_demos</span><span class="o">.</span><span class="n">run_demo_local</span><span class="p">(</span><span class="n">testname</span><span class="p">)</span>
     
@@ -682,7 +689,7 @@ document.write(`
         <span class="n">axs</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dati</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,:]</span><span class="o">+</span><span class="n">dati</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="p">,:],</span> <span class="n">color</span><span class="o">=</span><span class="n">snow</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;snow&#39;</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">decorate</span><span class="p">(</span><span class="n">axs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">decorate</span><span class="p">(</span><span class="n">axs</span><span class="p">):</span>
     <span class="n">axs</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;x coordinate [m]&#39;</span><span class="p">)</span>
     <span class="n">axs</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;z coordinate [m]&#39;</span><span class="p">)</span>
     <span class="n">axs</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
@@ -693,7 +700,19 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/3dbf2950adf5fea733a1fa0ee148ee346b18ed4936e35be66e79c2ea4cd3ed82.png" src="../../_images/3dbf2950adf5fea733a1fa0ee148ee346b18ed4936e35be66e79c2ea4cd3ed82.png" />
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  Test log file : LOGS/ats-tests-2024-04-22_13-37-14.testlog
+Running ATS demo problems :
+06_arctic_hydrology  | .
+
+----------------------------------------------------------------------
+Regression test summary:
+    Total run time: 32.0156 [s]
+    Total tests : 1
+    Tests run : 1
+    All tests passed.
+</pre></div>
+</div>
+<img alt="../../_images/2a475c2f3e7d9086f341daf4754e728c71fb8a0d6d11fd2b85b81374af13751d.png" src="../../_images/2a475c2f3e7d9086f341daf4754e728c71fb8a0d6d11fd2b85b81374af13751d.png" />
 </div>
 </div>
 </section>
@@ -745,8 +764,8 @@ document.write(`
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
-<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+  <script defer src="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -766,7 +785,7 @@ document.write(`
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.2.1.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
     <br/>
   </p>
 </div>
@@ -779,7 +798,8 @@ document.write(`
       
         <div class="footer-item">
 <p class="theme-version">
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.3.
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
 </p></div>
       
     </div>

@@ -1,0 +1,860 @@
+
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Integrated Hydrology and Reactive Transport &#8212; Amanzi-ATS</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/custom_theme.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'ats_demos/13_integrated_hydro_reactive_transport/integrated_hydro_reactive_transport';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.15.3';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
+        </script>
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
+    <script src="../../_static/main.js"></script>
+    <link rel="icon" href="../../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="ATS Input Specification" href="../../input_spec/index.html" />
+    <link rel="prev" title="Arctic Permafrost Modeling" href="../06_arctic_hydrology/arctic_hydrology.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/logo_full.png" class="logo__image only-light" alt="Amanzi-ATS documentation -- Home"/>
+    <script>document.write(`<img src="../../_static/logo_full.png" class="logo__image only-dark" alt="Amanzi-ATS documentation -- Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="../../demos.html">
+    ATS Demo Problems
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../input_spec/index.html">
+    ATS Input Specification
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="../../demos.html">
+    ATS Demo Problems
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../input_spec/index.html">
+    ATS Input Specification
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item"><!-- This will display the version of the docs -->
+Version 1.5</div>
+        <div class="sidebar-primary-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="pst-version-switcher-button-2"
+      type="button"
+      class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-2"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="pst-version-switcher-list-2"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-2">
+      <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../01_richards_steadystate/richards_steadystate.html">Richards’ Equation, steady state</a></li>
+</ul>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../02_richards/richards.html">Richards’ Equation, transient problems</a></li>
+</ul>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../03_surface_water/surface_water.html">Surface Water Runoff</a></li>
+</ul>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../04_integrated_hydro/integrated_hydro.html">Integrated Hydrology</a></li>
+</ul>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../05_ecohydrology/ecohydrology.html">Temperate Ecohydrology</a></li>
+</ul>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../06_arctic_hydrology/arctic_hydrology.html">Arctic Permafrost Modeling</a></li>
+</ul>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Integrated Hydrology and Reactive Transport</a></li>
+</ul>
+</div>
+</nav></div>
+        <div class="sidebar-primary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-1d-infiltration-and-transport-of-conservative-tracer">Example: 1D infiltration and transport of conservative tracer</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-2d-hillslope-and-reactive-transport-with-mineral-dissolution">Example: 2D hillslope and reactive transport with mineral dissolution</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#domain-and-boundary-conditions">Domain and Boundary Conditions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#integrated-hydrology">Integrated Hydrology</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reactive-transport">Reactive Transport</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sources-and-ics-for-transport">Sources and ICs for transport</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#geochemical-exports">Geochemical exports</a></li>
+</ul>
+  </nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../demos.html" class="nav-link">ATS Demo Problems</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">Integrated...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="integrated-hydrology-and-reactive-transport">
+<h1>Integrated Hydrology and Reactive Transport<a class="headerlink" href="#integrated-hydrology-and-reactive-transport" title="Permalink to this heading">#</a></h1>
+<p>This is a series of problems to test and demonstrate the reactive transport component of ATS in the context of integrated hydrology problems. The focus is thus on the reactive transport component. To learn more about the integrated hydrology, please refer to the integrated hydro demo.</p>
+<p>Tests demonstrate a 1D column (showing dry-to-wet transition with a tracer present in the rainwater that is transported into the subsurface), and a 2D hillslope problem (showing dry-wet cycles driving rainwater infiltration into the subsurface, which in turn drive mineral dissolution, as well as surface runoff, which dilutes the groundwater discharge).</p>
+<p>Documentation of this demo is in the early stages of development.</p>
+<p>Author: Sergi Molins</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.ma</span> <span class="k">as</span> <span class="nn">ma</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;ATS_SRC_DIR&#39;</span><span class="p">],</span><span class="s1">&#39;tools&#39;</span><span class="p">,</span> <span class="s1">&#39;utils&#39;</span><span class="p">))</span>
+<span class="kn">import</span> <span class="nn">ats_xdmf</span>
+<span class="o">%</span><span class="k">matplotlib</span> inline
+</pre></div>
+</div>
+</div>
+</div>
+<section id="example-1d-infiltration-and-transport-of-conservative-tracer">
+<h2>Example: 1D infiltration and transport of conservative tracer<a class="headerlink" href="#example-1d-infiltration-and-transport-of-conservative-tracer" title="Permalink to this heading">#</a></h2>
+<p>In this example, we rain on a column, then turn off the rain.  Initially the column is partially saturated. Over time, the column saturates and ponded water expresses on the surface.  A conservative tracer is present in the rainwater but not in the subsurface initially, thus infiltration of rainwater results in concentrations of the tracer in the subsurface. When water ponds on the surface, the concentration of the tracer in the surface water is that of the rainwater.</p>
+<p>This demonstrates the dry-to-wet transitions and solute mass exchange between surface and subsurface.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># load the ATS solution</span>
+<span class="n">directory</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+<span class="n">vis</span> <span class="o">=</span> <span class="n">ats_xdmf</span><span class="o">.</span><span class="n">VisFile</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+<span class="n">vis</span><span class="o">.</span><span class="n">loadMesh</span><span class="p">(</span><span class="n">columnar</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
+<span class="ne">RuntimeError</span><span class="g g-Whitespace">                              </span>Traceback (most recent call last)
+<span class="n">Cell</span> <span class="n">In</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">line</span> <span class="mi">3</span>
+<span class="g g-Whitespace">      </span><span class="mi">1</span> <span class="c1"># load the ATS solution</span>
+<span class="g g-Whitespace">      </span><span class="mi">2</span> <span class="n">directory</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+<span class="ne">----&gt; </span><span class="mi">3</span> <span class="n">vis</span> <span class="o">=</span> <span class="n">ats_xdmf</span><span class="o">.</span><span class="n">VisFile</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+<span class="g g-Whitespace">      </span><span class="mi">4</span> <span class="n">vis</span><span class="o">.</span><span class="n">loadMesh</span><span class="p">(</span><span class="n">columnar</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="nn">File /Users/Shared/ornldev/code/ats/ats/repos/master/src/physics/ats/tools/utils/ats_xdmf.py:81,</span> in <span class="ni">VisFile.__init__</span><span class="nt">(self, directory, domain, filename, mesh_filename, time_unit)</span>
+<span class="g g-Whitespace">     </span><span class="mi">79</span> <span class="bp">self</span><span class="o">.</span><span class="n">fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">directory</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+<span class="g g-Whitespace">     </span><span class="mi">80</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">):</span>
+<span class="ne">---&gt; </span><span class="mi">81</span>     <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Cannot load ATS XDMF h5 file at: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">))</span>
+<span class="g g-Whitespace">     </span><span class="mi">82</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">,</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
+<span class="g g-Whitespace">     </span><span class="mi">83</span> <span class="bp">self</span><span class="o">.</span><span class="n">loadTimes</span><span class="p">()</span>
+
+<span class="ne">RuntimeError</span>: Cannot load ATS XDMF h5 file at: ats_vis_data.h5
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># load surface solution</span>
+<span class="n">vis_surf</span> <span class="o">=</span> <span class="n">ats_xdmf</span><span class="o">.</span><span class="n">VisFile</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="s1">&#39;surface&#39;</span><span class="p">)</span>
+<span class="n">vis_surf</span><span class="o">.</span><span class="n">loadMesh</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span><span class="s1">&#39;y&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#get subsurface coord</span>
+<span class="n">xsub</span><span class="o">=</span><span class="n">vis</span><span class="o">.</span><span class="n">centroids</span><span class="p">[:,</span><span class="mi">2</span><span class="p">]</span>
+
+<span class="c1">#get surface coord</span>
+<span class="n">xsurf</span> <span class="o">=</span> <span class="n">vis_surf</span><span class="o">.</span><span class="n">centroids</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">xsurf</span> <span class="o">=</span> <span class="p">[</span><span class="mf">10.25</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># settings for plot</span>
+<span class="n">SIZE</span><span class="o">=</span><span class="mi">20</span>
+<span class="n">colors</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">,</span><span class="s1">&#39;r&#39;</span><span class="p">,</span><span class="s1">&#39;b&#39;</span><span class="p">,</span><span class="s1">&#39;g&#39;</span><span class="p">,</span><span class="s1">&#39;m&#39;</span><span class="p">,</span><span class="s1">&#39;k&#39;</span><span class="p">]</span>
+<span class="n">cycles</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;0&#39;</span><span class="p">,</span><span class="s1">&#39;10&#39;</span><span class="p">,</span><span class="s1">&#39;18&#39;</span><span class="p">,</span><span class="s1">&#39;22&#39;</span><span class="p">,</span><span class="s1">&#39;24&#39;</span><span class="p">,</span><span class="s1">&#39;34&#39;</span><span class="p">]</span>
+<span class="c1">#cycles=[&#39;0&#39;,&#39;2&#39;,&#39;4&#39;,&#39;8&#39;,&#39;10&#39;,&#39;34&#39;]</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># plot the solution</span>
+<span class="n">fig</span><span class="p">,</span><span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">[</span><span class="mf">4.5</span><span class="p">,</span><span class="mi">6</span><span class="p">])</span>
+<span class="n">bx</span><span class="o">=</span><span class="n">ax</span><span class="o">.</span><span class="n">twiny</span><span class="p">()</span>
+<span class="c1">##plot_column_data.plot_subsurface(vis, [&#39;saturation_liquid&#39;,], ax, None, cmap=&#39;jet&#39;)</span>
+
+<span class="k">for</span> <span class="n">T</span><span class="p">,</span><span class="n">c</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">cycles</span><span class="p">,</span><span class="n">colors</span><span class="p">):</span>
+    
+    <span class="n">S</span><span class="o">=</span><span class="n">vis</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;saturation_liquid&#39;</span><span class="p">,</span><span class="n">T</span><span class="p">)</span>
+    <span class="n">pd</span> <span class="o">=</span> <span class="n">vis_surf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;surface-ponded_depth&#39;</span><span class="p">,</span><span class="n">T</span><span class="p">)</span>    
+    <span class="n">label</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">vis</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">T</span><span class="p">)]</span><span class="o">*</span><span class="mf">365.25</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39; days&#39;</span>
+    
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">S</span><span class="p">,</span><span class="n">xsub</span><span class="p">,</span><span class="n">c</span><span class="p">,</span><span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+    <span class="n">bx</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">pd</span><span class="p">,</span><span class="n">xsurf</span><span class="p">,</span><span class="n">c</span><span class="o">+</span><span class="s1">&#39;o&#39;</span><span class="p">,</span><span class="n">markersize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span><span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;saturation [-]&#39;</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="n">SIZE</span><span class="p">)</span> <span class="c1">#,color=&#39;g&#39;)</span>
+    <span class="n">bx</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;ponded depth [m]&#39;</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="n">SIZE</span><span class="p">)</span> <span class="c1">#,color=&#39;b&#39;)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;height [m]&#39;</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="n">SIZE</span><span class="p">)</span>
+    
+<span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="n">SIZE</span><span class="p">)</span> <span class="c1">#, labelcolor=&#39;g&#39;)</span>
+<span class="n">bx</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="n">SIZE</span><span class="p">)</span> <span class="c1">#, labelcolor=&#39;b&#39;)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="n">SIZE</span><span class="p">)</span>
+
+<span class="c1">#ax.set_xlim([0.5,1.02])</span>
+<span class="c1">#bx.set_xlim([-0.01,0.065])</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mi">5</span><span class="p">,</span><span class="mf">10.5</span><span class="p">])</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="n">SIZE</span><span class="o">*</span><span class="mf">0.8</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;water.png&#39;</span><span class="p">,</span><span class="nb">format</span><span class="o">=</span><span class="s1">&#39;png&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">So</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vis</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;saturation_liquid&#39;</span><span class="p">,</span><span class="s1">&#39;0&#39;</span><span class="p">))</span>
+<span class="n">pdn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vis_surf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;surface-total_component_concentration.cell.tracer&#39;</span><span class="p">,</span><span class="s1">&#39;34&#39;</span><span class="p">))</span> \
+    <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vis</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;molar_density_liquid.cell.0&#39;</span><span class="p">,</span><span class="s1">&#39;34&#39;</span><span class="p">))</span> \
+    <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vis</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mass_density_liquid.cell.0&#39;</span><span class="p">,</span><span class="s1">&#39;34&#39;</span><span class="p">))</span>
+
+<span class="n">mix</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">So</span><span class="p">))</span> <span class="o">-</span> <span class="n">So</span><span class="p">)</span> <span class="o">*</span> <span class="n">pdn</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># plot the solution</span>
+<span class="n">fig</span><span class="p">,</span><span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">[</span><span class="mf">4.5</span><span class="p">,</span><span class="mi">6</span><span class="p">])</span>
+<span class="n">bx</span><span class="o">=</span><span class="n">ax</span><span class="o">.</span><span class="n">twiny</span><span class="p">()</span>
+<span class="c1">##plot_column_data.plot_subsurface(vis, [&#39;saturation_liquid&#39;,], ax, None, cmap=&#39;jet&#39;)</span>
+
+<span class="k">for</span> <span class="n">T</span><span class="p">,</span><span class="n">c</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">cycles</span><span class="p">,</span><span class="n">colors</span><span class="p">):</span>
+    
+    <span class="n">S</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vis</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;total_component_concentration.cell.tracer&#39;</span><span class="p">,</span><span class="n">T</span><span class="p">))</span> \
+       <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vis</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;molar_density_liquid.cell.0&#39;</span><span class="p">,</span><span class="n">T</span><span class="p">))</span> \
+       <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vis</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mass_density_liquid.cell.0&#39;</span><span class="p">,</span><span class="n">T</span><span class="p">))</span>
+    
+    <span class="n">pd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vis_surf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;surface-total_component_concentration.cell.tracer&#39;</span><span class="p">,</span><span class="n">T</span><span class="p">))</span> \
+       <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vis_surf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;surface-molar_density_liquid.cell.0&#39;</span><span class="p">,</span><span class="n">T</span><span class="p">))</span> \
+       <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vis_surf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;surface-mass_density_liquid.cell.0&#39;</span><span class="p">,</span><span class="n">T</span><span class="p">))</span>
+    
+    <span class="n">label</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">vis</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">T</span><span class="p">)]</span><span class="o">*</span><span class="mf">365.25</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39; days&#39;</span>
+    
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">S</span><span class="p">,</span><span class="n">xsub</span><span class="p">,</span><span class="n">c</span><span class="p">,</span><span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+    <span class="n">bx</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">pd</span><span class="p">,</span><span class="n">xsurf</span><span class="p">,</span><span class="n">c</span><span class="o">+</span><span class="s1">&#39;o&#39;</span><span class="p">,</span><span class="n">markersize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span><span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>    
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;concentration [mol L$^{-1}$]&#39;</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="n">SIZE</span><span class="p">)</span> <span class="c1">#,color=&#39;g&#39;)</span>
+    <span class="n">bx</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;concentration [mol L$^{-1}$]&#39;</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="n">SIZE</span><span class="p">)</span> <span class="c1">#,color=&#39;b&#39;)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;height [m]&#39;</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="n">SIZE</span><span class="p">)</span>
+    
+    
+<span class="c1">#ax.plot(mix,xsub,&#39;c&#39;+&#39;--&#39;,markersize=12,linewidth=2)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="n">SIZE</span><span class="p">)</span> <span class="c1">#, labelcolor=&#39;g&#39;)</span>
+<span class="n">bx</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="n">SIZE</span><span class="p">)</span> <span class="c1">#, labelcolor=&#39;b&#39;)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="n">SIZE</span><span class="p">)</span>
+
+<span class="c1">#ax.set_xlim([0.5,1.02])</span>
+<span class="c1">#bx.set_xlim([-0.01,0.065])</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mi">5</span><span class="p">,</span><span class="mf">10.5</span><span class="p">])</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="n">SIZE</span><span class="o">*</span><span class="mf">0.8</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;concentrations.png&#39;</span><span class="p">,</span><span class="nb">format</span><span class="o">=</span><span class="s1">&#39;png&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="example-2d-hillslope-and-reactive-transport-with-mineral-dissolution">
+<h2>Example: 2D hillslope and reactive transport with mineral dissolution<a class="headerlink" href="#example-2d-hillslope-and-reactive-transport-with-mineral-dissolution" title="Permalink to this heading">#</a></h2>
+<p>This demo considers a simplified representation of a headwater catchment hillslope. The simulation seeks to capture its hydrological and geochemical response to evolving precipitation inputs over a period of 200 days that include wet and dry periods. Over most of the hillslope rainwater infiltrates into the subsurface, flows downgradient and discharges to the surface near the hillslope toe. During wet periods, groundwater discharge mixes with rain water in this region of the surface. During dry periods, surface water in this region is exclusively from groundwater dicharge.</p>
+<p>The geochemical problem considers only the carbonate system with 5 primary species, 6 secondary (equilibrium) complexes, and calcite. Aqueous complexation is considered both in the surface and subsurface domains, while calcite dissolution is considered only in the subsurface domain. Rainwater drives calcite dissolution in the subsurface before it equilibrates at depth. Two non-reactive tracers, one in the subsurface and one in the rainwater, are used to unravel mixing processes.</p>
+</section>
+<section id="domain-and-boundary-conditions">
+<h2>Domain and Boundary Conditions<a class="headerlink" href="#domain-and-boundary-conditions" title="Permalink to this heading">#</a></h2>
+<p>The hillslope is 1000-m long and 45-m deep with an average slope of 0.085</p>
+<ul class="simple">
+<li><p><strong>Subsurface domain</strong>: The upstream, downstream and bottom boundaries of the subsurface domain are no-flow boundaries. The top boundary is coupled with surface domain.</p></li>
+<li><p><strong>Surface domain</strong>: Rain is applied as a source terms in the surface flow PK. A free flow (seepage face) boundary condition is set at the hillslope toe.</p></li>
+</ul>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#figure settings</span>
+<span class="n">SIZE</span><span class="o">=</span><span class="mi">18</span>
+<span class="n">mol_to_m3</span> <span class="o">=</span> <span class="mf">1.8e-5</span>
+<span class="n">m3_to_mol</span> <span class="o">=</span> <span class="mf">5.55e4</span>
+<span class="n">density</span> <span class="o">=</span> <span class="mf">997.1</span>
+
+<span class="c1">#MyFormatter = FuncFormatter(sn.sci_notation)</span>
+<span class="c1">#path_dat = &#39;./dat/&#39;</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="integrated-hydrology">
+<h2>Integrated Hydrology<a class="headerlink" href="#integrated-hydrology" title="Permalink to this heading">#</a></h2>
+<p>Periodic rainfall is the only source of water in the model, alternating dry with wet cycles with rain of different intensity. Below are the values of recharge applied uniformly on the surface at an observation point.</p>
+<p>The flow rate (surface-mass_flux) at the observation point of the hillslope toe (on the surface) shows quick initial drainage, which slows down with time and is followed by subsequent increases in response to precipitation cycles. The hillslope is draining during the entire simulated time.</p>
+<p>In the first 50 days, flow is all groundwater as no precipitation is assumed in the simulation.
+In the period of 50-75 days when rain starts, flow is a mixing of groundwater and surface water.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+
+<span class="n">rain</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="s1">&#39;surface-water_source_sigmoid.dat&#39;</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">rain</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="mi">86400</span><span class="p">,</span> <span class="n">rain</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="mi">86400</span><span class="o">*</span><span class="mi">1000</span><span class="p">,</span> <span class="s1">&#39;k-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Precipitation&#39;</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Time (d)&quot;</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="n">SIZE</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Precipitation rate ($mm/day$)&quot;</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="n">SIZE</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">25</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">75</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">125</span><span class="p">,</span><span class="mi">150</span><span class="p">,</span><span class="mi">175</span><span class="p">,</span><span class="mi">200</span><span class="p">])</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="n">SIZE</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">200</span><span class="p">])</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">190</span><span class="p">])</span>
+
+<span class="c1">#fig.legend(fontsize=12, loc=&#39;upper left&#39;)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+
+<span class="n">discharge</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="s1">&#39;surface_outlet_flux_crunch_sigmoid.dat&#39;</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span> 
+
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">discharge</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="mi">86400</span><span class="p">,</span> <span class="n">discharge</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">mol_to_m3</span><span class="p">,</span> <span class="s1">&#39;k-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;discharge&#39;</span><span class="p">)</span>
+
+<span class="c1">#ax.axes.yaxis.set_major_formatter(MyFormatter)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Time (d)&quot;</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="n">SIZE</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Discharge rate ($m^3/day$)&quot;</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="n">SIZE</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">25</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">75</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">125</span><span class="p">,</span><span class="mi">150</span><span class="p">,</span><span class="mi">175</span><span class="p">,</span><span class="mi">200</span><span class="p">])</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="n">SIZE</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">200</span><span class="p">])</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mf">1.6e-3</span><span class="p">])</span>
+
+<span class="c1">#fig.legend(fontsize=12, loc=&#39;upper left&#39;)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="reactive-transport">
+<h2>Reactive Transport<a class="headerlink" href="#reactive-transport" title="Permalink to this heading">#</a></h2>
+<p>We consider transport of 11 species, of which 5 are primary and 6 secondary. Only total component concentrations are transported by ATS, thus must be specified in each of the Transport PKs, with the same name and in the same order as the primary species in the geochemical engine. For example, for subsurface transport. Calcite is the only mineral considered.</p>
+</section>
+<section id="sources-and-ics-for-transport">
+<h2>Sources and ICs for transport<a class="headerlink" href="#sources-and-ics-for-transport" title="Permalink to this heading">#</a></h2>
+<p>The only external <strong>source</strong> of solutes is in the rain water. As with the surface flow problem, in the surface transport PK, a source term of solutes must specified in the surface. Here it is done as a geochemical condition named <strong>rain</strong>. The condition name must match the one available in the engine’s input file (it is case-sensitive). Rainwater is equlibrated with atmospheric CO2.</p>
+<p>We use the initial conditions in chemistry PKs to specify the presence (subsurface) or absence (surface) of calcite. This is done in the engine input file, where the volume fraction and surface area are specified. For example, the initial condition in the subsurface is named <strong>initial</strong>, and in the surface is named <strong>surfini</strong>.</p>
+</section>
+<section id="geochemical-exports">
+<h2>Geochemical exports<a class="headerlink" href="#geochemical-exports" title="Permalink to this heading">#</a></h2>
+<p>The concentration breakthrough curves are evaluated at the hillslope toe on the surface. The effluent chemical exports present the mixing processes and calcite reaction simulated within the hillslope domain.</p>
+<p>Key points:</p>
+<ul class="simple">
+<li><p>Tracer2 has the same initial and boundary conditions as Ca++, therefore, the difference between Tracer2 and Ca++ is due to calcite reaction</p></li>
+<li><p>Solute concentration (except Tracer1) decrease when recharge period starts, because their concentrations are low in the rain water thus mixing with groundwater in the discharge at the hillslope toe. Tracer1 is high in the rain water thus its concentration increases when recharge period starts.</p></li>
+</ul>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#total = np.loadtxt(&#39;surface_total_concentration_crunch_sigmoid.dat&#39;, skiprows=12) </span>
+<span class="c1">#primary = np.loadtxt(&#39;surface_free_ion_species_crunch_sigmoid.dat&#39;, skiprows=12)</span>
+
+<span class="c1">#for now this is hardwired to visit pick output-- Needs to be updated</span>
+<span class="n">curves</span><span class="o">=</span><span class="s1">&#39;curve/&#39;</span>
+
+<span class="n">total_Ca</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">curves</span><span class="o">+</span><span class="s1">&#39;total_Ca.curve&#39;</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> 
+<span class="n">total_HCO3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">curves</span><span class="o">+</span><span class="s1">&#39;total_HCO3.curve&#39;</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> 
+<span class="n">total_H</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">curves</span><span class="o">+</span><span class="s1">&#39;total_H+.curve&#39;</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> 
+<span class="n">total_Tracer1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">curves</span><span class="o">+</span><span class="s1">&#39;total_Tracer1.curve&#39;</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> 
+<span class="n">total_Tracer2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">curves</span><span class="o">+</span><span class="s1">&#39;total_Tracer2.curve&#39;</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> 
+<span class="c1">#primary = np.loadtxt(&#39;surface_free_ion_species_crunch_sigmoid.dat&#39;, skiprows=12)</span>
+
+<span class="n">threshold</span> <span class="o">=</span> <span class="mf">3e-5</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">9</span><span class="p">))</span>
+
+<span class="c1"># top</span>
+<span class="n">bx</span> <span class="o">=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">twinx</span><span class="p">()</span>
+
+<span class="n">p1</span> <span class="o">=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">discharge</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="mi">86400</span><span class="p">,</span> <span class="n">discharge</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">mol_to_m3</span><span class="p">,</span> <span class="s1">&#39;r-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;disc.&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Time (d)&quot;</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="n">SIZE</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Discharge rate ($m^3/day$)&quot;</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="n">SIZE</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">25</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">75</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">125</span><span class="p">,</span><span class="mi">150</span><span class="p">,</span><span class="mi">175</span><span class="p">,</span><span class="mi">200</span><span class="p">])</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">200</span><span class="p">])</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="n">SIZE</span><span class="p">)</span>
+
+<span class="c1">#ax[0].axes.yaxis.set_major_formatter(MyFormatter)</span>
+
+<span class="n">p2</span> <span class="o">=</span> <span class="n">bx</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">rain</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="mi">86400</span><span class="p">,</span> <span class="n">rain</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="mi">86400</span><span class="o">*</span><span class="mi">1000</span><span class="p">,</span> <span class="s1">&#39;k--&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;prec.&#39;</span><span class="p">)</span>
+
+<span class="n">bx</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Precipitation rate ($mm/day$)&quot;</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="n">SIZE</span><span class="p">)</span>
+<span class="n">bx</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="n">SIZE</span><span class="p">)</span>
+
+<span class="n">px</span><span class="o">=</span><span class="n">p1</span><span class="o">+</span><span class="n">p2</span>
+<span class="n">lpx</span> <span class="o">=</span> <span class="p">[</span><span class="n">l</span><span class="o">.</span><span class="n">get_label</span><span class="p">()</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">px</span><span class="p">]</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">px</span><span class="p">,</span><span class="n">lpx</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;lower right&#39;</span><span class="p">)</span>
+
+<span class="c1">#.set_xlabel(&quot;Time (d)&quot;,fontsize=SIZE)</span>
+<span class="c1">#ax[0][1].set_xticks([0,25,50,75,100,125,150,175,200])</span>
+<span class="c1">#ax[0][1].set_xlim([0,200])</span>
+
+<span class="c1"># bottom</span>
+<span class="n">h1</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="mf">365.25</span><span class="o">*</span><span class="n">total_Ca</span><span class="p">[:,</span><span class="mi">0</span><span class="p">][</span><span class="n">total_Ca</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">&lt;</span><span class="n">threshold</span><span class="p">],</span> <span class="n">m3_to_mol</span><span class="o">/</span><span class="n">density</span><span class="o">*</span><span class="n">total_Ca</span><span class="p">[:,</span><span class="mi">1</span><span class="p">][</span><span class="n">total_Ca</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">&lt;</span><span class="n">threshold</span><span class="p">],</span> <span class="s1">&#39;k-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Calcium&#39;</span><span class="p">)</span>
+<span class="n">h2</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="mf">365.25</span><span class="o">*</span><span class="n">total_Tracer1</span><span class="p">[:,</span><span class="mi">0</span><span class="p">][</span><span class="n">total_Ca</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">&lt;</span><span class="n">threshold</span><span class="p">],</span> <span class="n">m3_to_mol</span><span class="o">/</span><span class="n">density</span><span class="o">*</span><span class="n">total_Tracer1</span><span class="p">[:,</span><span class="mi">1</span><span class="p">][</span><span class="n">total_Ca</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">&lt;</span><span class="n">threshold</span><span class="p">],</span> <span class="s1">&#39;r-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Tracer1&#39;</span><span class="p">)</span>
+<span class="n">h3</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="mf">365.25</span><span class="o">*</span><span class="n">total_Tracer2</span><span class="p">[:,</span><span class="mi">0</span><span class="p">][</span><span class="n">total_Ca</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">&lt;</span><span class="n">threshold</span><span class="p">],</span> <span class="n">m3_to_mol</span><span class="o">/</span><span class="n">density</span><span class="o">*</span><span class="n">total_Tracer2</span><span class="p">[:,</span><span class="mi">1</span><span class="p">][</span><span class="n">total_Ca</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">&lt;</span><span class="n">threshold</span><span class="p">],</span> <span class="s1">&#39;b-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Tracer2&#39;</span><span class="p">)</span>
+
+<span class="n">h4</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="mf">365.25</span><span class="o">*</span><span class="p">(</span><span class="n">total_Tracer1</span><span class="p">[:,</span><span class="mi">0</span><span class="p">])[</span><span class="n">total_Ca</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">&lt;</span><span class="n">threshold</span><span class="p">],</span> \
+              <span class="n">m3_to_mol</span><span class="o">/</span><span class="n">density</span><span class="o">*</span><span class="p">(</span><span class="n">total_Tracer1</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">total_Tracer2</span><span class="p">[:,</span><span class="mi">1</span><span class="p">])[</span><span class="n">total_Ca</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">&lt;</span><span class="n">threshold</span><span class="p">],</span> \
+              <span class="s1">&#39;g--&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;T1+T2&#39;</span><span class="p">)</span>
+
+
+<span class="n">hx</span><span class="o">=</span><span class="n">h1</span><span class="o">+</span><span class="n">h2</span><span class="o">+</span><span class="n">h3</span><span class="o">+</span><span class="n">h4</span>
+<span class="n">lhx</span> <span class="o">=</span> <span class="p">[</span><span class="n">l</span><span class="o">.</span><span class="n">get_label</span><span class="p">()</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">hx</span><span class="p">]</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">hx</span><span class="p">,</span><span class="n">lhx</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;lower right&#39;</span><span class="p">)</span>
+
+<span class="c1">#ax[1].axes.yaxis.set_major_formatter(MyFormatter)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Time (d)&quot;</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="n">SIZE</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Concentration ($mol/L$)&quot;</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="n">SIZE</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">25</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">75</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">125</span><span class="p">,</span><span class="mi">150</span><span class="p">,</span><span class="mi">175</span><span class="p">,</span><span class="mi">200</span><span class="p">])</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">200</span><span class="p">])</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="n">SIZE</span><span class="p">)</span>
+
+<span class="c1">#ax.set_ylim([0,1e-3])</span>
+<span class="c1">#ax[0][0].tick_params(axis=&#39;both&#39;, which=&#39;major&#39;, labelsize=SIZE)</span>
+
+
+<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;hillslope-outlet.png&#39;</span><span class="p">,</span><span class="nb">format</span><span class="o">=</span><span class="s1">&#39;png&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../06_arctic_hydrology/arctic_hydrology.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Arctic Permafrost Modeling</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../../input_spec/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">ATS Input Specification</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 202X, jointly shared by contributor institutions.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.2.1.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.3.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

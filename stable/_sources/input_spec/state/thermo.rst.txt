@@ -6,16 +6,17 @@ surface and subsurface transport of energy.
 
 Internal energy
 ^^^^^^^^^^^^^^^
+`src/physics/ats/src/pks/energy/constitutive_relations/internal_energy/iem_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/energy/constitutive_relations/internal_energy/iem_evaluator.hh>`_
 
 
 Computes (specific) internal energy of as a function of temperature.
 
 `"evaluator type`" = `"iem`"
 
-.. _iem-evaluator-spec:
-.. admonition:: iem-evaluator-spec
+.. _evaluator-iem-spec:
+.. admonition:: evaluator-iem-spec
 
-   * `"IEM parameters`" ``[IEM-model-typedinline-spec-list]``
+   * `"IEM parameters`" ``[iem-typedinline-spec-list]``
 
    KEYS:
 
@@ -26,7 +27,9 @@ Computes (specific) internal energy of as a function of temperature.
 
 Linear
 ~~~~~~
- Internal energy based on a linear fit.
+`src/physics/ats/src/pks/energy/constitutive_relations/internal_energy/iem_linear.hh <https://github.com/amanzi/ats/blob/master/src/pks/energy/constitutive_relations/internal_energy/iem_linear.hh>`_
+
+Internal energy based on a linear fit.
 
 Linear internal energy model -- function of Cv and temperature
 
@@ -36,20 +39,20 @@ Linear internal energy model -- function of Cv and temperature
 
 `"IEM type`" = `"linear`"
 
-.. _IEM-model-linear-spec:
-.. admonition:: IEM-model-linear-spec
+.. _iem-linear-spec:
+.. admonition:: iem-linear-spec
 
-    * `"reference temperature [K]`" ``[double]`` **273.15** The phase transition point, T_ref above
+    * `"reference temperature [K]`" ``[double]`` **273.15** The phase transition point, :math:`T_{ref}` above
 
     ONE OF
 
-    * `"latent heat [J kg^-1]`" ``[double]`` Latent heat of fusion, L_f above
-    * `"heat capacity [J kg^-1 K^-1]`" ``[double]`` C_v above
+    * `"latent heat [J kg^-1]`" ``[double]`` Latent heat of fusion, :math:`L_f` above
+    * `"heat capacity [J kg^-1 K^-1]`" ``[double]`` :math:`C_v` above
 
     OR
 
-    * `"latent heat [J mol^-1]`" ``[double]`` Latent heat of fusion, L_f above.
-    * `"heat capacity [J mol^-1 K^-1]`" ``[double]`` C_v above
+    * `"latent heat [J mol^-1]`" ``[double]`` Latent heat of fusion, :math:`L_f` above.
+    * `"heat capacity [J mol^-1 K^-1]`" ``[double]`` :math:`C_v` above
 
     END
 
@@ -58,7 +61,9 @@ Linear internal energy model -- function of Cv and temperature
 
 Quadratic
 ~~~~~~~~~
- Internal energy based on a quadratic fit to data.
+`src/physics/ats/src/pks/energy/constitutive_relations/internal_energy/iem_quadratic.hh <https://github.com/amanzi/ats/blob/master/src/pks/energy/constitutive_relations/internal_energy/iem_quadratic.hh>`_
+
+Internal energy based on a quadratic fit to data.
 
 Quadratic internal energy model -- function of Cv and temperature
 
@@ -68,30 +73,34 @@ Quadratic internal energy model -- function of Cv and temperature
 
 `"IEM type`" = `"quadratic`"
 
-.. _IEM-model-quadratic-spec:
-.. admonition:: IEM-model-quadratic-spec
+.. _iem-quadratic-spec:
+.. admonition:: iem-quadratic-spec
 
-    * `"reference temperature [K]`" ``[double]`` **273.15** The phase transition point, T_ref above.
+   * `"reference temperature [K]`" ``[double]`` **273.15** The phase transition
+     point, :math:`T_{ref}` above.
 
-    ONE OF
+   ONE OF
 
-    * `"latent heat [J kg^-1]`" ``[double]`` Latent heat of fusion, L_f above
-    * `"heat capacity [J kg^-1 K^-1]`" ``[double]`` C_v above
-    * `"quadratic b [J kg^-1 K^-2]`" ``[double]`` b above
+   * `"latent heat [J kg^-1]`" ``[double]`` Latent heat of fusion, :math:`L_f`
+     above
+   * `"heat capacity [J kg^-1 K^-1]`" ``[double]`` :math:`C_v` above
+   * `"quadratic b [J kg^-1 K^-2]`" ``[double]`` :math:`b` above
 
-    OR
+   OR
 
-    * `"latent heat [J mol^-1]`" ``[double]`` Latent heat of fusion, L_f above.
-    * `"heat capacity [J mol^-1 K^-1]`" ``[double]`` C_v above
-    * `"quadratic b [J mol^-1 K^-2]`" ``[double]`` b above
+   * `"latent heat [J mol^-1]`" ``[double]`` Latent heat of fusion, :math:`L_f`
+     above.
+   * `"heat capacity [J mol^-1 K^-1]`" ``[double]`` :math:`C_v` above
+   * `"quadratic b [J mol^-1 K^-2]`" ``[double]`` :math:`b` above
 
-    END
+   END
 
 
 
 
 Water Vapor
 ~~~~~~~~~~~
+`src/physics/ats/src/pks/energy/constitutive_relations/internal_energy/iem_water_vapor_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/energy/constitutive_relations/internal_energy/iem_water_vapor_evaluator.hh>`_
 
 
 Computes (specific) internal energy of as a function of temperature and molar
@@ -99,10 +108,10 @@ fraction of water vapor in the gaseous phase.
 
 `"evaluator type`" = `"iem water vapor`"
 
-.. _iem-water-vapor-evaluator-spec:
-.. admonition:: iem-water-vapor-evaluator-spec
+.. _evaluator-iem-water-vapor-spec:
+.. admonition:: evaluator-iem-water-vapor-spec
 
-   * `"IEM parameters`" ``[IEM-water-vapor-model-spec]``
+   * `"IEM parameters`" ``[iem-water-vapor-spec]``
 
    KEYS:
 
@@ -111,30 +120,41 @@ fraction of water vapor in the gaseous phase.
 
 
 
- Internal energy model for air and water vapor.
+`src/physics/ats/src/pks/energy/constitutive_relations/internal_energy/iem_water_vapor.hh <https://github.com/amanzi/ats/blob/master/src/pks/energy/constitutive_relations/internal_energy/iem_water_vapor.hh>`_
 
-.. _iem-water-vapor-model-spec:
-.. admonition:: iem-water-vapor-model-spec
 
-    * `"latent heat [J mol^-1]`" ``[double]`` Latent heat of vaporization
-    * `"heat capacity [J mol^-1 K^-1]`" ``[double]`` C_v
+Internal energy model for air and water vapor.
+
+.. math::
+
+   u = (1 + 0.622 \omega) C_v^{air} (T - 273.15) + \omega L_v
+
+.. _iem-water-vapor-spec:
+.. admonition:: iem-water-vapor-spec
+
+   * `"latent heat [J mol^-1]`" ``[double]`` Latent heat of vaporization,
+     :math:`L_v`
+   * `"heat capacity [J mol^-1 K^-1]`" ``[double]`` Heat capacity of air,
+     :math:`C_v^{air}`
 
 
 
 
 Enthalpy
 ~~~~~~~~
+`src/physics/ats/src/pks/energy/constitutive_relations/enthalpy/enthalpy_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/energy/constitutive_relations/enthalpy/enthalpy_evaluator.hh>`_
 
 
-Computes enthalpy [MJ / mol] of as a function of internal energy, pressure, and density.
+Computes enthalpy `[MJ mol^-1]` of as a function of internal energy, pressure, and density.
 
 .. math::
+
    e = u + 10^{-6} * \frac{p}{n_l}
 
 `"evaluator type`" = `"enthalpy`"
 
-.. _enthalpy-evaluator-spec:
-.. admonition:: enthalpy-evaluator-spec
+.. _evaluator-enthalpy-spec:
+.. admonition:: evaluator-enthalpy-spec
 
    * `"include work term`" ``[bool]`` **false** If false, e = u, ignoring the work term.
 
@@ -147,8 +167,9 @@ Computes enthalpy [MJ / mol] of as a function of internal energy, pressure, and 
 
 
 
-Thermal Conductivity, two phases
+Thermal Conductivity, Two Phases
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+`src/physics/ats/src/pks/energy/constitutive_relations/thermal_conductivity/thermal_conductivity_twophase_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/energy/constitutive_relations/thermal_conductivity/thermal_conductivity_twophase_evaluator.hh>`_
 
 
 Thermal conductivity based on two-phases (air,liquid) composition of the
@@ -156,10 +177,10 @@ porous media.
 
 `"evaluator type`" = `"two-phase thermal conductivity`"
 
-.. _thermal-conductivity-twophase-evaluator-spec:
-.. admonition:: thermal-conductivity-twophase-evaluator-spec
+.. _evaluator-two-phase-thermal-conductivity-spec:
+.. admonition:: evaluator-two-phase-thermal-conductivity-spec
 
-   * `"thermal conductivity parameters`" ``[thermal-conductivity-twophase-typedinline-spec-list]``
+   * `"thermal conductivity parameters`" ``[thermal-conductivity-twophase-typed-spec-list]``
 
    KEYS:
 
@@ -171,6 +192,7 @@ porous media.
 
 Wet-Dry Model
 ~~~~~~~~~~~~~
+`src/physics/ats/src/pks/energy/constitutive_relations/thermal_conductivity/thermal_conductivity_twophase_wetdry.hh <https://github.com/amanzi/ats/blob/master/src/pks/energy/constitutive_relations/thermal_conductivity/thermal_conductivity_twophase_wetdry.hh>`_
 
 
 Simple model of two-phase thermal conductivity, based upon:
@@ -183,7 +205,6 @@ Simple model of two-phase thermal conductivity, based upon:
 .. _thermal-conductivity-twophase-wetdry-spec:
 .. admonition:: thermal-conductivity-twophase-wetdry-spec
 
-   * `"region`" ``[string]`` Region name on which to apply these parameters.
    * `"thermal conductivity, wet [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of saturated soil
    * `"thermal conductivity, dry [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of dry soil
    * `"unsaturated alpha [-]`" ``[double]`` Interpolating exponent
@@ -208,6 +229,7 @@ Units: [W m^-1 K^-1]
 
 Peters-Lidard Model
 ~~~~~~~~~~~~~~~~~~~
+`src/physics/ats/src/pks/energy/constitutive_relations/thermal_conductivity/thermal_conductivity_twophase_peterslidard.hh <https://github.com/amanzi/ats/blob/master/src/pks/energy/constitutive_relations/thermal_conductivity/thermal_conductivity_twophase_peterslidard.hh>`_
 
 
 A two-phase thermal conductivity, based upon:
@@ -248,8 +270,9 @@ Units: [W m^-1 K^-1]
 
 
 
-Thermal Conductivity, three phases
+Thermal Conductivity, Three Phases
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+`src/physics/ats/src/pks/energy/constitutive_relations/thermal_conductivity/thermal_conductivity_threephase_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/energy/constitutive_relations/thermal_conductivity/thermal_conductivity_threephase_evaluator.hh>`_
 
 
 Thermal conductivity based on a three-phase (air,liquid,ice) composition of the
@@ -257,10 +280,10 @@ porous media.
 
 `"evaluator type`" = `"three-phase thermal conductivity`"
 
-.. _thermal-conductivity-threephase-evaluator-spec:
-.. admonition:: thermal-conductivity-threephase-evaluator-spec
+.. _evaluator-three-phase-thermal-conductivity-spec:
+.. admonition:: evaluator-three-phase-thermal-conductivity-spec
 
-   * `"thermal conductivity parameters`" ``[thermal-conductivity-threephase-typedinline-spec-list]``
+   * `"thermal conductivity parameters`" ``[thermal-conductivity-threephase-typed-spec-list]``
 
    KEYS:
 
@@ -274,7 +297,9 @@ porous media.
 
 Wet-Dry Model
 ~~~~~~~~~~~~~
- Three-phase thermal conductivity based on paper by Peters-Lidard.
+`src/physics/ats/src/pks/energy/constitutive_relations/thermal_conductivity/thermal_conductivity_threephase_wetdry.hh <https://github.com/amanzi/ats/blob/master/src/pks/energy/constitutive_relations/thermal_conductivity/thermal_conductivity_threephase_wetdry.hh>`_
+
+Three-phase thermal conductivity based on paper by Peters-Lidard.
 
 A three-phase thermal conductivity, based upon:
 
@@ -304,7 +329,9 @@ See Atchley et al GMD 2015 Supplementary Material for equations.
 
 Peters-Lidard Model
 ~~~~~~~~~~~~~~~~~~~
- Three-phase thermal conductivity based on paper by Peters-Lidard.
+`src/physics/ats/src/pks/energy/constitutive_relations/thermal_conductivity/thermal_conductivity_threephase_peterslidard.hh <https://github.com/amanzi/ats/blob/master/src/pks/energy/constitutive_relations/thermal_conductivity/thermal_conductivity_threephase_peterslidard.hh>`_
+
+Three-phase thermal conductivity based on paper by Peters-Lidard.
 
 A three-phase thermal conductivity, based upon:
 
@@ -318,7 +345,6 @@ See Atchley et al GMD 2015 Supplementary Material for equations.
 .. _thermal-conductivity-threephase-peterslidard-spec:
 .. admonition:: thermal-conductivity-threephase-peterslidard-spec
 
-    * `"region`" ``[string]`` Region name on which to apply these parameters.
     * `"thermal conductivity of soil [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of soil grains (not bulk soil)
     * `"thermal conductivity of liquid [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of liquid (water)
     * `"thermal conductivity of gas [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of gas (air)
@@ -349,7 +375,9 @@ Example:
 
 Volume-averaged Model
 ~~~~~~~~~~~~~~~~~~~~~
- A volume-averaged thermal conductivity based on TCs of raw components.
+`src/physics/ats/src/pks/energy/constitutive_relations/thermal_conductivity/thermal_conductivity_threephase_volume_averaged.hh <https://github.com/amanzi/ats/blob/master/src/pks/energy/constitutive_relations/thermal_conductivity/thermal_conductivity_threephase_volume_averaged.hh>`_
+
+A volume-averaged thermal conductivity based on TCs of raw components.
 
 A simple model of three-phase thermal conductivity, based upon volume-averaging
 of four consitutive components.
@@ -361,7 +389,6 @@ See Atchley et al GMD 2015 Supplementary Material for equations.
 .. _thermal-conductivity-volume-averaged-spec:
 .. admonition:: thermal-conductivity-volume-averaged-spec
 
-    * `"region`" ``[string]`` Region name on which to apply these parameters.
     * `"thermal conductivity of soil [W m^-1 K^-1]`" ``[double]`` Thermal
       conductivity of soil **grains**
     * `"thermal conductivity of liquid [W m^-1 K^-1]`" ``[double]`` Thermal
@@ -376,6 +403,7 @@ See Atchley et al GMD 2015 Supplementary Material for equations.
 
 Sutra-ICE model
 ~~~~~~~~~~~~~~~~~~~
+`src/physics/ats/src/pks/energy/constitutive_relations/thermal_conductivity/thermal_conductivity_threephase_sutra_hacked.hh <https://github.com/amanzi/ats/blob/master/src/pks/energy/constitutive_relations/thermal_conductivity/thermal_conductivity_threephase_sutra_hacked.hh>`_
 
 
 Thermal conductivity model with constant values as a function of temperature,
@@ -400,14 +428,15 @@ Units: [W m^-1 K^-1]
 
 Thermal Conductivity, Surface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+`src/physics/ats/src/pks/energy/constitutive_relations/thermal_conductivity/thermal_conductivity_surface_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/energy/constitutive_relations/thermal_conductivity/thermal_conductivity_surface_evaluator.hh>`_
 
 
 Thermal conductivity of surface water that can be either frozen or liquid phase.
 
 `"evaluator type`" = `"surface thermal conductivity`"
 
-.. _thermal-conductivity-surface-evaluator-spec:
-.. admonition:: thermal-conductivity-surface-evaluator-spec
+.. _evaluator-thermal-conductivity-surface-spec:
+.. admonition:: evaluator-thermal-conductivity-surface-spec
 
    * `"thermal conductivity parameters`" ``[thermal-conductivity-surface-spec]``
 
@@ -428,26 +457,36 @@ Thermal conductivity of surface water that can be either frozen or liquid phase.
 
 Advected Energy Source
 ^^^^^^^^^^^^^^^^^^^^^^
+`src/physics/ats/src/pks/energy/constitutive_relations/source_terms/advected_energy_source_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/energy/constitutive_relations/source_terms/advected_energy_source_evaluator.hh>`_
 
 
 Active Layer Averaged Temperature
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+`src/physics/ats/src/constitutive_relations/column_integrators/activelayer_average_temp_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/constitutive_relations/column_integrators/activelayer_average_temp_evaluator.hh>`_
 
 
 Water Table
 ^^^^^^^^^^^
+`src/physics/ats/src/constitutive_relations/column_integrators/water_table_depth_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/constitutive_relations/column_integrators/water_table_depth_evaluator.hh>`_
 
 
-Computes the depth to a saturated water table.
+Computes the depth to the water table.
 
 `"evaluator type`" = `"water table depth`"
 
 .. _water-table-depth-spec:
 .. admonition:: water-table-depth-spec
 
+    * `"interpolate depth from pressure`" ``[bool]`` **false** Default to calculate
+      water table depth by locating the top face of the last continuously saturated
+      cell from bottom upward. If true, use the height and pressure at the centroids
+      of the last continuously saturated cell and its adjacent unsaturated cell to
+      determine the water table depth through interpolation.
+
     KEYS:
 
     - `"saturation of gas`" **SUBSURFACE_DOMAIN-saturation-gas**
+    - `"pressure`" **SUBSURFACE_DOMAIN-pressure**
     - `"subsurface cell volume`" **SUBSURFACE_DOMAIN-cell_volume**
     - `"surface cell volume`" **DOMAIN-cell_volume**
 
@@ -457,6 +496,7 @@ Computes the depth to a saturated water table.
 
 Thaw Depth
 ^^^^^^^^^^
+`src/physics/ats/src/constitutive_relations/column_integrators/thaw_depth_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/constitutive_relations/column_integrators/thaw_depth_evaluator.hh>`_
 
 
 Computes the depth to a saturated water table.

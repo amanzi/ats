@@ -51,7 +51,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.6';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             false;
         </script>
@@ -324,6 +324,7 @@ Version dev</div>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="state/index.html">State</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="state/primary.html">Primary Variables</a></li>
+
 <li class="toctree-l2"><a class="reference internal" href="state/independent.html">Independent Variables</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="state/secondary.html">Secondary Variables</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="state/conserved.html">Conserved quantities</a></li>
@@ -1544,8 +1545,8 @@ z_i &gt; z_(i-1)</p>
 <blockquote>
 <div><p>/f[:] = (f_0(z_0), f_1(z_1), …, f_n(z_n))</p>
 </div></blockquote>
-<div class="admonition-column-initialization-spec admonition" id="column-initialization-spec">
-<p class="admonition-title">column-initialization-spec</p>
+<div class="admonition-column-file-initialization-spec admonition" id="column-file-initialization-spec">
+<p class="admonition-title">column-file-initialization-spec</p>
 <ul class="simple">
 <li><p><cite>“file</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> HDF5 filename</p></li>
 <li><p><cite>“z header</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> name of the z-coordinate data: <cite>z</cite> above.  Depth
@@ -1557,6 +1558,13 @@ coordinates (positive downward from the surface), [m]</p></li>
 <section id="exodus-file-initialization">
 <h3>Exodus File Initialization<a class="headerlink" href="#exodus-file-initialization" title="Link to this heading">#</a></h3>
 <p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/state/IO.hh">src/state/IO.hh</a></p>
+<div class="admonition-exodus-file-initialization-spec admonition" id="exodus-file-initialization-spec">
+<p class="admonition-title">exodus-file-initialization-spec</p>
+<ul class="simple">
+<li><p><cite>“file</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> The filename to read.</p></li>
+<li><p><cite>“attributes</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> List of variables to read from the file.</p></li>
+</ul>
+</div>
 </section>
 </section>
 </section>

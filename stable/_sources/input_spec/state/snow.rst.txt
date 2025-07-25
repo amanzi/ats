@@ -5,7 +5,9 @@ Evaluators used for solving snowpack and/or snow redistribution laterally.
 
 SnowSurfacePotential
 ^^^^^^^^^^^^^^^^^^^^^^
- Computes the potential surface upon which snow redistribution acts.
+`src/physics/ats/src/pks/flow/constitutive_relations/elevation/snow_skin_potential_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/flow/constitutive_relations/elevation/snow_skin_potential_evaluator.hh>`_
+
+Computes the potential surface upon which snow redistribution acts.
 
 Snow distribution moves snow precipitation around to ensure that low-lying
 areas fill up first.  This represents a potential field driving movement of
@@ -16,8 +18,8 @@ snow precip, so defines what we mean by low-lying.
 
 `"evaluator type`" = `"snow skin potential`"
 
-.. _snow-skin-potential-evaluator-spec:
-.. admonition:: snow-skin-potential-evaluator-spec
+.. _evaluator-snow-skin-potential-spec:
+.. admonition:: evaluator-snow-skin-potential-spec
 
    * `"dt factor [s]`" ``[double]`` A free-parameter factor for providing a
      time scale for diffusion of snow precipitation into low-lying areas.
@@ -47,7 +49,9 @@ Example:
 
 Snow Melt Rate
 ^^^^^^^^^^^^^^
- Evaluates snow melt via USDA - Natural Resources Conservation Service model
+`src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/snow_meltrate_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/snow_meltrate_evaluator.hh>`_
+
+Evaluates snow melt via USDA - Natural Resources Conservation Service model
 
 From:  National Engineering Handbook (NEH) part 630, Chapter 11
 
@@ -71,8 +75,8 @@ the snow SWE goes to zero.  That factor is 1 at the snow transition depth, and
 0 when snow SWE is 0.  This uses LandCover for the snow_ground_transition
 parameter.
 
-.. _snow-meltrate-evaluator-spec:
-.. admonition:: snow-meltrate-evaluator-spec
+.. _evaluator-snow-meltrate-spec:
+.. admonition:: evaluator-snow-meltrate-spec
 
    * `"snow melt rate [mm day^-1 C^-1]`" ``[double]`` **2.74**
      the melt rate per degree-day, above 0 C, e.g. :math:`R` above.

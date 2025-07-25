@@ -1,4 +1,4 @@
-Subsurface flow evaluators
+Subsurface Flow Evaluators
 --------------------------
 
 Assorted evaluators used for subsurface flow processes,
@@ -11,25 +11,100 @@ physics.  For real examples, see `ats-demos <https://github.com/amanzi/ats-demos
 
 Capillary pressure
 ^^^^^^^^^^^^^^^^^^
- Capillary pressure for gas on a liquid.
+`src/physics/ats/src/pks/flow/constitutive_relations/wrm/pc_liquid_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/flow/constitutive_relations/wrm/pc_liquid_evaluator.hh>`_
 
-.. _pc-liquid-evaluator-spec:
-.. admonition:: pc-liquid-evaluator-spec
 
-   KEYS:
+Capillary pressure for gas on a liquid.
+
+.. math::
+
+   p_{c}^{gas-liq} = p - p_{atm}
+
+`"evaluator type`" = `"capillary pressure, atmospheric gas over liquid`"
+
+.. _evaluator-capillary-pressure-atmospheric-gas-over-liquid-spec:
+.. admonition:: evaluator-capillary-pressure-atmospheric-gas-over-liquid-spec
+
+   DEPENDENCIES:
 
    - `"pressure`" **DOMAIN-pressure**
+   - `"atmospheric pressure`"
 
 
 
 
 Capillary pressure of liquid on ice
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+`src/physics/ats/src/pks/flow/constitutive_relations/wrm/pc_ice_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/flow/constitutive_relations/wrm/pc_ice_evaluator.hh>`_
 
 
-Water Retention Model and Relative Permeability
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
- Evaluates saturation through water retention models.
+Capillary pressure for liquid on ice.
+
+.. math::
+
+   p_{c}^{liq-ice} = \begin{cases}
+                       0 &\text{if} \, T >= T_0 \\
+                       L_f \frac{\sigma_{gas}^{liq}}{\sigma_{liq}^{ice}} \rho_l \frac{T_0 - T}{T_0} &\text{otherwise}
+                     \end{cases}
+
+This may also be modified with a smoothing spline at :math:`T = T_0` for a
+slower nonlinear transition.
+
+`"evaluator type`" = `"capillary pressure, water over ice`"
+
+.. _evaluator-capillary-pressure-water-over-ice-spec:
+.. admonition:: evaluator-capillary-pressure-water-over-ice-spec
+
+   * `"capillary pressure of ice-water`" ``[pc-ice-water-spec]``
+
+   DEPENDENCIES:
+
+   - `"temperature`"
+   - `"molar density`" **molar_density_liquid**
+   - `"mass density`" **mass_density_liquid**
+
+
+
+`src/physics/ats/src/pks/flow/constitutive_relations/wrm/pc_ice_water.hh <https://github.com/amanzi/ats/blob/master/src/pks/flow/constitutive_relations/wrm/pc_ice_water.hh>`_
+
+
+Note that the choice of molar vs mass density above must match the units of
+latent heat chosen below.
+
+.. _pc-ice-water-spec
+.. admonition:: pc-ice-water-spec
+
+   * `"reference temperature [K]`" ``[double]`` **273.15** The phase transition
+     point, :math:`T_0` above
+   * `"interfacial tension ice-water [mN m^-1]`" ``[double]`` **33.1**
+     :math:`\sigma_{liq}^{ice} above.  Note units need only match that below.
+   * `"interfacial tension air-water [mN m^-1]`" ``[double]`` **72.7**
+     :math:`\sigma_{gas}^{liq} above.  Note units need only match that above.
+   * `"smoothing width [K]`" ``[double]`` **0.** Smoothing out the freeze
+     curve allows this to be slightly easier to solve.
+
+   ONE OF
+
+   * `"latent heat [J kg^-1]`" ``[double]`` **3.34e5** Latent heat of fusion,
+     :math:`L_f` above.
+
+   OR
+
+   * `"latent heat [J mol^-1]`" ``[double]`` Latent heat of fusion
+
+   END
+
+
+
+
+Water Retention and Relative Permeability Models
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+WRM Evaluator
+~~~~~~~~~~~~~
+
+`src/physics/ats/src/pks/flow/constitutive_relations/wrm/wrm_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/flow/constitutive_relations/wrm/wrm_evaluator.hh>`_
+
 
 Water Retention Models (WRMs) determine the saturation as a function of
 pressure and the relative permeability as a function of saturation.  Most
@@ -37,12 +112,12 @@ commonly used in practice is the van Genuchten model, but others are available d
 
 `"evaluator type`" = `"wrm`"
 
-.. _wrm-evaluator-spec:
-.. admonition:: wrm-evaluator-spec
+.. _evaluator-wrm-spec:
+.. admonition:: evaluator-wrm-spec
 
-   * `"model parameters`" ``[string]``
-     List (by region) of WRM specs. This will copy `"WRM parameters`" given in `"model parameters`"
-     under state here to evaluate WRM.
+   * `"model parameters`" ``[string]`` **"WRM parameters"** This will
+     copy `"WRM parameters`" given in `"model parameters`" under state here to
+     evaluate WRM.
 
    KEYS:
 
@@ -52,8 +127,23 @@ commonly used in practice is the van Genuchten model, but others are available d
    - `"other saturation`"  **determined from evaluator name**
      The name of the other saturation, usually gas -- typically this is determined
      from the evaluator name and need not be set.
+
+   DEPENDENCIES:
+
    - `"capillary pressure`"` **DOMAIN-capillary_pressure_gas_liq**
      The name of the capillary pressure.
+
+The resulting `"model parameters`" are expected to be a WRM partition.  A WRM
+partition is a list of (region, WRM) pairs, where the regions partition the
+mesh.
+
+.. _wrm-partition-typedinline-spec:
+.. admonition:: wrm-partition-typedinline-spec
+
+   * `"region`" ``[string]`` Region on which the WRM is valid.
+   * `"WRM type`" ``[string]`` Name of the WRM type.
+   * `"_WRM_type_ parameters`" ``[_WRM_type_-spec]`` See below for the required
+     parameter spec for each type.
 
 Example:
 
@@ -93,22 +183,12 @@ Example:
 
 
 
- A collection of WRMs along with a Mesh Partition.
 
-A WRM partition is a list of (region, WRM) pairs, where the regions partition
-the mesh.
+Relative Permeability Evaluator
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. _wrm-partition-typedinline-spec:
-.. admonition:: wrm-partition-typedinline-spec
+`src/physics/ats/src/pks/flow/constitutive_relations/wrm/rel_perm_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/flow/constitutive_relations/wrm/rel_perm_evaluator.hh>`_
 
-   * `"region`" ``[string]`` Region on which the WRM is valid.
-   * `"WRM type`" ``[string]`` Name of the WRM type.
-   * `"_WRM_type_ parameters`" ``[_WRM_type_-spec]`` See below for the required
-     parameter spec for each type.
-
-
-
- Evaluates relative permeability using water retention models.
 
 Uses a list of regions and water retention models on those regions to evaluate
 relative permeability, typically as a function of liquid saturation.
@@ -120,10 +200,10 @@ flow PKs.
 
 Some additional parameters are available.
 
-`"evaluator type`" = `"relative permeability, van Genuchten`"
+`"evaluator type`" = `"relative permeability, water retention model`"
 
-.. _rel-perm-evaluator-spec:
-.. admonition:: rel-perm-evaluator-spec
+.. _evaluator-relative-permeability-water-retention-model-spec:
+.. admonition:: evaluator-relative-permeability-water-retention-model-spec
 
    * `"use density on viscosity in rel perm`" ``[bool]`` **true**
 
@@ -140,27 +220,31 @@ Some additional parameters are available.
 
    * `"minimum rel perm cutoff`" ``[double]`` **0.** Provides a lower bound on rel perm.
 
-   * `"permeability rescaling`" ``[double]`` Typically rho * kr / mu is very big
-     and K_sat is very small.  To avoid roundoff propagation issues, rescaling
-     this quantity by offsetting and equal values is encourage.  Typically 10^7 or so is good.
-
-   * `"model parameters`" ``[string]``  **WRM parameters** ``[WRM-typedinline-spec-list]``
-     List (by region) of WRM specs. This will copy `"WRM parameters`" given in `"model parameters`"
-     under state here to evaluate relative permeability. If use `"WRM parameters`", both WRM and
-     relative permeability evaluators use the same set of `"WRM parameters`", which can be van Genuchten
-     or Brooks-Corey. If use a customed name, e.g., `"relative permeability parameters`", and declare
-     `"relative permeability parameters`" in `"model parameters`" under state, this allows to use
-     different models for WRM (by default through `"WRM parameters`") and relative permeability.
+   * `"model parameters`" ``[string]`` **"WRM parameters"** This will copy the
+     named set of parameters, which must be in :ref:`State`'s `"model
+     parameters`" list, into this list to evaluate relative
+     permeability. Usually this shares a common set of parameters (usually
+     called `"WRM parameters`"), with the :ref:`WRM Evaluator`.  Some models
+     may use a customed name, e.g., `"relative permeability parameters`", and
+     declare `"relative permeability parameters`" in `"model parameters`" under
+     state, which allows one to use different models for the WRM and relative
+     permeability.
 
    KEYS:
 
-   - `"rel perm`"
+   - `"relative permeability`"
+
+   DEPENDENCIES:
+
    - `"saturation_liquid`"
    - `"density`" (if `"use density on viscosity in rel perm`" == true)
    - `"viscosity`" (if `"use density on viscosity in rel perm`" == true)
    - `"surface relative permeability`" (if `"boundary rel perm strategy`" == `"surface rel perm`")
 
-Example 1:
+
+
+**Example 1:**
+
 Using the same set of van Genuchten model paramters for WRM and relative permeability
 
 .. code-block:: xml
@@ -204,12 +288,434 @@ Using the same set of van Genuchten model paramters for WRM and relative permeab
     ...
   </ParameterList>
 
-Example 2:
+
+**Example 2:**
+
 Using different set of model/paramters for WRM and relative permeability,
 van Genuchten for WRM and Brooks-Corey for relative permeability. Note that
 in this case, van Genuchten parameters and Brooks-Corey parameters need to
 be consistent. Using tool `"convert_parameters_vg2bc.py`" to convert van Genuchten
 parameters to Brooks-Corey parameters.
+
+.. code-block:: xml
+
+  <ParameterList name="PKs" type="ParameterList">
+    ...
+    <ParameterList name="flow" type="ParameterList">
+      ...
+      <ParameterList name="water retention evaluator" type="ParameterList">
+        <Parameter name="model parameters" type="string" value="WRM parameters" />
+        ...
+      </ParameterList>
+      ...
+    </ParameterList>
+    ...
+  </ParameterList>
+
+  <ParameterList name="state" type="ParameterList">
+    <ParameterList name="model parameters" type="ParameterList">
+      <ParameterList name="WRM parameters" type="ParameterList">
+        <ParameterList name="domain" type="ParameterList">
+          <Parameter name="region" type="string" value="domain" />
+          <Parameter name="wrm type" type="string" value="van Genuchten" />
+          <Parameter name="van Genuchten alpha [Pa^-1]" type="double" value="2e-05" />
+          <Parameter name="van Genuchten n [-]" type="double" value="1.58" />
+          <Parameter name="residual saturation [-]" type="double" value="0.2" />
+          <Parameter name="smoothing interval width [saturation]" type="double" value="0.05" />
+          <Parameter name="dessicated zone thickness [m]" type="double" value="0.1" />
+        </ParameterList>
+      </ParameterList>
+      <ParameterList name="relative permeability parameters" type="ParameterList">
+        <ParameterList name="domain" type="ParameterList">
+          <Parameter name="region" type="string" value="domain" />
+          <Parameter name="wrm type" type="string" value="Brooks-Corey" />
+          <Parameter name="Brooks-Corey lambda [-]" type="double" value="0.49" />
+          <Parameter name="Brooks-Corey saturated matric suction [Pa]" type="double" value="32439.03" />
+          <Parameter name="residual saturation [-]" type="double" value="0.2" />
+          <Parameter name="smoothing interval width [saturation]" type="double" value="0.05" />
+        </ParameterList>
+      </ParameterList>
+    </ParameterList>
+    <ParameterList name="evaluators" type="ParameterList">
+      <ParameterList name="relative_permeability" type="ParameterList">
+        <Parameter name="evaluator type" type="string" value="relative permeability, van Genuchten" />
+        <Parameter name="model parameters" type="string" value="relative permeability parameters" />
+        <Parameter name="use surface rel perm" type="bool" value="true" />
+        <Parameter name="minimum rel perm cutoff" type="double" value=" 0" />
+      </ParameterList>
+      ...
+    </ParameterList>
+    ...
+  </ParameterList>
+
+
+
+
+**WRM and Relative Permeability Models**
+
+Van Genuchten Model
+~~~~~~~~~~~~~~~~~~~
+
+`src/physics/ats/src/pks/flow/constitutive_relations/wrm/wrm_van_genuchten.hh <https://github.com/amanzi/ats/blob/master/src/pks/flow/constitutive_relations/wrm/wrm_van_genuchten.hh>`_
+
+WRMVanGenuchten : water retention model using van Genuchten's parameterization
+
+van Genuchten's water retention curve.
+
+`"WRM type`" = `"van Genuchten`"
+
+.. _wrm-van-genuchten-spec:
+.. admonition:: wrm-van-genuchten-spec
+
+    * `"region`" ``[string]`` Region to which this applies
+    * `"van Genuchten alpha [Pa^-1]`" ``[double]`` van Genuchten's alpha
+
+    ONE OF:
+
+    * `"van Genuchten n [-]`" ``[double]`` van Genuchten's n
+
+    OR
+
+    * `"van Genuchten m [-]`" ``[double]`` van Genuchten's m, m = 1 - 1/n
+
+    END
+
+    * `"residual saturation [-]`" ``[double]`` **0.0**
+    * `"smoothing interval width [saturation]`" ``[double]`` **0.0**
+    * `"Mualem exponent l [-]`" ``[double]`` **0.5**
+    * `"Krel function name`" ``[string]`` **Mualem**  `"Mualem`" or `"Burdine`"
+
+Example:
+
+.. code-block:: xml
+
+    <ParameterList name="moss" type="ParameterList">
+      <Parameter name="region" type="string" value="moss" />
+      <Parameter name="WRM type" type="string" value="van Genuchten" />
+      <Parameter name="van Genuchten alpha [Pa^-1]" type="double" value="0.002" />
+      <Parameter name="van Genuchten m [-]" type="double" value="0.2" />
+      <Parameter name="residual saturation [-]" type="double" value="0.0" />
+      <Parameter name="smoothing interval width [saturation]" type="double" value=".05" />
+    </ParameterList>
+
+
+
+
+Brooks-Corey Model
+~~~~~~~~~~~~~~~~~~~
+
+`src/physics/ats/src/pks/flow/constitutive_relations/wrm/wrm_brooks_corey.hh <https://github.com/amanzi/ats/blob/master/src/pks/flow/constitutive_relations/wrm/wrm_brooks_corey.hh>`_
+
+WRMBrooksCorey : water retention model using Brooks-Corey's parameterization
+
+Brooks-Corey's water retention curve, typically used to determine relative
+permeability under freezing conditions by converting van Genuchten parameters
+to Brooks-Corey parameters.
+
+`"WRM type`" = `"Brooks-Corey`"
+
+.. _wrm-brooks-corey-spec
+.. admonition:: wrm-brooks-corey-spec
+
+   * `"region`" ``[string]`` Region to which this applies
+   * `"Brooks-Corey lambda [-]`" ``[double]`` Brooks-Corey's lambda
+   * `"Brooks-Corey saturated matric suction [Pa]`" ``[double]`` Brooks-Corey
+     saturated matric suction in Pa
+   * `"residual saturation [-]`" ``[double]`` **0.0**
+   * `"smoothing interval width [saturation]`" ``[double]`` **0.0**
+
+Example:
+
+.. code-block:: xml
+
+    <ParameterList name="moss" type="ParameterList">
+      <Parameter name="region" type="string" value="moss" />
+      <Parameter name="WRM type" type="string" value="Brooks-Corey" />
+      <Parameter name="Brooks-Corey lambda [-]" type="double" value="0.5" />
+      <Parameter name="Brooks-Corey saturated matric suction [Pa]" type="double" value="1.e3" />
+      <Parameter name="residual saturation [-]" type="double" value="0.0" />
+      <Parameter name="smoothing interval width [saturation]" type="double" value=".05" />
+    </ParameterList>
+
+
+
+
+Linear  Model
+~~~~~~~~~~~~~~~~~~~
+
+`src/physics/ats/src/pks/flow/constitutive_relations/wrm/wrm_linear_system.hh <https://github.com/amanzi/ats/blob/master/src/pks/flow/constitutive_relations/wrm/wrm_linear_system.hh>`_
+
+
+A linear sat-pc curve, plus a constant rel perm, makes the system linear, so
+the nonlinear solver should always converge in one step.
+
+No error-checking, so the user is responsible for ensuring that the pressure
+is always less than atmospheric and within the acceptable range of the slope.
+
+Note this is mostly for testing.
+
+`"WRM type`" = `"linear system`"
+
+.. _wrm-linear-system-spec
+.. admonition:: wrm-linear-system-spec
+
+   * `"saturation at pc=0`" ``[double]`` **1.0**
+
+   ONE OF
+
+   * `"alpha`" ``[double]``  Slope of the linear curve.
+
+   OR
+
+   * `"max pc`" ``[double]``  Capillary pressure at saturation = 0.
+
+   END
+
+
+
+
+
+Water Retention and Relative Permeability Models for Freeze-Thaw
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+WRM Permafrost Evaluator
+~~~~~~~~~~~~~~~~~~~~~~~~
+`src/physics/ats/src/pks/flow/constitutive_relations/wrm/wrm_permafrost_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/flow/constitutive_relations/wrm/wrm_permafrost_evaluator.hh>`_
+
+
+A Water Retention Model for permafrost requires the computation of saturations
+of gas, liquid, and ice.  Multiple models for this are available, based on the
+work of `(Painter & Karra 2014) <https://doi.org/10.2136/vzj2013.04.0071>`_
+
+`"evaluator type`" = `"water retention model with ice`"
+
+.. _evaluator-water-retention-model-with-ice-spec:
+.. admonition:: evaluator-water-retention-model-with-ice-spec
+
+   ONE OF
+
+   * `"model parameters`" ``[string]`` **"WRM parameters"** Copies this list from
+     :ref:`State`'s `"model parameters`" list.
+
+   OR
+
+   * `"model parameters`" ``[wrm-partition-typedinline-spec-list]``
+
+   END
+
+   ONE OF
+
+   * `"permafrost model parameters`" ``[string]`` Copies this list from
+     :ref:`State`'s `"model parameters`" list.
+
+   OR
+
+   * `"permafrost model parameters`" ``[permafrost-wrm-partition-typedinline-spec]``
+
+   END
+
+
+   KEYS:
+
+   - `"liquid saturation`"
+   - `"gas saturation`"
+   - `"ice saturation`"
+
+   DEPENDENCIES:
+
+   - `"gas-liquid capillary pressure`" **capillary_pressure_gas_liq**
+   - `"liquid-ice capillary pressure`" **capillary_pressure_liq_ice**
+
+
+Like the WRM partition, the permafrost WRM partition provides (region, model)
+pairs:
+
+.. _permafrost-wrm-partition-typedinline-spec:
+.. admonition:: permafrost-wrm-partition-typedinline-spec
+
+   * `"region`" ``[string]`` region name
+   * `"permafrost wrm type`" ``[string]`` name of the model
+   * `"_PERMAFROST_WRM_type_ parameters`" ``[_PERMAFROST_WRM_type_-spec]`` See
+     below for each type's spec.
+
+
+
+
+**WRM Permafrost Models**
+
+Original Implicit WRM
+~~~~~~~~~~~~~~~~~~~~~
+`src/physics/ats/src/pks/flow/constitutive_relations/wrm/wrm_implicit_permafrost_model.hh <https://github.com/amanzi/ats/blob/master/src/pks/flow/constitutive_relations/wrm/wrm_implicit_permafrost_model.hh>`_
+
+
+Painter's original, implicitly defined permafrost model.
+
+`"permafrost wrm type`" = `"permafrost model`"
+
+.. _permafrost-wrm-permafrost-model-spec:
+.. admonition:: permafrost-wrm-permafrost-model-spec
+
+   * `"converged tolerance`" ``[double]`` **1.e-12** Convergence tolerance of
+     the implicit solve.
+   * `"max iterations`" ``[int]`` **100** Maximum allowable iterations of the
+     implicit solve.
+   * `"solver algorithm [brent]`" ``[string]`` **brent** Only brent is
+     currently supported.
+
+
+
+
+Freezing Point Depression WRM
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+`src/physics/ats/src/pks/flow/constitutive_relations/wrm/wrm_fpd_permafrost_model.hh <https://github.com/amanzi/ats/blob/master/src/pks/flow/constitutive_relations/wrm/wrm_fpd_permafrost_model.hh>`_
+
+
+Painter's permafrost model with freezing point depression.
+
+`"permafrost wrm type`" = `"fpd permafrost model`"
+
+.. _permafrost-wrm-fpd-permafrost-model-spec:
+.. admonition:: permafrost-wrm-fpd-permafrost-model-spec
+
+    * `"empty`" ``[double]`` **-1** No parameters are required for this model
+
+
+
+
+Freezing Point Depression, Smoothed WRM
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+`src/physics/ats/src/pks/flow/constitutive_relations/wrm/wrm_fpd_smoothed_permafrost_model.hh <https://github.com/amanzi/ats/blob/master/src/pks/flow/constitutive_relations/wrm/wrm_fpd_smoothed_permafrost_model.hh>`_
+
+
+Painter's permafrost model with freezing point depression, smoothed.
+
+`"permafrost wrm type`" = `"fpd smoothed permafrost model`"
+
+.. _permafrost-wrm-fpd-smoothed-permafrost-model-spec:
+.. admonition:: permafrost-wrm-fpd-smoothed-permafrost-model-spec
+
+   * `"reference temperature [K]`" ``[double]`` **273.15** The phase transition
+     point
+   * `"interfacial tension ice-water [mN m^-1]`" ``[double]`` **33.1**
+   * `"interfacial tension air-water [mN m^-1]`" ``[double]`` **72.7**
+   * `"smoothing width [K]`" ``[double]`` **1.** Smoothing out the freeze curve
+     allows this to be slightly easier to solve.
+   * `"latent heat [J kg^-1]`" ``[double]`` **3.34e5** Latent heat of fusion
+   * `"water density [kg m^-3]`" ``[double]`` **998.87** Density of water.
+     Note this probably should use the calculated value.
+
+ 
+
+
+Interfrost WRM
+~~~~~~~~~~~~~~
+`src/physics/ats/src/pks/flow/constitutive_relations/wrm/wrm_interfrost_permafrost_model.hh <https://github.com/amanzi/ats/blob/master/src/pks/flow/constitutive_relations/wrm/wrm_interfrost_permafrost_model.hh>`_
+
+
+Sutra-ICE WRM
+~~~~~~~~~~~~~
+`src/physics/ats/src/pks/flow/constitutive_relations/wrm/wrm_sutra_permafrost_model.hh <https://github.com/amanzi/ats/blob/master/src/pks/flow/constitutive_relations/wrm/wrm_sutra_permafrost_model.hh>`_
+
+
+This model is based on the emperical freezing curve used by Sutra-Ice,
+documented in papers by Voss & Walvoord.
+
+.. _permafrost-wrm-sutra-permafrost-model-spec:
+.. admonition:: permafrost-wrm-sutra-permafrost-model-spec
+
+   * `"temperature transition [K]`" ``[double]`` thickness of the transition from frozen to thawed
+   * `"residual saturation [-]`" ``[double]`` Standard residual saturation
+   * `"freezing point [K]`" ``[double]`` **273.15**
+
+
+ 
+
+
+Relative Permeability, Freezing Brooks-Corey Evaluator
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+`src/physics/ats/src/pks/flow/constitutive_relations/wrm/rel_perm_frzBC_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/flow/constitutive_relations/wrm/rel_perm_frzBC_evaluator.hh>`_
+
+
+This is an empirical relative permeability model according to Niu and Yang
+(2006).  This model is based on Brooks-Corey relative permeability model and an
+additional coefficient term is added to account for the effect of soil
+ice. This model is used for freezing conditions to make snowmelt water
+infiltrate deeper. See paper Agnihotri et al. (2023) for discussions about the
+influence of relative permeability model on discharge under freezing
+conditions.
+
+.. math::
+
+   k_{rel} &= ( 1 - F_{frz} ) \times ( \frac{1 - s_{g} - s_r}{1 - s_r} )^{2*b + 3} \\
+   F_{frz} &= \mathrm{exp}( -\omega \times ( s_{l} + s_{g} ) ) - \mathrm{exp}( -\omega )
+
+Under freezing conditions, it is recommended to call Brooks-Corey based
+relative permeability corrected by ice content. This model needs Brooks-Corey
+parameters: Brooks-Corey lambda, Brooks-Corey saturated matric suction (Pa),
+and residual saturation. The reciprocal of Brooks-Corey lambda is
+Clapp-Hornberger b. Use tool `"convert_paramters_vg2bc.py`" to convert van
+Genuchten parameters to Brooks-Corey paramters. The conversion method is
+referred to Lenhard et al. (1989) or Ma et al. (1999) method 2.
+
+`"evaluator type`" = `"relative permeability, freezing Brooks-Corey`"
+
+.. _evaluator-relative-permeability-freezing-brooks-corey-spec:
+.. admonition:: evaluator-relative-permeability-freezing-brooks-corey-spec
+
+   * `"use density on viscosity in rel perm`" ``[bool]`` **true**
+
+   * `"boundary rel perm strategy`" ``[string]`` **boundary pressure** Controls
+     how the rel perm is calculated on boundary faces.  Note, this may be
+     overwritten by upwinding later!  One of:
+
+      - `"boundary pressure`" Evaluates kr of pressure on the boundary face,
+        upwinds normally.
+      - `"interior pressure`" Evaluates kr of the pressure on the interior cell
+        (bad idea).
+      - `"harmonic mean`" Takes the harmonic mean of kr on the boundary face
+        and kr on the interior cell.
+      - `"arithmetic mean`" Takes the arithmetic mean of kr on the boundary
+        face and kr on the interior cell.
+      - `"one`" Sets the boundary kr to 1.
+      - `"surface rel perm`" Looks for a field on the surface mesh and uses
+        that.
+
+   * `"minimum rel perm cutoff`" ``[double]`` **0.** Provides a lower bound on
+     rel perm.
+
+   * `"omega [-]`" ``[double]`` **2.0** A scale dependent parameter in the
+     relative permeability model.  See paper Niu & Yang (2006) for details
+     about the model. Typical values range from 2-3.
+
+   * `"model parameters`" ``[string]`` **WRM parameters**
+     ``[wrm-typedinline-spec-list]`` List (by region) of WRM specs. This will
+     copy `"WRM parameters`" given in `"model parameters`" under state here to
+     evaluate relative permeability. If use `"WRM parameters`", both WRM and
+     relative permeability evaluators use the same set of `"WRM parameters`",
+     which can be van Genuchten or Brooks-Corey. If use a customed name, e.g.,
+     `"relative permeability parameters`", and declare `"relative permeability
+     parameters`" in `"model parameters`" under state, this allows to use
+     different models for WRM (by default through `"WRM parameters`") and
+     relative permeability. Typically, under freezing conditions, van Genuchten
+     model is used as WRM and Brooks-Corey based high frozen rel perm is used
+     for relative permeability.
+
+
+   KEYS:
+
+   - `"saturation_liquid`"
+   - `"saturation_gas`"
+   - `"density`" (if `"use density on viscosity in rel perm`" == true)
+   - `"viscosity`" (if `"use density on viscosity in rel perm`" == true)
+   - `"surface relative permeability`" (if `"boundary rel perm strategy`" == `"surface rel perm`")
+
+**Example:**
+
+Using van Genuchten for WRM and Brooks-Corey based high frozen rel perm for
+relative permeability.  Note that in this case, van Genuchten parameters and
+Brooks-Corey parameters need to be consistent. Using tool
+`"convert_parameters_vg2bc.py`" to convert van Genuchten parameters to
+Brooks-Corey parameters.
 
 .. code-block:: xml
 
@@ -252,7 +758,8 @@ parameters to Brooks-Corey parameters.
     </ParameterList>
     <ParameterList name="evaluators" type="ParameterList">
       <ParameterList name="relative_permeability" type="ParameterList">
-        <Parameter name="evaluator type" type="string" value="relative permeability, van Genuchten" />
+        <Parameter name="evaluator type" type="string" value="Brooks-Corey based high frozen rel perm" />
+        <Parameter name="omega [-]" type="double" value="2" />
         <Parameter name="model parameters" type="string" value="relative permeability parameters" />
         <Parameter name="use surface rel perm" type="bool" value="true" />
         <Parameter name="minimum rel perm cutoff" type="double" value=" 0" />
@@ -265,127 +772,123 @@ parameters to Brooks-Corey parameters.
 
 
 
-Van Genuchten Model
-~~~~~~~~~~~~~~~~~~~
- WRMVanGenuchten : water retention model using van Genuchten's parameterization
+Relative Permeability, Sutra-ICE Evaluator
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+`src/physics/ats/src/pks/flow/constitutive_relations/wrm/rel_perm_sutraice_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/flow/constitutive_relations/wrm/rel_perm_sutraice_evaluator.hh>`_
 
-van Genuchten's water retention curve.
 
-.. _WRM-van-Genuchten-spec:
-.. admonition:: WRM-van-Genuchten-spec
+Implements the SUTRA Ice model for relative permeability.
 
-    * `"region`" ``[string]`` Region to which this applies
-    * `"van Genuchten alpha [Pa^-1]`" ``[double]`` van Genuchten's alpha
+Most of the parameters are provided to the WRM model, and not the evaluator.
+Typically these share lists to ensure the same water retention curves, and this
+one is updated with the parameters of the WRM evaluator.  This is handled by
+flow PKs.
 
-    ONE OF:
+Some additional parameters are available.
 
-    * `"van Genuchten n [-]`" ``[double]`` van Genuchten's n
+`"evaluator type`" = `"relative permeability, SutraICE`"
 
-    OR
+.. _evaluator-relative-permeability-sutraice-spec:
+.. admonition:: evaluator-relative-permeability-sutraice-spec
 
-    * `"van Genuchten m [-]`" ``[double]`` van Genuchten's m, m = 1 - 1/n
+   * `"use density on viscosity in rel perm`" ``[bool]`` **true**
 
-    END
+   * `"boundary rel perm strategy`" ``[string]`` **boundary pressure** Controls
+     how the rel perm is calculated on boundary faces.  Note, this may be
+     overwritten by upwinding later!  One of:
 
-    * `"residual saturation [-]`" ``[double]`` **0.0**
-    * `"smoothing interval width [saturation]`" ``[double]`` **0.0**
-    * `"Mualem exponent l [-]`" ``[double]`` **0.5**
-    * `"Krel function name`" ``[string]`` **Mualem**  `"Mualem`" or `"Burdine`"
+      - `"boundary pressure`" Evaluates kr of pressure on the boundary face,
+        upwinds normally.
+      - `"interior pressure`" Evaluates kr of the pressure on the interior cell
+        (bad idea).
+      - `"harmonic mean`" Takes the harmonic mean of kr on the boundary face
+        and kr on the interior cell.
+      - `"arithmetic mean`" Takes the arithmetic mean of kr on the boundary
+        face and kr on the interior cell.
+      - `"one`" Sets the boundary kr to 1.
+      - `"surface rel perm`" Looks for a field on the surface mesh and uses
+        that.
+
+   * `"minimum rel perm cutoff`" ``[double]`` **0.** Provides a lower bound on
+     rel perm.
+
+   * `"model parameters`" ``[string]`` **WRM parameters**
+     ``[wrm-typedinline-spec-list]`` List (by region) of WRM specs. This will
+     copy `"WRM parameters`" given in `"model parameters`" under state here to
+     evaluate relative permeability. If use `"WRM parameters`", both WRM and
+     relative permeability evaluators use the same set of `"WRM parameters`",
+     which can be van Genuchten or Brooks-Corey. If use a customed name, e.g.,
+     `"relative permeability parameters`", and declare `"relative permeability
+     parameters`" in `"model parameters`" under state, this allows to use
+     different models for WRM (by default through `"WRM parameters`") and
+     relative permeability.
+
+   * `"coefficient in drag term of kr`" ``[double]`` **1.0** [-]
+
+   KEYS:
+
+   - `"rel perm`"
+   - `"saturation_liquid`"
+   - `"saturation_gas`"
+   - `"density`" (if `"use density on viscosity in rel perm`" == true)
+   - `"viscosity`" (if `"use density on viscosity in rel perm`" == true)
+   - `"surface relative permeability`" (if `"boundary rel perm strategy`" == `"surface rel perm`")
+
 
 Example:
+Using the same set of van Genuchten model paramters for WRM and relative permeability
 
 .. code-block:: xml
 
-    <ParameterList name="moss" type="ParameterList">
-      <Parameter name="region" type="string" value="moss" />
-      <Parameter name="WRM type" type="string" value="van Genuchten" />
-      <Parameter name="van Genuchten alpha [Pa^-1]" type="double" value="0.002" />
-      <Parameter name="van Genuchten m [-]" type="double" value="0.2" />
-      <Parameter name="residual saturation [-]" type="double" value="0.0" />
-      <Parameter name="smoothing interval width [saturation]" type="double" value=".05" />
+  <ParameterList name="PKs" type="ParameterList">
+    ...
+    <ParameterList name="flow" type="ParameterList">
+      ...
+      <ParameterList name="water retention evaluator" type="ParameterList">
+        <Parameter name="model parameters" type="string" value="WRM parameters" />
+        ...
+      </ParameterList>
+      ...
     </ParameterList>
+    ...
+  </ParameterList>
+
+  <ParameterList name="state" type="ParameterList">
+    <ParameterList name="model parameters" type="ParameterList">
+      <ParameterList name="WRM parameters" type="ParameterList">
+        <ParameterList name="domain" type="ParameterList">
+          <Parameter name="region" type="string" value="domain" />
+          <Parameter name="wrm type" type="string" value="van Genuchten" />
+          <Parameter name="van Genuchten alpha [Pa^-1]" type="double" value="2e-05" />
+          <Parameter name="van Genuchten n [-]" type="double" value="1.58" />
+          <Parameter name="residual saturation [-]" type="double" value="0.2" />
+          <Parameter name="smoothing interval width [saturation]" type="double" value="0.05" />
+          <Parameter name="dessicated zone thickness [m]" type="double" value="0.1" />
+        </ParameterList>
+      </ParameterList>
+    </ParameterList>
+    <ParameterList name="evaluators" type="ParameterList">
+      <ParameterList name="relative_permeability" type="ParameterList">
+        <Parameter name="evaluator type" type="string" value="SutraIce rel perm" />
+        <Parameter name="model parameters" type="string" value="WRM parameters" />
+        <Parameter name="use surface rel perm" type="bool" value="true" />
+        <Parameter name="minimum rel perm cutoff" type="double" value=" 0" />
+      </ParameterList>
+      ...
+    </ParameterList>
+    ...
+  </ParameterList>
 
 
 
 
-Linear  Model
-~~~~~~~~~~~~~~~~~~~
- A linear sat-pc curve.
 
-  A linear sat-pc curve, plus a constant rel perm, makes the system linear, so
-  nonlinear solver should always converge in one step.
-
-  No error-checking, so the user is responsible for ensuring that the pressure
-  is always less than atmospheric and within the acceptable range of the slope.
-
-  Note this is mostly for testing.
-
-
-
-
-Water Retention Model for Freeze-Thaw
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-
-Original Implicit model
-~~~~~~~~~~~~~~~~~~~~~~~
- Painter's original, implicitly defined permafrost model.
-
-.. _wrm-implicit-permafrost-spec:
-.. admonition:: wrm-implicit-permafrost-spec
-
-    * `"converged tolerance`" ``[double]`` **1.e-12** Convergence tolerance of the implicit solve.
-    * `"max iterations`" ``[int]`` **100** Maximum allowable iterations of the implicit solve.
-    * `"solver algorithm [brent]`" ``[string]`` **brent** Only brent is currently supported.
-
-
-
-
-Freezing point depression model
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-Freezing point depression, smoothed model
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- Painter's permafrost model with freezing point depression, smoothed.
-
-.. _wrm-fpd-smoothed-permafrost-spec:
-.. admonition:: wrm-fpd-smoothed-permafrost-spec
-
-    * `"reference temperature [K]`" ``[double]`` **273.15** The phase transition point
-    * `"interfacial tension ice-water [mN m^-1]`" ``[double]`` **33.1**
-    * `"interfacial tension air-water [mN m^-1]`" ``[double]`` **72.7**
-    * `"smoothing width [K]`" ``[double]`` **1.** Smoothing out the freeze curve allows this to be slightly easier to solve.
-    * `"latent heat [J kg^-1]`" ``[double]`` **3.34e5** Latent heat of fusion
-    * `"water density [kg m^-3]`" ``[double]`` **998.87** Density of water.  Note this probably should use the calculated value.
-
- 
-
-
-Interfrost model
-~~~~~~~~~~~~~~~~
-
-
-Sutra-ICE model
-~~~~~~~~~~~~~~~
-
-
-This model is based on the emperical freezing curve used by Sutra-Ice,
-documented in papers by Voss & Walvoord.
-
-.. _wrm-sutra-permafrost-model-spec:
-.. admonition:: wrm-sutra-permafrost-model-spec
-
-   * `"temperature transition [K]`" ``[double]`` thickness of the transition from frozen to thawed
-   * `"residual saturation [-]`" ``[double]`` Standard residual saturation
-   * `"freezing point [K]`" ``[double]`` **273.15**
-
-
- 
-
-
-Compressible porosity
+Compressible Porosity
 ^^^^^^^^^^^^^^^^^^^^^
+
+Standard Model
+~~~~~~~~~~~~~~
+`src/physics/ats/src/pks/flow/constitutive_relations/porosity/compressible_porosity_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/flow/constitutive_relations/porosity/compressible_porosity_evaluator.hh>`_
 
 
 Compressible grains are both physically realistic (based on bulk modulus) and a
@@ -394,8 +897,8 @@ converge.
 
 `"evaluator type`" = `"compressible porosity`"
 
-.. _compressible-porosity-evaluator-spec:
-.. admonition:: compressible-porosity-evaluator-spec
+.. _evaluator-compressible-porosity-spec:
+.. admonition:: evaluator-compressible-porosity-spec
 
    * `"compressible porosity model parameters`" ``[compressible-porosity-standard-model-spec-list]``
 
@@ -406,10 +909,9 @@ converge.
 
 
 
+`src/physics/ats/src/pks/flow/constitutive_relations/porosity/compressible_porosity_model.hh <https://github.com/amanzi/ats/blob/master/src/pks/flow/constitutive_relations/porosity/compressible_porosity_model.hh>`_
 
-Standard model
-~~~~~~~~~~~~~~
- A simple model for allowing porosity to vary with pressure.
+A simple model for allowing porosity to vary with pressure.
 
 Based on a linear increase, i.e.
 
@@ -446,8 +948,31 @@ Example:
 
 
 
-Exponential model
+Exponential Model
 ~~~~~~~~~~~~~~~~~
+`src/physics/ats/src/pks/flow/constitutive_relations/porosity/compressible_porosity_leijnse_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/flow/constitutive_relations/porosity/compressible_porosity_leijnse_evaluator.hh>`_
+
+Evaluates the porosity, given a small compressibility of rock.
+
+Compressible grains are both physically realistic (based on bulk modulus) and a
+simple way to provide a non-elliptic, diagonal term for helping solvers to
+converge.  After Leijnse thesis, 1992.
+
+`"evaluator type`" = `"compressible porosity leijnse`"
+
+.. _evaluator-compressible-porosity-leijnse-spec
+.. admonition:: evaluator-compressible-porosity-leijnse-spec
+
+   * `"compressible porosity model parameters`" ``[compressible-porosity-leijnse-model-spec]``
+
+   KEYS:
+
+   - `"pressure`" **DOMAIN-pressure**
+   - `"base porosity`" **DOMAIN-base_porosity**
+
+
+
+`src/physics/ats/src/pks/flow/constitutive_relations/porosity/compressible_porosity_leijnse_model.hh <https://github.com/amanzi/ats/blob/master/src/pks/flow/constitutive_relations/porosity/compressible_porosity_leijnse_model.hh>`_
 
 
 The Leinjnse model is an exponential model of porosity as a function of
@@ -482,7 +1007,7 @@ Globalization Delegate`_ to turn Leijnse model ON in the EWC calculations.
 
 
 
-Viscosity of water
+Viscosity of Water
 ^^^^^^^^^^^^^^^^^^
 
 Two main viscosity models are commonly used -- a constant and one
@@ -505,15 +1030,18 @@ point it is not a secondary variable but an independent variable.
 
 Nonisothermal
 ~~~~~~~~~~~~~
+`src/physics/ats/src/constitutive_relations/eos/viscosity_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/constitutive_relations/eos/viscosity_evaluator.hh>`_
 
 
 A non-isothermal viscosity model intended for use within a range of
 temperatures from well below freezing to ~100C.
 
-.. _viscosity-evaluator-spec:
-.. admonition:: viscosity-evaluator-spec
+`"evaluator type`" = `"viscosity`"
 
-   * `"viscosity model parameters`" ``[viscosity-typedinline-spec-list]``
+.. _evaluator-viscosity-spec:
+.. admonition:: evaluator-viscosity-spec
+
+   * `"viscosity model parameters`" ``[viscosity-typedinline-spec]``
 
    KEYS:
 
@@ -521,14 +1049,13 @@ temperatures from well below freezing to ~100C.
 
  
 
+`src/physics/ats/src/constitutive_relations/eos/viscosity_water.hh <https://github.com/amanzi/ats/blob/master/src/constitutive_relations/eos/viscosity_water.hh>`_
 
 
 A constitutive relation for the viscosity of water as a function of temperature
 in K, given as an empirical series expansion fit to data.
 
-Used by setting
-
-`"viscosity relation type`" = `"liquid water`"
+`"viscosity type`" = `"liquid water`"
 
 .. _viscosity-water-spec:
 .. admonition:: viscosity-water-spec

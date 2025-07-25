@@ -1,0 +1,811 @@
+Surface energy balance evaluators
+---------------------------------
+
+Evaluators used to solve the fluxes to and from the atmosphere and
+between layers of the surface.  Typically in ATS these calculate
+evapotranspiration.
+
+Area Fractions
+^^^^^^^^^^^^^^
+
+Frequently, the surface of a grid cell is split across at least two
+"subgrid components," for instance snow covered and bare ground.  This
+"subgrid" model allows smooth transitions between fully snow-covered
+and fully bare ground.
+
+These area fractions often get included as area-weights in calculating
+full-cell quantities.
+
+Two-component model
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+ A subgrid model for determining the area fraction of snow vs not snow within a grid cell.
+
+Uses a simple linear transition to vary between liquid and bare ground, and
+another linear transition to vary between snow-covered and not-snow-covered.
+
+Ordering of the area fractions calculated are: [bare ground/water, snow].
+
+`"evaluator type`" = `"area fractions, two components`"
+
+.. _area-fractions-twocomponent-evaluator-spec:
+.. admonition:: area-fractions-twocomponent-evaluator-spec:
+
+   * `"minimum fractional area [-]`" ``[double]`` **1.e-5**
+         Mimimum area fraction allowed, less than this is rebalanced as zero.
+
+   DEPENDENCIES:
+
+   - `"snow depth`" ``[string]``
+
+.. note:
+
+   This evaluator also uses the LandCover_ types.  From that struct, it
+   requires the value of the following parameters:
+
+   - `"snow transition height [m]`" ``[double]`` **0.02**
+      Minimum thickness for specifying the snow gradient.
+
+.. note:
+
+   This evaluator simplifies the situation by assuming constant density.  This
+   make it so that ice and water see the same geometry per unit pressure, which
+   isn't quite true thanks to density differences.  However, we hypothesize
+   that these differences, on the surface (unlike in the subsurface) really
+   don't affect the solution.
+
+
+
+
+Three-component model
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+ A subgrid model for determining the area fraction of land, water, and snow within a grid cell.
+
+Uses a simple linear transition to vary between liquid and bare ground, and
+another linear transition to vary between snow-covered and not-snow-covered.
+
+Ordering of the area fractions calculated are: [bare ground, water, snow].
+
+`"evaluator type`" = `"area fractions, three components`"
+
+.. _area-fractions-threecomponent-evaluator-spec:
+.. admonition:: area-fractions-threecomponent-evaluator-spec:
+
+   * `"minimum fractional area [-]`" ``[double]`` **1.e-5**
+      Mimimum area fraction allowed, less than this is rebalanced as zero.
+
+   DEPENDENCIES:
+
+   - `"snow depth`" **DOMAIN_SNOW-depth**
+   - `"ponded depth`" **DOMAIN-ponded_depth**
+
+.. note:
+
+   This evaluator also uses the LandCover_ types.  From that struct, it
+   requires the value of the following parameters:
+
+   - `"snow transition height [m]`" ``[double]`` **0.02**
+      Minimum thickness for specifying the snow gradient.
+   - `"water transition height [m]`" ``[double]`` **0.02**
+         Minimum thickness for specifying the water gradient.
+
+.. note:
+
+   This evaluator simplifies the situation by assuming constant density.  This
+   make it so that ice and water see the same geometry per unit pressure, which
+   isn't quite true thanks to density differences.  However, we hypothesize
+   that these differences, on the surface (unlike in the subsurface) really
+   don't affect the solution.
+
+
+
+
+Three-component model, with microtopography
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ A subgrid model for determining the area fraction of land, open water, and snow within a grid cell.
+
+Uses the subgrid equation from Jan et al WRR 2018 for volumetric or effective
+ponded depth to determine the area of water, then heuristically places snow on
+top of that surface.
+
+`"evaluator type`" = `"area fractions, three components with microtopography`"
+
+.. _area-fractions-threecomponent-microtopography-evaluator-spec:
+.. admonition:: area-fractions-threecomponent-microtopography-evaluator-spec
+
+   * `"snow transitional height [m]`" ``[double]`` **0.02**
+     Minimum thickness for specifying the snow gradient.
+   * `"minimum fractional area [-]`" ``[double]`` **1.e-5**
+     Mimimum area fraction allowed, less than this is rebalanced as zero.
+   * `"snow domain name`" ``[string]`` **DOMAIN_SNOW** A default is guessed at
+     by replacing `"surface`" with `"snow`" in the this's domain.
+
+   KEYS:
+
+   - `"microtopographic relief`" **DOMAIN-microtopographic_relief**
+     The name of del_max, the max microtopography value.
+   - `"excluded volume`" **DOMAIN-excluded_volume**
+     The name of del_excluded, the integral of the microtopography.
+   - `"ponded depth`" **DOMAIN-pressure**
+     The name of the surface water ponded depth.
+   - `"snow depth`" **DOMAIN_SNOW-depth**
+     The name of the snow depth.
+   - `"volumetric snow depth`" **DOMAIN_SNOW-volumetric_depth**
+     The name of the snow depth.
+
+
+NOTE: this evaluator simplifies the situation by assuming constant density.
+This make it so that ice and water see the same geometry per unit pressure,
+which isn't quite true thanks to density differences.  However, we hypothesize
+that these differences, on the surface (unlike in the subsurface) really don't
+matter much. --etc
+
+
+
+
+
+Potential Evapotranspiration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Models of potential evapotranspiration approximate the difference in
+vapor pressure between the atmosphere and the soil as a function of
+available energy, allowing the calculation of the max flux of ET that
+the atmosphere could accept.  This can then be limited based on water
+availability, etc.
+
+Priestley-Taylor Potential Evapotranspiration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ Evaluates potential evapotranpiration (PET) using Priestley & Taylor formulation.
+
+This implementation is based on models provided in the PRMS-IV, Version 4, see
+pages 90-93, Equations 1-57 to 1-60
+
+Requires the following dependencies:
+
+.. _pet-priestley-taylor-evaluator-spec:
+.. admonition:: pet-priestley-taylor-evaluator-spec:
+
+   * `"include limiter`" ``[bool]`` **false** If true, multiply potential ET by
+     a limiter to get an actual ET.
+   * `"limiter number of dofs`" ``[int]`` **1** Area fractions are often used
+     as limiters, and these have multiple dofs.  This provides how many.
+   * `"limiter dof`" ``[int]`` **0** Area fractions are often used
+     as limiters, and these have multiple dofs.  This provides which one to use.
+   * `"include 1 - limiter`" ``[bool]`` **false** If true, multiply potential
+     ET by 1 - a limiter (e.g. a limiter that partitions between two pools) to
+     get actual ET.
+   * `"1 - limiter number of dofs`" ``[int]`` **1** Area fractions are often used
+     as limiters, and these have multiple dofs.  This provides how many.
+   * `"1 - limiter dof`" ``[int]`` **0** Area fractions are often used
+     as limiters, and these have multiple dofs.  This provides which one to use.
+   * `"sublimate snow`" ``[bool]`` **false** If true, use latent heat of
+      vaporization of snow, not water.
+
+   KEYS:
+
+   - `"air temperature`" **DOMAIN-air_temperature** Air temp, in [K]
+   - `"surface temperature`" **DOMAIN-temperature** Ground or leaf temp, in [K].  Note this may be the
+      same as air temperature.
+   - `"elevation`" **DOMAIN-elevation** Elevation [m]
+   - `"net radiation`" **DOMAIN-net_radiation** [W m^-2] Net radiation balance, positive to the ground.
+   - `"limiter`" [-] See `"include limiter`" above.
+   - `"1 - limiter`" [-] See `"include 1 - limiter`" above.
+
+
+
+
+Downregulation and limiters
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Given a potential, the actual ET is often limited by available water
+(or nutrients or other quantities).  These evaluators are used to
+limit, downregulate, distribute, or otherwise move a potential to an
+actual ET.
+
+Transpiration Distribution
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+ Distributes and downregulates potential transpiration to the rooting zone.
+
+The transpiration distribution evaluator looks to take a potential
+evapotranspiration and distribute it across the vertical column based on water
+availability and rooting depths.  It also potentially limits the transpiration
+to avoid taking water where it is not available (thereby crashing the code).
+
+This model is based off of versions from both CLM 4.5 and PRMS.  It requires:
+
+1. A root distribution profile.
+2. A plant wilting factor (e.g. how water stressed is the plant?)
+3. A potential transpiration, typically calculated from data or a potential
+   difference based on a latent heat calculation.
+
+Note this also requires columnar meshes -- meaning that the subsurface mesh
+must have `"build columns from set`" provided.
+
+A normalized fraction of water is calculated through multiplying the water
+factor by the root distribution factor, integrating across the column, and
+dividing by the integral.  This gives a factor which sums to 1 and can be used
+to distribute the potential ET throughout the soil column.
+
+Then, this potential ET is down-regulated and multiplied by the plant wilting
+factor.  If there is no water locally, it cannot be taken.  Note that almost
+always, if there is no water, this did not contribute (much) to the integral
+and so is already small.  But if the entire root zone is dried out, this might
+have been a bunch of small numbers which then got normalized to 1, meaning they
+are all now significant.
+
+Finally, transpiration may be turned off for winter -- relative to time zero,
+parameters `"leaf on doy`" and `"leaf off doy`" are used to control when ET
+is zero.  By default these are set to 0 and 366 days, ensuring that
+transpiration is never turned off and the potential ET must include this
+factor.  This is the right choice for, e.g. ELM output, or eddy covariance flux
+tower data (where leaf on and off are already included in the potential
+calculation).  It is the wrong choice for, e.g. Priestly-Taylor or
+Penmann-Montief models, which are happy to predict transpiration all winter
+long.  Good choices for those models depend upon the local climate, but may be
+something like Julian day 101 for leaf on and Julian day 254 for leaf off (PRMS
+defaults for US temperate forests).
+
+Note that `"leaf on doy`" and `"leaf off doy`" are relative to the simulation's
+zero time, not the start time.  Typically these are Julian day of the year, but
+this assumes that the 0 time of the simulation (not the "start time", but time
+0!) is Jan 1.  This leaf on/off cycle is modulo the `"year duration`"
+(typically 1 noleap).  Note if `"leaf off doy`" < `"leaf on time`" is ok too --
+this is the case if simulation time zero is mid-summer.  These parameters come
+from the LandCover type.
+
+.. _transpiration-distribution-evaluator-spec:
+.. admonition:: transpiration-distribution-evaluator-spec
+   * `"year duration`" ``[double]`` **1**
+   * `"year duration units`" ``[string]`` **noleap**
+
+   * `"water limiter function`" ``[function-spec]`` **optional** If provided,
+     limit the total water sink as a function of the integral of the water
+     potential * rooting fraction.
+
+   KEYS:
+
+   - `"plant wilting factor`" **DOMAIN-plant_wilting_factor**
+   - `"rooting depth fraction`" **DOMAIN-rooting_depth_fraction**
+   - `"potential transpiration`" **DOMAIN_SURF-potential_transpiration**
+   - `"cell volume`" **DOMAIN-cell_volume**
+   - `"surface cell volume`" **DOMAIN_SURF-cell_volume**
+
+
+
+
+Rooting Depth Fraction
+~~~~~~~~~~~~~~~~~~~~~~
+ Provides a depth-based profile of root density.
+
+Sets the (discrete) root fraction as a function of depth.  The rooting density
+is given by:
+
+.. math:
+   \rho_root =  \frac{1}{2} ( \alpha \; exp(-\alpha z) + \beta \; exp(-\beta z) )
+
+This function is such that the integral over depth = [0,inf) is 1.  Then,
+computing this over the vertical corridor is done by integrating this function
+between the depth of the face above and below for each grid cell, with the
+bottom-most grid cell integrating to infinity.
+
+Note that the two parameters, :math:`\alpha` and :math:`\beta` are provided in
+the Land Cover class as `"rooting profile alpha`" and `"rooting profile beta`"
+respectively.
+
+.. _rooting-depth-fraction-evaluator-spec:
+.. admonition:: rooting-depth-fraction-evaluator-spec
+
+   * `"surface domain name`" ``[string]`` **SURFACE_DOMAIN** Sane default provided for most domain names.
+
+   KEYS:
+
+   - `"cell volume`" **DOMAIN-cell_volume**
+   - `"surface area`" **SURFACE_DOMAIN-cell_volume**
+
+
+
+
+Plant Wilting Point
+~~~~~~~~~~~~~~~~~~~
+ Plant wilting factor provides a moisture availability-based limiter on transpiration.
+
+Also known as Beta, or the water availability factor, or the plant wilting
+factor, or the transpiration reduction function.
+
+.. math::
+   Beta =  (p_closed - p) / (p_closed - p_open)
+
+where p is the capillary pressure or water potential, and closed
+and open indicate the values at which stomates are fully open or fully
+closed (the wilting point).
+
+Note this makes use of LandCover objects for water potential of fully open and
+fully closed stomata.
+
+Note the challenges of using this model with arbitrary van Genuchten WRMs.  See
+Verhoef & Egea, Ag. & Forest Meteorology, 2014
+https://doi.org/10.1016/j.agrformet.2014.02.009
+
+
+.. _plant-wilting-factor-evaluator-spec:
+.. admonition:: plant-wilting-factor-evaluator-spec
+
+   KEYS:
+
+   - `"capillary pressure`" **DOMAIN-capillary_pressure_gas_liq**
+
+
+
+
+
+Soil Resistance
+^^^^^^^^^^^^^^^
+
+Downregulates evaporation through a dessicated zone via soil resistance.
+Currently support two soil resistance methods: Sakagucki-Zeng and Sellers.
+This will call soil resistance evaluator.
+
+
+
+
+
+Radiation Balance Terms
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Often a balance of incoming and outgoing short and longwave radiations
+are required to determine the energy available to go into latent heat,
+and therefore potential evapotranspiration.
+
+Note that incoming shortwave radiation is typically a user-provided
+meterological forcing dataset.
+
+Radiation Balance
+~~~~~~~~~~~~~~~~~
+ Evaluates a net radiation balance for ground and canopy.
+
+Here the net radiation is positive for energy inputs to the layer.  Note that
+ground is based on the two-channel (land + snow) while canopy is assumed to be
+a simple, single layer.
+
+This evaluator requires that the surface temperature, snow temperature, and
+canopy temperature are known, or at least being solved for.
+
+Requires the use of LandCover types, for albedo and Beer's law coefficients.
+
+This is combination of CLM v4.5 Tech Note and Beer's law for attenuation of
+radiation absorption.  In particular, long-wave is exactly as Figure 4.1c in CLM
+4.5 Tech Note.  The main difference comes in how absorptivity (which is equal
+to emissivity, epsilon in that document) is defined.  Here we use Beer's law
+which is an exponential decay with LAI.
+
+Unlike CLM 4.5, here we do not split shortwave into direct and diffuse light.
+
+Computes:
+
+1. "surface radiation balance" -- Net radiation seen by the bare soil/ponded
+   water, this includes radiation transmitted to the surface through the
+   canopy, longwave emitted by the canopy, and less the longwave emitted by the
+   surface itself.  [W m^-2] of actual area -- this does NOT include the
+   surface area fraction factor which would be required to compute a total
+   energy flux in W.
+
+2. "snow radiation balance" -- Net radiation seen by the snow.  See surface
+   above -- all are the same except using snow properties. [W m^-2]
+
+3. "canopy radiation balance" -- this is a compute computation of the net
+   radiation experienced by the canopy.  It includes the portion of shortwave
+   and longwave from the atmosphere that are absorbed via Beer's law, minus the
+   outgoing longwave emitted from the canopy, plus upward longwave radiation
+   emitted by the snow and surface.  It also does not include any secondary
+   bounces (e.g. reflected atmosphere->canopy->cloud->back to canopy, or
+   transmitted by the canopy, reflected by snow/surface.
+
+Requires the use of LandCover types, for canopy albedo and Beer's law
+coefficients.
+
+`"evaluator type`" = `"radiation balance, surface and canopy`"
+
+.. _radiation-balance-evaluator-spec:
+.. admonition:: radiation-balance-evaluator-spec
+
+   KEYS:
+   - `"surface albedos`" **SURFACE_DOMAIN-albedos**
+   - `"surface emissivities`" **SURFACE_DOMAIN-emissivities**
+   - `"incoming shortwave radiation`" **SURFACE_DOMAIN-incoming_shortwave_radiation**
+   - `"incoming longwave radiation`" **SURFACE_DOMAIN-incoming_longwave_radiation**
+   - `"surface temperature`" **SURFACE_DOMAIN-temperature**
+   - `"snow temperature`" **SNOW_DOMAIN-temperature**
+   - `"canopy temperature`" **CANOPY_DOMAIN-temperature**
+   - `"leaf area index`" **CANOPY_DOMAIN-leaf_area_index**
+   - `"area fractions`" **SURFACE_DOMAIN-area_fractions**
+
+Note that this is a superset of the physics in the "canopy radiation
+evaluator," and is therefore mutually exclusive with that model.
+
+
+
+
+Canopy Radiation Balance
+~~~~~~~~~~~~~~~~~~~~~~~~
+ Evaluates the canopy radiation balance, providing canopy net and radiation to the snow/surface.
+
+Computes and sums the downward radiation terms, determining the total radiation
+sent down to the surface from the canopy and above.
+
+Requires the use of LandCover types, for albedo and emissivity of the canopy
+itself, along with Beer's law coefficients.
+
+Computes:
+
+1. canopy-downward_shortwave_radiation -- transmitted shortwave.  Note that
+   incoming shortwave is attenuated by Beer's law, and partially transmitted
+   without attenuation when there are gaps (e.g. LAI < 1) in the canopy.
+
+2. canopy-downward_longwave_radiation -- transmitted longwave (see above,
+   noting that Beer's law coefficients should be used that absorb most if not
+   all the longwave radiation), along with longwave emitted by the canopy
+   computed using a canopy leaf temperature and a Bolzmann equation.
+
+3. canopy-downward_net_radiation -- this is a partial computation of the net
+   radiation experienced by the canopy.  It includes the portion of shortwave
+   and longwave from the atmosphere that are absorbed via Beer's law, minus the
+   outgoing longwave emitted from the canopy (see downward above).  It does NOT
+   include upward longwave radiation emitted by the snow or surface.  It also
+   does not include any secondary bounces (e.g. reflected
+   atmosphere->canopy->cloud->back to canopy, or transmitted by the canopy,
+   reflected by snow).
+
+Here the net radiation is positive for energy added to the canopy, while the
+other two are positive for energy sent to the layer below.
+
+In the canopy-downward_net_radiation, we cannot include the upward terms YET,
+because these are a function of snow and surface temperature, which in turn
+depend upon the downward radiation computed here.  So we choose to break the
+loop here, by computing downard terms first, then iterating to compute snow
+temperature, then compute upward terms.  The alternative would be to have a
+formal snow energy PK that computed snow temperature, at which point we would
+solve all of these balances to convergence simultaneously.
+
+`"evaluator type`" = `"canopy radiation balance from above`"
+
+.. _canopy-radiation-evaluator-spec:
+.. admonition:: canopy-radiation-evaluator-spec
+
+   KEYS:
+   - `"incoming shortwave radiation`" **SURFACE_DOMAIN-incoming_shortwave_radiation**
+   - `"incoming longwave radiation`" **SURFACE_DOMAIN-incoming_longwave_radiation**
+   - `"canopy temperature`" **CANOPY_DOMAIN-temperature**
+   - `"leaf area index`" **CANOPY_DOMAIN-leaf_area_index**
+
+Note that this is a subset of the physics in the "radiation balance evaluator,"
+and is therefore mutually exclusive with that model.
+
+
+
+
+Surface Albedo
+~~~~~~~~~~~~~~
+
+Note that albedo is also a multiple subgrid component model, like
+surface balance.
+
+ Evaluates albedos and emissivities in a two-component subgrid model.
+
+Evaluates the albedo and emissivity as an interpolation on the surface
+properties and cover.  This allows for two components -- snow and not snow
+(water/ice/land).  Note this internally calculates albedo of snow based upon
+snow density.
+
+Components are indexed by: 0 = land/ice/water, 1 = snow.
+
+Requires the use of LandCover types, for ground albedo and emissivity.
+
+.. _albedo-evaluator-spec:
+.. admonition:: albedo-evaluator-spec
+
+   * `"albedo ice [-]`" ``[double]`` **0.44**
+   * `"albedo water [-]`" ``[double]`` **0.1168**
+
+   * `"emissivity ice [-]`" ``[double]`` **0.98**
+   * `"emissivity water [-]`" ``[double]`` **0.995**
+   * `"emissivity snow [-]`" ``[double]`` **0.98**
+
+   KEYS:
+
+   - `"subgrid albedos`" **DOMAIN-subgrid_albedos**
+   - `"subgrid emissivities`" **DOMAIN-subgrid_emissivities**
+
+   DEPENDENCIES:
+
+   - `"snow density`" **SNOW_DOMAIN-density**
+   - `"ponded depth`" **DOMAIN-ponded_depth**
+   - `"unfrozen fraction`" **DOMAIN-unfrozen_fraction**
+
+
+
+
+ Evaluates albedos and emissivities in a three-component subgrid model.
+
+Evaluates the albedo and emissivity as an interpolation on the surface
+properties and cover.  This allows for three components -- water/ice, land, and
+snow.  Note this internally calculates albedo of snow based upon snow density.
+
+Components are: 0 = land, 1 = ice/water, 2 = snow.
+
+Requires the use of LandCover types, for ground albedo and emissivity.
+
+.. _albedo-evaluator-subgrid-spec:
+.. admonition:: albedo-evaluator-subgrid-spec
+
+   * `"albedo ice [-]`" ``[double]`` **0.44**
+   * `"albedo water [-]`" ``[double]`` **0.1168**
+
+   * `"emissivity ice [-]`" ``[double]`` **0.98**
+   * `"emissivity water [-]`" ``[double]`` **0.995**
+   * `"emissivity snow [-]`" ``[double]`` **0.98**
+
+   KEYS:
+
+   - `"subgrid albedos`" **DOMAIN-subgrid_albedos**
+   - `"subgrid emissivities`" **DOMAIN-subgrid_emissivities**
+
+   DEPENDENCIES:
+
+   - `"snow density`" **SNOW_DOMAIN-density**
+   - `"unfrozen fraction`" **DOMAIN-unfrozen_fraction**
+
+
+
+
+Incident Shortwave Radiation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ Evaluates the radiation incident on a non-flat surface.
+
+Aspect modified shortwave radiation is determined by a factor which is
+multiplied by the 'incoming radiation incident on a flat surface' to determine
+the 'incoming radiation incident on a sloping surface of a given aspect' as a
+function of slope and aspect, Julian day of the year, and time of day.  The
+latitude and Julian day of the year are used to modify this with both time of
+day and seasonal changes of the planet.
+
+Note that some careful checking and experimentation has found that, in
+general, the daily average incoming radiation times the 12-noon aspect
+modifier correlates reasonably well with the daily average of the
+product of the hourly incoming radiation and the hourly aspect
+modifier.  It is notably better than the daily average radiation times
+the daily average aspect modifier.
+
+This implementation is derived from `LandLab code
+<https://github.com/landlab/landlab/blob/master/landlab/components/radiation/radiation.py>`_,
+which is released under the MIT license.
+
+
+.. _incident_shortwave_radiation_evaluator-spec:
+.. admonition:: incident_shortwave_radiation_evaluator-spec
+
+    * `"incident shortwave radiation parameters`" ``[incident_shortwave_radiation_model-spec]``
+
+    KEYS:
+    - `"slope`" **DOMAIN-slope_magnitude**
+    - `"aspect`" **DOMAIN-aspect**
+    - `"incoming shortwave radiation`" **DOMAIN-incoming_shortwave_radiation**
+
+
+
+ Evaluates shortwave as a function of slope/aspect/etc.
+
+.. _incident_shortwave_radiation_model-spec:
+.. admonition:: incident_shortwave_radiation_model-spec
+
+   * `"latitude [degrees]`" ``[double]`` Latitude of the site.  A single
+     typical value is fine for most domains, even relatively large ones
+     (e.g. HUC4).
+   * `"daily averaged`" ``[bool]`` **true** Compute a daily averaged radiation, as
+     opposed to a time-specific, diurnal-cycle-resolving value.
+   * `"day of year at time 0 [Julian days]`" ``[int]`` **0** (Jan 1).  ATS has
+     no notion of absolute time, so to do things that depend upon planetary
+     dynamics we must know what the day of the year is.  Typically this is set
+     by your meteorological data -- set this to be equal to the day of year of
+     met data's time 0.
+
+
+
+
+Longwave Radiation
+~~~~~~~~~~~~~~~~~~
+ Evaluates incoming longwave radiation from vapor pressure and air temperature.
+
+.. _longwave_evaluator-spec:
+.. admonition:: longwave_evaluator-spec
+
+
+    DEPENDENCIES:
+
+    * `"air temperature key`" ``[string]`` **DOMAIN-air_temperature**
+    * `"vapor pressure air key`" ``[string]`` **DOMAIN-vapor_pressure_air**
+
+
+
+
+Full Surface Energy Balance Models
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Finally, in addition to the potential-based models above, a few
+full-physics model are available.  These are often based on older,
+monolithic models.
+
+Bare Soil Surface Energy Balance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ Calculates source terms for surface fluxes to and from the atmosphere and a ground surface.
+
+The ground is assumed to consist of two potential area-fraction components --
+snow and no-snow.  In the case of snow on the ground, this solves for a snow
+temperature, given a skin temperature, that satisfies a energy balance
+equation.  In the case of no-snow, this calculates a conductive heat flux to
+the ground from the atmosphere.
+
+`"evaluator type`" = `"surface energy balance, two components`"
+
+.. _seb-twocomponent-evaluator-spec:
+.. admonition:: seb-twocomponent-evaluator-spec
+
+   * `"wind speed reference height [m]`" ``[double]`` **2.0** Reference height at which
+     wind speed is measured.
+   * `"minimum wind speed [m s^-1]`" ``[double]`` **1.0** Sets a floor on wind speed for
+     potential wierd data.  Models have trouble with no wind.
+
+   * `"save diagnostic data`" ``[bool]`` **false** Saves a suite of diagnostic variables to vis.
+
+   * `"surface domain name`" ``[string]`` **DEFAULT** Default set by parameterlist name.
+   * `"subsurface domain name`" ``[string]`` **DEFAULT** Default set relative to surface domain name.
+   * `"snow domain name`" ``[string]`` **DEFAULT** Default set relative to surface domain name.
+
+   KEYS:
+
+   - `"surface water source`" **DOMAIN-water_source**  [m s^-1]
+   - `"surface energy source`" **DOMAIN-total_energy_source** [MW m^-2]
+   - `"subsurface water source`" **DOMAIN-water_source**  [mol s^-1]
+   - `"subsurface energy source`" **DOMAIN-total_energy_source** [MW m^-3]
+   - `"snow mass source - sink`" **DOMAIN-source_sink** [m_SWE s^-1]
+   - `"new snow source`" **DOMAIN-source** [m_SWE s^-1]
+
+   - `"albedo`" **DOMAIN-albedo** [-] A single variate diagnostic of the final albedo.
+   - `"snowmelt`" **DOMAIN_SNOW-melt** [m_SWE s^-1]
+   - `"evaporation`" **DOMAIN-evaporative_flux** [m s^-1]
+   - `"snow temperature`" **DOMAIN_SNOW-temperature** [K]
+   - `"sensible heat flux`" **DOMAIN-qE_sensible_heat** [W m^-2]
+   - `"latent heat of evaporation`" **DOMAIN-qE_latent_heat** [W m^-2]
+   - `"latent heat of snowmelt`" **DOMAIN-qE_snowmelt** [W m^-2]
+   - `"outgoing longwave radiation`" **DOMAIN-qE_lw_out** [W m^-2]
+   - `"conducted energy flux`" **DOMAIN-qE_conducted** [W m^-2]
+
+   DEPENDENCIES:
+
+   - `"incoming shortwave radiation`" **DOMAIN-incoming_shortwave_radiation** [W m^-2]
+   - `"incoming longwave radiation`" **DOMAIN-incoming_longwave_radiation** [W m^-2]
+   - `"air temperature`" **DOMAIN-air_temperature** [K]
+   - `"vapor pressure air`" **DOMAIN-vapor_pressure_air** [Pa]
+   - `"wind speed`" **DOMAIN-wind_speed** [m s^-1]
+   - `"precipitation rain`" **DOMAIN-precipitation_rain** [m s^-1]
+   - `"precipitation snow`" **DOMAIN_SNOW-precipitation** [m_SWE s^-1]
+
+   - `"snow depth`" **DOMAIN_SNOW-depth** [m]
+   - `"snow density`" **DOMAIN_SNOW-density** [kg m^-3]
+   - `"snow death rate`" **DOMAIN_SNOW-death_rate** [m s^-1]  Snow "death" refers to the last bit of snowmelt that we want to remove discretely.
+   - `"ponded depth`" **DOMAIN-ponded_depth** [m]
+   - `"unfrozen fraction`" **DOMAIN-unfrozen_fraction** [-]  1 --> all surface water, 0 --> all surface ice
+   - `"subgrid albedos`" **DOMAIN-albedos** [-] Dimension 2 field of (no-snow, snow) albedos.
+   - `"subgrid emissivity`" **DOMAIN-emissivities** [-] Dimension 2 field of (no-snow, snow) emissivities.
+   - `"area fractions`" **DOMAIN-fractional_areas** Dimension 2 field of (no-snow, snow) area fractions (sum to 1).
+
+   - `"temperature`" **DOMAIN-temperature**  [K] surface skin temperature.
+   - `"pressure`" **DOMAIN-pressure** [Pa] surface skin pressure.
+   - `"rsoil`" **DOMAIN-rsoil** [s/m] soil resistance of top cells.
+   - `"subsurface pressure`" **DOMAIN_SS-pressure** [Pa]
+   - `"molar density liquid`" **DOMAIN-molar_density_liquid** [mol m^-3]
+   - `"mass density liquid`" **DOMAIN-mass_density_liquid** [kg m^-3]
+
+
+.. note:
+
+   This also depends upon multiple parameters from the LandCover_ types:
+
+   - `"roughness length of bare ground [m]`" ``[double]`` **0.04** Defines a fetch controlling
+     latent and sensible heat fluxes.
+   - `"roughness length of snow-covered ground [m]`" ``[double]`` **0.004** Defines a
+     fetch controlling latent and sensible heat fluxes.
+   - `"snow transition depth [m]`" **0.02** Snow height at which bare
+     ground starts to stick out due to subgrid topography, vegetation, etc.
+     Defines a transitional zone between "snow-covered" and "bare ground".
+   - `"water transition depth [m]`" **0.02** Ponded depth at which bare
+     ground starts to stick out due to subgrid topography, vegetation, etc.
+     Defines a transitional zone between "water-covered" and "bare ground".
+
+
+
+
+ Calculates source terms for surface fluxes to and from the atmosphere and a ground surface.
+
+Calculates source terms for surface fluxes to and from the atmosphere and a
+ground surface characterized by three components -- snow, water-covered ground,
+and vegetated/bare soil.
+
+The surface energy balance on these area weighted patches are individually
+calculated then averaged to form the total quantities.  All down- and
+up-scaling of relevant quantities are done through the area weighting, which is
+calculated by a minimum threshold in snow and a depression depth/geometry-based
+approach for water.  All snow is assumed to first cover water (likely ice),
+then cover land, as both water and snow prefer low-lying depressions due to
+gravity- and wind-driven redistributions, respectively.
+
+`"evaluator type`" = `"surface energy balance, two components`"
+
+.. _seb-threecomponent-evaluator-spec:
+.. admonition:: seb-threecomponent-evaluator-spec
+
+   * `"wind speed reference height [m]`" ``[double]`` **2.0** Reference height at which
+     wind speed is measured.
+   * `"minimum wind speed [m s^-1]`" ``[double]`` **1.0** Sets a floor on wind speed for
+     potential wierd data.  Models have trouble with no wind.
+
+   * `"save diagnostic data`" ``[bool]`` **false** Saves a suite of diagnostic variables to vis.
+
+   * `"surface domain name`" ``[string]`` **DEFAULT** Default set by parameterlist name.
+   * `"subsurface domain name`" ``[string]`` **DEFAULT** Default set relative to surface domain name.
+   * `"snow domain name`" ``[string]`` **DEFAULT** Default set relative to surface domain name.
+
+   KEYS:
+
+   - `"surface water source`" **DOMAIN-water_source**  [m s^-1]
+   - `"surface energy source`" **DOMAIN-total_energy_source** [MW m^-2]
+   - `"subsurface water source`" **DOMAIN-water_source**  [mol s^-1]
+   - `"subsurface energy source`" **DOMAIN-total_energy_source** [MW m^-3]
+   - `"snow mass source - sink`" **DOMAIN-source_sink** [m_SWE s^-1]
+   - `"new snow source`" **DOMAIN-source** [m_SWE s^-1]
+
+   - `"albedo`" **DOMAIN-albedo** [-] A single variate diagnostic of the final albedo.
+   - `"snowmelt`" **DOMAIN_SNOW-melt** [m_SWE s^-1]
+   - `"evaporation`" **DOMAIN-evaporative_flux** [m s^-1]
+   - `"snow temperature`" **DOMAIN_SNOW-temperature** [K]
+   - `"sensible heat flux`" **DOMAIN-qE_sensible_heat** [W m^-2]
+   - `"latent heat of evaporation`" **DOMAIN-qE_latent_heat** [W m^-2]
+   - `"latent heat of snowmelt`" **DOMAIN-qE_snowmelt** [W m^-2]
+   - `"outgoing longwave radiation`" **DOMAIN-qE_lw_out** [W m^-2]
+   - `"conducted energy flux`" **DOMAIN-qE_conducted** [W m^-2]
+
+   DEPENDENCIES:
+
+   - `"incoming shortwave radiation`" **DOMAIN-incoming_shortwave_radiation** [W m^-2]
+   - `"incoming longwave radiation`" **DOMAIN-incoming_longwave_radiation** [W m^-2]
+   - `"air temperature`" **DOMAIN-air_temperature** [K]
+   - `"vapor pressure air`" **DOMAIN-vapor_pressure_air** [Pa]
+   - `"wind speed`" **DOMAIN-wind_speed** [m s^-1]
+   - `"precipitation rain`" **DOMAIN-precipitation_rain** [m s^-1]
+   - `"precipitation snow`" **DOMAIN_SNOW-precipitation** [m_SWE s^-1]
+
+   - `"snow depth`" **DOMAIN_SNOW-depth** [m]
+   - `"snow density`" **DOMAIN_SNOW-density** [kg m^-3]
+   - `"snow death rate`" **DOMAIN_SNOW-death_rate** [m s^-1]  Snow "death" refers to the last bit of snowmelt that we want to remove discretely.
+   - `"ponded depth`" **DOMAIN-ponded_depth** [m]
+   - `"unfrozen fraction`" **DOMAIN-unfrozen_fraction** [-]  1 --> all surface water, 0 --> all surface ice
+   - `"subgrid albedos`" **DOMAIN-albedos** [-] Dimension 2 field of (no-snow, snow) albedos.
+   - `"subgrid emissivity`" **DOMAIN-emissivities** [-] Dimension 2 field of (no-snow, snow) emissivities.
+   - `"area fractions`" **DOMAIN-fractional_areas** Dimension 2 field of (no-snow, snow) area fractions (sum to 1).
+
+   - `"temperature`" **DOMAIN-temperature**  [K] surface skin temperature.
+   - `"pressure`" **DOMAIN-pressure** [Pa] surface skin pressure.
+   - `"rsoil`" **DOMAIN-rsoil** [s/m] soil resistance of top cells.
+   - `"subsurface pressure`" **DOMAIN_SS-pressure** [Pa]
+   - `"molar density liquid`" **DOMAIN-molar_density_liquid** [mol m^-3]
+   - `"mass density liquid`" **DOMAIN-mass_density_liquid** [kg m^-3]
+
+
+.. note:
+
+   This also depends upon multiple parameters from the LandCover_ types:
+
+   - `"roughness length of bare ground [m]`" ``[double]`` **0.04** Defines a fetch controlling
+     latent and sensible heat fluxes.
+   - `"roughness length of snow-covered ground [m]`" ``[double]`` **0.004** Defines a
+     fetch controlling latent and sensible heat fluxes.
+
+
+

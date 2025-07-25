@@ -1,0 +1,1034 @@
+
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Subsurface flow evaluators &#8212; Amanzi-ATS</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/custom_theme.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'input_spec/state/subsurface_flow';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.15.3';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
+        </script>
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
+    <script src="../../_static/main.js"></script>
+    <link rel="icon" href="../../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Surface flow evaluators" href="surface_flow.html" />
+    <link rel="prev" title="Conserved quantities" href="conserved.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/logo_full.png" class="logo__image only-light" alt="Amanzi-ATS documentation -- Home"/>
+    <script>document.write(`<img src="../../_static/logo_full.png" class="logo__image only-dark" alt="Amanzi-ATS documentation -- Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../demos.html">
+    ATS Demo Problems
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    ATS Input Specification
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../demos.html">
+    ATS Demo Problems
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    ATS Input Specification
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item"><!-- This will display the version of the docs -->
+Version 1.5</div>
+        <div class="sidebar-primary-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="pst-version-switcher-button-2"
+      type="button"
+      class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-2"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="pst-version-switcher-list-2"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-2">
+      <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">About the Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html">Main</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="../mesh.html">Mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../region.html">Region</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../io/index.html">IO</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../io/ioevent.html">IOEvent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../io/visualization.html">Visualization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../io/observations.html">Observations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../io/checkpoint.html">Checkpoint</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../process_kernels/index.html">Process Kernels</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../process_kernels/base.html">Base PKs</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../process_kernels/physical/index.html">Physical PKs</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../process_kernels/physical/flow.html">Flow PKs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../process_kernels/physical/transport.html">Transport PK</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../process_kernels/physical/energy.html">Energy PKs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../process_kernels/physical/seb.html">Surface Energy Balance PKs</a></li>
+
+
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../process_kernels/mpcs/index.html">MPC</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../process_kernels/mpcs/base.html">Base MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../process_kernels/mpcs/physical.html">Physical MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../process_kernels/mpcs/globalization.html">Globalization Delegates</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">State</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="primary.html">Primary Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="independent.html">Independent Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="secondary.html">Secondary Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="conserved.html">Conserved quantities</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Subsurface flow evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="surface_flow.html">Surface flow evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermo.html">Thermodynamic evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="eos.html">Equations of State</a></li>
+<li class="toctree-l2"><a class="reference internal" href="seb.html">Surface energy balance evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="snow.html">Snow evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="canopy.html">Canopy evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bgc.html">Carbon and Biogeochemistry Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="multiscale.html">Multiscale Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geometric.html">Geometric evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generic.html">Generic evaluators</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../math/index.html">Time integrators, solvers, and other mathematical specs</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../math/time_integrators.html">Time Integrators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math/nonlinear_solvers.html">Nonlinear Solver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math/linear_solvers.html">Linear Solvers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math/preconditioners.html">Preconditioners</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math/operators.html">Operators</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../common.html">Shared Specs</a></li>
+</ul>
+</div>
+</nav></div>
+        <div class="sidebar-primary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#capillary-pressure">Capillary pressure</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#capillary-pressure-of-liquid-on-ice">Capillary pressure of liquid on ice</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#water-retention-model-and-relative-permeability">Water Retention Model and Relative Permeability</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#van-genuchten-model">Van Genuchten Model</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#linear-model">Linear  Model</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#water-retention-model-for-freeze-thaw">Water Retention Model for Freeze-Thaw</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#original-implicit-model">Original Implicit model</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#freezing-point-depression-model">Freezing point depression model</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#freezing-point-depression-smoothed-model">Freezing point depression, smoothed model</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#interfrost-model">Interfrost model</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sutra-ice-model">Sutra-ICE model</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#compressible-porosity">Compressible porosity</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#standard-model">Standard model</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#exponential-model">Exponential model</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#viscosity-of-water">Viscosity of water</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#constant">Constant</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nonisothermal">Nonisothermal</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">ATS Input Specification</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">State</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">Subsurface...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="subsurface-flow-evaluators">
+<h1>Subsurface flow evaluators<a class="headerlink" href="#subsurface-flow-evaluators" title="Permalink to this heading">#</a></h1>
+<p>Assorted evaluators used for subsurface flow processes,
+including water retention curves, compressible pore space, relative
+permeability, and their frozen equivalents.</p>
+<p>Many of these evaluators show up in nearly all ATS simulations, as
+subsurface flow of water is the core process underlying all of ATS
+physics.  For real examples, see <a class="reference external" href="https://github.com/amanzi/ats-demos">ats-demos</a></p>
+<section id="capillary-pressure">
+<h2>Capillary pressure<a class="headerlink" href="#capillary-pressure" title="Permalink to this heading">#</a></h2>
+<blockquote>
+<div><p>Capillary pressure for gas on a liquid.</p>
+</div></blockquote>
+<div class="admonition-pc-liquid-evaluator-spec admonition" id="pc-liquid-evaluator-spec">
+<p class="admonition-title">pc-liquid-evaluator-spec</p>
+<p>KEYS:</p>
+<ul class="simple">
+<li><p><cite>“pressure</cite>” <strong>DOMAIN-pressure</strong></p></li>
+</ul>
+</div>
+</section>
+<section id="capillary-pressure-of-liquid-on-ice">
+<h2>Capillary pressure of liquid on ice<a class="headerlink" href="#capillary-pressure-of-liquid-on-ice" title="Permalink to this heading">#</a></h2>
+</section>
+<section id="water-retention-model-and-relative-permeability">
+<h2>Water Retention Model and Relative Permeability<a class="headerlink" href="#water-retention-model-and-relative-permeability" title="Permalink to this heading">#</a></h2>
+<blockquote>
+<div><p>Evaluates saturation through water retention models.</p>
+</div></blockquote>
+<p>Water Retention Models (WRMs) determine the saturation as a function of
+pressure and the relative permeability as a function of saturation.  Most
+commonly used in practice is the van Genuchten model, but others are available default default;</p>
+<p><cite>“evaluator type</cite>” = <cite>“wrm</cite>”</p>
+<div class="admonition-wrm-evaluator-spec admonition" id="wrm-evaluator-spec">
+<p class="admonition-title">wrm-evaluator-spec</p>
+<ul class="simple">
+<li><p><cite>“model parameters</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code>
+List (by region) of WRM specs. This will copy <cite>“WRM parameters</cite>” given in <cite>“model parameters</cite>”
+under state here to evaluate WRM.</p></li>
+</ul>
+<p>KEYS:</p>
+<ul class="simple">
+<li><p><cite>“saturation</cite>” <strong>determined from evaluator name</strong> The name
+of the liquid saturation – typically this is determined from
+the evaluator name and need not be set.</p></li>
+<li><p><cite>“other saturation</cite>”  <strong>determined from evaluator name</strong>
+The name of the other saturation, usually gas – typically this is determined
+from the evaluator name and need not be set.</p></li>
+<li><p><cite>“capillary pressure</cite>”` <strong>DOMAIN-capillary_pressure_gas_liq</strong>
+The name of the capillary pressure.</p></li>
+</ul>
+</div>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="w"> </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;PKs&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">   </span>...
+<span class="w">   </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;flow&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">     </span>...
+<span class="w">     </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;water retention evaluator&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">       </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;minimum rel perm cutoff&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot; 0&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">       </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;use surface rel perm&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;bool&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;true&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">       </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;model parameters&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;WRM parameters&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">       </span>...
+<span class="w">     </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">     </span>...
+<span class="w">   </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">   </span>...
+<span class="w"> </span><span class="nt">&lt;/ParameterList&gt;</span>
+
+<span class="w"> </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;state&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">   </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;model parameters&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">     </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;WRM parameters&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">       </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;domain&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">         </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;region&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;domain&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">         </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;wrm type&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;van Genuchten&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">         </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;van Genuchten alpha [Pa^-1]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;2e-05&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">         </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;van Genuchten n [-]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;1.58&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">         </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;residual saturation [-]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.2&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">         </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;smoothing interval width [saturation]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.05&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">         </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;dessicated zone thickness [m]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.1&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">       </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">     </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">   </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">   </span>...
+<span class="w"> </span><span class="nt">&lt;/ParameterList&gt;</span>
+
+
+
+A<span class="w"> </span>collection<span class="w"> </span>of<span class="w"> </span>WRMs<span class="w"> </span>along<span class="w"> </span>with<span class="w"> </span>a<span class="w"> </span>Mesh<span class="w"> </span>Partition.
+</pre></div>
+</div>
+<p>A WRM partition is a list of (region, WRM) pairs, where the regions partition
+the mesh.</p>
+<div class="admonition-wrm-partition-typedinline-spec admonition" id="wrm-partition-typedinline-spec">
+<p class="admonition-title">wrm-partition-typedinline-spec</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><cite>“region</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Region on which the WRM is valid.</p></li>
+<li><p><cite>“WRM type</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Name of the WRM type.</p></li>
+<li><p><cite>“_WRM_type_ parameters</cite>” <code class="docutils literal notranslate"><span class="pre">[_WRM_type_-spec]</span></code> See below for the required
+parameter spec for each type.</p></li>
+</ul>
+</div></blockquote>
+<p>Evaluates relative permeability using water retention models.</p>
+</div>
+<p>Uses a list of regions and water retention models on those regions to evaluate
+relative permeability, typically as a function of liquid saturation.</p>
+<p>Most of the parameters are provided to the WRM model, and not the evaluator.
+Typically these share lists to ensure the same water retention curves, and this
+one is updated with the parameters of the WRM evaluator.  This is handled by
+flow PKs.</p>
+<p>Some additional parameters are available.</p>
+<p><cite>“evaluator type</cite>” = <cite>“relative permeability, van Genuchten</cite>”</p>
+<div class="admonition-rel-perm-evaluator-spec admonition" id="rel-perm-evaluator-spec">
+<p class="admonition-title">rel-perm-evaluator-spec</p>
+<ul>
+<li><p><cite>“use density on viscosity in rel perm</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>true</strong></p></li>
+<li><p><cite>“boundary rel perm strategy</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>boundary pressure</strong> Controls
+how the rel perm is calculated on boundary faces.  Note, this may be
+overwritten by upwinding later!  One of:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><cite>“boundary pressure</cite>” Evaluates kr of pressure on the boundary face, upwinds normally.</p></li>
+<li><p><cite>“interior pressure</cite>” Evaluates kr of the pressure on the interior cell (bad idea).</p></li>
+<li><p><cite>“harmonic mean</cite>” Takes the harmonic mean of kr on the boundary face and kr on the interior cell.</p></li>
+<li><p><cite>“arithmetic mean</cite>” Takes the arithmetic mean of kr on the boundary face and kr on the interior cell.</p></li>
+<li><p><cite>“one</cite>” Sets the boundary kr to 1.</p></li>
+<li><p><cite>“surface rel perm</cite>” Looks for a field on the surface mesh and uses that.</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p><cite>“minimum rel perm cutoff</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.</strong> Provides a lower bound on rel perm.</p></li>
+<li><p><cite>“permeability rescaling</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> Typically rho * kr / mu is very big
+and K_sat is very small.  To avoid roundoff propagation issues, rescaling
+this quantity by offsetting and equal values is encourage.  Typically 10^7 or so is good.</p></li>
+<li><p><cite>“model parameters</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code>  <strong>WRM parameters</strong> <code class="docutils literal notranslate"><span class="pre">[WRM-typedinline-spec-list]</span></code>
+List (by region) of WRM specs. This will copy <cite>“WRM parameters</cite>” given in <cite>“model parameters</cite>”
+under state here to evaluate relative permeability. If use <cite>“WRM parameters</cite>”, both WRM and
+relative permeability evaluators use the same set of <cite>“WRM parameters</cite>”, which can be van Genuchten
+or Brooks-Corey. If use a customed name, e.g., <cite>“relative permeability parameters</cite>”, and declare
+<cite>“relative permeability parameters</cite>” in <cite>“model parameters</cite>” under state, this allows to use
+different models for WRM (by default through <cite>“WRM parameters</cite>”) and relative permeability.</p></li>
+</ul>
+<p>KEYS:</p>
+<ul class="simple">
+<li><p><cite>“rel perm</cite>”</p></li>
+<li><p><cite>“saturation_liquid</cite>”</p></li>
+<li><p><cite>“density</cite>” (if <cite>“use density on viscosity in rel perm</cite>” == true)</p></li>
+<li><p><cite>“viscosity</cite>” (if <cite>“use density on viscosity in rel perm</cite>” == true)</p></li>
+<li><p><cite>“surface relative permeability</cite>” (if <cite>“boundary rel perm strategy</cite>” == <cite>“surface rel perm</cite>”)</p></li>
+</ul>
+</div>
+<p>Example 1:
+Using the same set of van Genuchten model paramters for WRM and relative permeability</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;PKs&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span>...
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;flow&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span>...
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;water retention evaluator&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;model parameters&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;WRM parameters&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">      </span>...
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span>...
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span>...
+<span class="nt">&lt;/ParameterList&gt;</span>
+
+<span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;state&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;model parameters&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;WRM parameters&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;domain&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;region&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;domain&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;wrm type&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;van Genuchten&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;van Genuchten alpha [Pa^-1]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;2e-05&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;van Genuchten n [-]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;1.58&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;residual saturation [-]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.2&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;smoothing interval width [saturation]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.05&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;dessicated zone thickness [m]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.1&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;evaluators&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;relative_permeability&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;evaluator type&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;relative permeability, van Genuchten&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;model parameters&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;WRM parameters&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;use surface rel perm&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;bool&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;true&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;minimum rel perm cutoff&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot; 0&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span>...
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span>...
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+<p>Example 2:
+Using different set of model/paramters for WRM and relative permeability,
+van Genuchten for WRM and Brooks-Corey for relative permeability. Note that
+in this case, van Genuchten parameters and Brooks-Corey parameters need to
+be consistent. Using tool <cite>“convert_parameters_vg2bc.py</cite>” to convert van Genuchten
+parameters to Brooks-Corey parameters.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;PKs&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span>...
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;flow&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span>...
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;water retention evaluator&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;model parameters&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;WRM parameters&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">      </span>...
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span>...
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span>...
+<span class="nt">&lt;/ParameterList&gt;</span>
+
+<span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;state&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;model parameters&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;WRM parameters&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;domain&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;region&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;domain&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;wrm type&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;van Genuchten&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;van Genuchten alpha [Pa^-1]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;2e-05&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;van Genuchten n [-]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;1.58&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;residual saturation [-]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.2&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;smoothing interval width [saturation]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.05&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;dessicated zone thickness [m]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.1&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;relative permeability parameters&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;domain&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;region&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;domain&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;wrm type&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;Brooks-Corey&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;Brooks-Corey lambda [-]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.49&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;Brooks-Corey saturted matric suction [Pa]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;32439.03&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;residual saturation [-]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.2&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;smoothing interval width [saturation]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.05&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;evaluators&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;relative_permeability&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;evaluator type&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;relative permeability, van Genuchten&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;model parameters&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;relative permeability parameters&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;use surface rel perm&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;bool&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;true&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;minimum rel perm cutoff&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot; 0&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span>...
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span>...
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+<section id="van-genuchten-model">
+<h3>Van Genuchten Model<a class="headerlink" href="#van-genuchten-model" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>WRMVanGenuchten : water retention model using van Genuchten’s parameterization</p>
+</div></blockquote>
+<p>van Genuchten’s water retention curve.</p>
+<div class="admonition-wrm-van-genuchten-spec admonition" id="wrm-van-genuchten-spec">
+<p class="admonition-title">WRM-van-Genuchten-spec</p>
+<ul class="simple">
+<li><p><cite>“region</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Region to which this applies</p></li>
+<li><p><cite>“van Genuchten alpha [Pa^-1]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> van Genuchten’s alpha</p></li>
+</ul>
+<p>ONE OF:</p>
+<ul class="simple">
+<li><p><cite>“van Genuchten n [-]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> van Genuchten’s n</p></li>
+</ul>
+<p>OR</p>
+<ul class="simple">
+<li><p><cite>“van Genuchten m [-]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> van Genuchten’s m, m = 1 - 1/n</p></li>
+</ul>
+<p>END</p>
+<ul class="simple">
+<li><p><cite>“residual saturation [-]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.0</strong></p></li>
+<li><p><cite>“smoothing interval width [saturation]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.0</strong></p></li>
+<li><p><cite>“Mualem exponent l [-]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.5</strong></p></li>
+<li><p><cite>“Krel function name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>Mualem</strong>  <cite>“Mualem</cite>” or <cite>“Burdine</cite>”</p></li>
+</ul>
+</div>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;moss&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;region&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;moss&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;WRM type&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;van Genuchten&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;van Genuchten alpha [Pa^-1]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.002&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;van Genuchten m [-]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.2&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;residual saturation [-]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.0&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;smoothing interval width [saturation]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;.05&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="linear-model">
+<h3>Linear  Model<a class="headerlink" href="#linear-model" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>A linear sat-pc curve.</p>
+<blockquote>
+<div><p>A linear sat-pc curve, plus a constant rel perm, makes the system linear, so
+nonlinear solver should always converge in one step.</p>
+<p>No error-checking, so the user is responsible for ensuring that the pressure
+is always less than atmospheric and within the acceptable range of the slope.</p>
+<p>Note this is mostly for testing.</p>
+</div></blockquote>
+</div></blockquote>
+</section>
+</section>
+<section id="water-retention-model-for-freeze-thaw">
+<h2>Water Retention Model for Freeze-Thaw<a class="headerlink" href="#water-retention-model-for-freeze-thaw" title="Permalink to this heading">#</a></h2>
+<section id="original-implicit-model">
+<h3>Original Implicit model<a class="headerlink" href="#original-implicit-model" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>Painter’s original, implicitly defined permafrost model.</p>
+</div></blockquote>
+<div class="admonition-wrm-implicit-permafrost-spec admonition" id="wrm-implicit-permafrost-spec">
+<p class="admonition-title">wrm-implicit-permafrost-spec</p>
+<ul class="simple">
+<li><p><cite>“converged tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.e-12</strong> Convergence tolerance of the implicit solve.</p></li>
+<li><p><cite>“max iterations</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>100</strong> Maximum allowable iterations of the implicit solve.</p></li>
+<li><p><cite>“solver algorithm [brent]</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>brent</strong> Only brent is currently supported.</p></li>
+</ul>
+</div>
+</section>
+<section id="freezing-point-depression-model">
+<h3>Freezing point depression model<a class="headerlink" href="#freezing-point-depression-model" title="Permalink to this heading">#</a></h3>
+</section>
+<section id="freezing-point-depression-smoothed-model">
+<h3>Freezing point depression, smoothed model<a class="headerlink" href="#freezing-point-depression-smoothed-model" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>Painter’s permafrost model with freezing point depression, smoothed.</p>
+</div></blockquote>
+<div class="admonition-wrm-fpd-smoothed-permafrost-spec admonition" id="wrm-fpd-smoothed-permafrost-spec">
+<p class="admonition-title">wrm-fpd-smoothed-permafrost-spec</p>
+<ul class="simple">
+<li><p><cite>“reference temperature [K]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>273.15</strong> The phase transition point</p></li>
+<li><p><cite>“interfacial tension ice-water [mN m^-1]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>33.1</strong></p></li>
+<li><p><cite>“interfacial tension air-water [mN m^-1]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>72.7</strong></p></li>
+<li><p><cite>“smoothing width [K]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.</strong> Smoothing out the freeze curve allows this to be slightly easier to solve.</p></li>
+<li><p><cite>“latent heat [J kg^-1]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>3.34e5</strong> Latent heat of fusion</p></li>
+<li><p><cite>“water density [kg m^-3]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>998.87</strong> Density of water.  Note this probably should use the calculated value.</p></li>
+</ul>
+</div>
+</section>
+<section id="interfrost-model">
+<h3>Interfrost model<a class="headerlink" href="#interfrost-model" title="Permalink to this heading">#</a></h3>
+</section>
+<section id="sutra-ice-model">
+<h3>Sutra-ICE model<a class="headerlink" href="#sutra-ice-model" title="Permalink to this heading">#</a></h3>
+<p>This model is based on the emperical freezing curve used by Sutra-Ice,
+documented in papers by Voss &amp; Walvoord.</p>
+<div class="admonition-wrm-sutra-permafrost-model-spec admonition" id="wrm-sutra-permafrost-model-spec">
+<p class="admonition-title">wrm-sutra-permafrost-model-spec</p>
+<ul class="simple">
+<li><p><cite>“temperature transition [K]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> thickness of the transition from frozen to thawed</p></li>
+<li><p><cite>“residual saturation [-]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> Standard residual saturation</p></li>
+<li><p><cite>“freezing point [K]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>273.15</strong></p></li>
+</ul>
+</div>
+</section>
+</section>
+<section id="compressible-porosity">
+<h2>Compressible porosity<a class="headerlink" href="#compressible-porosity" title="Permalink to this heading">#</a></h2>
+<p>Compressible grains are both physically realistic (based on bulk modulus) and a
+simple way to provide a non-elliptic, diagonal term for helping solvers to
+converge.</p>
+<p><cite>“evaluator type</cite>” = <cite>“compressible porosity</cite>”</p>
+<div class="admonition-compressible-porosity-evaluator-spec admonition" id="compressible-porosity-evaluator-spec">
+<p class="admonition-title">compressible-porosity-evaluator-spec</p>
+<ul class="simple">
+<li><p><cite>“compressible porosity model parameters</cite>” <code class="docutils literal notranslate"><span class="pre">[compressible-porosity-standard-model-spec-list]</span></code></p></li>
+</ul>
+<p>KEYS:</p>
+<ul class="simple">
+<li><p><cite>“pressure</cite>” <strong>DOMAIN-pressure</strong></p></li>
+<li><p><cite>“base porosity</cite>” <strong>DOMAIN-base_porosity</strong></p></li>
+</ul>
+</div>
+<section id="standard-model">
+<h3>Standard model<a class="headerlink" href="#standard-model" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>A simple model for allowing porosity to vary with pressure.</p>
+</div></blockquote>
+<p>Based on a linear increase, i.e.</p>
+<div class="math notranslate nohighlight">
+\[\phi = \phi_{base} + H(p - p_{atm}) * \alpha\]</div>
+<p>where <span class="math notranslate nohighlight">\(H\)</span> is the heaviside function and <span class="math notranslate nohighlight">\(\alpha\)</span> is the provided
+compressibility.  If the inflection point is set to zero, the above function is
+exact.  However, then the porosity function is not smooth (has discontinuous
+derivatives), so the inflection point smooths this with a quadratic that
+matches the value and derivative at the inflection point and is 0 with 0 slope
+at atmospheric pressure.</p>
+<div class="admonition-compressible-porosity-standard-model-spec admonition" id="compressible-porosity-standard-model-spec">
+<p class="admonition-title">compressible-porosity-standard-model-spec</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><cite>“region</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Region on which this is applied.</p></li>
+<li><p><cite>“pore compressibility [Pa^-1]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code>  <span class="math notranslate nohighlight">\(\alpha\)</span> as described above</p></li>
+<li><p><cite>“pore compressibility inflection point [Pa]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1000</strong></p></li>
+</ul>
+</div></blockquote>
+<p>The inflection point above which the function is linear.</p>
+</div>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;soil&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;region&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;soil&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;pore compressibility [Pa^-1]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;1.e-9&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;pore compressibility inflection point [Pa]&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;1000.&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="exponential-model">
+<h3>Exponential model<a class="headerlink" href="#exponential-model" title="Permalink to this heading">#</a></h3>
+<p>The Leinjnse model is an exponential model of porosity as a function of
+pressure, based on (insert citation!):</p>
+<p>where <span class="math notranslate nohighlight">\(\alpha\)</span> is the provided
+compressibility, and <span class="math notranslate nohighlight">\(\delta\)</span> is the cutoff (inflection point).</p>
+<p>If the inflection point is set to zero, the above function is exact.  However,
+then the porosity function is not smooth (has discontinuous derivatives).</p>
+<div class="admonition-compressible-porosity-leijnse-model-spec admonition" id="compressible-porosity-leijnse-model-spec">
+<p class="admonition-title">compressible-porosity-leijnse-model-spec</p>
+<ul class="simple">
+<li><p><cite>“pore compressibility [Pa^-1]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <span class="math notranslate nohighlight">\(\alpha\)</span> as described above</p></li>
+<li><p><cite>“pore compressibility inflection point [Pa]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1000</strong> The
+inflection point above which the function is linear.</p></li>
+</ul>
+</div>
+<p>NOTE: additionally the user should provide a parameter in the <a href="#id1"><span class="problematic" id="id2">`EWC
+Globalization Delegate`_</span></a> to turn Leijnse model ON in the EWC calculations.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;porosity leijnse model&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;bool&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;true&quot;</span><span class="nt">/&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="viscosity-of-water">
+<h2>Viscosity of water<a class="headerlink" href="#viscosity-of-water" title="Permalink to this heading">#</a></h2>
+<p>Two main viscosity models are commonly used – a constant and one
+which is temperature-dependent.  The viscosity of water is strongly
+temperature dependent, so it is highly recommended to use that one if
+the problem is nonisothermal.</p>
+<section id="constant">
+<h3>Constant<a class="headerlink" href="#constant" title="Permalink to this heading">#</a></h3>
+<p>Like any quantity, a viscosity can simply be a constant value, at which
+point it is not a secondary variable but an independent variable.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;viscosity_liquid&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;field evaluator type&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;independent variable constant&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;value&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;8.9e-4&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;units&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;Pa s&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="nonisothermal">
+<h3>Nonisothermal<a class="headerlink" href="#nonisothermal" title="Permalink to this heading">#</a></h3>
+<p>A non-isothermal viscosity model intended for use within a range of
+temperatures from well below freezing to ~100C.</p>
+<div class="admonition-viscosity-evaluator-spec admonition" id="viscosity-evaluator-spec">
+<p class="admonition-title">viscosity-evaluator-spec</p>
+<ul class="simple">
+<li><p><cite>“viscosity model parameters</cite>” <code class="docutils literal notranslate"><span class="pre">[viscosity-typedinline-spec-list]</span></code></p></li>
+</ul>
+<p>KEYS:</p>
+<ul class="simple">
+<li><p><cite>“temperature</cite>”</p></li>
+</ul>
+</div>
+<p>A constitutive relation for the viscosity of water as a function of temperature
+in K, given as an empirical series expansion fit to data.</p>
+<p>Used by setting</p>
+<p><cite>“viscosity relation type</cite>” = <cite>“liquid water</cite>”</p>
+<div class="admonition-viscosity-water-spec admonition" id="viscosity-water-spec">
+<p class="admonition-title">viscosity-water-spec</p>
+<p>NONE</p>
+</div>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="conserved.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Conserved quantities</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="surface_flow.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Surface flow evaluators</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 202X, jointly shared by contributor institutions.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.2.1.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.3.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

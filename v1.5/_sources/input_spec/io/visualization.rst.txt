@@ -1,0 +1,46 @@
+Visualization
+##############
+ Manages simulation output to disk.
+
+A user may request periodic writes of field data for the purposes of
+visualization in the `"visualization`" sublists.
+
+ATS accepts a visualization list for each domain/mesh, including surface and
+column meshes.  These are in separate ParameterLists, entitled
+`"visualization`" for the main mesh, and `"visualization surface`" on the
+surface mesh.  It is expected that, for any addition meshes, each will have a
+domain name and therefore admit a spec of the form: `"visualization
+DOMAIN-NAME`".
+
+.. _visualization-spec:
+.. admonition:: visualization-spec
+
+    * `"file name base`" ``[string]`` **visdump_DOMAIN_data**
+    * `"dynamic mesh`" ``[bool]`` **false** Write mesh data for every
+      visualization dump; this facilitates visualizing deforming meshes.
+    * `"time unit`" ``[string]`` **s** A valid time unit to convert time
+      into for output files.  One of `"s`", `"d`", `"y`", or `"yr 365`"
+
+    INCLUDES:
+    - ``[io-event-spec]`` An IOEvent_ spec
+
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="visualization">
+    <Parameter name="file name base" type="string" value="visdump_data"/>
+
+    <Parameter name="cycles start period stop" type="Array(int)" value="{0, 100, -1}" />
+    <Parameter name="cycles" type="Array(int)" value="{999, 1001}" />
+
+    <Parameter name="times start period stop 0" type="Array(double)" value="{0.0, 10.0, 100.0}"/>
+    <Parameter name="times start period stop 1" type="Array(double)" value="{100.0, 25.0, -1.0}"/>
+    <Parameter name="times" type="Array(double)" value="{101.0, 303.0, 422.0}"/>
+
+    <Parameter name="dynamic mesh" type="bool" value="false"/>
+  </ParameterList>
+
+
+

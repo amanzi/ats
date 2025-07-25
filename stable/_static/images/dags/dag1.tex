@@ -1,0 +1,36 @@
+
+\documentclass{report}
+\usepackage{tikz}
+\usepackage[active,tightpage]{preview}
+\PreviewEnvironment{tikzpicture}
+\setlength\PreviewBorder{5pt}
+\usepackage{subcaption}
+\usepackage{xcolor}
+
+\definecolor{independent}{HTML}{C4973B}
+\definecolor{secondary}{HTML}{368CC9}
+\definecolor{primary}{HTML}{EB3B14}
+\definecolor{aliased}{HTML}{5885af}
+\definecolor{time_advanced}{HTML}{832DD2}
+
+\begin{document}
+\begin{figure}
+  \begin{tikzpicture}
+      \draw
+        (0.0, 0.0) node[rectangle, shading=axis, left color=secondary!60!white, right color = secondary!30!white,shading angle=-45, anchor=north,style={draw=secondary, align=center},minimum height=2em, minimum width=4em, font=\normalsize,scale=2] (5){$\Theta$}
+        (-6.0, -4.0) node[rectangle, shading=axis, left color=secondary!60!white, right color = secondary!30!white,shading angle=-45, anchor=north,style={draw=secondary, align=center},minimum height=2em, minimum width=4em, font=\normalsize,scale=2] (sl){$s_l$}
+        (0.0, -4.0) node[rectangle, shading=axis, left color=secondary!60!white, right color = secondary!30!white,shading angle=-45, anchor=north,style={draw=secondary, align=center},minimum height=2em, minimum width=4em, font=\normalsize,scale=2] (r){$\rho$}
+        (6.0, -4.0) node[rectangle, shading=axis, left color=independent!60!white, right color = independent!30!white,shading angle=-45, anchor=north,style={draw=independent, align=center},minimum height=2em, minimum width=4em, font=\normalsize,scale=2] (0){$\phi$}
+        (-6.0, -8.0) node[rectangle, shading=axis, left color=primary!60!white, right color = primary!30!white,shading angle=-45, anchor=north,style={draw=primary, align=center},minimum height=2em, minimum width=4em, font=\normalsize,scale=2] (p){$p$}
+        (0.0, -8.0) node[rectangle, shading=axis, left color=independent!60!white, right color = independent!30!white,shading angle=-45, anchor=north,style={draw=independent, align=center},minimum height=2em, minimum width=4em, font=\normalsize,scale=2] (T){$T$};
+      \begin{scope}[->]
+        \draw (5) to (sl);
+        \draw (5) to (r);
+        \draw (5) to (0);
+        \draw (sl) to (p);
+        \draw (r) to (p);
+        \draw (r) to (T);
+      \end{scope}
+    \end{tikzpicture}
+\end{figure}
+\end{document}

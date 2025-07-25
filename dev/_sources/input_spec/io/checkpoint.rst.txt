@@ -2,17 +2,14 @@ Checkpoint
 ##############
 `src/state/Checkpoint.hh <https://github.com/amanzi/amanzi/blob/master/src/state/Checkpoint.hh>`_
 
-Manages checkpoint/restart capability.
 
-A user may request periodic dumps of ATS Checkpoint Data in the
-`"checkpoint`" sublist.  The user has no explicit control over the
-content of these files, but has the guarantee that the ATS run will be
-reproducible (with accuracies determined by machine round errors and
-randomness due to execution in a parallel computing environment).
-Therefore, output controls for Checkpoint Data are limited to file
-name generation and writing frequency, by numerical cycle number.
-Unlike `"visualization`", there is only one `"checkpoint`" list for
-all domains/meshes.
+A user may request periodic dumps of checkpoint data in the `"checkpoint`"
+sublist.  The user has no explicit control over the content of these files, but
+has the guarantee that the run can be continued perfectly from that file, in
+the sense that a simulation started from a checkpoint file will have the
+bitwise same solution as if the run was continued without stopping.  Unlike
+`"visualization`", there is only one `"checkpoint`" list for all
+domains/meshes.
 
 .. _checkpoint-spec:
 .. admonition:: checkpoint-spec
@@ -22,8 +19,8 @@ all domains/meshes.
    * `"single file checkpoint`" ``[bool]`` **true** If true, writes all
      checkpoint to one file.  If false, uses a subdirectory with one file per
      mesh.  false is required if meshes exist on other communicators than
-     MPI_COMM_WORLD, but this is toggled if the code detects that this is
-     necessary.
+     MPI_COMM_WORLD, but this is toggled automatically if the code detects that
+     this is necessary.
 
    INCLUDES:
 

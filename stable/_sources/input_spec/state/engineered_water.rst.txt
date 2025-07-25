@@ -1,0 +1,214 @@
+Engineered Water Models 
+------------------------
+
+Gate Structure
+^^^^^^^^^^^^^^^
+
+`src/physics/ats/src/pks/flow/constitutive_relations/sources/surface_gate_structure_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/flow/constitutive_relations/sources/surface_gate_structure_evaluator.hh>`_
+
+Simulates gravity-driven water movement/diversions through gate structure.
+
+This evaluator models gate structure inside 2D flow area. The gate curve is kept general and can be provided by the user.
+Gate structure can be used to move water two canals, two storage areas or canal to storage area.
+
+`"evaluator type`" = `"gate structure`"
+
+.. _evaluator-gate-structure-spec:
+.. admonition:: evaluator-gate-structure-spec
+
+   * `"gate intake region`" ``[str]`` Region of cells where gate flow is taken out.
+   * `"storage area region`" ``[str]`` Region of cells where gate flow is introduced.
+   * `"gate stage close`" ``[double]`` The water surface elevation in the storage area that should trigger the gate close.
+   * `"is ponded depth function`" ``[bool]`` If true, the gate efficiency curve is a function of ponded depth in the intake region rather than stage.
+   * `"function`" ``[function-tabular]`` This is a function/table of head and flow. Here, head is the stage or ponded depth in the intake region (upstream) of the gate structure.
+
+   KEYS:
+   - `"cell volume`" **DOMAIN-cell_volume**
+   - `"ponded depth`" **DOMAIN-ponded_depth**
+   - `"potential`" **DOMAIN-pres_elev** stage or water surface elevation
+   - `"elevation`" **DOMAIN-elevation**
+   - `"water content`" **DOMAIN-water_content**
+   - `"molar liquid density`" **DOMAIN-molar_density_liquid**
+
+Example:
+
+.. code-block:: xml
+
+      <ParameterList name="surface-gate_flow" type="ParameterList">
+        <Parameter name="evaluator type" type="string" value="gate structure"/>
+        <Parameter name="gate intake region" type="string" value="gate intake area"/>
+        <Parameter name="storage area region" type="string" value="detention pond"/>
+        <Parameter name="gate close stage" type="double" value="7.50"/>
+        <Parameter name="is ponded depth function" type="bool" value="true"/>
+        <ParameterList name="function" type="ParameterList">
+          <ParameterList name="function-tabular" type="ParameterList">
+            <Parameter name="x values" type="Array(double)" value="{0.0, 0.18, 0.1840954, 0.20202941, 0.21996341, 0.23789742, 0.25583143}"/>
+            <Parameter name="y values" type="Array(double)" value="{0.0, 0.0, 0.01542766, 0.07531978, 0.1352119, 0.19510401, 0.25499613}"/>
+            <Parameter name="forms" type="Array(string)" value="{linear, linear, linear, linear, linear, linear}"/>
+          </ParameterList>
+        </ParameterList>
+      </ParameterList>
+
+
+
+Pump System
+^^^^^^^^^^^^
+
+** DOC GENERATION ERROR: file not found ' surface_pump_station ' **
+
+Culverts
+^^^^^^^^^
+
+`src/physics/ats/src/pks/flow/constitutive_relations/sources/surface_culvert_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/flow/constitutive_relations/sources/surface_culvert_evaluator.hh>`_
+
+Simulates water movement through culverts by instant transfer of water from inlet to outlet region.
+
+Flow is calculated using standard culvert hydraulics, considering both inlet-controlled and outlet-controlled regimes.
+
+Implements the following culvert hydraulics equations:
+- **Inlet control**:
+
+  .. math::
+     Q_{\text{inlet}} = N_b \, C \, A \, \sqrt{2 g h_i}
+
+  where:
+
+  - :math:`N_b` = number of barrels *(unitless)*
+  - :math:`C` = discharge coefficient *(unitless)*
+  - :math:`A` = culvert cross-sectional area *(m^2)*
+  - :math:`h_i` = head at culvert inlet *(m)*
+  - :math:`g` = acceleration due to gravity *(9.81 m/s^2)*
+  - :math:`Q_{\text{inlet}}` = inlet discharge *(m^3/s)*
+
+- **Outlet control**:
+
+  .. math::
+     Q_{\text{outlet}} = N_b \, C \, A \, \sqrt{ \frac{2 g h_o}{k} }
+
+  where:
+
+  - :math:`h_o` = head difference between inlet and outlet *(m)*
+  - :math:`k = 1.5 + \frac{29 n^2 L}{R^{4/3}}` *(unitless resistance term)*
+  - :math:`n` = Manning's roughness coefficient *(s/m^{1/3})*
+  - :math:`L` = culvert length *(m)*
+  - :math:`R` = hydraulic radius *(m)*
+  - :math:`Q_{\text{outlet}}` = outlet discharge *(m^3/s)*
+
+- **Blended total discharge**:
+
+  .. math::
+     Q = \frac{Q_{\text{inlet}} \, Q_{\text{outlet}}}{\sqrt{Q_{\text{inlet}}^2 + Q_{\text{outlet}}^2 + \epsilon}}
+
+  where:
+
+  - :math:`\epsilon` = small positive constant to avoid divide-by-zero
+  - :math:`Q` = total culvert discharge *(m^3/s)*
+
+The resulting :math:`Q` is used to compute area-weighted water removal at the inlet and volume-weighted water addition at the outlet.
+
+
+`"evaluator type`" = `"culvert`"
+
+.. _evaluator-culvert-spec:
+.. admonition:: evaluator-culvert-spec
+
+   * `"culvert inlet region"`" ``[str]`` Region of cells where culvert flow is taken out.
+   * `"culvert outlet region"`" ``[str]`` Region of cells where culvert flow is introduced.
+   * `"number of barrels"`" ``[int]`` Number of culvert barrels, default is 1.
+   * `"culvert length"`" ``[double]`` Length of the culvert in meters, default is 10.
+   * `"culvert diameter"`" ``[double]`` Diameter of the culvert in meters, default is 1.
+   * `"culvert roughness coefficient"`" ``[double]`` Manning's roughness coefficient for the culvert, default is 0.013.
+   * `"culvert discharge coefficient"`" ``[double]`` Discharge coefficient for the culvert, default is 0.6.
+
+   KEYS:
+   - `"cell volume"`" **DOMAIN-cell_volume**
+   - `"ponded depth"`" **DOMAIN-ponded_depth**
+   - `"potential"`" **DOMAIN-pres_elev** (stage or water surface elevation)
+   - `"elevation"`" **DOMAIN-elevation**
+   - `"water content"`" **DOMAIN-water_content**
+   - `"molar density liquid"`" **DOMAIN-molar_density_liquid**
+
+Example:
+
+.. code-block:: xml
+
+      <ParameterList name="surface-culvert_flow" type="ParameterList">
+        <Parameter name="evaluator type" type="string" value="culvert"/>
+        <Parameter name="culvert inlet region" type="string" value="culvert inlet"/>
+        <Parameter name="culvert outlet region" type="string" value="culvert outlet"/>
+        <Parameter name="number of barrels" type="int" value="1"/>
+        <Parameter name="culvert length" type="double" value="10.0"/>
+        <Parameter name="culvert diameter" type="double" value="0.25"/>
+        <Parameter name="culvert roughness coefficient" type="double" value="0.013"/>
+        <Parameter name="culvert discharge coefficient" type="double" value="0.6"/>
+      </ParameterList>
+
+
+
+
+Impervious Interception
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+`src/physics/ats/src/pks/flow/constitutive_relations/sources/impervious_interception_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/flow/constitutive_relations/sources/impervious_interception_evaluator.hh>`_
+
+An evaluator for rerouting precip due to impervious surface.
+
+This evaluator reroutes incoming precipitation, taking a portion of it (where
+the portion is determined by the impervious area fraction) and moving it
+(instantly) into the nearby stream network.
+
+Note: this assumes that the runoff reciever is constant in time!
+
+`"evaluator type`" = `"impervious surface interception`"
+
+.. _impervious-interception-evaluator-spec:
+.. admonition:: impervious-interception-evaluator-spec
+
+   * `"maximum specific diversion rate [m s^-1]`" ``[double]`` **inf**
+     Maximum rate of water removal through storm drains, etc, in units of m^3
+     water per second per m^2 of _impervious_ area (specific area).
+
+   KEYS:
+   - `"impervious fraction`" **DOMAIN-impervious_fraction** The fraction of surface area that is impervious, this also defines the fraction of precip
+     that is rerouted.
+   - `"impervious runoff receiver`" **DOMAIN-impervious_runoff_receiver`" The
+     Global ID of the cell that will recieve water from this cell.
+   - `"incoming water source`" **DOMAIN-precipitation_rain** The source of
+     water to be re-reouted -- this is typically rain, but might be
+     canopy-throughfall_drainage_rain, and might be snow-melt, etc.
+   - `"cell volume`" **DOMAIN-cell_volume**
+
+
+
+
+Tile Drains
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+`src/physics/ats/src/pks/flow/constitutive_relations/sources/distributed_tiles_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/flow/constitutive_relations/sources/distributed_tiles_evaluator.hh>`_
+
+Evaluates water/solute source which represent effect of distributed subsurface tiles.
+
+Distributed, subsurface sources due to tile drains.
+
+.. _distributed-tiles-spec:
+.. admonition:: distributed-tiles-spec
+
+   * `"number of ditches`" ``[int]`` Number of ditches, corresponding to the number of unique IDs.
+   * `"tile permeability [m^2]`" ``[double]`` Permeability of the tile/pipe connecting soil to ditch.
+   * `"number of components`" ``[int]`` **1** Number of components in the source/sink pair.
+   * `"entering pressure [Pa]`" ``[double]`` **101325** Pressure required to enter the tile drain.
+
+   KEYS:
+   - `"accumulated source`" **DOMAIN-accumulated_source** Source to the ditch from the tile.
+   - `"distributed source`" **DOMAIN-distributed_source** Source to the soil from the tile (likely negative, sink).
+   - `"catchment ID`" **DOMAIN-catchments_id** ID indicating which ditch a given cell drains to.
+   - `"pressure`"
+   - `"molar density liquid`"
+   - `"factor field`" **NO FACTOR** Scalar factor?
+
+
+
+
+
+
+

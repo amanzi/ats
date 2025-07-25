@@ -138,7 +138,7 @@ provides the initial guess to the nonlinear solve.
      warmer, and begins applying the EWC algorithm in `"ewc smarter`".
 
    KEYS
-   
+
    - `"pressure`"
    - `"temperature`"
    - `"water content`"

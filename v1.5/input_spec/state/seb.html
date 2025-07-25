@@ -1,0 +1,1224 @@
+
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Surface energy balance evaluators &#8212; Amanzi-ATS</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/custom_theme.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'input_spec/state/seb';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.15.3';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
+        </script>
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
+    <script src="../../_static/main.js"></script>
+    <link rel="icon" href="../../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Snow evaluators" href="snow.html" />
+    <link rel="prev" title="Equations of State" href="eos.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/logo_full.png" class="logo__image only-light" alt="Amanzi-ATS documentation -- Home"/>
+    <script>document.write(`<img src="../../_static/logo_full.png" class="logo__image only-dark" alt="Amanzi-ATS documentation -- Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../demos.html">
+    ATS Demo Problems
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    ATS Input Specification
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../demos.html">
+    ATS Demo Problems
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    ATS Input Specification
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item"><!-- This will display the version of the docs -->
+Version 1.5</div>
+        <div class="sidebar-primary-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="pst-version-switcher-button-2"
+      type="button"
+      class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-2"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="pst-version-switcher-list-2"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-2">
+      <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">About the Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html">Main</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="../mesh.html">Mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../region.html">Region</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../io/index.html">IO</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../io/ioevent.html">IOEvent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../io/visualization.html">Visualization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../io/observations.html">Observations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../io/checkpoint.html">Checkpoint</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../process_kernels/index.html">Process Kernels</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../process_kernels/base.html">Base PKs</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../process_kernels/physical/index.html">Physical PKs</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../process_kernels/physical/flow.html">Flow PKs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../process_kernels/physical/transport.html">Transport PK</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../process_kernels/physical/energy.html">Energy PKs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../process_kernels/physical/seb.html">Surface Energy Balance PKs</a></li>
+
+
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../process_kernels/mpcs/index.html">MPC</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../process_kernels/mpcs/base.html">Base MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../process_kernels/mpcs/physical.html">Physical MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../process_kernels/mpcs/globalization.html">Globalization Delegates</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">State</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="primary.html">Primary Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="independent.html">Independent Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="secondary.html">Secondary Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="conserved.html">Conserved quantities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="subsurface_flow.html">Subsurface flow evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="surface_flow.html">Surface flow evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermo.html">Thermodynamic evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="eos.html">Equations of State</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Surface energy balance evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="snow.html">Snow evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="canopy.html">Canopy evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bgc.html">Carbon and Biogeochemistry Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="multiscale.html">Multiscale Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geometric.html">Geometric evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generic.html">Generic evaluators</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../math/index.html">Time integrators, solvers, and other mathematical specs</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../math/time_integrators.html">Time Integrators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math/nonlinear_solvers.html">Nonlinear Solver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math/linear_solvers.html">Linear Solvers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math/preconditioners.html">Preconditioners</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math/operators.html">Operators</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../common.html">Shared Specs</a></li>
+</ul>
+</div>
+</nav></div>
+        <div class="sidebar-primary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#area-fractions">Area Fractions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#two-component-model">Two-component model</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#three-component-model">Three-component model</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#three-component-model-with-microtopography">Three-component model, with microtopography</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#potential-evapotranspiration">Potential Evapotranspiration</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#priestley-taylor-potential-evapotranspiration">Priestley-Taylor Potential Evapotranspiration</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#downregulation-and-limiters">Downregulation and limiters</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#transpiration-distribution">Transpiration Distribution</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rooting-depth-fraction">Rooting Depth Fraction</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#plant-wilting-point">Plant Wilting Point</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#soil-resistance">Soil Resistance</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#radiation-balance-terms">Radiation Balance Terms</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#radiation-balance">Radiation Balance</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#canopy-radiation-balance">Canopy Radiation Balance</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#surface-albedo">Surface Albedo</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#incident-shortwave-radiation">Incident Shortwave Radiation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#longwave-radiation">Longwave Radiation</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#full-surface-energy-balance-models">Full Surface Energy Balance Models</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#bare-soil-surface-energy-balance">Bare Soil Surface Energy Balance</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">ATS Input Specification</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">State</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">Surface...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="surface-energy-balance-evaluators">
+<h1>Surface energy balance evaluators<a class="headerlink" href="#surface-energy-balance-evaluators" title="Permalink to this heading">#</a></h1>
+<p>Evaluators used to solve the fluxes to and from the atmosphere and
+between layers of the surface.  Typically in ATS these calculate
+evapotranspiration.</p>
+<section id="area-fractions">
+<h2>Area Fractions<a class="headerlink" href="#area-fractions" title="Permalink to this heading">#</a></h2>
+<p>Frequently, the surface of a grid cell is split across at least two
+“subgrid components,” for instance snow covered and bare ground.  This
+“subgrid” model allows smooth transitions between fully snow-covered
+and fully bare ground.</p>
+<p>These area fractions often get included as area-weights in calculating
+full-cell quantities.</p>
+<section id="two-component-model">
+<h3>Two-component model<a class="headerlink" href="#two-component-model" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>A subgrid model for determining the area fraction of snow vs not snow within a grid cell.</p>
+</div></blockquote>
+<p>Uses a simple linear transition to vary between liquid and bare ground, and
+another linear transition to vary between snow-covered and not-snow-covered.</p>
+<p>Ordering of the area fractions calculated are: [bare ground/water, snow].</p>
+<p><cite>“evaluator type</cite>” = <cite>“area fractions, two components</cite>”</p>
+<div class="admonition-area-fractions-twocomponent-evaluator-spec admonition" id="area-fractions-twocomponent-evaluator-spec">
+<p class="admonition-title">area-fractions-twocomponent-evaluator-spec:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt><cite>“minimum fractional area [-]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.e-5</strong></dt><dd><p>Mimimum area fraction allowed, less than this is rebalanced as zero.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<p>DEPENDENCIES:</p>
+<ul class="simple">
+<li><p><cite>“snow depth</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code></p></li>
+</ul>
+</div>
+</section>
+<section id="three-component-model">
+<h3>Three-component model<a class="headerlink" href="#three-component-model" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>A subgrid model for determining the area fraction of land, water, and snow within a grid cell.</p>
+</div></blockquote>
+<p>Uses a simple linear transition to vary between liquid and bare ground, and
+another linear transition to vary between snow-covered and not-snow-covered.</p>
+<p>Ordering of the area fractions calculated are: [bare ground, water, snow].</p>
+<p><cite>“evaluator type</cite>” = <cite>“area fractions, three components</cite>”</p>
+<div class="admonition-area-fractions-threecomponent-evaluator-spec admonition" id="area-fractions-threecomponent-evaluator-spec">
+<p class="admonition-title">area-fractions-threecomponent-evaluator-spec:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt><cite>“minimum fractional area [-]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.e-5</strong></dt><dd><p>Mimimum area fraction allowed, less than this is rebalanced as zero.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<p>DEPENDENCIES:</p>
+<ul class="simple">
+<li><p><cite>“snow depth</cite>” <strong>DOMAIN_SNOW-depth</strong></p></li>
+<li><p><cite>“ponded depth</cite>” <strong>DOMAIN-ponded_depth</strong></p></li>
+</ul>
+</div>
+</section>
+<section id="three-component-model-with-microtopography">
+<h3>Three-component model, with microtopography<a class="headerlink" href="#three-component-model-with-microtopography" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>A subgrid model for determining the area fraction of land, open water, and snow within a grid cell.</p>
+</div></blockquote>
+<p>Uses the subgrid equation from Jan et al WRR 2018 for volumetric or effective
+ponded depth to determine the area of water, then heuristically places snow on
+top of that surface.</p>
+<p><cite>“evaluator type</cite>” = <cite>“area fractions, three components with microtopography</cite>”</p>
+<div class="admonition-area-fractions-threecomponent-microtopography-evaluator-spec admonition" id="area-fractions-threecomponent-microtopography-evaluator-spec">
+<p class="admonition-title">area-fractions-threecomponent-microtopography-evaluator-spec</p>
+<ul class="simple">
+<li><p><cite>“snow transitional height [m]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.02</strong>
+Minimum thickness for specifying the snow gradient.</p></li>
+<li><p><cite>“minimum fractional area [-]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.e-5</strong>
+Mimimum area fraction allowed, less than this is rebalanced as zero.</p></li>
+<li><p><cite>“snow domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN_SNOW</strong> A default is guessed at
+by replacing <cite>“surface</cite>” with <cite>“snow</cite>” in the this’s domain.</p></li>
+</ul>
+<p>KEYS:</p>
+<ul class="simple">
+<li><p><cite>“microtopographic relief</cite>” <strong>DOMAIN-microtopographic_relief</strong>
+The name of del_max, the max microtopography value.</p></li>
+<li><p><cite>“excluded volume</cite>” <strong>DOMAIN-excluded_volume</strong>
+The name of del_excluded, the integral of the microtopography.</p></li>
+<li><p><cite>“ponded depth</cite>” <strong>DOMAIN-pressure</strong>
+The name of the surface water ponded depth.</p></li>
+<li><p><cite>“snow depth</cite>” <strong>DOMAIN_SNOW-depth</strong>
+The name of the snow depth.</p></li>
+<li><p><cite>“volumetric snow depth</cite>” <strong>DOMAIN_SNOW-volumetric_depth</strong>
+The name of the snow depth.</p></li>
+</ul>
+</div>
+<p>NOTE: this evaluator simplifies the situation by assuming constant density.
+This make it so that ice and water see the same geometry per unit pressure,
+which isn’t quite true thanks to density differences.  However, we hypothesize
+that these differences, on the surface (unlike in the subsurface) really don’t
+matter much. –etc</p>
+</section>
+</section>
+<section id="potential-evapotranspiration">
+<h2>Potential Evapotranspiration<a class="headerlink" href="#potential-evapotranspiration" title="Permalink to this heading">#</a></h2>
+<p>Models of potential evapotranspiration approximate the difference in
+vapor pressure between the atmosphere and the soil as a function of
+available energy, allowing the calculation of the max flux of ET that
+the atmosphere could accept.  This can then be limited based on water
+availability, etc.</p>
+<section id="priestley-taylor-potential-evapotranspiration">
+<h3>Priestley-Taylor Potential Evapotranspiration<a class="headerlink" href="#priestley-taylor-potential-evapotranspiration" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>Evaluates potential evapotranpiration (PET) using Priestley &amp; Taylor formulation.</p>
+</div></blockquote>
+<p>This implementation is based on models provided in the PRMS-IV, Version 4, see
+pages 90-93, Equations 1-57 to 1-60</p>
+<p>Requires the following dependencies:</p>
+<div class="admonition-pet-priestley-taylor-evaluator-spec admonition" id="pet-priestley-taylor-evaluator-spec">
+<p class="admonition-title">pet-priestley-taylor-evaluator-spec:</p>
+<ul class="simple">
+<li><p><cite>“include limiter</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> If true, multiply potential ET by
+a limiter to get an actual ET.</p></li>
+<li><p><cite>“limiter number of dofs</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>1</strong> Area fractions are often used
+as limiters, and these have multiple dofs.  This provides how many.</p></li>
+<li><p><cite>“limiter dof</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>0</strong> Area fractions are often used
+as limiters, and these have multiple dofs.  This provides which one to use.</p></li>
+<li><p><cite>“include 1 - limiter</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> If true, multiply potential
+ET by 1 - a limiter (e.g. a limiter that partitions between two pools) to
+get actual ET.</p></li>
+<li><p><cite>“1 - limiter number of dofs</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>1</strong> Area fractions are often used
+as limiters, and these have multiple dofs.  This provides how many.</p></li>
+<li><p><cite>“1 - limiter dof</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>0</strong> Area fractions are often used
+as limiters, and these have multiple dofs.  This provides which one to use.</p></li>
+<li><dl class="simple">
+<dt><cite>“sublimate snow</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> If true, use latent heat of</dt><dd><p>vaporization of snow, not water.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<p>KEYS:</p>
+<ul class="simple">
+<li><p><cite>“air temperature</cite>” <strong>DOMAIN-air_temperature</strong> Air temp, in [K]</p></li>
+<li><dl class="simple">
+<dt><cite>“surface temperature</cite>” <strong>DOMAIN-temperature</strong> Ground or leaf temp, in [K].  Note this may be the</dt><dd><p>same as air temperature.</p>
+</dd>
+</dl>
+</li>
+<li><p><cite>“elevation</cite>” <strong>DOMAIN-elevation</strong> Elevation [m]</p></li>
+<li><p><cite>“net radiation</cite>” <strong>DOMAIN-net_radiation</strong> [W m^-2] Net radiation balance, positive to the ground.</p></li>
+<li><p><cite>“limiter</cite>” [-] See <cite>“include limiter</cite>” above.</p></li>
+<li><p><cite>“1 - limiter</cite>” [-] See <cite>“include 1 - limiter</cite>” above.</p></li>
+</ul>
+</div>
+</section>
+</section>
+<section id="downregulation-and-limiters">
+<h2>Downregulation and limiters<a class="headerlink" href="#downregulation-and-limiters" title="Permalink to this heading">#</a></h2>
+<p>Given a potential, the actual ET is often limited by available water
+(or nutrients or other quantities).  These evaluators are used to
+limit, downregulate, distribute, or otherwise move a potential to an
+actual ET.</p>
+<section id="transpiration-distribution">
+<h3>Transpiration Distribution<a class="headerlink" href="#transpiration-distribution" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>Distributes and downregulates potential transpiration to the rooting zone.</p>
+</div></blockquote>
+<p>The transpiration distribution evaluator looks to take a potential
+evapotranspiration and distribute it across the vertical column based on water
+availability and rooting depths.  It also potentially limits the transpiration
+to avoid taking water where it is not available (thereby crashing the code).</p>
+<p>This model is based off of versions from both CLM 4.5 and PRMS.  It requires:</p>
+<ol class="arabic simple">
+<li><p>A root distribution profile.</p></li>
+<li><p>A plant wilting factor (e.g. how water stressed is the plant?)</p></li>
+<li><p>A potential transpiration, typically calculated from data or a potential
+difference based on a latent heat calculation.</p></li>
+</ol>
+<p>Note this also requires columnar meshes – meaning that the subsurface mesh
+must have <cite>“build columns from set</cite>” provided.</p>
+<p>A normalized fraction of water is calculated through multiplying the water
+factor by the root distribution factor, integrating across the column, and
+dividing by the integral.  This gives a factor which sums to 1 and can be used
+to distribute the potential ET throughout the soil column.</p>
+<p>Then, this potential ET is down-regulated and multiplied by the plant wilting
+factor.  If there is no water locally, it cannot be taken.  Note that almost
+always, if there is no water, this did not contribute (much) to the integral
+and so is already small.  But if the entire root zone is dried out, this might
+have been a bunch of small numbers which then got normalized to 1, meaning they
+are all now significant.</p>
+<p>Finally, transpiration may be turned off for winter – relative to time zero,
+parameters <cite>“leaf on doy</cite>” and <cite>“leaf off doy</cite>” are used to control when ET
+is zero.  By default these are set to 0 and 366 days, ensuring that
+transpiration is never turned off and the potential ET must include this
+factor.  This is the right choice for, e.g. ELM output, or eddy covariance flux
+tower data (where leaf on and off are already included in the potential
+calculation).  It is the wrong choice for, e.g. Priestly-Taylor or
+Penmann-Montief models, which are happy to predict transpiration all winter
+long.  Good choices for those models depend upon the local climate, but may be
+something like Julian day 101 for leaf on and Julian day 254 for leaf off (PRMS
+defaults for US temperate forests).</p>
+<p>Note that <cite>“leaf on doy</cite>” and <cite>“leaf off doy</cite>” are relative to the simulation’s
+zero time, not the start time.  Typically these are Julian day of the year, but
+this assumes that the 0 time of the simulation (not the “start time”, but time
+0!) is Jan 1.  This leaf on/off cycle is modulo the <cite>“year duration</cite>”
+(typically 1 noleap).  Note if <cite>“leaf off doy</cite>” &lt; <cite>“leaf on time</cite>” is ok too –
+this is the case if simulation time zero is mid-summer.  These parameters come
+from the LandCover type.</p>
+<div class="admonition-transpiration-distribution-evaluator-spec-year-duration-double-1-year-duration-units-string-noleap admonition" id="transpiration-distribution-evaluator-spec">
+<p class="admonition-title">transpiration-distribution-evaluator-spec
+* <cite>“year duration</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1</strong>
+* <cite>“year duration units</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>noleap</strong></p>
+<ul class="simple">
+<li><p><cite>“water limiter function</cite>” <code class="docutils literal notranslate"><span class="pre">[function-spec]</span></code> <strong>optional</strong> If provided,
+limit the total water sink as a function of the integral of the water
+potential * rooting fraction.</p></li>
+</ul>
+<p>KEYS:</p>
+<ul class="simple">
+<li><p><cite>“plant wilting factor</cite>” <strong>DOMAIN-plant_wilting_factor</strong></p></li>
+<li><p><cite>“rooting depth fraction</cite>” <strong>DOMAIN-rooting_depth_fraction</strong></p></li>
+<li><p><cite>“potential transpiration</cite>” <strong>DOMAIN_SURF-potential_transpiration</strong></p></li>
+<li><p><cite>“cell volume</cite>” <strong>DOMAIN-cell_volume</strong></p></li>
+<li><p><cite>“surface cell volume</cite>” <strong>DOMAIN_SURF-cell_volume</strong></p></li>
+</ul>
+</div>
+</section>
+<section id="rooting-depth-fraction">
+<h3>Rooting Depth Fraction<a class="headerlink" href="#rooting-depth-fraction" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>Provides a depth-based profile of root density.</p>
+</div></blockquote>
+<p>Sets the (discrete) root fraction as a function of depth.  The rooting density
+is given by:</p>
+<p>This function is such that the integral over depth = [0,inf) is 1.  Then,
+computing this over the vertical corridor is done by integrating this function
+between the depth of the face above and below for each grid cell, with the
+bottom-most grid cell integrating to infinity.</p>
+<p>Note that the two parameters, <span class="math notranslate nohighlight">\(\alpha\)</span> and <span class="math notranslate nohighlight">\(\beta\)</span> are provided in
+the Land Cover class as <cite>“rooting profile alpha</cite>” and <cite>“rooting profile beta</cite>”
+respectively.</p>
+<div class="admonition-rooting-depth-fraction-evaluator-spec admonition" id="rooting-depth-fraction-evaluator-spec">
+<p class="admonition-title">rooting-depth-fraction-evaluator-spec</p>
+<ul class="simple">
+<li><p><cite>“surface domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>SURFACE_DOMAIN</strong> Sane default provided for most domain names.</p></li>
+</ul>
+<p>KEYS:</p>
+<ul class="simple">
+<li><p><cite>“cell volume</cite>” <strong>DOMAIN-cell_volume</strong></p></li>
+<li><p><cite>“surface area</cite>” <strong>SURFACE_DOMAIN-cell_volume</strong></p></li>
+</ul>
+</div>
+</section>
+<section id="plant-wilting-point">
+<h3>Plant Wilting Point<a class="headerlink" href="#plant-wilting-point" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>Plant wilting factor provides a moisture availability-based limiter on transpiration.</p>
+</div></blockquote>
+<p>Also known as Beta, or the water availability factor, or the plant wilting
+factor, or the transpiration reduction function.</p>
+<div class="math notranslate nohighlight">
+\[Beta =  (p_closed - p) / (p_closed - p_open)\]</div>
+<p>where p is the capillary pressure or water potential, and closed
+and open indicate the values at which stomates are fully open or fully
+closed (the wilting point).</p>
+<p>Note this makes use of LandCover objects for water potential of fully open and
+fully closed stomata.</p>
+<p>Note the challenges of using this model with arbitrary van Genuchten WRMs.  See
+Verhoef &amp; Egea, Ag. &amp; Forest Meteorology, 2014
+<a class="reference external" href="https://doi.org/10.1016/j.agrformet.2014.02.009">https://doi.org/10.1016/j.agrformet.2014.02.009</a></p>
+<div class="admonition-plant-wilting-factor-evaluator-spec admonition" id="plant-wilting-factor-evaluator-spec">
+<p class="admonition-title">plant-wilting-factor-evaluator-spec</p>
+<p>KEYS:</p>
+<ul class="simple">
+<li><p><cite>“capillary pressure</cite>” <strong>DOMAIN-capillary_pressure_gas_liq</strong></p></li>
+</ul>
+</div>
+</section>
+</section>
+<section id="soil-resistance">
+<h2>Soil Resistance<a class="headerlink" href="#soil-resistance" title="Permalink to this heading">#</a></h2>
+<p>Downregulates evaporation through a dessicated zone via soil resistance.
+Currently support two soil resistance methods: Sakagucki-Zeng and Sellers.
+This will call soil resistance evaluator.</p>
+</section>
+<section id="radiation-balance-terms">
+<h2>Radiation Balance Terms<a class="headerlink" href="#radiation-balance-terms" title="Permalink to this heading">#</a></h2>
+<p>Often a balance of incoming and outgoing short and longwave radiations
+are required to determine the energy available to go into latent heat,
+and therefore potential evapotranspiration.</p>
+<p>Note that incoming shortwave radiation is typically a user-provided
+meterological forcing dataset.</p>
+<section id="radiation-balance">
+<h3>Radiation Balance<a class="headerlink" href="#radiation-balance" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>Evaluates a net radiation balance for ground and canopy.</p>
+</div></blockquote>
+<p>Here the net radiation is positive for energy inputs to the layer.  Note that
+ground is based on the two-channel (land + snow) while canopy is assumed to be
+a simple, single layer.</p>
+<p>This evaluator requires that the surface temperature, snow temperature, and
+canopy temperature are known, or at least being solved for.</p>
+<p>Requires the use of LandCover types, for albedo and Beer’s law coefficients.</p>
+<p>This is combination of CLM v4.5 Tech Note and Beer’s law for attenuation of
+radiation absorption.  In particular, long-wave is exactly as Figure 4.1c in CLM
+4.5 Tech Note.  The main difference comes in how absorptivity (which is equal
+to emissivity, epsilon in that document) is defined.  Here we use Beer’s law
+which is an exponential decay with LAI.</p>
+<p>Unlike CLM 4.5, here we do not split shortwave into direct and diffuse light.</p>
+<p>Computes:</p>
+<ol class="arabic simple">
+<li><p>“surface radiation balance” – Net radiation seen by the bare soil/ponded
+water, this includes radiation transmitted to the surface through the
+canopy, longwave emitted by the canopy, and less the longwave emitted by the
+surface itself.  [W m^-2] of actual area – this does NOT include the
+surface area fraction factor which would be required to compute a total
+energy flux in W.</p></li>
+<li><p>“snow radiation balance” – Net radiation seen by the snow.  See surface
+above – all are the same except using snow properties. [W m^-2]</p></li>
+<li><p>“canopy radiation balance” – this is a compute computation of the net
+radiation experienced by the canopy.  It includes the portion of shortwave
+and longwave from the atmosphere that are absorbed via Beer’s law, minus the
+outgoing longwave emitted from the canopy, plus upward longwave radiation
+emitted by the snow and surface.  It also does not include any secondary
+bounces (e.g. reflected atmosphere-&gt;canopy-&gt;cloud-&gt;back to canopy, or
+transmitted by the canopy, reflected by snow/surface.</p></li>
+</ol>
+<p>Requires the use of LandCover types, for canopy albedo and Beer’s law
+coefficients.</p>
+<p><cite>“evaluator type</cite>” = <cite>“radiation balance, surface and canopy</cite>”</p>
+<div class="admonition-radiation-balance-evaluator-spec admonition" id="radiation-balance-evaluator-spec">
+<p class="admonition-title">radiation-balance-evaluator-spec</p>
+<p>KEYS:
+- <cite>“surface albedos</cite>” <strong>SURFACE_DOMAIN-albedos</strong>
+- <cite>“surface emissivities</cite>” <strong>SURFACE_DOMAIN-emissivities</strong>
+- <cite>“incoming shortwave radiation</cite>” <strong>SURFACE_DOMAIN-incoming_shortwave_radiation</strong>
+- <cite>“incoming longwave radiation</cite>” <strong>SURFACE_DOMAIN-incoming_longwave_radiation</strong>
+- <cite>“surface temperature</cite>” <strong>SURFACE_DOMAIN-temperature</strong>
+- <cite>“snow temperature</cite>” <strong>SNOW_DOMAIN-temperature</strong>
+- <cite>“canopy temperature</cite>” <strong>CANOPY_DOMAIN-temperature</strong>
+- <cite>“leaf area index</cite>” <strong>CANOPY_DOMAIN-leaf_area_index</strong>
+- <cite>“area fractions</cite>” <strong>SURFACE_DOMAIN-area_fractions</strong></p>
+</div>
+<p>Note that this is a superset of the physics in the “canopy radiation
+evaluator,” and is therefore mutually exclusive with that model.</p>
+</section>
+<section id="canopy-radiation-balance">
+<h3>Canopy Radiation Balance<a class="headerlink" href="#canopy-radiation-balance" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>Evaluates the canopy radiation balance, providing canopy net and radiation to the snow/surface.</p>
+</div></blockquote>
+<p>Computes and sums the downward radiation terms, determining the total radiation
+sent down to the surface from the canopy and above.</p>
+<p>Requires the use of LandCover types, for albedo and emissivity of the canopy
+itself, along with Beer’s law coefficients.</p>
+<p>Computes:</p>
+<ol class="arabic simple">
+<li><p>canopy-downward_shortwave_radiation – transmitted shortwave.  Note that
+incoming shortwave is attenuated by Beer’s law, and partially transmitted
+without attenuation when there are gaps (e.g. LAI &lt; 1) in the canopy.</p></li>
+<li><p>canopy-downward_longwave_radiation – transmitted longwave (see above,
+noting that Beer’s law coefficients should be used that absorb most if not
+all the longwave radiation), along with longwave emitted by the canopy
+computed using a canopy leaf temperature and a Bolzmann equation.</p></li>
+<li><p>canopy-downward_net_radiation – this is a partial computation of the net
+radiation experienced by the canopy.  It includes the portion of shortwave
+and longwave from the atmosphere that are absorbed via Beer’s law, minus the
+outgoing longwave emitted from the canopy (see downward above).  It does NOT
+include upward longwave radiation emitted by the snow or surface.  It also
+does not include any secondary bounces (e.g. reflected
+atmosphere-&gt;canopy-&gt;cloud-&gt;back to canopy, or transmitted by the canopy,
+reflected by snow).</p></li>
+</ol>
+<p>Here the net radiation is positive for energy added to the canopy, while the
+other two are positive for energy sent to the layer below.</p>
+<p>In the canopy-downward_net_radiation, we cannot include the upward terms YET,
+because these are a function of snow and surface temperature, which in turn
+depend upon the downward radiation computed here.  So we choose to break the
+loop here, by computing downard terms first, then iterating to compute snow
+temperature, then compute upward terms.  The alternative would be to have a
+formal snow energy PK that computed snow temperature, at which point we would
+solve all of these balances to convergence simultaneously.</p>
+<p><cite>“evaluator type</cite>” = <cite>“canopy radiation balance from above</cite>”</p>
+<div class="admonition-canopy-radiation-evaluator-spec admonition" id="canopy-radiation-evaluator-spec">
+<p class="admonition-title">canopy-radiation-evaluator-spec</p>
+<p>KEYS:
+- <cite>“incoming shortwave radiation</cite>” <strong>SURFACE_DOMAIN-incoming_shortwave_radiation</strong>
+- <cite>“incoming longwave radiation</cite>” <strong>SURFACE_DOMAIN-incoming_longwave_radiation</strong>
+- <cite>“canopy temperature</cite>” <strong>CANOPY_DOMAIN-temperature</strong>
+- <cite>“leaf area index</cite>” <strong>CANOPY_DOMAIN-leaf_area_index</strong></p>
+</div>
+<p>Note that this is a subset of the physics in the “radiation balance evaluator,”
+and is therefore mutually exclusive with that model.</p>
+</section>
+<section id="surface-albedo">
+<h3>Surface Albedo<a class="headerlink" href="#surface-albedo" title="Permalink to this heading">#</a></h3>
+<p>Note that albedo is also a multiple subgrid component model, like
+surface balance.</p>
+<blockquote>
+<div><p>Evaluates albedos and emissivities in a two-component subgrid model.</p>
+</div></blockquote>
+<p>Evaluates the albedo and emissivity as an interpolation on the surface
+properties and cover.  This allows for two components – snow and not snow
+(water/ice/land).  Note this internally calculates albedo of snow based upon
+snow density.</p>
+<p>Components are indexed by: 0 = land/ice/water, 1 = snow.</p>
+<p>Requires the use of LandCover types, for ground albedo and emissivity.</p>
+<div class="admonition-albedo-evaluator-spec admonition" id="albedo-evaluator-spec">
+<p class="admonition-title">albedo-evaluator-spec</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><cite>“albedo ice [-]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.44</strong></p></li>
+<li><p><cite>“albedo water [-]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.1168</strong></p></li>
+<li><p><cite>“emissivity ice [-]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.98</strong></p></li>
+<li><p><cite>“emissivity water [-]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.995</strong></p></li>
+<li><p><cite>“emissivity snow [-]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.98</strong></p></li>
+</ul>
+<p>KEYS:</p>
+<ul class="simple">
+<li><p><cite>“subgrid albedos</cite>” <strong>DOMAIN-subgrid_albedos</strong></p></li>
+<li><p><cite>“subgrid emissivities</cite>” <strong>DOMAIN-subgrid_emissivities</strong></p></li>
+</ul>
+<p>DEPENDENCIES:</p>
+<ul class="simple">
+<li><p><cite>“snow density</cite>” <strong>SNOW_DOMAIN-density</strong></p></li>
+<li><p><cite>“ponded depth</cite>” <strong>DOMAIN-ponded_depth</strong></p></li>
+<li><p><cite>“unfrozen fraction</cite>” <strong>DOMAIN-unfrozen_fraction</strong></p></li>
+</ul>
+</div></blockquote>
+<p>Evaluates albedos and emissivities in a three-component subgrid model.</p>
+</div>
+<p>Evaluates the albedo and emissivity as an interpolation on the surface
+properties and cover.  This allows for three components – water/ice, land, and
+snow.  Note this internally calculates albedo of snow based upon snow density.</p>
+<p>Components are: 0 = land, 1 = ice/water, 2 = snow.</p>
+<p>Requires the use of LandCover types, for ground albedo and emissivity.</p>
+<div class="admonition-albedo-evaluator-subgrid-spec admonition" id="albedo-evaluator-subgrid-spec">
+<p class="admonition-title">albedo-evaluator-subgrid-spec</p>
+<ul class="simple">
+<li><p><cite>“albedo ice [-]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.44</strong></p></li>
+<li><p><cite>“albedo water [-]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.1168</strong></p></li>
+<li><p><cite>“emissivity ice [-]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.98</strong></p></li>
+<li><p><cite>“emissivity water [-]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.995</strong></p></li>
+<li><p><cite>“emissivity snow [-]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.98</strong></p></li>
+</ul>
+<p>KEYS:</p>
+<ul class="simple">
+<li><p><cite>“subgrid albedos</cite>” <strong>DOMAIN-subgrid_albedos</strong></p></li>
+<li><p><cite>“subgrid emissivities</cite>” <strong>DOMAIN-subgrid_emissivities</strong></p></li>
+</ul>
+<p>DEPENDENCIES:</p>
+<ul class="simple">
+<li><p><cite>“snow density</cite>” <strong>SNOW_DOMAIN-density</strong></p></li>
+<li><p><cite>“unfrozen fraction</cite>” <strong>DOMAIN-unfrozen_fraction</strong></p></li>
+</ul>
+</div>
+</section>
+<section id="incident-shortwave-radiation">
+<h3>Incident Shortwave Radiation<a class="headerlink" href="#incident-shortwave-radiation" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>Evaluates the radiation incident on a non-flat surface.</p>
+</div></blockquote>
+<p>Aspect modified shortwave radiation is determined by a factor which is
+multiplied by the ‘incoming radiation incident on a flat surface’ to determine
+the ‘incoming radiation incident on a sloping surface of a given aspect’ as a
+function of slope and aspect, Julian day of the year, and time of day.  The
+latitude and Julian day of the year are used to modify this with both time of
+day and seasonal changes of the planet.</p>
+<p>Note that some careful checking and experimentation has found that, in
+general, the daily average incoming radiation times the 12-noon aspect
+modifier correlates reasonably well with the daily average of the
+product of the hourly incoming radiation and the hourly aspect
+modifier.  It is notably better than the daily average radiation times
+the daily average aspect modifier.</p>
+<p>This implementation is derived from <a class="reference external" href="https://github.com/landlab/landlab/blob/master/landlab/components/radiation/radiation.py">LandLab code</a>,
+which is released under the MIT license.</p>
+<div class="admonition-incident-shortwave-radiation-evaluator-spec admonition" id="incident-shortwave-radiation-evaluator-spec">
+<p class="admonition-title">incident_shortwave_radiation_evaluator-spec</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><cite>“incident shortwave radiation parameters</cite>” <code class="docutils literal notranslate"><span class="pre">[incident_shortwave_radiation_model-spec]</span></code></p></li>
+</ul>
+<p>KEYS:
+- <cite>“slope</cite>” <strong>DOMAIN-slope_magnitude</strong>
+- <cite>“aspect</cite>” <strong>DOMAIN-aspect</strong>
+- <cite>“incoming shortwave radiation</cite>” <strong>DOMAIN-incoming_shortwave_radiation</strong></p>
+</div></blockquote>
+<p>Evaluates shortwave as a function of slope/aspect/etc.</p>
+</div>
+<div class="admonition-incident-shortwave-radiation-model-spec admonition" id="incident-shortwave-radiation-model-spec">
+<p class="admonition-title">incident_shortwave_radiation_model-spec</p>
+<ul class="simple">
+<li><p><cite>“latitude [degrees]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> Latitude of the site.  A single
+typical value is fine for most domains, even relatively large ones
+(e.g. HUC4).</p></li>
+<li><p><cite>“daily averaged</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>true</strong> Compute a daily averaged radiation, as
+opposed to a time-specific, diurnal-cycle-resolving value.</p></li>
+<li><p><cite>“day of year at time 0 [Julian days]</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>0</strong> (Jan 1).  ATS has
+no notion of absolute time, so to do things that depend upon planetary
+dynamics we must know what the day of the year is.  Typically this is set
+by your meteorological data – set this to be equal to the day of year of
+met data’s time 0.</p></li>
+</ul>
+</div>
+</section>
+<section id="longwave-radiation">
+<h3>Longwave Radiation<a class="headerlink" href="#longwave-radiation" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>Evaluates incoming longwave radiation from vapor pressure and air temperature.</p>
+</div></blockquote>
+<div class="admonition-longwave-evaluator-spec admonition" id="longwave-evaluator-spec">
+<p class="admonition-title">longwave_evaluator-spec</p>
+<p>DEPENDENCIES:</p>
+<ul class="simple">
+<li><p><cite>“air temperature key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-air_temperature</strong></p></li>
+<li><p><cite>“vapor pressure air key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-vapor_pressure_air</strong></p></li>
+</ul>
+</div>
+</section>
+</section>
+<section id="full-surface-energy-balance-models">
+<h2>Full Surface Energy Balance Models<a class="headerlink" href="#full-surface-energy-balance-models" title="Permalink to this heading">#</a></h2>
+<p>Finally, in addition to the potential-based models above, a few
+full-physics model are available.  These are often based on older,
+monolithic models.</p>
+<section id="bare-soil-surface-energy-balance">
+<h3>Bare Soil Surface Energy Balance<a class="headerlink" href="#bare-soil-surface-energy-balance" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>Calculates source terms for surface fluxes to and from the atmosphere and a ground surface.</p>
+</div></blockquote>
+<p>The ground is assumed to consist of two potential area-fraction components –
+snow and no-snow.  In the case of snow on the ground, this solves for a snow
+temperature, given a skin temperature, that satisfies a energy balance
+equation.  In the case of no-snow, this calculates a conductive heat flux to
+the ground from the atmosphere.</p>
+<p><cite>“evaluator type</cite>” = <cite>“surface energy balance, two components</cite>”</p>
+<div class="admonition-seb-twocomponent-evaluator-spec admonition" id="seb-twocomponent-evaluator-spec">
+<p class="admonition-title">seb-twocomponent-evaluator-spec</p>
+<ul class="simple">
+<li><p><cite>“wind speed reference height [m]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>2.0</strong> Reference height at which
+wind speed is measured.</p></li>
+<li><p><cite>“minimum wind speed [m s^-1]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.0</strong> Sets a floor on wind speed for
+potential wierd data.  Models have trouble with no wind.</p></li>
+<li><p><cite>“save diagnostic data</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Saves a suite of diagnostic variables to vis.</p></li>
+<li><p><cite>“surface domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DEFAULT</strong> Default set by parameterlist name.</p></li>
+<li><p><cite>“subsurface domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DEFAULT</strong> Default set relative to surface domain name.</p></li>
+<li><p><cite>“snow domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DEFAULT</strong> Default set relative to surface domain name.</p></li>
+</ul>
+<p>KEYS:</p>
+<ul class="simple">
+<li><p><cite>“surface water source</cite>” <strong>DOMAIN-water_source</strong>  [m s^-1]</p></li>
+<li><p><cite>“surface energy source</cite>” <strong>DOMAIN-total_energy_source</strong> [MW m^-2]</p></li>
+<li><p><cite>“subsurface water source</cite>” <strong>DOMAIN-water_source</strong>  [mol s^-1]</p></li>
+<li><p><cite>“subsurface energy source</cite>” <strong>DOMAIN-total_energy_source</strong> [MW m^-3]</p></li>
+<li><p><cite>“snow mass source - sink</cite>” <strong>DOMAIN-source_sink</strong> [m_SWE s^-1]</p></li>
+<li><p><cite>“new snow source</cite>” <strong>DOMAIN-source</strong> [m_SWE s^-1]</p></li>
+<li><p><cite>“albedo</cite>” <strong>DOMAIN-albedo</strong> [-] A single variate diagnostic of the final albedo.</p></li>
+<li><p><cite>“snowmelt</cite>” <strong>DOMAIN_SNOW-melt</strong> [m_SWE s^-1]</p></li>
+<li><p><cite>“evaporation</cite>” <strong>DOMAIN-evaporative_flux</strong> [m s^-1]</p></li>
+<li><p><cite>“snow temperature</cite>” <strong>DOMAIN_SNOW-temperature</strong> [K]</p></li>
+<li><p><cite>“sensible heat flux</cite>” <strong>DOMAIN-qE_sensible_heat</strong> [W m^-2]</p></li>
+<li><p><cite>“latent heat of evaporation</cite>” <strong>DOMAIN-qE_latent_heat</strong> [W m^-2]</p></li>
+<li><p><cite>“latent heat of snowmelt</cite>” <strong>DOMAIN-qE_snowmelt</strong> [W m^-2]</p></li>
+<li><p><cite>“outgoing longwave radiation</cite>” <strong>DOMAIN-qE_lw_out</strong> [W m^-2]</p></li>
+<li><p><cite>“conducted energy flux</cite>” <strong>DOMAIN-qE_conducted</strong> [W m^-2]</p></li>
+</ul>
+<p>DEPENDENCIES:</p>
+<ul class="simple">
+<li><p><cite>“incoming shortwave radiation</cite>” <strong>DOMAIN-incoming_shortwave_radiation</strong> [W m^-2]</p></li>
+<li><p><cite>“incoming longwave radiation</cite>” <strong>DOMAIN-incoming_longwave_radiation</strong> [W m^-2]</p></li>
+<li><p><cite>“air temperature</cite>” <strong>DOMAIN-air_temperature</strong> [K]</p></li>
+<li><p><cite>“vapor pressure air</cite>” <strong>DOMAIN-vapor_pressure_air</strong> [Pa]</p></li>
+<li><p><cite>“wind speed</cite>” <strong>DOMAIN-wind_speed</strong> [m s^-1]</p></li>
+<li><p><cite>“precipitation rain</cite>” <strong>DOMAIN-precipitation_rain</strong> [m s^-1]</p></li>
+<li><p><cite>“precipitation snow</cite>” <strong>DOMAIN_SNOW-precipitation</strong> [m_SWE s^-1]</p></li>
+<li><p><cite>“snow depth</cite>” <strong>DOMAIN_SNOW-depth</strong> [m]</p></li>
+<li><p><cite>“snow density</cite>” <strong>DOMAIN_SNOW-density</strong> [kg m^-3]</p></li>
+<li><p><cite>“snow death rate</cite>” <strong>DOMAIN_SNOW-death_rate</strong> [m s^-1]  Snow “death” refers to the last bit of snowmelt that we want to remove discretely.</p></li>
+<li><p><cite>“ponded depth</cite>” <strong>DOMAIN-ponded_depth</strong> [m]</p></li>
+<li><p><cite>“unfrozen fraction</cite>” <strong>DOMAIN-unfrozen_fraction</strong> [-]  1 –&gt; all surface water, 0 –&gt; all surface ice</p></li>
+<li><p><cite>“subgrid albedos</cite>” <strong>DOMAIN-albedos</strong> [-] Dimension 2 field of (no-snow, snow) albedos.</p></li>
+<li><p><cite>“subgrid emissivity</cite>” <strong>DOMAIN-emissivities</strong> [-] Dimension 2 field of (no-snow, snow) emissivities.</p></li>
+<li><p><cite>“area fractions</cite>” <strong>DOMAIN-fractional_areas</strong> Dimension 2 field of (no-snow, snow) area fractions (sum to 1).</p></li>
+<li><p><cite>“temperature</cite>” <strong>DOMAIN-temperature</strong>  [K] surface skin temperature.</p></li>
+<li><p><cite>“pressure</cite>” <strong>DOMAIN-pressure</strong> [Pa] surface skin pressure.</p></li>
+<li><p><cite>“rsoil</cite>” <strong>DOMAIN-rsoil</strong> [s/m] soil resistance of top cells.</p></li>
+<li><p><cite>“subsurface pressure</cite>” <strong>DOMAIN_SS-pressure</strong> [Pa]</p></li>
+<li><p><cite>“molar density liquid</cite>” <strong>DOMAIN-molar_density_liquid</strong> [mol m^-3]</p></li>
+<li><p><cite>“mass density liquid</cite>” <strong>DOMAIN-mass_density_liquid</strong> [kg m^-3]</p></li>
+</ul>
+</div>
+<p>Calculates source terms for surface fluxes to and from the atmosphere and a
+ground surface characterized by three components – snow, water-covered ground,
+and vegetated/bare soil.</p>
+<p>The surface energy balance on these area weighted patches are individually
+calculated then averaged to form the total quantities.  All down- and
+up-scaling of relevant quantities are done through the area weighting, which is
+calculated by a minimum threshold in snow and a depression depth/geometry-based
+approach for water.  All snow is assumed to first cover water (likely ice),
+then cover land, as both water and snow prefer low-lying depressions due to
+gravity- and wind-driven redistributions, respectively.</p>
+<p><cite>“evaluator type</cite>” = <cite>“surface energy balance, two components</cite>”</p>
+<div class="admonition-seb-threecomponent-evaluator-spec admonition" id="seb-threecomponent-evaluator-spec">
+<p class="admonition-title">seb-threecomponent-evaluator-spec</p>
+<ul class="simple">
+<li><p><cite>“wind speed reference height [m]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>2.0</strong> Reference height at which
+wind speed is measured.</p></li>
+<li><p><cite>“minimum wind speed [m s^-1]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.0</strong> Sets a floor on wind speed for
+potential wierd data.  Models have trouble with no wind.</p></li>
+<li><p><cite>“save diagnostic data</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Saves a suite of diagnostic variables to vis.</p></li>
+<li><p><cite>“surface domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DEFAULT</strong> Default set by parameterlist name.</p></li>
+<li><p><cite>“subsurface domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DEFAULT</strong> Default set relative to surface domain name.</p></li>
+<li><p><cite>“snow domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DEFAULT</strong> Default set relative to surface domain name.</p></li>
+</ul>
+<p>KEYS:</p>
+<ul class="simple">
+<li><p><cite>“surface water source</cite>” <strong>DOMAIN-water_source</strong>  [m s^-1]</p></li>
+<li><p><cite>“surface energy source</cite>” <strong>DOMAIN-total_energy_source</strong> [MW m^-2]</p></li>
+<li><p><cite>“subsurface water source</cite>” <strong>DOMAIN-water_source</strong>  [mol s^-1]</p></li>
+<li><p><cite>“subsurface energy source</cite>” <strong>DOMAIN-total_energy_source</strong> [MW m^-3]</p></li>
+<li><p><cite>“snow mass source - sink</cite>” <strong>DOMAIN-source_sink</strong> [m_SWE s^-1]</p></li>
+<li><p><cite>“new snow source</cite>” <strong>DOMAIN-source</strong> [m_SWE s^-1]</p></li>
+<li><p><cite>“albedo</cite>” <strong>DOMAIN-albedo</strong> [-] A single variate diagnostic of the final albedo.</p></li>
+<li><p><cite>“snowmelt</cite>” <strong>DOMAIN_SNOW-melt</strong> [m_SWE s^-1]</p></li>
+<li><p><cite>“evaporation</cite>” <strong>DOMAIN-evaporative_flux</strong> [m s^-1]</p></li>
+<li><p><cite>“snow temperature</cite>” <strong>DOMAIN_SNOW-temperature</strong> [K]</p></li>
+<li><p><cite>“sensible heat flux</cite>” <strong>DOMAIN-qE_sensible_heat</strong> [W m^-2]</p></li>
+<li><p><cite>“latent heat of evaporation</cite>” <strong>DOMAIN-qE_latent_heat</strong> [W m^-2]</p></li>
+<li><p><cite>“latent heat of snowmelt</cite>” <strong>DOMAIN-qE_snowmelt</strong> [W m^-2]</p></li>
+<li><p><cite>“outgoing longwave radiation</cite>” <strong>DOMAIN-qE_lw_out</strong> [W m^-2]</p></li>
+<li><p><cite>“conducted energy flux</cite>” <strong>DOMAIN-qE_conducted</strong> [W m^-2]</p></li>
+</ul>
+<p>DEPENDENCIES:</p>
+<ul class="simple">
+<li><p><cite>“incoming shortwave radiation</cite>” <strong>DOMAIN-incoming_shortwave_radiation</strong> [W m^-2]</p></li>
+<li><p><cite>“incoming longwave radiation</cite>” <strong>DOMAIN-incoming_longwave_radiation</strong> [W m^-2]</p></li>
+<li><p><cite>“air temperature</cite>” <strong>DOMAIN-air_temperature</strong> [K]</p></li>
+<li><p><cite>“vapor pressure air</cite>” <strong>DOMAIN-vapor_pressure_air</strong> [Pa]</p></li>
+<li><p><cite>“wind speed</cite>” <strong>DOMAIN-wind_speed</strong> [m s^-1]</p></li>
+<li><p><cite>“precipitation rain</cite>” <strong>DOMAIN-precipitation_rain</strong> [m s^-1]</p></li>
+<li><p><cite>“precipitation snow</cite>” <strong>DOMAIN_SNOW-precipitation</strong> [m_SWE s^-1]</p></li>
+<li><p><cite>“snow depth</cite>” <strong>DOMAIN_SNOW-depth</strong> [m]</p></li>
+<li><p><cite>“snow density</cite>” <strong>DOMAIN_SNOW-density</strong> [kg m^-3]</p></li>
+<li><p><cite>“snow death rate</cite>” <strong>DOMAIN_SNOW-death_rate</strong> [m s^-1]  Snow “death” refers to the last bit of snowmelt that we want to remove discretely.</p></li>
+<li><p><cite>“ponded depth</cite>” <strong>DOMAIN-ponded_depth</strong> [m]</p></li>
+<li><p><cite>“unfrozen fraction</cite>” <strong>DOMAIN-unfrozen_fraction</strong> [-]  1 –&gt; all surface water, 0 –&gt; all surface ice</p></li>
+<li><p><cite>“subgrid albedos</cite>” <strong>DOMAIN-albedos</strong> [-] Dimension 2 field of (no-snow, snow) albedos.</p></li>
+<li><p><cite>“subgrid emissivity</cite>” <strong>DOMAIN-emissivities</strong> [-] Dimension 2 field of (no-snow, snow) emissivities.</p></li>
+<li><p><cite>“area fractions</cite>” <strong>DOMAIN-fractional_areas</strong> Dimension 2 field of (no-snow, snow) area fractions (sum to 1).</p></li>
+<li><p><cite>“temperature</cite>” <strong>DOMAIN-temperature</strong>  [K] surface skin temperature.</p></li>
+<li><p><cite>“pressure</cite>” <strong>DOMAIN-pressure</strong> [Pa] surface skin pressure.</p></li>
+<li><p><cite>“rsoil</cite>” <strong>DOMAIN-rsoil</strong> [s/m] soil resistance of top cells.</p></li>
+<li><p><cite>“subsurface pressure</cite>” <strong>DOMAIN_SS-pressure</strong> [Pa]</p></li>
+<li><p><cite>“molar density liquid</cite>” <strong>DOMAIN-molar_density_liquid</strong> [mol m^-3]</p></li>
+<li><p><cite>“mass density liquid</cite>” <strong>DOMAIN-mass_density_liquid</strong> [kg m^-3]</p></li>
+</ul>
+</div>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="eos.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Equations of State</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="snow.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Snow evaluators</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 202X, jointly shared by contributor institutions.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.2.1.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.3.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

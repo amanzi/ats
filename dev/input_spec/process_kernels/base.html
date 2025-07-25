@@ -51,7 +51,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.6';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             false;
         </script>
@@ -325,6 +325,7 @@ Version dev</div>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../state/index.html">State</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../state/primary.html">Primary Variables</a></li>
+
 <li class="toctree-l2"><a class="reference internal" href="../state/independent.html">Independent Variables</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../state/secondary.html">Secondary Variables</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../state/conserved.html">Conserved quantities</a></li>
@@ -487,7 +488,7 @@ single process model.  Typically all leaves of the PK tree will be a physical PK
 <li><p><cite>“domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Name from the <a class="reference internal" href="../mesh.html#mesh"><span class="std std-ref">Mesh</span></a> list on which this PK is defined.</p></li>
 <li><p><cite>“primary variable key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> The primary variable
 e.g. <cite>“pressure</cite>”, or <cite>“temperature</cite>”.  Most PKs supply sane defaults.</p></li>
-<li><p><cite>“initial conditions</cite>” <code class="docutils literal notranslate"><span class="pre">[initial-conditions-spec]</span></code>  See <a class="reference internal" href="../common.html#initial-conditions"><span class="std std-ref">Initial Conditions</span></a>.</p></li>
+<li><p><cite>“initial conditions</cite>” <code class="docutils literal notranslate"><span class="pre">[initial-conditions-spec]</span></code>  See below.</p></li>
 <li><p><cite>“max valid change</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>-1</strong> Sets a limiter on what is a
 valid change in a single timestep.  Changes larger than this are declared
 invalid and the timestep fails.  By default, any change is valid.
@@ -497,6 +498,15 @@ Units are the same as the primary variable.</p></li>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">[pk-spec]</span></code> This <em>is a</em> <a class="reference internal" href="#pk">PK</a>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[debugger-spec]</span></code> Uses a <a class="reference internal" href="../io/logfile.html#debugger"><span class="std std-ref">Debugger</span></a></p></li>
+</ul>
+</div>
+<p>Note that initial conditions use shared specs for CompositeVectors:</p>
+<div class="admonition-initial-conditions-spec admonition" id="initial-conditions-spec">
+<p class="admonition-title">initial-conditions-spec</p>
+<p>INCLUDES:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[constants-composite-vector-spec]</span></code> The shared functionality for
+specifying time-independent values.  See <a class="reference internal" href="../common.html#initial-conditions"><span class="std std-ref">Initial Conditions</span></a>.</p></li>
 </ul>
 </div>
 </section>

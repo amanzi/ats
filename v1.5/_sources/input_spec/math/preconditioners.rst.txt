@@ -1,0 +1,284 @@
+Preconditioners
+===============
+.. _Preconditioner:
+
+ A base class for assembled preconditioners.
+
+This sublist contains entries for various
+preconditioners required by a simulation. At the moment, we support Trilinos multilevel
+preconditioner, Hypre BoomerAMG preconditioner, ILU preconditioner, Hypre's ILU
+preconditioner, and identity preconditioner.
+
+* `"preconditioning method`" [string] defines preconditioner algorithm.
+
+* `"xxx parameters`" [list] provides parameters for the preconditioner specified
+  by parameter `"preconditioning method`".
+
+.. code-block:: xml
+
+  <ParameterList>  <!-- parent list -->
+  <ParameterList name="preconditioners">
+    <ParameterList name="_TRILINOS ML">
+      <Parameter name="preconditioning method" type="string" value="ml"/>
+      <ParameterList name="ml parameters">
+        ...
+      </ParameterList>
+    </ParameterList>
+
+    <ParameterList name="_HYPRE AMG">
+      <Parameter name="preconditioning method" type="string" value="boomer amg"/>
+      <ParameterList name="boomer amg parameters">
+        ...
+      </ParameterList>
+    </ParameterList>
+
+    <ParameterList name="_BLOCK ILU">
+      <Parameter name="preconditioning method" type="string" value="block ilu"/>
+      <ParameterList name="block ilu parameters">
+        ...
+      </ParameterList>
+    </ParameterList>
+
+    <ParameterList name="_DIAGONAL">
+      <Parameter name="preconditioning method" type="string" value="diagonal"/>
+    </ParameterList>
+  </ParameterList>
+
+
+
+
+Identity
+--------
+ Identity as a preconditioner.
+
+Simply copies the input vector to the output -- uses the Identity matrix as a
+preconditioner.
+
+This is provided when using the `"preconditioning method`"=`"identity`" in the
+`Preconditioner`_ spec.
+
+No parameters are required.
+
+
+
+
+Diagonal
+--------
+ Diagonal preconditioner.
+
+Simply applys the pointwise inverse of the diagonal of the matrix as an
+extremely cheap matrix.
+
+This is provided when using the `"preconditioning method`"=`"diagonal`" in the
+`Preconditioner`_ spec.
+
+No parameters are required.
+
+
+
+
+Block ILU
+---------
+ Ifpack suite of preconditioners, including block ILU.
+
+The Ifpack (Incomplete Factorization Package) from Trilinos provides
+additive-Schwarz-based incomplete factorization methods, including ILU and many
+others.
+
+The method is provided in the parent list, e.g. `"preconditioning method`" =
+`"ifpack: METHOD`" when calling the Preconditioner factory.
+
+Valid methods include:
+
+- `"point relaxation`" : Additive Schwarz + relaxation
+- `"block relaxation`" : Additive Schwarz + block relaxation
+- `"Amesos`" : Additive Schwarz with Amesos on block
+- `"IC`" : Additive Schwarz + Incomplete Cholesky (symmetry required)
+- `"ICT`" : Additive Schwarz + tolerance based Incomplete Cholesky (symmetry required)
+- `"ILU`" : Additive Schwarz + Incomplete LU
+- `"ILUT`" : Additive Schwarz + tolerance based Incomplete LU
+- `"block ilu`" : is the same as `"ILU`", as this is the legacy Amanzi name.
+
+Note that all of these can be used without Additive Schwarz by appending
+"stand-alone".
+
+The full list of relevant parameters is somewhat method-dependent, and is
+documented extensively in the `Trilinos Documentation
+<https://docs.trilinos.org/dev/packages/ifpack/doc/html/index.html>`_.
+
+Here we document a subset of the most frequently used parameters -- advanced
+users should read the Ifpack User Guide above to see all options.
+
+.. _preconditioner-ifpack-ilu-spec:
+.. admonition:: preconditioner-ifpack-ilu-spec:
+
+    * `"schwarz: combine mode`" ``[string]`` **Add** Note that `"Zero`" may
+      perform better for nonsymmetric cases.
+    * `"overlap`" ``[int]`` **0** overlap of the Additive Schwarz
+    * `"fact: relax value`" ``[double]`` **0.0** If nonzero, dropped values are added to the diagonal (times this factor).
+    * `"fact: absolute threshold`" ``[double]`` **0.0** Defines the value to
+      add to each diagonal element (times the sign of the actual diagonal
+      element).
+    * `"fact: relative threshold`" ``[double]`` **1.0** Multiplies the
+      diagonal by this value before checking the threshold.
+    * `"fact: level-of-fill`" ``[int]`` **0**
+
+.. _preconditioner-ifpack-relaxation-spec:
+.. admonition:: preconditioner-ifpack-relaxation-spec:
+
+    * `"schwarz: combine mode`" ``[string]`` **Add** Note that `"Zero`" may
+      perform better for nonsymmetric cases.
+    * `"overlap`" ``[int]`` **0** overlap of the Additive Schwarz
+    * `"relaxation: type`" ``[string]`` **Jacobi**
+    * `"relaxation: sweeps`" ``[int]`` **1**
+    * `"relaxation: damping factor`" ``[double]`` **1.0**
+
+.. _preconditioner-ifpack-amesos-spec:
+.. admonition:: preconditioner-amesos-relaxation-spec:
+
+    * `"schwarz: combine mode`" ``[string]`` **Add** Note that `"Zero`" may
+      perform better for nonsymmetric cases.
+    * `"overlap`" ``[int]`` **0** overlap of the Additive Schwarz
+    * `"amesos: solver type`" ``[string]`` **Amesos_Klu**
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="block ilu parameters">
+    <Parameter name="fact: relax value" type="double" value="1.0"/>
+    <Parameter name="fact: absolute threshold" type="double" value="0.0"/>
+    <Parameter name="fact: relative threshold" type="double" value="1.0"/>
+    <Parameter name="fact: level-of-fill" type="int" value="0"/>
+    <Parameter name="overlap" type="int" value="0"/>
+    <Parameter name="schwarz: combine mode" type="string" value="Add"/>
+    </ParameterList>
+  </ParameterList>
+
+
+
+
+Boomer AMG and Euclid
+----------------------
+ Hypre based preconditioners include Algebraic MultiGrid and global ILU
+
+Boomer AMG is a HYPRE product consisting of a variety of Algebraic Multigrid
+methods.  It is accessed through Ifpack.
+
+This is provided when using the `"preconditioning method`"=`"boomer amg`" or
+`"preconditioning method`" = `"hypre: boomer amg`" in the `Preconditioner`_
+spec.
+
+.. _preconditioner-boomer-amg-spec:
+.. admonition:: preconditioner-boomer-amg-spec:
+
+    * `"tolerance`" ``[double]`` **0.** If is not zero, the preconditioner is dynamic
+      and approximate the inverse matrix with the prescribed tolerance (in
+      the energy norm ???).
+
+    * `"smoother sweeps`" ``[int]`` **3** defines the number of smoothing loops. Default is 3.
+
+    * `"cycle applications`" ``[int]`` **5** defines the number of V-cycles.
+
+    * `"strong threshold`" ``[double]`` **0.5** defines the number of V-cycles. Default is 5.
+
+    * `"relaxation type`" ``[int]`` **6** defines the smoother to be used. Default is 6
+      which specifies a symmetric hybrid Gauss-Seidel / Jacobi hybrid method. TODO: add others!
+
+    * `"coarsen type`" ``[int]`` **0** defines the coarsening strategy to be used. Default is 0
+      which specifies a Falgout method. TODO: add others!
+
+    * `"max multigrid levels`" ``[int]`` optionally defined the maximum number of multigrid levels.
+
+    * `"use block indices`" ``[bool]`` **false** If true, uses the `"systems of
+      PDEs`" code with blocks given by the SuperMap, or one per DoF per entity
+      type.
+
+    * `"number of functions`" ``[int]`` **1** Any value > 1 tells Boomer AMG to
+      use the `"systems of PDEs`" code with strided block type.  Note that, to use
+      this approach, unknowns must be ordered with DoF fastest varying (i.e. not
+      the native Epetra_MultiVector order).  By default, it uses the `"unknown`"
+      approach in which each equation is coarsened and interpolated independently.
+
+    * `"nodal strength of connection norm`" ``[int]`` tells AMG to coarsen such
+      that each variable has the same coarse grid - sometimes this is more
+      "physical" for a particular problem. The value chosen here for nodal
+      determines how strength of connection is determined between the coupled
+      system.  I suggest setting nodal = 1, which uses a Frobenius norm.  This
+      does NOT tell AMG to use nodal relaxation.  Default is 0.
+
+    * `"verbosity`" ``[int]`` **0** prints a summary of run time settings and
+      timing information to stdout.  `"1`" prints coarsening info, `"2`" prints
+      smoothing info, and `"3`'" prints both.
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="boomer amg parameters">
+    <Parameter name="tolerance" type="double" value="0.0"/>
+    <Parameter name="smoother sweeps" type="int" value="3"/>
+    <Parameter name="cycle applications" type="int" value="5"/>
+    <Parameter name="strong threshold" type="double" value="0.5"/>
+    <Parameter name="coarsen type" type="int" value="0"/>
+    <Parameter name="relaxation type" type="int" value="3"/>
+    <Parameter name="verbosity" type="int" value="0"/>
+    <Parameter name="number of functions" type="int" value="1"/>
+  </ParameterList>
+
+
+ILU is a Parallel Incomplete LU, provided as part of the HYPRE project
+through the Ifpack interface.
+
+This is provided when using the `"preconditioning method`"=`"ILU`" or
+=`"hypre: ILU`" in the `Preconditioner`_ spec.
+
+.. _preconditioner-ILU-spec:
+.. admonition:: preconditioner-ILU-spec:
+
+    * `"ilu(k) fill level`" ``[int]`` **1** The factorization level.
+    * `"ilut drop tolerance`" ``[double]`` **0** Defines a drop tolerance relative to the largest absolute value of any entry in the row being factored.
+    * `"verbosity`" ``[int]`` **0** Prints a summary of runtime settings and timing information to stdout.
+
+
+
+
+
+ML (Trilinos AMG)
+-----------------
+ Trilinos ML smoothed aggregation multigrid.
+
+This is provided when using the `"preconditioning method`"=`"ml`" in the
+`Preconditioner`_ spec.
+
+.. warning:: no input spec defined
+
+See also: https://trilinos.github.io/pdfs/mlguide5.pdf
+
+Example:
+
+.. code-block:: xml
+
+   <ParameterList name="ml parameters">
+     <Parameter name="ML output" type="int" value="0"/>
+     <Parameter name="aggregation: damping factor" type="double" value="1.33"/>
+     <Parameter name="aggregation: nodes per aggregate" type="int" value="3"/>
+     <Parameter name="aggregation: threshold" type="double" value="0.0"/>
+     <Parameter name="aggregation: type" type="string" value="Uncoupled"/>
+     <Parameter name="coarse: type" type="string" value="Amesos-KLU"/>
+     <Parameter name="coarse: max size" type="int" value="128"/>
+     <Parameter name="coarse: damping factor" type="double" value="1.0"/>
+     <Parameter name="cycle applications" type="int" value="2"/>
+     <Parameter name="eigen-analysis: iterations" type="int" value="10"/>
+     <Parameter name="eigen-analysis: type" type="string" value="cg"/>
+     <Parameter name="max levels" type="int" value="40"/>
+     <Parameter name="prec type" type="string" value="MGW"/>
+     <Parameter name="smoother: damping factor" type="double" value="1.0"/>
+     <Parameter name="smoother: pre or post" type="string" value="both"/>
+     <Parameter name="smoother: sweeps" type="int" value="2"/>
+     <Parameter name="smoother: type" type="string" value="Gauss-Seidel"/>
+   </ParameterList>
+
+ 
+
+

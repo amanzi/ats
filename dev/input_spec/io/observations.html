@@ -50,7 +50,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.6';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             false;
         </script>
@@ -324,6 +324,7 @@ Version dev</div>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../state/index.html">State</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../state/primary.html">Primary Variables</a></li>
+
 <li class="toctree-l2"><a class="reference internal" href="../state/independent.html">Independent Variables</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../state/secondary.html">Secondary Variables</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../state/conserved.html">Conserved quantities</a></li>
@@ -418,7 +419,13 @@ Version dev</div>
   <section id="observations">
 <h1>Observations<a class="headerlink" href="#observations" title="Link to this heading">#</a></h1>
 <p id="unstructuredobservation"><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/state/UnstructuredObservations.hh">src/state/UnstructuredObservations.hh</a></p>
-<p>Collection of Observations on an unstructured mesh to be written to a common file.</p>
+<p>Observations are a localized-in-space but frequent-in-time view of simulation
+output, designed to get at useful diagnostic quantities such as hydrographs,
+total water content, quantities at a point, etc.  These allow frequent
+collection in time without saving huge numbers of visualization files to do
+postprocessing.  In fact, these should be though of as orthogonal data queries
+to visualization – visualization is pointwise in time but complete in space,
+while observations are pointwise/finite in space but complete in time.</p>
 <div class="admonition-observation-spec admonition" id="observation-spec">
 <p class="admonition-title">observation-spec</p>
 <ul class="simple">
@@ -440,21 +447,12 @@ objects that are all put in the same file.</p></li>
 included within the <cite>observation-spec</cite> if it is the only variable to be
 observed in this file.</p>
 <p id="observable"><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/state/Observable.hh">src/state/Observable.hh</a></p>
-<p>Collects, reduces, and writes observations during a simulation.</p>
-<p>Observations are a localized-in-space but frequent-in-time view of simulation
-output, designed to get at useful diagnostic quantities such as hydrographs,
-total water content, quantities at a point, etc.  These allow frequent
-collection in time without saving huge numbers of visualization files to do
-postprocessing.  In fact, these should be though of as orthogonal data queries
-to visualization – vis is pointwise in time but complete in space, while
-observations are pointwise/finite in space but complete in time.</p>
 <p>Observables describe what is observed – the variable, region,
 integration/averaging scheme, etc.</p>
-<p>A user may request any number of specific observables.  Each observable spec
-involves a field quantity, a reduction reduction operator, a region from which
-it will extract its source data, and a list of discrete times for its
-evaluation.  The observations are evaluated during the simulation and written
-to disk by the <a class="reference internal" href="#unstructuredobservation">UnstructuredObservation</a> object.</p>
+<p>A user may request any number of specific observables in the same file, as long
+as they share the same frequency of observation.  Each observable spec involves
+a field quantity, a reduction operator, and a region and entity location from
+which it will extract its source data.</p>
 <div class="admonition-observable-spec admonition" id="observable-spec">
 <p class="admonition-title">observable-spec</p>
 <ul class="simple">
@@ -494,16 +492,16 @@ function used to modify the <cite>“variable</cite>” prior to applying the
 <li><p><cite>“direction normalized flux</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> For flux observations,
 dots the face-normal flux with a vector to ensure fluxes are integrated
 pointing the same direction.</p></li>
-<li><p><cite>“direction normalized flux direction</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> <strong>optional</strong> For
-flux observations, provides the vector to dot the face normal with.  If this
-is not provided, then it is assumed that the faces integrated over are all
-boundary faces and that the default vector is the outward normal direction
-for each face.</p></li>
+<li><p><cite>“direction normalized flux direction</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> <strong>optional</strong>
+For flux observations, provides the vector to dot the face normal with.
+If this is not provided, then it is assumed that the faces integrated over
+are all boundary faces and that the default vector is the outward normal
+direction for each face.</p></li>
 <li><p><cite>“direction normalized flux relative to region</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>optional</strong>
-If provided, the flux observation is assumed to be on a set of faces
-which are the exterior of a volumetric region.  This region provides that
-volume, and fluxes are oriented in the “outward normal” direction
-relative to this region’s interior.</p></li>
+If provided, the flux observation is assumed to be on a set of faces which
+are the exterior of a volumetric region.  This region provides that
+volume, and fluxes are oriented in the “outward normal” direction relative
+to this region’s interior.</p></li>
 <li><p><cite>“time integrated</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> If true, observe the
 time-integral, observing on all cycles and accumulating the
 backwards-Euler product of dt times the observable at the new time.</p></li>

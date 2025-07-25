@@ -50,7 +50,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.6';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             false;
         </script>
@@ -324,6 +324,7 @@ Version dev</div>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../state/index.html">State</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../state/primary.html">Primary Variables</a></li>
+
 <li class="toctree-l2"><a class="reference internal" href="../state/independent.html">Independent Variables</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../state/secondary.html">Secondary Variables</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../state/conserved.html">Conserved quantities</a></li>
@@ -418,16 +419,13 @@ Version dev</div>
   <section id="checkpoint">
 <h1>Checkpoint<a class="headerlink" href="#checkpoint" title="Link to this heading">#</a></h1>
 <p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/state/Checkpoint.hh">src/state/Checkpoint.hh</a></p>
-<p>Manages checkpoint/restart capability.</p>
-<p>A user may request periodic dumps of ATS Checkpoint Data in the
-<cite>“checkpoint</cite>” sublist.  The user has no explicit control over the
-content of these files, but has the guarantee that the ATS run will be
-reproducible (with accuracies determined by machine round errors and
-randomness due to execution in a parallel computing environment).
-Therefore, output controls for Checkpoint Data are limited to file
-name generation and writing frequency, by numerical cycle number.
-Unlike <cite>“visualization</cite>”, there is only one <cite>“checkpoint</cite>” list for
-all domains/meshes.</p>
+<p>A user may request periodic dumps of checkpoint data in the <cite>“checkpoint</cite>”
+sublist.  The user has no explicit control over the content of these files, but
+has the guarantee that the run can be continued perfectly from that file, in
+the sense that a simulation started from a checkpoint file will have the
+bitwise same solution as if the run was continued without stopping.  Unlike
+<cite>“visualization</cite>”, there is only one <cite>“checkpoint</cite>” list for all
+domains/meshes.</p>
 <div class="admonition-checkpoint-spec admonition" id="checkpoint-spec">
 <p class="admonition-title">checkpoint-spec</p>
 <ul class="simple">
@@ -436,8 +434,8 @@ all domains/meshes.</p>
 <li><p><cite>“single file checkpoint</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>true</strong> If true, writes all
 checkpoint to one file.  If false, uses a subdirectory with one file per
 mesh.  false is required if meshes exist on other communicators than
-MPI_COMM_WORLD, but this is toggled if the code detects that this is
-necessary.</p></li>
+MPI_COMM_WORLD, but this is toggled automatically if the code detects that
+this is necessary.</p></li>
 </ul>
 <p>INCLUDES:</p>
 <ul class="simple">

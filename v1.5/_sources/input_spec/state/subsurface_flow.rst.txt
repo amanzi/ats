@@ -1,0 +1,540 @@
+Subsurface flow evaluators
+--------------------------
+
+Assorted evaluators used for subsurface flow processes,
+including water retention curves, compressible pore space, relative
+permeability, and their frozen equivalents.
+
+Many of these evaluators show up in nearly all ATS simulations, as
+subsurface flow of water is the core process underlying all of ATS
+physics.  For real examples, see `ats-demos <https://github.com/amanzi/ats-demos>`_
+
+Capillary pressure
+^^^^^^^^^^^^^^^^^^
+ Capillary pressure for gas on a liquid.
+
+.. _pc-liquid-evaluator-spec:
+.. admonition:: pc-liquid-evaluator-spec
+
+   KEYS:
+
+   - `"pressure`" **DOMAIN-pressure**
+
+
+
+
+Capillary pressure of liquid on ice
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+Water Retention Model and Relative Permeability
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ Evaluates saturation through water retention models.
+
+Water Retention Models (WRMs) determine the saturation as a function of
+pressure and the relative permeability as a function of saturation.  Most
+commonly used in practice is the van Genuchten model, but others are available default default;
+
+`"evaluator type`" = `"wrm`"
+
+.. _wrm-evaluator-spec:
+.. admonition:: wrm-evaluator-spec
+
+   * `"model parameters`" ``[string]``
+     List (by region) of WRM specs. This will copy `"WRM parameters`" given in `"model parameters`"
+     under state here to evaluate WRM.
+
+   KEYS:
+
+   - `"saturation`" **determined from evaluator name** The name
+     of the liquid saturation -- typically this is determined from
+     the evaluator name and need not be set.
+   - `"other saturation`"  **determined from evaluator name**
+     The name of the other saturation, usually gas -- typically this is determined
+     from the evaluator name and need not be set.
+   - `"capillary pressure`"` **DOMAIN-capillary_pressure_gas_liq**
+     The name of the capillary pressure.
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="PKs" type="ParameterList">
+    ...
+    <ParameterList name="flow" type="ParameterList">
+      ...
+      <ParameterList name="water retention evaluator" type="ParameterList">
+        <Parameter name="minimum rel perm cutoff" type="double" value=" 0" />
+        <Parameter name="use surface rel perm" type="bool" value="true" />
+        <Parameter name="model parameters" type="string" value="WRM parameters" />
+        ...
+      </ParameterList>
+      ...
+    </ParameterList>
+    ...
+  </ParameterList>
+
+  <ParameterList name="state" type="ParameterList">
+    <ParameterList name="model parameters" type="ParameterList">
+      <ParameterList name="WRM parameters" type="ParameterList">
+        <ParameterList name="domain" type="ParameterList">
+          <Parameter name="region" type="string" value="domain" />
+          <Parameter name="wrm type" type="string" value="van Genuchten" />
+          <Parameter name="van Genuchten alpha [Pa^-1]" type="double" value="2e-05" />
+          <Parameter name="van Genuchten n [-]" type="double" value="1.58" />
+          <Parameter name="residual saturation [-]" type="double" value="0.2" />
+          <Parameter name="smoothing interval width [saturation]" type="double" value="0.05" />
+          <Parameter name="dessicated zone thickness [m]" type="double" value="0.1" />
+        </ParameterList>
+      </ParameterList>
+    </ParameterList>
+    ...
+  </ParameterList>
+
+
+
+ A collection of WRMs along with a Mesh Partition.
+
+A WRM partition is a list of (region, WRM) pairs, where the regions partition
+the mesh.
+
+.. _wrm-partition-typedinline-spec:
+.. admonition:: wrm-partition-typedinline-spec
+
+   * `"region`" ``[string]`` Region on which the WRM is valid.
+   * `"WRM type`" ``[string]`` Name of the WRM type.
+   * `"_WRM_type_ parameters`" ``[_WRM_type_-spec]`` See below for the required
+     parameter spec for each type.
+
+
+
+ Evaluates relative permeability using water retention models.
+
+Uses a list of regions and water retention models on those regions to evaluate
+relative permeability, typically as a function of liquid saturation.
+
+Most of the parameters are provided to the WRM model, and not the evaluator.
+Typically these share lists to ensure the same water retention curves, and this
+one is updated with the parameters of the WRM evaluator.  This is handled by
+flow PKs.
+
+Some additional parameters are available.
+
+`"evaluator type`" = `"relative permeability, van Genuchten`"
+
+.. _rel-perm-evaluator-spec:
+.. admonition:: rel-perm-evaluator-spec
+
+   * `"use density on viscosity in rel perm`" ``[bool]`` **true**
+
+   * `"boundary rel perm strategy`" ``[string]`` **boundary pressure** Controls
+     how the rel perm is calculated on boundary faces.  Note, this may be
+     overwritten by upwinding later!  One of:
+
+      - `"boundary pressure`" Evaluates kr of pressure on the boundary face, upwinds normally.
+      - `"interior pressure`" Evaluates kr of the pressure on the interior cell (bad idea).
+      - `"harmonic mean`" Takes the harmonic mean of kr on the boundary face and kr on the interior cell.
+      - `"arithmetic mean`" Takes the arithmetic mean of kr on the boundary face and kr on the interior cell.
+      - `"one`" Sets the boundary kr to 1.
+      - `"surface rel perm`" Looks for a field on the surface mesh and uses that.
+
+   * `"minimum rel perm cutoff`" ``[double]`` **0.** Provides a lower bound on rel perm.
+
+   * `"permeability rescaling`" ``[double]`` Typically rho * kr / mu is very big
+     and K_sat is very small.  To avoid roundoff propagation issues, rescaling
+     this quantity by offsetting and equal values is encourage.  Typically 10^7 or so is good.
+
+   * `"model parameters`" ``[string]``  **WRM parameters** ``[WRM-typedinline-spec-list]``
+     List (by region) of WRM specs. This will copy `"WRM parameters`" given in `"model parameters`"
+     under state here to evaluate relative permeability. If use `"WRM parameters`", both WRM and
+     relative permeability evaluators use the same set of `"WRM parameters`", which can be van Genuchten
+     or Brooks-Corey. If use a customed name, e.g., `"relative permeability parameters`", and declare
+     `"relative permeability parameters`" in `"model parameters`" under state, this allows to use
+     different models for WRM (by default through `"WRM parameters`") and relative permeability.
+
+   KEYS:
+
+   - `"rel perm`"
+   - `"saturation_liquid`"
+   - `"density`" (if `"use density on viscosity in rel perm`" == true)
+   - `"viscosity`" (if `"use density on viscosity in rel perm`" == true)
+   - `"surface relative permeability`" (if `"boundary rel perm strategy`" == `"surface rel perm`")
+
+Example 1:
+Using the same set of van Genuchten model paramters for WRM and relative permeability
+
+.. code-block:: xml
+
+  <ParameterList name="PKs" type="ParameterList">
+    ...
+    <ParameterList name="flow" type="ParameterList">
+      ...
+      <ParameterList name="water retention evaluator" type="ParameterList">
+        <Parameter name="model parameters" type="string" value="WRM parameters" />
+        ...
+      </ParameterList>
+      ...
+    </ParameterList>
+    ...
+  </ParameterList>
+
+  <ParameterList name="state" type="ParameterList">
+    <ParameterList name="model parameters" type="ParameterList">
+      <ParameterList name="WRM parameters" type="ParameterList">
+        <ParameterList name="domain" type="ParameterList">
+          <Parameter name="region" type="string" value="domain" />
+          <Parameter name="wrm type" type="string" value="van Genuchten" />
+          <Parameter name="van Genuchten alpha [Pa^-1]" type="double" value="2e-05" />
+          <Parameter name="van Genuchten n [-]" type="double" value="1.58" />
+          <Parameter name="residual saturation [-]" type="double" value="0.2" />
+          <Parameter name="smoothing interval width [saturation]" type="double" value="0.05" />
+          <Parameter name="dessicated zone thickness [m]" type="double" value="0.1" />
+        </ParameterList>
+      </ParameterList>
+    </ParameterList>
+    <ParameterList name="evaluators" type="ParameterList">
+      <ParameterList name="relative_permeability" type="ParameterList">
+        <Parameter name="evaluator type" type="string" value="relative permeability, van Genuchten" />
+        <Parameter name="model parameters" type="string" value="WRM parameters" />
+        <Parameter name="use surface rel perm" type="bool" value="true" />
+        <Parameter name="minimum rel perm cutoff" type="double" value=" 0" />
+      </ParameterList>
+      ...
+    </ParameterList>
+    ...
+  </ParameterList>
+
+Example 2:
+Using different set of model/paramters for WRM and relative permeability,
+van Genuchten for WRM and Brooks-Corey for relative permeability. Note that
+in this case, van Genuchten parameters and Brooks-Corey parameters need to
+be consistent. Using tool `"convert_parameters_vg2bc.py`" to convert van Genuchten
+parameters to Brooks-Corey parameters.
+
+.. code-block:: xml
+
+  <ParameterList name="PKs" type="ParameterList">
+    ...
+    <ParameterList name="flow" type="ParameterList">
+      ...
+      <ParameterList name="water retention evaluator" type="ParameterList">
+        <Parameter name="model parameters" type="string" value="WRM parameters" />
+        ...
+      </ParameterList>
+      ...
+    </ParameterList>
+    ...
+  </ParameterList>
+
+  <ParameterList name="state" type="ParameterList">
+    <ParameterList name="model parameters" type="ParameterList">
+      <ParameterList name="WRM parameters" type="ParameterList">
+        <ParameterList name="domain" type="ParameterList">
+          <Parameter name="region" type="string" value="domain" />
+          <Parameter name="wrm type" type="string" value="van Genuchten" />
+          <Parameter name="van Genuchten alpha [Pa^-1]" type="double" value="2e-05" />
+          <Parameter name="van Genuchten n [-]" type="double" value="1.58" />
+          <Parameter name="residual saturation [-]" type="double" value="0.2" />
+          <Parameter name="smoothing interval width [saturation]" type="double" value="0.05" />
+          <Parameter name="dessicated zone thickness [m]" type="double" value="0.1" />
+        </ParameterList>
+      </ParameterList>
+      <ParameterList name="relative permeability parameters" type="ParameterList">
+        <ParameterList name="domain" type="ParameterList">
+          <Parameter name="region" type="string" value="domain" />
+          <Parameter name="wrm type" type="string" value="Brooks-Corey" />
+          <Parameter name="Brooks-Corey lambda [-]" type="double" value="0.49" />
+          <Parameter name="Brooks-Corey saturted matric suction [Pa]" type="double" value="32439.03" />
+          <Parameter name="residual saturation [-]" type="double" value="0.2" />
+          <Parameter name="smoothing interval width [saturation]" type="double" value="0.05" />
+        </ParameterList>
+      </ParameterList>
+    </ParameterList>
+    <ParameterList name="evaluators" type="ParameterList">
+      <ParameterList name="relative_permeability" type="ParameterList">
+        <Parameter name="evaluator type" type="string" value="relative permeability, van Genuchten" />
+        <Parameter name="model parameters" type="string" value="relative permeability parameters" />
+        <Parameter name="use surface rel perm" type="bool" value="true" />
+        <Parameter name="minimum rel perm cutoff" type="double" value=" 0" />
+      </ParameterList>
+      ...
+    </ParameterList>
+    ...
+  </ParameterList>
+
+
+
+
+Van Genuchten Model
+~~~~~~~~~~~~~~~~~~~
+ WRMVanGenuchten : water retention model using van Genuchten's parameterization
+
+van Genuchten's water retention curve.
+
+.. _WRM-van-Genuchten-spec:
+.. admonition:: WRM-van-Genuchten-spec
+
+    * `"region`" ``[string]`` Region to which this applies
+    * `"van Genuchten alpha [Pa^-1]`" ``[double]`` van Genuchten's alpha
+
+    ONE OF:
+
+    * `"van Genuchten n [-]`" ``[double]`` van Genuchten's n
+
+    OR
+
+    * `"van Genuchten m [-]`" ``[double]`` van Genuchten's m, m = 1 - 1/n
+
+    END
+
+    * `"residual saturation [-]`" ``[double]`` **0.0**
+    * `"smoothing interval width [saturation]`" ``[double]`` **0.0**
+    * `"Mualem exponent l [-]`" ``[double]`` **0.5**
+    * `"Krel function name`" ``[string]`` **Mualem**  `"Mualem`" or `"Burdine`"
+
+Example:
+
+.. code-block:: xml
+
+    <ParameterList name="moss" type="ParameterList">
+      <Parameter name="region" type="string" value="moss" />
+      <Parameter name="WRM type" type="string" value="van Genuchten" />
+      <Parameter name="van Genuchten alpha [Pa^-1]" type="double" value="0.002" />
+      <Parameter name="van Genuchten m [-]" type="double" value="0.2" />
+      <Parameter name="residual saturation [-]" type="double" value="0.0" />
+      <Parameter name="smoothing interval width [saturation]" type="double" value=".05" />
+    </ParameterList>
+
+
+
+
+Linear  Model
+~~~~~~~~~~~~~~~~~~~
+ A linear sat-pc curve.
+
+  A linear sat-pc curve, plus a constant rel perm, makes the system linear, so
+  nonlinear solver should always converge in one step.
+
+  No error-checking, so the user is responsible for ensuring that the pressure
+  is always less than atmospheric and within the acceptable range of the slope.
+
+  Note this is mostly for testing.
+
+
+
+
+Water Retention Model for Freeze-Thaw
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+Original Implicit model
+~~~~~~~~~~~~~~~~~~~~~~~
+ Painter's original, implicitly defined permafrost model.
+
+.. _wrm-implicit-permafrost-spec:
+.. admonition:: wrm-implicit-permafrost-spec
+
+    * `"converged tolerance`" ``[double]`` **1.e-12** Convergence tolerance of the implicit solve.
+    * `"max iterations`" ``[int]`` **100** Maximum allowable iterations of the implicit solve.
+    * `"solver algorithm [brent]`" ``[string]`` **brent** Only brent is currently supported.
+
+
+
+
+Freezing point depression model
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+Freezing point depression, smoothed model
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ Painter's permafrost model with freezing point depression, smoothed.
+
+.. _wrm-fpd-smoothed-permafrost-spec:
+.. admonition:: wrm-fpd-smoothed-permafrost-spec
+
+    * `"reference temperature [K]`" ``[double]`` **273.15** The phase transition point
+    * `"interfacial tension ice-water [mN m^-1]`" ``[double]`` **33.1**
+    * `"interfacial tension air-water [mN m^-1]`" ``[double]`` **72.7**
+    * `"smoothing width [K]`" ``[double]`` **1.** Smoothing out the freeze curve allows this to be slightly easier to solve.
+    * `"latent heat [J kg^-1]`" ``[double]`` **3.34e5** Latent heat of fusion
+    * `"water density [kg m^-3]`" ``[double]`` **998.87** Density of water.  Note this probably should use the calculated value.
+
+ 
+
+
+Interfrost model
+~~~~~~~~~~~~~~~~
+
+
+Sutra-ICE model
+~~~~~~~~~~~~~~~
+
+
+This model is based on the emperical freezing curve used by Sutra-Ice,
+documented in papers by Voss & Walvoord.
+
+.. _wrm-sutra-permafrost-model-spec:
+.. admonition:: wrm-sutra-permafrost-model-spec
+
+   * `"temperature transition [K]`" ``[double]`` thickness of the transition from frozen to thawed
+   * `"residual saturation [-]`" ``[double]`` Standard residual saturation
+   * `"freezing point [K]`" ``[double]`` **273.15**
+
+
+ 
+
+
+Compressible porosity
+^^^^^^^^^^^^^^^^^^^^^
+
+
+Compressible grains are both physically realistic (based on bulk modulus) and a
+simple way to provide a non-elliptic, diagonal term for helping solvers to
+converge.
+
+`"evaluator type`" = `"compressible porosity`"
+
+.. _compressible-porosity-evaluator-spec:
+.. admonition:: compressible-porosity-evaluator-spec
+
+   * `"compressible porosity model parameters`" ``[compressible-porosity-standard-model-spec-list]``
+
+   KEYS:
+
+   - `"pressure`" **DOMAIN-pressure**
+   - `"base porosity`" **DOMAIN-base_porosity**
+
+
+
+
+Standard model
+~~~~~~~~~~~~~~
+ A simple model for allowing porosity to vary with pressure.
+
+Based on a linear increase, i.e.
+
+.. math::
+
+   \phi = \phi_{base} + H(p - p_{atm}) * \alpha
+
+where :math:`H` is the heaviside function and :math:`\alpha` is the provided
+compressibility.  If the inflection point is set to zero, the above function is
+exact.  However, then the porosity function is not smooth (has discontinuous
+derivatives), so the inflection point smooths this with a quadratic that
+matches the value and derivative at the inflection point and is 0 with 0 slope
+at atmospheric pressure.
+
+.. _compressible-porosity-standard-model-spec:
+.. admonition:: compressible-porosity-standard-model-spec
+
+   * `"region`" ``[string]`` Region on which this is applied.
+   * `"pore compressibility [Pa^-1]`" ``[double]``  :math:`\alpha` as described above
+   * `"pore compressibility inflection point [Pa]`" ``[double]`` **1000**
+
+  The inflection point above which the function is linear.
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="soil" type="ParameterList">
+    <Parameter name="region" type="string" value="soil" />
+    <Parameter name="pore compressibility [Pa^-1]" type="double" value="1.e-9" />
+    <Parameter name="pore compressibility inflection point [Pa]" type="double" value="1000." />
+  </ParameterList>
+
+
+
+
+Exponential model
+~~~~~~~~~~~~~~~~~
+
+
+The Leinjnse model is an exponential model of porosity as a function of
+pressure, based on (insert citation!):
+
+.. math:
+   p_\lambda = p - p_\text{ref}
+   \phi = 1 - (1-\phi_\text{base}) * (exp(- \alpha (p_\lambda - \delta)) - 0.5 \alpha \delta), p_\lambda > \delta
+   \phi = 1 - (1-\phi_\text{base}) * (1 - 0.5 \alpha / \delta p_\lambda^2)
+
+where :math:`\alpha` is the provided
+compressibility, and :math:`\delta` is the cutoff (inflection point).
+
+If the inflection point is set to zero, the above function is exact.  However,
+then the porosity function is not smooth (has discontinuous derivatives).
+
+.. _compressible-porosity-leijnse-model-spec:
+.. admonition:: compressible-porosity-leijnse-model-spec
+
+   * `"pore compressibility [Pa^-1]`" ``[double]`` :math:`\alpha` as described above
+   * `"pore compressibility inflection point [Pa]`" ``[double]`` **1000** The
+     inflection point above which the function is linear.
+
+NOTE: additionally the user should provide a parameter in the `EWC
+Globalization Delegate`_ to turn Leijnse model ON in the EWC calculations.
+
+.. code-block:: xml
+
+   <Parameter name="porosity leijnse model" type="bool" value="true"/>
+
+
+
+
+
+Viscosity of water
+^^^^^^^^^^^^^^^^^^
+
+Two main viscosity models are commonly used -- a constant and one
+which is temperature-dependent.  The viscosity of water is strongly
+temperature dependent, so it is highly recommended to use that one if
+the problem is nonisothermal.
+
+Constant
+~~~~~~~~
+Like any quantity, a viscosity can simply be a constant value, at which
+point it is not a secondary variable but an independent variable.
+
+.. code-block:: xml
+
+      <ParameterList name="viscosity_liquid" type="ParameterList">
+        <Parameter name="field evaluator type" type="string" value="independent variable constant" />
+        <Parameter name="value" type="double" value="8.9e-4" />
+        <Parameter name="units" type="string" value="Pa s" />
+      </ParameterList>
+
+Nonisothermal
+~~~~~~~~~~~~~
+
+
+A non-isothermal viscosity model intended for use within a range of
+temperatures from well below freezing to ~100C.
+
+.. _viscosity-evaluator-spec:
+.. admonition:: viscosity-evaluator-spec
+
+   * `"viscosity model parameters`" ``[viscosity-typedinline-spec-list]``
+
+   KEYS:
+
+   - `"temperature`"
+
+ 
+
+
+
+A constitutive relation for the viscosity of water as a function of temperature
+in K, given as an empirical series expansion fit to data.
+
+Used by setting
+
+`"viscosity relation type`" = `"liquid water`"
+
+.. _viscosity-water-spec:
+.. admonition:: viscosity-water-spec
+
+   NONE
+
+
+
+

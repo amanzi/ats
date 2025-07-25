@@ -116,11 +116,11 @@ set.  It may also subcycle all or none of its child PKs.
 .. admonition:: pk-domain-set-weak-mpc-spec
 
    IF
-                
+
    * `"subcycle`" ``[bool]`` **false** Subcycle the sub PKs or not.
 
    THEN
-   
+
    * `"subcycling target timestep [s]`" ``[double]`` timestep over which to
      syncronize the sub PKs.
 

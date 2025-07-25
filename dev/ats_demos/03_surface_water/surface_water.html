@@ -31,7 +31,7 @@
 <link href="../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
-    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/custom_theme.css?v=a03f4c85" />
   
@@ -50,7 +50,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.6';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             false;
         </script>
@@ -397,7 +397,7 @@ Version dev</div>
     <span class="n">run_demos</span><span class="o">.</span><span class="n">run_demo_local</span><span class="p">(</span><span class="n">testname</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="n">force</span><span class="p">)</span>
     <span class="n">directory</span> <span class="o">=</span> <span class="n">testname</span><span class="o">+</span><span class="s1">&#39;.demo&#39;</span>
     
-    <span class="n">vis</span> <span class="o">=</span> <span class="n">ats_xdmf</span><span class="o">.</span><span class="n">VisFile</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="s1">&#39;surface&#39;</span><span class="p">,</span> <span class="n">time_unit</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">)</span>
+    <span class="n">vis</span> <span class="o">=</span> <span class="n">ats_xdmf</span><span class="o">.</span><span class="n">VisFile</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="s1">&#39;surface&#39;</span><span class="p">,</span> <span class="n">output_time_unit</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">)</span>
     <span class="n">vis</span><span class="o">.</span><span class="n">loadMesh</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span><span class="s1">&#39;y&#39;</span><span class="p">])</span>
 
     <span class="n">cm</span> <span class="o">=</span> <span class="n">colors</span><span class="o">.</span><span class="n">cm_mapper</span><span class="p">(</span><span class="n">vis</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">vis</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;jet&#39;</span><span class="p">)</span>
@@ -444,22 +444,10 @@ Version dev</div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  Test log file : LOGS/ats-tests-2024-04-22_12-03-17.testlog
-Running ATS demo problems :
-03_surface_water     | .
-
-----------------------------------------------------------------------
-Regression test summary:
-    Total run time: 1.01086 [s]
-    Total tests : 1
-    Tests run : 1
-    All tests passed.
-
-
-(19, 10)
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(19, 10)
 </pre></div>
 </div>
-<img alt="../../_images/866d5312b2a5bbba0826d42a564361e94d6e2f155213fb8b53cda070c10566f8.png" src="../../_images/866d5312b2a5bbba0826d42a564361e94d6e2f155213fb8b53cda070c10566f8.png" />
+<img alt="../../_images/ea92ca2ca4ac13548e821523a1ea72a1295b198d25eb85aeebff65007a60592b.png" src="../../_images/ea92ca2ca4ac13548e821523a1ea72a1295b198d25eb85aeebff65007a60592b.png" />
 </div>
 </div>
 <p>Often it is useful to set a max river stage, or head boundary condition, which lets water out once the head gets above a certain level (e.g. 15 cm here).  In this example, the mesh is so coarse and the domain is sufficiently sloped that the entire domain still drains (the most downhill cell’s elevation is more than 15cm about the boundary elevation), but this would not be the case in a higher-resolution or less-sloping run.</p>
@@ -470,22 +458,10 @@ Regression test summary:
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  Test log file : LOGS/ats-tests-2024-04-22_12-03-18.testlog
-Running ATS demo problems :
-03_surface_water     | .
-
-----------------------------------------------------------------------
-Regression test summary:
-    Total run time: 1.01107 [s]
-    Total tests : 1
-    Tests run : 1
-    All tests passed.
-
-
-(19, 10)
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(19, 10)
 </pre></div>
 </div>
-<img alt="../../_images/3fa71b500f263d1d05a3ed1247b0c4cea0f5ed5f88018dd89bb9c9e8b7d4ca6d.png" src="../../_images/3fa71b500f263d1d05a3ed1247b0c4cea0f5ed5f88018dd89bb9c9e8b7d4ca6d.png" />
+<img alt="../../_images/9469582b49d14dfb0462c0ea27e087dd8657bcac10ac79691f35c932618119da.png" src="../../_images/9469582b49d14dfb0462c0ea27e087dd8657bcac10ac79691f35c932618119da.png" />
 </div>
 </div>
 <p>There are two other alternatives to setting the max ponded depth at the outlet.  The first is a “zero ponded depth gradient” boundary, where the water level is assumed to parallel the topography.  Note this is really only useful in synthetic cases, where you know that this will not result in water flowing <strong><em>into</em></strong> the domain.</p>
@@ -496,22 +472,10 @@ Regression test summary:
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  Test log file : LOGS/ats-tests-2024-04-22_12-03-19.testlog
-Running ATS demo problems :
-03_surface_water     | .
-
-----------------------------------------------------------------------
-Regression test summary:
-    Total run time: 1.01058 [s]
-    Total tests : 1
-    Tests run : 1
-    All tests passed.
-
-
-(19, 10)
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(19, 10)
 </pre></div>
 </div>
-<img alt="../../_images/693053bed60a29b71657b7ab32f396f66aaed2a5ef4f528e12cb91d33995d3f1.png" src="../../_images/693053bed60a29b71657b7ab32f396f66aaed2a5ef4f528e12cb91d33995d3f1.png" />
+<img alt="../../_images/f812ed4878605e6962b0892d4676a49ffa59964507329c8996b2a74670ce8082.png" src="../../_images/f812ed4878605e6962b0892d4676a49ffa59964507329c8996b2a74670ce8082.png" />
 </div>
 </div>
 <p>Finally, the second is a critical depth boundary condition, which sets the flux based on ponded depth, and is standard in the literature.</p>
@@ -526,22 +490,10 @@ Regression test summary:
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  Test log file : LOGS/ats-tests-2024-04-22_12-03-20.testlog
-Running ATS demo problems :
-03_surface_water     | .
-
-----------------------------------------------------------------------
-Regression test summary:
-    Total run time: 1.01151 [s]
-    Total tests : 1
-    Tests run : 1
-    All tests passed.
-
-
-(19, 10)
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(19, 10)
 </pre></div>
 </div>
-<img alt="../../_images/09dde03b987cac3ad8d550ef481fbf00bf07d9a2fbe93de28a09d7f44c62b7ea.png" src="../../_images/09dde03b987cac3ad8d550ef481fbf00bf07d9a2fbe93de28a09d7f44c62b7ea.png" />
+<img alt="../../_images/f90a4c23c82767b6fa5be6e7e589fdb9e9ecc499226dab3c5eebcd8609309f69.png" src="../../_images/f90a4c23c82767b6fa5be6e7e589fdb9e9ecc499226dab3c5eebcd8609309f69.png" />
 </div>
 </div>
 </section>

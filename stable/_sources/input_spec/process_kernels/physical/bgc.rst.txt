@@ -1,0 +1,90 @@
+Biogeochemistry
+---------------
+
+To accurately predict watershed ecohydrology, a carbon cycle model is
+needed to predict transpiration.  By simulating a carbon cycle, we are
+able to predict the rate of photosynthesis as a function of space and
+time, and photosynthesis governs root water uptake.  Currently only
+one big-leaf model is available, but ongoing work is wrapping a
+generalized Common/Colorado Land Model based on that developed within
+the ParFlow team, and another ongoing project is working on wrapping
+kernels from E3SM's Land Model.
+
+Biogeochemistry -- Monolithic Version
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+`src/physics/ats/src/pks/biogeochemistry/bgc_simple/bgc_simple.hh <https://github.com/amanzi/ats/blob/master/src/pks/biogeochemistry/bgc_simple/bgc_simple.hh>`_
+
+
+This PK solves for both above and belowground carbon cycle. It is a multi-leaf
+layer, big-leaf vegetation model coupled to a Century model for belowground
+carbon decomposition.
+
+It leverages a PFT-based structure which allows multiple height-sorted PFTs to
+coexist on the same grid cells, with the shorter PFTs getting whatever light is
+left in the understory.  The implementation is based on a standalone code by
+Chonggang Xu, and adapted for ATS.  Outputs of this include transpiration, a
+critical sink for hydrology, as it solves photosynthesis based on water
+availability.
+
+Note this is an "explicit PK," or effectively a forward Euler timestep
+that is not written in ODE form.
+
+Note this works on both the surface (vegetation) and subsurface (decomposition)
+meshes.  **It is required** that the subsurface mesh is a "columnar" mesh, and
+that build_columns in the subsurface :ref:`Mesh` spec has been supplied.
+
+`"PK type`" = `"BGC simple`"
+
+.. _pk-bgc-simple-spec:
+.. admonition:: pk-bgc-simple-spec
+
+   * `"initial timestep`" ``[double]`` **1.0** Initial timestep size `[s]`
+
+   * `"number of carbon pools`" ``[int]`` **7** Unclear whether this can actually change?
+
+   * `"soil carbon parameters`" ``[soil-carbon-spec-list]`` List of soil carbon
+     parameters by soil mesh partition region name.
+
+   * `"pft parameters`" ``[pft-spec-list]`` List of PFT parameters by PFT name.
+
+   * `"latitude [degrees]`" ``[double]`` **60** Latitude of the simulation in
+     degrees.  Used in radiation balance.
+
+   * `"wind speed reference height [m]`" ``[double]`` **2.0** Reference height
+     of the wind speed dataset.
+
+   * `"cryoturbation mixing coefficient [cm^2/yr]`" ``[double]`` **5.0**
+     Controls diffusion of carbon into the subsurface via cryoturbation.
+
+   * `"leaf biomass initial condition`" ``[initial-conditions-spec]`` Sets the
+     leaf biomass IC.
+
+   * `"domain name`" ``[string]`` **domain**
+
+   * `"surface domain name`" ``[string]`` **surface**
+
+   * `"transpiration key`" ``[string]`` **DOMAIN-transpiration** The
+     distributed transpiration flux `[mol s^-1]`
+
+   * `"shaded shortwave radiation key`" ``[string]``
+     **SURFACE_DOMAIN-shaded_shortwave_radiation** Shortwave radiation that
+     gets past the canopy and teo the bare ground for soil evaporation.
+     [W m^-2]
+
+   * `"total leaf area index key`" ``[string]``
+     **SURFACE_DOMAIN-total_leaf_area_index** Total LAI across all PFTs.
+
+   EVALUATORS:
+
+   - `"temperature`" The soil temperature `[K]`
+   - `"pressure`" soil mafic potential `[Pa]`
+   - `"surface-cell_volume`" `[m^2]`
+   - `"surface-incoming shortwave radiation`" `[W m^-2]`
+   - `"surface-air_temperature`" `[K]`
+   - `"surface-vapor_pressure_air`" `[Pa]`
+   - `"surface-wind_speed`" `[m s^-1]`
+   - `"surface-co2_concentration`" `[ppm]`
+
+
+
+

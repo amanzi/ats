@@ -2,7 +2,9 @@ Preconditioners
 ===============
 .. _Preconditioner:
 
- A base class for assembled preconditioners.
+`src/solvers/Preconditioner.hh <https://github.com/amanzi/amanzi/blob/master/src/solvers/Preconditioner.hh>`_
+
+A base class for assembled preconditioners.
 
 This sublist contains entries for various
 preconditioners required by a simulation. At the moment, we support Trilinos multilevel
@@ -49,7 +51,9 @@ preconditioner, and identity preconditioner.
 
 Identity
 --------
- Identity as a preconditioner.
+`src/solvers/PreconditionerIdentity.hh <https://github.com/amanzi/amanzi/blob/master/src/solvers/PreconditionerIdentity.hh>`_
+
+Identity as a preconditioner.
 
 Simply copies the input vector to the output -- uses the Identity matrix as a
 preconditioner.
@@ -64,7 +68,9 @@ No parameters are required.
 
 Diagonal
 --------
- Diagonal preconditioner.
+`src/solvers/PreconditionerDiagonal.hh <https://github.com/amanzi/amanzi/blob/master/src/solvers/PreconditionerDiagonal.hh>`_
+
+Diagonal preconditioner.
 
 Simply applys the pointwise inverse of the diagonal of the matrix as an
 extremely cheap matrix.
@@ -79,7 +85,9 @@ No parameters are required.
 
 Block ILU
 ---------
- Ifpack suite of preconditioners, including block ILU.
+`src/solvers/PreconditionerIfpack.hh <https://github.com/amanzi/amanzi/blob/master/src/solvers/PreconditionerIfpack.hh>`_
+
+Ifpack suite of preconditioners, including block ILU.
 
 The Ifpack (Incomplete Factorization Package) from Trilinos provides
 additive-Schwarz-based incomplete factorization methods, including ILU and many
@@ -160,7 +168,9 @@ Example:
 
 Boomer AMG and Euclid
 ----------------------
- Hypre based preconditioners include Algebraic MultiGrid and global ILU
+`src/solvers/PreconditionerHypre.hh <https://github.com/amanzi/amanzi/blob/master/src/solvers/PreconditionerHypre.hh>`_
+
+Hypre based preconditioners include Algebraic MultiGrid and global ILU
 
 Boomer AMG is a HYPRE product consisting of a variety of Algebraic Multigrid
 methods.  It is accessed through Ifpack.
@@ -246,7 +256,9 @@ This is provided when using the `"preconditioning method`"=`"ILU`" or
 
 ML (Trilinos AMG)
 -----------------
- Trilinos ML smoothed aggregation multigrid.
+`src/solvers/PreconditionerML.hh <https://github.com/amanzi/amanzi/blob/master/src/solvers/PreconditionerML.hh>`_
+
+Trilinos ML smoothed aggregation multigrid.
 
 This is provided when using the `"preconditioning method`"=`"ml`" in the
 `Preconditioner`_ spec.

@@ -5,15 +5,15 @@ Shared Specs
 Initial Conditions
 ==================
 
-Initial condition specs are used in three places:
+Initial conditions specs are used in three places:
 
 * In the `"initial conditions`" sublist of state, in which the value
   of atomic constants are provided (not really initial conditions and
   should be renamed).  These atomic values are not controlled by
   evaluators, and are not included in the DaG.
 
-* Within the PK_ spec which describes the initial condition of primary variables (true
-  initial conditions).
+* Within physical PK specs which describes the initial conditions of
+  primary variables (true initial conditions).
 
 * In :ref:`Independent Variable Constant`
 
@@ -22,6 +22,7 @@ nearly always fields on a mesh (e.g. CompositeVectors).  The specific
 available options for initializing various data in state differ by
 data type.
 
+`src/state/data/Data_Helpers.hh <https://github.com/amanzi/amanzi/blob/master/src/state/data/Data_Helpers.hh>`_
 
 
 .. _constants-scalar-spec:
@@ -62,6 +63,7 @@ data type.
 Boundary Conditions
 ====================
 
+`src/physics/ats/src/pks/bc_factory.hh <https://github.com/amanzi/ats/blob/master/src/pks/bc_factory.hh>`_
 
 
 In general, boundary conditions are provided in a hierarchical list by
@@ -125,10 +127,11 @@ DIRICHLET_TYPE and DIRICHLET_FUNCTION_NAME.
 Flow-specific Boundary Conditions
 ----------------------------------
 
+`src/physics/ats/src/pks/flow/flow_bc_factory.hh <https://github.com/amanzi/ats/blob/master/src/pks/flow/flow_bc_factory.hh>`_
 
 
 Flow boundary conditions must follow the general format shown in
-BoundaryConditions_.  Specific conditions implemented include:
+`Boundary Conditions`_.  Specific conditions implemented include:
 
 Dirichlet (pressure) boundary conditions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -456,16 +459,18 @@ The type of boundary conditions maybe changed in time depending on the switch fu
 Transport-specific Boundary Conditions
 --------------------------------------
 
+`src/pks/transport/TransportBoundaryFunction_Alquimia.hh <https://github.com/amanzi/amanzi/blob/master/src/pks/transport/TransportBoundaryFunction_Alquimia.hh>`_
 
 
 
 Energy-specific Boundary Conditions
 -----------------------------------
 
+`src/physics/ats/src/pks/energy/energy_bc_factory.hh <https://github.com/amanzi/ats/blob/master/src/pks/energy/energy_bc_factory.hh>`_
 
 
 Energy boundary conditions must follow the general format shown in
-BoundaryConditions_.  Energy-specific conditions implemented include:
+`Boundary Conditions`_.  Energy-specific conditions implemented include:
 
 Dirichlet (temperature) boundary conditions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -562,7 +567,9 @@ Example:
 Functions
 =========
 
- A base class for all functions of space and time.
+`src/functions/Function.hh <https://github.com/amanzi/amanzi/blob/master/src/functions/Function.hh>`_
+
+A base class for all functions of space and time.
 
 Analytic, algabraic functions of space and time are used for a variety of
 purposes, including boundary conditions, initial conditions, and independent
@@ -586,11 +593,15 @@ It is straightforward to add new functions as needed.
 
 Constant Function
 -------------------------
- FunctionConstant: Implements the Function interface using a constant value.
+`src/functions/FunctionConstant.hh <https://github.com/amanzi/amanzi/blob/master/src/functions/FunctionConstant.hh>`_
+
+FunctionConstant: Implements the Function interface using a constant value.
 
 Constant function is defined as :math:`f(x) = a`, for all :math:`x`.
 
-* `"value`" ``[double]`` The constant to be applied.
+.. admonition:: function-constant-spec
+
+  * `"value`" ``[double]`` The constant to be applied.
 
 Example:
 
@@ -605,7 +616,9 @@ Example:
 
 Tabular Function
 -------------------------
- FunctionTabular: Piecewise-defined function.
+`src/functions/FunctionTabular.hh <https://github.com/amanzi/amanzi/blob/master/src/functions/FunctionTabular.hh>`_
+
+FunctionTabular: Piecewise-defined function.
 
 A piecewise function of one variable.
 
@@ -620,7 +633,8 @@ j=0, ... n-2` a tabular function :math:`f(x)` is defined as:
   f(x) &=& y_{{n-1}}, & x > x_{{n-1}}.
   \end{matrix}
 
-The functional forms :math:`{f_j}` may be constant, which uses the left endpoint, i.e.
+The functional forms :math:`{f_j}` may be constant, which uses the left
+endpoint, i.e.
 
 :math:`f_i(x) = y_i`,
 
@@ -630,7 +644,11 @@ linear, i.e.
 
 or arbitrary, in which the :math:`f_j` must be provided.
 
-The :math:`x_i` and :math:`y_i` may be provided in one of two ways -- explicitly in the input spec or from an HDF5 file.  The length of these must be equal, and the :math:`x_i` must be monotonically increasing.  Forms, as defined on intervals, must be of length equal to the length of the :math:`x_i` less one.
+The :math:`x_i` and :math:`y_i` may be provided in one of two ways --
+explicitly in the input spec or from an HDF5 file.  The length of these must be
+equal, and the :math:`x_i` must be monotonically increasing.  Forms, as defined
+on intervals, must be of length equal to the length of the :math:`x_i` less
+one.
 
 Explicitly specifying the data:
 
@@ -680,13 +698,14 @@ but could be made so if requested).
 .. _function-tabular-fromfile-spec:
 .. admonition:: function-tabular-fromfile-spec
 
-   * `"file`" ``[string]`` filename of the HDF5 data
+   * `"file`" ``[string]`` filename of either HDF5 or NetCDF file.
    * `"x header`" ``[string]`` name of the dataset for the :math:`x_i` in the file
    * `"y header`" ``[string]`` name of the dataset for the :math:`y_i` in the file
    * `"forms`" ``[string]`` **optional**, Form of the interpolant, either
      `"constant`" or `"linear`"
 
-The example below would perform linear-interpolation on the intervals provided by data within the hdf5 file `"my_data.h5`".
+The example below would perform linear-interpolation on the intervals provided
+by data within an hdf5 file `"my_data.h5`".
 
 Example:
 
@@ -704,7 +723,9 @@ Example:
 
 Smooth step Function
 -------------------------
- FunctionSmoothStep: a smoothed discontinuity.
+`src/functions/FunctionSmoothStep.hh <https://github.com/amanzi/amanzi/blob/master/src/functions/FunctionSmoothStep.hh>`_
+
+FunctionSmoothStep: a smoothed discontinuity.
 
 A smooth :math:`C^2` function `f(x)` on interval :math:`[x_0,\,x_1]` is
 defined such that `f(x) = y_0` for `x < x0`, `f(x) = y_1` for `x > x_1`, and
@@ -735,7 +756,9 @@ Example:
 
 Polynomial Function
 -------------------------
- FunctionPolynomial: a polynomial
+`src/functions/FunctionPolynomial.hh <https://github.com/amanzi/amanzi/blob/master/src/functions/FunctionPolynomial.hh>`_
+
+FunctionPolynomial: a polynomial
 
 A generic polynomial function is given by the following expression:
 
@@ -767,7 +790,9 @@ Example:
 
 Multi-variable linear Function
 ------------------------------
- FunctionLinear: a multivariate linear function.
+`src/functions/FunctionLinear.hh <https://github.com/amanzi/amanzi/blob/master/src/functions/FunctionLinear.hh>`_
+
+FunctionLinear: a multivariate linear function.
 
 A multi-variable linear function is formally defined by
 
@@ -808,7 +833,9 @@ Example:
 
 Separable Function
 ------------------
- FunctionSeparable: f(x,y) = f1(x)*f2(y)
+`src/functions/FunctionSeparable.hh <https://github.com/amanzi/amanzi/blob/master/src/functions/FunctionSeparable.hh>`_
+
+FunctionSeparable: f(x,y) = f1(x)*f2(y)
 
 A separable function is defined as the product of other functions such as
 
@@ -841,7 +868,9 @@ where :math:`f_1` is defined by the `"function1`" sublist, and
 
 Additive Function
 ------------------
- FunctionAdditive: f(x,y) = f1(x,y) + f2(x,y)
+`src/functions/FunctionAdditive.hh <https://github.com/amanzi/amanzi/blob/master/src/functions/FunctionAdditive.hh>`_
+
+FunctionAdditive: f(x,y) = f1(x,y) + f2(x,y)
 
 An additive function simply adds two other function results together.
 
@@ -874,7 +903,9 @@ Example:
 
 Multiplicative Function
 --------------------------
- FunctionMultiplicative: f(x,y) = f1(x,y) * f2(x,y)
+`src/functions/FunctionMultiplicative.hh <https://github.com/amanzi/amanzi/blob/master/src/functions/FunctionMultiplicative.hh>`_
+
+FunctionMultiplicative: f(x,y) = f1(x,y) * f2(x,y)
 
 A multiplicative function simply multiplies two other function results together.
 
@@ -907,7 +938,9 @@ Example:
 
 Composition Function
 --------------------------
- FunctionComposition: f(x,y) = f1(x,y) * f2(x,y)
+`src/functions/FunctionComposition.hh <https://github.com/amanzi/amanzi/blob/master/src/functions/FunctionComposition.hh>`_
+
+FunctionComposition: f(x,y) = f1(x,y) * f2(x,y)
 
 Function composition simply applies one function to the result of another.
 
@@ -939,7 +972,9 @@ where :math:`f_1` is defined by the `"function1`" sublist, and
 
 Piecewise Bilinear Function
 ---------------------------
- FunctionBilinear: a piecewise bilinear function.
+`src/functions/FunctionBilinear.hh <https://github.com/amanzi/amanzi/blob/master/src/functions/FunctionBilinear.hh>`_
+
+FunctionBilinear: a piecewise bilinear function.
 
 A piecewise bilinear function extends the linear form of the tabular function to two variables.
 
@@ -954,7 +989,7 @@ bounds.
 .. _function-bilinear-spec:
 .. admonition:: function-bilinear-spec
 
-   * `"file`" ``[string]`` HDF5 filename of the data
+   * `"file`" ``[string]`` HDF5 or NetCDF filename of the data
    * `"row header`" ``[string]`` name of the row dataset, the :math:`x_i`
    * `"row coordinate`" ``[string]`` one of `"t`",`"x`",`"y`",`"z`"
    * `"column header`" ``[string]`` name of the column dataset, the :math:`y_i`
@@ -979,7 +1014,9 @@ Example:
 
 Distance Function
 -----------------
- FunctionDistance: distance from a reference point.
+`src/functions/FunctionDistance.hh <https://github.com/amanzi/amanzi/blob/master/src/functions/FunctionDistance.hh>`_
+
+FunctionDistance: distance from a reference point.
 
 A distance function calculates distance from reference point :math:`x_0`
 using by the following expression:
@@ -1011,7 +1048,9 @@ Example:
 
 Monomial Function
 -----------------
- FunctionMonomial: a multivariate monomial function.
+`src/functions/FunctionMonomial.hh <https://github.com/amanzi/amanzi/blob/master/src/functions/FunctionMonomial.hh>`_
+
+FunctionMonomial: a multivariate monomial function.
 
 A multi-variable monomial function is given by the following expression:
 
@@ -1050,7 +1089,9 @@ Here is an example of monomial of degree 6 in three variables:
 
 Standard Math Function
 ----------------------
- Provides access to many common mathematical functions.
+`src/functions/FunctionStandardMath.hh <https://github.com/amanzi/amanzi/blob/master/src/functions/FunctionStandardMath.hh>`_
+
+Provides access to many common mathematical functions.
 
 These functions allow to set up non-trivial time-dependent boundary conditions
 which increases a set of analytic solutions that can be used in convergence
@@ -1113,6 +1154,7 @@ This example defines function `1e-7 sqrt(t-0.1)`.
 PDE_Advection
 -------------
 
+`src/operators/PDE_Advection.hh <https://github.com/amanzi/amanzi/blob/master/src/operators/PDE_Advection.hh>`_
 
 
 A high-order advection operator may have different domain and range and therefore requires two schemas.
@@ -1121,35 +1163,36 @@ A high-order advection operator has two terms in a weak formulation, correspondi
 volume and surface integrals. These two terms are discretixed using two operators with
 matrix of types *advection* and *flux*, respectively.
 
+.. admonition:: advection_op-spec
 
-* `"pks operator name`" [list] a PK specific name for the advection operator.
+  * `"pks operator name`" ``[list]`` a PK specific name for the advection operator.
+ 
+    * `"method`" ``[string]`` defines a discretization method. The available option is `"dg modal`".
 
-  * `"method`" [string] defines a discretization method. The available option is `"dg modal`".
+    * `"method order`" ``[int]`` defines method order. For example, the classical low-order finite
+      volume scheme is equivalent to DG of order 0.
 
-  * `"method order`" [int] defines method order. For example, the classical low-order finite
-    volume scheme is equivalent to DG of order 0.
+    * `"matrix type`" ``[string]`` defines matrix type. The supported options are `"advection`"
+      and `"flux`".
 
-  * `"matrix type`" [string] defines matrix type. The supported options are `"advection`"
-    and `"flux`".
+    * `"dg basis`" ``[string]`` defines bases for DG schemes. The available options are
+      `"regularized`" (recommended), `"normalized`", `"orthonormalized`", and `"natural`"
+      (not recommended).
 
-  * `"dg basis`" [string] defines bases for DG schemes. The available options are
-    `"regularized`" (recommended), `"normalized`", `"orthonormalized`", and `"natural`"
-    (not recommended).
+    * `"gradient operator on test function`" [bool] defines place of the gradient operator.
+      For integration by parts schemes, the gradient is transfered to a test function.
+      This option is needed for discretizing volumetric integrals.
 
-  * `"gradient operator on test function`" [bool] defines place of the gradient operator.
-    For integration by parts schemes, the gradient is transfered to a test function.
-    This option is needed for discretizing volumetric integrals.
+    * `"jump operator on test function`" [bool] defines place of the jump operator.
+      For integration by parts schemes, the jump operator is applied to a test function.
+      This option is needed for discretizing surface fluxes.
 
-  * `"jump operator on test function`" [bool] defines place of the jump operator.
-    For integration by parts schemes, the jump operator is applied to a test function.
-    This option is needed for discretizing surface fluxes.
+    * `"flux formula`" ``[string]`` defines type of the flux. The available options
+      are `"Rusanov`" (default), `"upwind`", `"downwind`", and `"NavierStokes`".
 
-  * `"flux formula`" [string] defines type of the flux. The available options
-    are `"Rusanov`" (default), `"upwind`", `"downwind`", and `"NavierStokes`".
+    * `"schema domain`" ``[list]`` defines a discretization schema for the operator domain.
 
-  * `"schema domain`" [list] defines a discretization schema for the operator domain.
-
-  * `"schema range`" [list] defines a discretization schema for the operator range.
+    * `"schema range`" ``[list]`` defines a discretization schema for the operator range.
 
 .. code-block:: xml
 
@@ -1192,6 +1235,7 @@ It employes the old schema.
 
 
 
+`src/operators/PDE_AdvectionUpwind.hh <https://github.com/amanzi/amanzi/blob/master/src/operators/PDE_AdvectionUpwind.hh>`_
 
 ``PDE_AdvectionUpwind`` assembles the discrete form of:
 
@@ -1217,7 +1261,9 @@ Function Initialization
 -----------------------
 .. _CompositeVectorFunction:
 
- Mesh Functions, evaluate a function on a mesh and stick the result in a vector.
+`src/mesh_functions/CompositeVectorFunctionFactory.hh <https://github.com/amanzi/amanzi/blob/master/src/mesh_functions/CompositeVectorFunctionFactory.hh>`_
+
+Mesh Functions, evaluate a function on a mesh and stick the result in a vector.
 
 CompositeVectorFunctions are ways of evaluating a piecewise function on a
 mesh and sticking the result into a CompositeVector.
@@ -1268,10 +1314,11 @@ Each entry in that list is a:
 
 Column File Initialization
 --------------------------
+`src/mesh_functions/ColumnMeshFunction.hh <https://github.com/amanzi/amanzi/blob/master/src/mesh_functions/ColumnMeshFunction.hh>`_
 
 
 Interpolate a depth-based, 1D column of data onto a mesh.  Values are
-prescribed only to cells.  Expected is an HDF5 file in the format:
+prescribed only to cells.  Expected is an HDF5 or NetCDF file in the format:
 
 Depth coordinates z:
 
@@ -1284,8 +1331,8 @@ Function values u:
 
   /f[:] = (f_0(z_0), f_1(z_1), ..., f_n(z_n))
 
-.. _column-initialization-spec:
-.. admonition:: column-initialization-spec
+.. _column-file-initialization-spec:
+.. admonition:: column-file-initialization-spec
 
    * `"file`" ``[string]`` HDF5 filename
    * `"z header`" ``[string]`` name of the z-coordinate data: `z` above.  Depth
@@ -1297,4 +1344,14 @@ Function values u:
 
 Exodus File Initialization
 --------------------------
+`src/state/IO.hh <https://github.com/amanzi/amanzi/blob/master/src/state/IO.hh>`_
+
+
+.. _exodus-file-initialization-spec:
+.. admonition:: exodus-file-initialization-spec
+
+   * `"file`" ``[string]`` The filename to read.
+   * `"attributes`" ``[Array(string)]`` List of variables to read from the file.
+
+
 

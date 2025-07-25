@@ -3,64 +3,134 @@ Base MPCs
 
 MPC
 ---
- Multi process coupler base class.
+`src/physics/ats/src/pks/mpc/mpc.hh <https://github.com/amanzi/ats/blob/master/src/pks/mpc/mpc.hh>`_
 
-A multi process coupler is a PK (process kernel) which coordinates and couples
-several PKs.  Each of these coordinated PKs may be MPCs themselves, or physical
-PKs.  Note this does NOT provide a full implementation of PK -- it does not
-supply the AdvanceStep() method.  Therefore this class cannot be instantiated, but
-must be inherited by derived classes which finish supplying the functionality.
+
+A multi process coupler is a PK which coordinates and couples several PKs.
+Each of these coordinated PKs may be MPCs themselves, or physical PKs.  Note
+this does NOT provide a full implementation of PK -- it does not supply the
+AdvanceStep() method.  Therefore this class cannot be instantiated, but must be
+inherited by derived classes which finish supplying the functionality.
 Instead, this provides the data structures and methods (which may be overridden
 by derived classes) for managing multiple PKs.
 
 Most of these methods simply loop through the coordinated PKs, calling their
 respective methods.
 
-.. _mpc-spec:
-.. admonition:: mpc-spec
+.. _pk-mpc-spec:
+.. admonition:: pk-mpc-spec
 
-    * `"PKs order`" ``[Array(string)]`` Provide a specific order to the
-      sub-PKs; most methods loop over all sub-PKs, and will call the sub-PK
-      method in this order.
+   * `"PKs order`" ``[Array(string)]`` Provide a specific order to the
+     sub-PKs; most methods loop over all sub-PKs, and will call the sub-PK
+     method in this order.
 
-    INCLUDES:
+   INCLUDES:
 
-    - ``[pk-spec]`` *Is a* PK_.
-
-
+   - ``[pk-spec]`` *Is a* :ref:`PK`.
 
 
 
-WeakMPC
--------
- Multi process coupler for sequential coupling.
+
+
+Strong MPC
+----------
+`src/physics/ats/src/pks/mpc/strong_mpc.hh <https://github.com/amanzi/ats/blob/master/src/pks/mpc/strong_mpc.hh>`_
+
+
+Globally implicit coupling solves all sub-PKs as a single system of equations.
+This can be completely automated when all PKs are also :ref:`PK: BDF` PKs,
+using a block-diagonal preconditioner where each diagonal block is provided by
+its own sub-PK.
+
+`"PK type`" = `"strong MPC`"
+
+.. _pk-strong-mpc-spec:
+.. admonition:: pk-strong-mpc-spec
+
+   INCLUDES:
+
+   - ``[mpc-spec]`` *Is a* :ref:`MPC`.
+   - ``[pk-bdf-default-spec]`` *Is a* :ref:`PK: BDF`.
+
+
+
+
+Weak MPC
+--------
+`src/physics/ats/src/pks/mpc/weak_mpc.hh <https://github.com/amanzi/ats/blob/master/src/pks/mpc/weak_mpc.hh>`_
+
 
 Noniterative sequential coupling simply calls each PK's AdvanceStep() method in
 order.
 
-.. _weak-mpc-spec:
-.. admonition:: weak-mpc-spec
+`"PK type`" = `"weak MPC`"
 
-    INCLUDES:
+.. _pk-weak-mpc-spec:
+.. admonition:: pk-weak-mpc-spec
 
-    - ``[mpc-spec]`` *Is a* MPC_.
+   INCLUDES:
 
-
-
-
-StrongMPC
-----------
- Multi process coupler for globally implicit (strong) coupling.
-
-Globally implicit coupling solves all sub-PKs as a single system of equations.  This can be completely automated when all PKs are also `PK: BDF`_ PKs, using a block-diagonal preconditioner where each diagonal block is provided by its own sub-PK.
-
-.. _strong-mpc-spec:
-.. admonition:: strong-mpc-spec
-
-    INCLUDES:
-
-    - ``[mpc-spec]`` *Is a* MPC_.
-    - ``[pk-bdf-default-spec]`` *Is a* `PK: BDF`_.
+   - ``[mpc-spec]`` *Is a* :ref:`MPC`.
 
 
+
+
+Subcycling MPC
+--------------
+`src/physics/ats/src/pks/mpc/mpc_subcycled.hh <https://github.com/amanzi/ats/blob/master/src/pks/mpc/mpc_subcycled.hh>`_
+
+
+A generic MPC that weakly couples N PKs, potentially subcycling any of them.
+
+`"PK type`" = `"subcycling MPC`"
+
+.. _pk-subcycling-mpc-spec:
+.. admonition:: pk-subcycling-mpc-spec
+
+   * `"subcycle`" ``[Array(bool)]`` Array of the same length as sub_pks.
+   * `"subcycling target timestep [s]`" ``[double]`` **optional** If provided,
+     this target dt is included, setting a ceiling on the largest timestep size
+     and therefore setting a max dt over which we let the sub-PKs step
+     independently without synchronization.  This is required if all sub-PKs are
+     being subcycled.
+
+   INCLUDES:
+
+   - ``[mpc-spec]`` *Is a* :ref:`MPC`.
+
+
+
+
+Weakly Coupled Subdomains
+-------------------------
+`src/physics/ats/src/pks/mpc/mpc_weak_subdomain.hh <https://github.com/amanzi/ats/blob/master/src/pks/mpc/mpc_weak_subdomain.hh>`_
+
+
+A weak MPC that couples the same PK across many subdomains.  Note that this
+means that the number of PKs is not known a priori -- it depends on a domain
+set.  It may also subcycle all or none of its child PKs.
+
+`"PK type`" = `"domain set weak MPC`"
+
+.. _pk-domain-set-weak-mpc-spec:
+.. admonition:: pk-domain-set-weak-mpc-spec
+
+   IF
+
+   * `"subcycle`" ``[bool]`` **false** Subcycle the sub PKs or not.
+
+   THEN
+
+   * `"subcycling target timestep [s]`" ``[double]`` timestep over which to
+     syncronize the sub PKs.
+
+   END
+
+   INCLUDES
+
+   - ``[mpc-spec]`` *Is a* MPC_.
+
+
+
+ 
 

@@ -1,13 +1,12 @@
 
-
 <!DOCTYPE html>
 
 
-<html lang="en" data-content_root="" >
+<html lang="en" data-content_root="../" >
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Shared Specs &#8212; Amanzi-ATS</title>
   
@@ -17,49 +16,54 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
-<link href="../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
-  
-  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
-
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/custom_theme.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/custom_theme.css?v=a03f4c85" />
   
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
-<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
-  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../_static/documentation_options.js?v=3ce10a4d"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'input_spec/common';</script>
     <script>
-        DOCUMENTATION_OPTIONS.theme_version = '0.15.3';
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
-        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.6';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
         </script>
     <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
-    <script src="../_static/main.js"></script>
+    <script src="../_static/main.js?v=b10558fa"></script>
     <link rel="icon" href="../_static/favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="prev" title="Operators" href="math/operators.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="dev" />
   </head>
   
   
@@ -75,19 +79,8 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
-  
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
-  
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="../search.html"
       method="get">
@@ -95,7 +88,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search the docs ..."
          aria-label="Search the docs ..."
          autocomplete="off"
@@ -103,8 +95,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -113,7 +105,7 @@
   
     <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
 <div class="bd-header__inner bd-page-width">
-  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
     <span class="fa-solid fa-bars"></span>
   </button>
   
@@ -122,6 +114,8 @@
     
       <div class="navbar-item">
 
+  
+    
   
 
 <a class="navbar-brand logo" href="../index.html">
@@ -136,7 +130,7 @@
     
     
     <img src="../_static/logo_full.png" class="logo__image only-light" alt="Amanzi-ATS documentation -- Home"/>
-    <script>document.write(`<img src="../_static/logo_full.png" class="logo__image only-dark" alt="Amanzi-ATS documentation -- Home"/>`);</script>
+    <img src="../_static/logo_full.png" class="logo__image only-dark pst-js-only" alt="Amanzi-ATS documentation -- Home"/>
   
   
 </a></div>
@@ -148,17 +142,17 @@
     <div class="me-auto navbar-header-items__center">
       
         <div class="navbar-item">
-<nav class="navbar-nav">
+<nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item pst-header-nav-item">
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../demos.html">
     ATS Demo Problems
   </a>
 </li>
 
 
-<li class="nav-item pst-header-nav-item current active">
+<li class="nav-item current active">
   <a class="nav-link nav-internal" href="index.html">
     ATS Input Specification
   </a>
@@ -175,29 +169,21 @@
         <div class="navbar-item navbar-persistent--container">
           
 
- <script>
- document.write(`
-   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
         </div>
       
       
         <div class="navbar-item">
 
-<script>
-document.write(`
-  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
-    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
-    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
-  </button>
-`);
-</script></div>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
       
     </div>
     
@@ -206,15 +192,11 @@ document.write(`
   
     <div class="navbar-persistent--mobile">
 
- <script>
- document.write(`
-   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
     </div>
   
 
@@ -229,7 +211,8 @@ document.write(`
       
       
       
-      <div class="bd-sidebar-primary bd-sidebar">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -241,17 +224,17 @@ document.write(`
           
           
             <div class="navbar-item">
-<nav class="navbar-nav">
+<nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item pst-header-nav-item">
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../demos.html">
     ATS Demo Problems
   </a>
 </li>
 
 
-<li class="nav-item pst-header-nav-item current active">
+<li class="nav-item current active">
   <a class="nav-link nav-internal" href="index.html">
     ATS Input Specification
   </a>
@@ -269,15 +252,11 @@ document.write(`
         
           <div class="navbar-item">
 
-<script>
-document.write(`
-  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
-    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
-    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
-  </button>
-`);
-</script></div>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
         
       </div>
     
@@ -285,30 +264,26 @@ document.write(`
   
     <div class="sidebar-primary-items__start sidebar-primary__section">
         <div class="sidebar-primary-item"><!-- This will display the version of the docs -->
-Version 1.5</div>
+Version dev</div>
         <div class="sidebar-primary-item">
-<script>
-document.write(`
-  <div class="version-switcher__container dropdown">
-    <button id="pst-version-switcher-button-2"
-      type="button"
-      class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle"
-      data-bs-toggle="dropdown"
-      aria-haspopup="listbox"
-      aria-controls="pst-version-switcher-list-2"
-      aria-label="Version switcher list"
-    >
-      Choose version  <!-- this text may get changed later by javascript -->
-      <span class="caret"></span>
-    </button>
-    <div id="pst-version-switcher-list-2"
-      class="version-switcher__menu dropdown-menu list-group-flush py-0"
-      role="listbox" aria-labelledby="pst-version-switcher-button-2">
-      <!-- dropdown will be populated by javascript on page load -->
-    </div>
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
   </div>
-`);
-</script></div>
+</div></div>
         <div class="sidebar-primary-item">
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
@@ -324,22 +299,24 @@ document.write(`
 <li class="toctree-l2"><a class="reference internal" href="io/visualization.html">Visualization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="io/observations.html">Observations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="io/checkpoint.html">Checkpoint</a></li>
+<li class="toctree-l2"><a class="reference internal" href="io/logfile.html">Logfile Control</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="process_kernels/index.html">Process Kernels</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="process_kernels/base.html">Base PKs</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="process_kernels/physical/index.html">Physical PKs</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="process_kernels/physical/flow.html">Flow PKs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="process_kernels/physical/transport.html">Transport PK</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_kernels/physical/transport.html">Geochemical Transport</a></li>
 <li class="toctree-l3"><a class="reference internal" href="process_kernels/physical/energy.html">Energy PKs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="process_kernels/physical/seb.html">Surface Energy Balance PKs</a></li>
-
-
+<li class="toctree-l3"><a class="reference internal" href="process_kernels/physical/bgc.html">Biogeochemistry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_kernels/physical/deformation.html">Deformation</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="process_kernels/mpcs/index.html">MPC</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="process_kernels/mpcs/base.html">Base MPCs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="process_kernels/mpcs/physical.html">Physical MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_kernels/mpcs/tightly_coupled.html">Tightly Coupled MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_kernels/mpcs/multiple_domain.html">Multiple Domain MPCs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="process_kernels/mpcs/globalization.html">Globalization Delegates</a></li>
 </ul>
 </details></li>
@@ -347,20 +324,24 @@ document.write(`
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="state/index.html">State</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="state/primary.html">Primary Variables</a></li>
+
 <li class="toctree-l2"><a class="reference internal" href="state/independent.html">Independent Variables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/secondary.html">Secondary Variables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/conserved.html">Conserved quantities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/subsurface_flow.html">Subsurface flow evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/surface_flow.html">Surface flow evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/thermo.html">Thermodynamic evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/eos.html">Equations of State</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/seb.html">Surface energy balance evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/snow.html">Snow evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/canopy.html">Canopy evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/bgc.html">Carbon and Biogeochemistry Models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/multiscale.html">Multiscale Models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/geometric.html">Geometric evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="state/generic.html">Generic evaluators</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="state/secondary.html">Secondary Variables</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="state/conserved.html">Conserved quantities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state/subsurface_flow.html">Subsurface Flow Evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state/surface_flow.html">Surface Flow Evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state/transport.html">Transport evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state/thermo.html">Thermodynamic evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state/eos.html">Equations of State</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state/seb.html">Surface Energy Balance Evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state/snow.html">Snow evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state/canopy.html">Canopy evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state/bgc.html">Carbon and Biogeochemistry Models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state/multiscale.html">Multiscale Models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state/geometric.html">Geometric evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state/generic.html">Generic evaluators</a></li>
+</ul>
+</details></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="math/index.html">Time integrators, solvers, and other mathematical specs</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -435,9 +416,14 @@ document.write(`
   
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
   </div>
-  
-  <div id="rtd-footer-container"></div>
 
 
       </div>
@@ -455,8 +441,6 @@ document.write(`
       
         <div class="header-article-item">
 
-
-
 <nav aria-label="Breadcrumb" class="d-print-none">
   <ul class="bd-breadcrumbs">
     
@@ -468,7 +452,7 @@ document.write(`
     
     <li class="breadcrumb-item"><a href="index.html" class="nav-link">ATS Input Specification</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page">Shared Specs</li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Shared Specs</span></li>
   </ul>
 </nav>
 </div>
@@ -486,23 +470,24 @@ document.write(`
                 <article class="bd-article">
                   
   <section id="shared-specs">
-<h1>Shared Specs<a class="headerlink" href="#shared-specs" title="Permalink to this heading">#</a></h1>
+<h1>Shared Specs<a class="headerlink" href="#shared-specs" title="Link to this heading">#</a></h1>
 <section id="initial-conditions">
-<h2>Initial Conditions<a class="headerlink" href="#initial-conditions" title="Permalink to this heading">#</a></h2>
-<p>Initial condition specs are used in three places:</p>
+<h2>Initial Conditions<a class="headerlink" href="#initial-conditions" title="Link to this heading">#</a></h2>
+<p>Initial conditions specs are used in three places:</p>
 <ul class="simple">
 <li><p>In the <cite>“initial conditions</cite>” sublist of state, in which the value
 of atomic constants are provided (not really initial conditions and
 should be renamed).  These atomic values are not controlled by
 evaluators, and are not included in the DaG.</p></li>
-<li><p>Within the <a href="#id1"><span class="problematic" id="id2">PK_</span></a> spec which describes the initial condition of primary variables (true
-initial conditions).</p></li>
+<li><p>Within physical PK specs which describes the initial conditions of
+primary variables (true initial conditions).</p></li>
 <li><p>In <a class="reference internal" href="state/independent.html#independent-variable-constant"><span class="std std-ref">Independent Variable Constant</span></a></p></li>
 </ul>
 <p>The first may be of multiple types of data, while the latter two are
 nearly always fields on a mesh (e.g. CompositeVectors).  The specific
 available options for initializing various data in state differ by
 data type.</p>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/state/data/Data_Helpers.hh">src/state/data/Data_Helpers.hh</a></p>
 <div class="admonition-constants-scalar-spec admonition" id="constants-scalar-spec">
 <p class="admonition-title">constants-scalar-spec</p>
 <ul class="simple">
@@ -540,7 +525,8 @@ but only reads the cell component.</p></li>
 </div>
 </section>
 <section id="boundary-conditions">
-<h2>Boundary Conditions<a class="headerlink" href="#boundary-conditions" title="Permalink to this heading">#</a></h2>
+<h2>Boundary Conditions<a class="headerlink" href="#boundary-conditions" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/bc_factory.hh">src/physics/ats/src/pks/bc_factory.hh</a></p>
 <p>In general, boundary conditions are provided in a hierarchical list by
 boundary condition type, then functional form.  Boundary condition specs are
 split between two types – those which require a user-provided function
@@ -591,11 +577,12 @@ the domain for a typical PK:</p>
 <p>Different PKs populate this general format with different names, replacing
 DIRICHLET_TYPE and DIRICHLET_FUNCTION_NAME.</p>
 <section id="flow-specific-boundary-conditions">
-<h3>Flow-specific Boundary Conditions<a class="headerlink" href="#flow-specific-boundary-conditions" title="Permalink to this heading">#</a></h3>
+<h3>Flow-specific Boundary Conditions<a class="headerlink" href="#flow-specific-boundary-conditions" title="Link to this heading">#</a></h3>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/flow/flow_bc_factory.hh">src/physics/ats/src/pks/flow/flow_bc_factory.hh</a></p>
 <p>Flow boundary conditions must follow the general format shown in
-<a href="#id3"><span class="problematic" id="id4">BoundaryConditions_</span></a>.  Specific conditions implemented include:</p>
+<a class="reference internal" href="#boundary-conditions">Boundary Conditions</a>.  Specific conditions implemented include:</p>
 <section id="dirichlet-pressure-boundary-conditions">
-<h4>Dirichlet (pressure) boundary conditions<a class="headerlink" href="#dirichlet-pressure-boundary-conditions" title="Permalink to this heading">#</a></h4>
+<h4>Dirichlet (pressure) boundary conditions<a class="headerlink" href="#dirichlet-pressure-boundary-conditions" title="Link to this heading">#</a></h4>
 <p>Used for both surface and subsurface flows, this provides pressure data on
 boundaries (in [Pa]).</p>
 <p>Example:</p>
@@ -615,7 +602,7 @@ boundaries (in [Pa]).</p>
 </div>
 </section>
 <section id="dirichlet-head-boundary-conditions">
-<h4>Dirichlet (head) boundary conditions<a class="headerlink" href="#dirichlet-head-boundary-conditions" title="Permalink to this heading">#</a></h4>
+<h4>Dirichlet (head) boundary conditions<a class="headerlink" href="#dirichlet-head-boundary-conditions" title="Link to this heading">#</a></h4>
 <p>Used for both surface and subsurface flows, this provides head data (in [m]
 above the land surface), typically as a function of x &amp; y.  In the subsurface
 case, the z-value is given by hydrostatic relative to that head.</p>
@@ -639,7 +626,7 @@ case, the z-value is given by hydrostatic relative to that head.</p>
 </div>
 </section>
 <section id="dirichlet-fixed-level-boundary-conditions">
-<h4>Dirichlet (fixed level) boundary conditions<a class="headerlink" href="#dirichlet-fixed-level-boundary-conditions" title="Permalink to this heading">#</a></h4>
+<h4>Dirichlet (fixed level) boundary conditions<a class="headerlink" href="#dirichlet-fixed-level-boundary-conditions" title="Link to this heading">#</a></h4>
 <p>This fixes the water table at a constant elevation.  It is a head condition
 that adapts to the surface elevation, adjusting the head to a datum that is a
 fixed absolute z coordinate.</p>
@@ -663,7 +650,7 @@ fixed absolute z coordinate.</p>
 </div>
 </section>
 <section id="neumann-water-flux-boundary-conditions">
-<h4>Neumann (water flux) boundary conditions<a class="headerlink" href="#neumann-water-flux-boundary-conditions" title="Permalink to this heading">#</a></h4>
+<h4>Neumann (water flux) boundary conditions<a class="headerlink" href="#neumann-water-flux-boundary-conditions" title="Link to this heading">#</a></h4>
 <p>Used for both surface and subsurface flows, this provides water flux data (in [mol m^-2 s^-1], for the subsurface, or [mol m^-1 s^-1] for the surface, in the outward normal direction) on boundaries.</p>
 <p>Example:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;boundary conditions&quot;</span><span class="nt">&gt;</span>
@@ -682,7 +669,7 @@ fixed absolute z coordinate.</p>
 </div>
 </section>
 <section id="neumann-fix-level-flux-boundary-conditions">
-<h4>Neumann (fix level flux) boundary conditions<a class="headerlink" href="#neumann-fix-level-flux-boundary-conditions" title="Permalink to this heading">#</a></h4>
+<h4>Neumann (fix level flux) boundary conditions<a class="headerlink" href="#neumann-fix-level-flux-boundary-conditions" title="Link to this heading">#</a></h4>
 <p>Used for surface only,  this provides fixed level ([m])  velocity data (in [m s^-1], in the outward normal direction on boundaries.</p>
 <p>Example:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="w"> </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;boundary conditions&quot;</span><span class="nt">&gt;</span>
@@ -706,7 +693,7 @@ fixed absolute z coordinate.</p>
 </div>
 </section>
 <section id="seepage-face-boundary-conditions">
-<h4>Seepage face boundary conditions<a class="headerlink" href="#seepage-face-boundary-conditions" title="Permalink to this heading">#</a></h4>
+<h4>Seepage face boundary conditions<a class="headerlink" href="#seepage-face-boundary-conditions" title="Link to this heading">#</a></h4>
 <p>A variety of seepage face boundary conditions are permitted for both surface
 and subsurface flow PKs.  Typically seepage conditions are of the form:</p>
 <blockquote>
@@ -784,7 +771,7 @@ iterates.</p></li>
 this has simply not had a use case yet.</p>
 </section>
 <section id="zero-head-gradient-boundary-conditions">
-<h4>Zero head gradient boundary conditions<a class="headerlink" href="#zero-head-gradient-boundary-conditions" title="Permalink to this heading">#</a></h4>
+<h4>Zero head gradient boundary conditions<a class="headerlink" href="#zero-head-gradient-boundary-conditions" title="Link to this heading">#</a></h4>
 <p>Used for surface flows, this is an “outlet” boundary condition which looks to
 enforce the condition that</p>
 <div class="math notranslate nohighlight">
@@ -808,7 +795,7 @@ the elevation gradient is clear, but not so useful for DEM-based meshes.</p>
 </div>
 </section>
 <section id="critical-depth-boundary-conditions">
-<h4>Critical depth boundary conditions<a class="headerlink" href="#critical-depth-boundary-conditions" title="Permalink to this heading">#</a></h4>
+<h4>Critical depth boundary conditions<a class="headerlink" href="#critical-depth-boundary-conditions" title="Link to this heading">#</a></h4>
 <p>Also for surface flows, this is an “outlet” boundary condition which looks to
 set an outward flux to take away runoff.  This condition is given by:</p>
 <div class="math notranslate nohighlight">
@@ -825,7 +812,7 @@ set an outward flux to take away runoff.  This condition is given by:</p>
 </div>
 </section>
 <section id="dynamic-boundary-condutions">
-<h4>Dynamic boundary condutions<a class="headerlink" href="#dynamic-boundary-condutions" title="Permalink to this heading">#</a></h4>
+<h4>Dynamic boundary condutions<a class="headerlink" href="#dynamic-boundary-condutions" title="Link to this heading">#</a></h4>
 <p>The type of boundary conditions maybe changed in time depending on the switch function of TIME.</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;dynamic&quot;</span><span class="nt">&gt;</span>
 <span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;regions&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{surface west}&quot;</span><span class="nt">/&gt;</span>
@@ -877,14 +864,16 @@ set an outward flux to take away runoff.  This condition is given by:</p>
 </section>
 </section>
 <section id="transport-specific-boundary-conditions">
-<h3>Transport-specific Boundary Conditions<a class="headerlink" href="#transport-specific-boundary-conditions" title="Permalink to this heading">#</a></h3>
+<h3>Transport-specific Boundary Conditions<a class="headerlink" href="#transport-specific-boundary-conditions" title="Link to this heading">#</a></h3>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/pks/transport/TransportBoundaryFunction_Alquimia.hh">src/pks/transport/TransportBoundaryFunction_Alquimia.hh</a></p>
 </section>
 <section id="energy-specific-boundary-conditions">
-<h3>Energy-specific Boundary Conditions<a class="headerlink" href="#energy-specific-boundary-conditions" title="Permalink to this heading">#</a></h3>
+<h3>Energy-specific Boundary Conditions<a class="headerlink" href="#energy-specific-boundary-conditions" title="Link to this heading">#</a></h3>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/energy/energy_bc_factory.hh">src/physics/ats/src/pks/energy/energy_bc_factory.hh</a></p>
 <p>Energy boundary conditions must follow the general format shown in
-<a href="#id5"><span class="problematic" id="id6">BoundaryConditions_</span></a>.  Energy-specific conditions implemented include:</p>
+<a class="reference internal" href="#boundary-conditions">Boundary Conditions</a>.  Energy-specific conditions implemented include:</p>
 <section id="dirichlet-temperature-boundary-conditions">
-<h4>Dirichlet (temperature) boundary conditions<a class="headerlink" href="#dirichlet-temperature-boundary-conditions" title="Permalink to this heading">#</a></h4>
+<h4>Dirichlet (temperature) boundary conditions<a class="headerlink" href="#dirichlet-temperature-boundary-conditions" title="Link to this heading">#</a></h4>
 <p>Provide temperature data in units of [K].</p>
 <p>Example:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;boundary conditions&quot;</span><span class="nt">&gt;</span>
@@ -903,7 +892,7 @@ set an outward flux to take away runoff.  This condition is given by:</p>
 </div>
 </section>
 <section id="neumann-diffusive-energy-flux-boundary-conditions">
-<h4>Neumann (diffusive energy flux) boundary conditions<a class="headerlink" href="#neumann-diffusive-energy-flux-boundary-conditions" title="Permalink to this heading">#</a></h4>
+<h4>Neumann (diffusive energy flux) boundary conditions<a class="headerlink" href="#neumann-diffusive-energy-flux-boundary-conditions" title="Link to this heading">#</a></h4>
 <p>Note that for an energy equation, there are two mechanisms by which energy can
 be fluxed into the domain: through diffusion and through advection.  This
 boundary condition sets the diffusive flux of energy, and allows the advective
@@ -935,7 +924,7 @@ prescribed.  This is not currently implemented, but would be straightforward to
 do so if requested.</p>
 </section>
 <section id="neumann-total-energy-flux-boundary-conditions">
-<h4>Neumann (total energy flux) boundary conditions<a class="headerlink" href="#neumann-total-energy-flux-boundary-conditions" title="Permalink to this heading">#</a></h4>
+<h4>Neumann (total energy flux) boundary conditions<a class="headerlink" href="#neumann-total-energy-flux-boundary-conditions" title="Link to this heading">#</a></h4>
 <p>This boundary condition sets the total flux of energy, from both advection and
 diffusion.  This is not used all that often in real applications, but is common
 for benchmarks or other testing.</p>
@@ -959,10 +948,9 @@ for benchmarks or other testing.</p>
 </section>
 </section>
 <section id="functions">
-<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this heading">#</a></h2>
-<blockquote>
-<div><p>A base class for all functions of space and time.</p>
-</div></blockquote>
+<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/functions/Function.hh">src/functions/Function.hh</a></p>
+<p>A base class for all functions of space and time.</p>
 <p>Analytic, algabraic functions of space and time are used for a variety of
 purposes, including boundary conditions, initial conditions, and independent
 variables.</p>
@@ -975,14 +963,16 @@ function of time:</p>
 \[u = f(t,x,y,z)\]</div>
 <p>It is straightforward to add new functions as needed.</p>
 <section id="constant-function">
-<h3>Constant Function<a class="headerlink" href="#constant-function" title="Permalink to this heading">#</a></h3>
-<blockquote>
-<div><p>FunctionConstant: Implements the Function interface using a constant value.</p>
-</div></blockquote>
+<h3>Constant Function<a class="headerlink" href="#constant-function" title="Link to this heading">#</a></h3>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/functions/FunctionConstant.hh">src/functions/FunctionConstant.hh</a></p>
+<p>FunctionConstant: Implements the Function interface using a constant value.</p>
 <p>Constant function is defined as <span class="math notranslate nohighlight">\(f(x) = a\)</span>, for all <span class="math notranslate nohighlight">\(x\)</span>.</p>
+<div class="admonition-function-constant-spec admonition">
+<p class="admonition-title">function-constant-spec</p>
 <ul class="simple">
 <li><p><cite>“value</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> The constant to be applied.</p></li>
 </ul>
+</div>
 <p>Example:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function-constant&quot;</span><span class="nt">&gt;</span>
 <span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;value&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;1.0&quot;</span><span class="nt">/&gt;</span>
@@ -991,10 +981,9 @@ function of time:</p>
 </div>
 </section>
 <section id="tabular-function">
-<h3>Tabular Function<a class="headerlink" href="#tabular-function" title="Permalink to this heading">#</a></h3>
-<blockquote>
-<div><p>FunctionTabular: Piecewise-defined function.</p>
-</div></blockquote>
+<h3>Tabular Function<a class="headerlink" href="#tabular-function" title="Link to this heading">#</a></h3>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/functions/FunctionTabular.hh">src/functions/FunctionTabular.hh</a></p>
+<p>FunctionTabular: Piecewise-defined function.</p>
 <p>A piecewise function of one variable.</p>
 <p>A tabular function is tabulated on a series of intervals; given values
 <span class="math notranslate nohighlight">\({{x_i}}, {{y_i}},, i=0, ... n-1\)</span> and functional forms <span class="math notranslate nohighlight">\({{f_j}},,
@@ -1005,12 +994,17 @@ f(x) &amp;=&amp; y_0, &amp; x \le x_0,\\
 f(x) &amp;=&amp; f_{{i-1}}(x)  &amp; x \in (x_{{i-1}}, x_i],\\
 f(x) &amp;=&amp; y_{{n-1}}, &amp; x &gt; x_{{n-1}}.
 \end{matrix}\end{split}\]</div>
-<p>The functional forms <span class="math notranslate nohighlight">\({f_j}\)</span> may be constant, which uses the left endpoint, i.e.</p>
+<p>The functional forms <span class="math notranslate nohighlight">\({f_j}\)</span> may be constant, which uses the left
+endpoint, i.e.</p>
 <p><span class="math notranslate nohighlight">\(f_i(x) = y_i\)</span>,</p>
 <p>linear, i.e.</p>
 <p><span class="math notranslate nohighlight">\(f_i(x) = ( y_i * (x - x_i) + y_{{i+1}} * (x_{{i+1}} - x) ) / (x_{{i+1}} - x_i)\)</span></p>
 <p>or arbitrary, in which the <span class="math notranslate nohighlight">\(f_j\)</span> must be provided.</p>
-<p>The <span class="math notranslate nohighlight">\(x_i\)</span> and <span class="math notranslate nohighlight">\(y_i\)</span> may be provided in one of two ways – explicitly in the input spec or from an HDF5 file.  The length of these must be equal, and the <span class="math notranslate nohighlight">\(x_i\)</span> must be monotonically increasing.  Forms, as defined on intervals, must be of length equal to the length of the <span class="math notranslate nohighlight">\(x_i\)</span> less one.</p>
+<p>The <span class="math notranslate nohighlight">\(x_i\)</span> and <span class="math notranslate nohighlight">\(y_i\)</span> may be provided in one of two ways –
+explicitly in the input spec or from an HDF5 file.  The length of these must be
+equal, and the <span class="math notranslate nohighlight">\(x_i\)</span> must be monotonically increasing.  Forms, as defined
+on intervals, must be of length equal to the length of the <span class="math notranslate nohighlight">\(x_i\)</span> less
+one.</p>
 <p>Explicitly specifying the data:</p>
 <div class="admonition-function-tabular-spec admonition" id="function-tabular-spec">
 <p class="admonition-title">function-tabular-spec</p>
@@ -1051,14 +1045,15 @@ but could be made so if requested).</p>
 <div class="admonition-function-tabular-fromfile-spec admonition" id="function-tabular-fromfile-spec">
 <p class="admonition-title">function-tabular-fromfile-spec</p>
 <ul class="simple">
-<li><p><cite>“file</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> filename of the HDF5 data</p></li>
+<li><p><cite>“file</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> filename of either HDF5 or NetCDF file.</p></li>
 <li><p><cite>“x header</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> name of the dataset for the <span class="math notranslate nohighlight">\(x_i\)</span> in the file</p></li>
 <li><p><cite>“y header</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> name of the dataset for the <span class="math notranslate nohighlight">\(y_i\)</span> in the file</p></li>
 <li><p><cite>“forms</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>optional</strong>, Form of the interpolant, either
 <cite>“constant</cite>” or <cite>“linear</cite>”</p></li>
 </ul>
 </div>
-<p>The example below would perform linear-interpolation on the intervals provided by data within the hdf5 file <cite>“my_data.h5</cite>”.</p>
+<p>The example below would perform linear-interpolation on the intervals provided
+by data within an hdf5 file <cite>“my_data.h5</cite>”.</p>
 <p>Example:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;function-tabular&quot;</span><span class="nt">&gt;</span>
 <span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;file&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;my_data.h5&quot;</span><span class="nt">/&gt;</span>
@@ -1070,10 +1065,9 @@ but could be made so if requested).</p>
 </div>
 </section>
 <section id="smooth-step-function">
-<h3>Smooth step Function<a class="headerlink" href="#smooth-step-function" title="Permalink to this heading">#</a></h3>
-<blockquote>
-<div><p>FunctionSmoothStep: a smoothed discontinuity.</p>
-</div></blockquote>
+<h3>Smooth step Function<a class="headerlink" href="#smooth-step-function" title="Link to this heading">#</a></h3>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/functions/FunctionSmoothStep.hh">src/functions/FunctionSmoothStep.hh</a></p>
+<p>FunctionSmoothStep: a smoothed discontinuity.</p>
 <p>A smooth <span class="math notranslate nohighlight">\(C^2\)</span> function <cite>f(x)</cite> on interval <span class="math notranslate nohighlight">\([x_0,\,x_1]\)</span> is
 defined such that <cite>f(x) = y_0</cite> for <cite>x &lt; x0</cite>, <cite>f(x) = y_1</cite> for <cite>x &gt; x_1</cite>, and
 monotonically increasing for <span class="math notranslate nohighlight">\(x \in [x_0, x_1]\)</span> through cubic
@@ -1098,10 +1092,9 @@ interpolation.</p>
 </div>
 </section>
 <section id="polynomial-function">
-<h3>Polynomial Function<a class="headerlink" href="#polynomial-function" title="Permalink to this heading">#</a></h3>
-<blockquote>
-<div><p>FunctionPolynomial: a polynomial</p>
-</div></blockquote>
+<h3>Polynomial Function<a class="headerlink" href="#polynomial-function" title="Link to this heading">#</a></h3>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/functions/FunctionPolynomial.hh">src/functions/FunctionPolynomial.hh</a></p>
+<p>FunctionPolynomial: a polynomial</p>
 <p>A generic polynomial function is given by the following expression:</p>
 <div class="math notranslate nohighlight">
 \[f(x) = \sum_{{j=0}}^n c_j (x - x_0)^{{p_j}}\]</div>
@@ -1125,10 +1118,9 @@ interpolation.</p>
 </div>
 </section>
 <section id="multi-variable-linear-function">
-<h3>Multi-variable linear Function<a class="headerlink" href="#multi-variable-linear-function" title="Permalink to this heading">#</a></h3>
-<blockquote>
-<div><p>FunctionLinear: a multivariate linear function.</p>
-</div></blockquote>
+<h3>Multi-variable linear Function<a class="headerlink" href="#multi-variable-linear-function" title="Link to this heading">#</a></h3>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/functions/FunctionLinear.hh">src/functions/FunctionLinear.hh</a></p>
+<p>FunctionLinear: a multivariate linear function.</p>
 <p>A multi-variable linear function is formally defined by</p>
 <div class="math notranslate nohighlight">
 \[f(x) = y_0 + \sum_{{j=0}}^{{n-1}} g_j (x_j - x_{{0,j}})\]</div>
@@ -1158,10 +1150,9 @@ Note that one of the parameters in a multi-valued linear function can be time.</
 </div>
 </section>
 <section id="separable-function">
-<h3>Separable Function<a class="headerlink" href="#separable-function" title="Permalink to this heading">#</a></h3>
-<blockquote>
-<div><p>FunctionSeparable: f(x,y) = f1(x)*f2(y)</p>
-</div></blockquote>
+<h3>Separable Function<a class="headerlink" href="#separable-function" title="Link to this heading">#</a></h3>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/functions/FunctionSeparable.hh">src/functions/FunctionSeparable.hh</a></p>
+<p>FunctionSeparable: f(x,y) = f1(x)*f2(y)</p>
 <p>A separable function is defined as the product of other functions such as</p>
 <div class="math notranslate nohighlight">
 \[f(x_0, x_1,...,x_{{n-1}}) = f_1(x_0)\, f_2(x_1,...,x_{{n-1}})\]</div>
@@ -1186,10 +1177,9 @@ Note that one of the parameters in a multi-valued linear function can be time.</
 </div>
 </section>
 <section id="additive-function">
-<h3>Additive Function<a class="headerlink" href="#additive-function" title="Permalink to this heading">#</a></h3>
-<blockquote>
-<div><p>FunctionAdditive: f(x,y) = f1(x,y) + f2(x,y)</p>
-</div></blockquote>
+<h3>Additive Function<a class="headerlink" href="#additive-function" title="Link to this heading">#</a></h3>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/functions/FunctionAdditive.hh">src/functions/FunctionAdditive.hh</a></p>
+<p>FunctionAdditive: f(x,y) = f1(x,y) + f2(x,y)</p>
 <p>An additive function simply adds two other function results together.</p>
 <div class="math notranslate nohighlight">
 \[f(x) = f_1(x) + f_2(x)\]</div>
@@ -1215,10 +1205,9 @@ Note that one of the parameters in a multi-valued linear function can be time.</
 </div>
 </section>
 <section id="multiplicative-function">
-<h3>Multiplicative Function<a class="headerlink" href="#multiplicative-function" title="Permalink to this heading">#</a></h3>
-<blockquote>
-<div><p>FunctionMultiplicative: f(x,y) = f1(x,y) * f2(x,y)</p>
-</div></blockquote>
+<h3>Multiplicative Function<a class="headerlink" href="#multiplicative-function" title="Link to this heading">#</a></h3>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/functions/FunctionMultiplicative.hh">src/functions/FunctionMultiplicative.hh</a></p>
+<p>FunctionMultiplicative: f(x,y) = f1(x,y) * f2(x,y)</p>
 <p>A multiplicative function simply multiplies two other function results together.</p>
 <div class="math notranslate nohighlight">
 \[f(x) = f_1(x) * f_2(x)\]</div>
@@ -1244,10 +1233,9 @@ Note that one of the parameters in a multi-valued linear function can be time.</
 </div>
 </section>
 <section id="composition-function">
-<h3>Composition Function<a class="headerlink" href="#composition-function" title="Permalink to this heading">#</a></h3>
-<blockquote>
-<div><p>FunctionComposition: f(x,y) = f1(x,y) * f2(x,y)</p>
-</div></blockquote>
+<h3>Composition Function<a class="headerlink" href="#composition-function" title="Link to this heading">#</a></h3>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/functions/FunctionComposition.hh">src/functions/FunctionComposition.hh</a></p>
+<p>FunctionComposition: f(x,y) = f1(x,y) * f2(x,y)</p>
 <p>Function composition simply applies one function to the result of another.</p>
 <div class="math notranslate nohighlight">
 \[f(x) = f_1( f_2(x) )\]</div>
@@ -1272,10 +1260,9 @@ Note that one of the parameters in a multi-valued linear function can be time.</
 </div>
 </section>
 <section id="piecewise-bilinear-function">
-<h3>Piecewise Bilinear Function<a class="headerlink" href="#piecewise-bilinear-function" title="Permalink to this heading">#</a></h3>
-<blockquote>
-<div><p>FunctionBilinear: a piecewise bilinear function.</p>
-</div></blockquote>
+<h3>Piecewise Bilinear Function<a class="headerlink" href="#piecewise-bilinear-function" title="Link to this heading">#</a></h3>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/functions/FunctionBilinear.hh">src/functions/FunctionBilinear.hh</a></p>
+<p>FunctionBilinear: a piecewise bilinear function.</p>
 <p>A piecewise bilinear function extends the linear form of the tabular function to two variables.</p>
 <p>Define <span class="math notranslate nohighlight">\(i(x) = i : x_i &lt; x &lt;= x_{{i+1}}\)</span> and similarly <span class="math notranslate nohighlight">\(j(y) = j : y_j &lt; y &lt;= y_{{j+1}}\)</span> for monotonically increasing <span class="math notranslate nohighlight">\(x_i\)</span> and <span class="math notranslate nohighlight">\(y_j\)</span>.</p>
 <p>Given a two-dimensional array <span class="math notranslate nohighlight">\(u_{i,j}\)</span>, <span class="math notranslate nohighlight">\(f\)</span> is then defined by
@@ -1286,7 +1273,7 @@ bounds.</p>
 <div class="admonition-function-bilinear-spec admonition" id="function-bilinear-spec">
 <p class="admonition-title">function-bilinear-spec</p>
 <ul class="simple">
-<li><p><cite>“file</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> HDF5 filename of the data</p></li>
+<li><p><cite>“file</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> HDF5 or NetCDF filename of the data</p></li>
 <li><p><cite>“row header</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> name of the row dataset, the <span class="math notranslate nohighlight">\(x_i\)</span></p></li>
 <li><p><cite>“row coordinate</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> one of <cite>“t</cite>”,`”x`”,`”y`”,`”z`”</p></li>
 <li><p><cite>“column header</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> name of the column dataset, the <span class="math notranslate nohighlight">\(y_i\)</span></p></li>
@@ -1307,10 +1294,9 @@ bounds.</p>
 </div>
 </section>
 <section id="distance-function">
-<h3>Distance Function<a class="headerlink" href="#distance-function" title="Permalink to this heading">#</a></h3>
-<blockquote>
-<div><p>FunctionDistance: distance from a reference point.</p>
-</div></blockquote>
+<h3>Distance Function<a class="headerlink" href="#distance-function" title="Link to this heading">#</a></h3>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/functions/FunctionDistance.hh">src/functions/FunctionDistance.hh</a></p>
+<p>FunctionDistance: distance from a reference point.</p>
 <p>A distance function calculates distance from reference point <span class="math notranslate nohighlight">\(x_0\)</span>
 using by the following expression:</p>
 <div class="math notranslate nohighlight">
@@ -1333,10 +1319,9 @@ using by the following expression:</p>
 </div>
 </section>
 <section id="monomial-function">
-<h3>Monomial Function<a class="headerlink" href="#monomial-function" title="Permalink to this heading">#</a></h3>
-<blockquote>
-<div><p>FunctionMonomial: a multivariate monomial function.</p>
-</div></blockquote>
+<h3>Monomial Function<a class="headerlink" href="#monomial-function" title="Link to this heading">#</a></h3>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/functions/FunctionMonomial.hh">src/functions/FunctionMonomial.hh</a></p>
+<p>FunctionMonomial: a multivariate monomial function.</p>
 <p>A multi-variable monomial function is given by the following expression:</p>
 <div class="math notranslate nohighlight">
 \[f(x) = c \prod_{j=0}^{n} (x_j - x_{0,j})^{p_j}\]</div>
@@ -1365,10 +1350,9 @@ Note that the first parameter in <span class="math notranslate nohighlight">\(x\
 </div>
 </section>
 <section id="standard-math-function">
-<h3>Standard Math Function<a class="headerlink" href="#standard-math-function" title="Permalink to this heading">#</a></h3>
-<blockquote>
-<div><p>Provides access to many common mathematical functions.</p>
-</div></blockquote>
+<h3>Standard Math Function<a class="headerlink" href="#standard-math-function" title="Link to this heading">#</a></h3>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/functions/FunctionStandardMath.hh">src/functions/FunctionStandardMath.hh</a></p>
+<p>Provides access to many common mathematical functions.</p>
 <p>These functions allow to set up non-trivial time-dependent boundary conditions
 which increases a set of analytic solutions that can be used in convergence
 analysis tests.</p>
@@ -1417,21 +1401,24 @@ is 0.</p></li>
 <p>This example defines function <cite>1e-7 sqrt(t-0.1)</cite>.</p>
 </section>
 <section id="pde-advection">
-<h3>PDE_Advection<a class="headerlink" href="#pde-advection" title="Permalink to this heading">#</a></h3>
+<h3>PDE_Advection<a class="headerlink" href="#pde-advection" title="Link to this heading">#</a></h3>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/operators/PDE_Advection.hh">src/operators/PDE_Advection.hh</a></p>
 <p>A high-order advection operator may have different domain and range and therefore requires two schemas.
 The structure of the new schema is described in the previous section.
 A high-order advection operator has two terms in a weak formulation, corresponding to
 volume and surface integrals. These two terms are discretixed using two operators with
 matrix of types <em>advection</em> and <em>flux</em>, respectively.</p>
+<div class="admonition-advection-op-spec admonition">
+<p class="admonition-title">advection_op-spec</p>
 <ul class="simple">
-<li><p><cite>“pks operator name</cite>” [list] a PK specific name for the advection operator.</p>
+<li><p><cite>“pks operator name</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code> a PK specific name for the advection operator.</p>
 <ul>
-<li><p><cite>“method</cite>” [string] defines a discretization method. The available option is <cite>“dg modal</cite>”.</p></li>
-<li><p><cite>“method order</cite>” [int] defines method order. For example, the classical low-order finite
+<li><p><cite>“method</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> defines a discretization method. The available option is <cite>“dg modal</cite>”.</p></li>
+<li><p><cite>“method order</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> defines method order. For example, the classical low-order finite
 volume scheme is equivalent to DG of order 0.</p></li>
-<li><p><cite>“matrix type</cite>” [string] defines matrix type. The supported options are <cite>“advection</cite>”
+<li><p><cite>“matrix type</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> defines matrix type. The supported options are <cite>“advection</cite>”
 and <cite>“flux</cite>”.</p></li>
-<li><p><cite>“dg basis</cite>” [string] defines bases for DG schemes. The available options are
+<li><p><cite>“dg basis</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> defines bases for DG schemes. The available options are
 <cite>“regularized</cite>” (recommended), <cite>“normalized</cite>”, <cite>“orthonormalized</cite>”, and <cite>“natural</cite>”
 (not recommended).</p></li>
 <li><p><cite>“gradient operator on test function</cite>” [bool] defines place of the gradient operator.
@@ -1440,13 +1427,14 @@ This option is needed for discretizing volumetric integrals.</p></li>
 <li><p><cite>“jump operator on test function</cite>” [bool] defines place of the jump operator.
 For integration by parts schemes, the jump operator is applied to a test function.
 This option is needed for discretizing surface fluxes.</p></li>
-<li><p><cite>“flux formula</cite>” [string] defines type of the flux. The available options
+<li><p><cite>“flux formula</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> defines type of the flux. The available options
 are <cite>“Rusanov</cite>” (default), <cite>“upwind</cite>”, <cite>“downwind</cite>”, and <cite>“NavierStokes</cite>”.</p></li>
-<li><p><cite>“schema domain</cite>” [list] defines a discretization schema for the operator domain.</p></li>
-<li><p><cite>“schema range</cite>” [list] defines a discretization schema for the operator range.</p></li>
+<li><p><cite>“schema domain</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code> defines a discretization schema for the operator domain.</p></li>
+<li><p><cite>“schema range</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code> defines a discretization schema for the operator range.</p></li>
 </ul>
 </li>
 </ul>
+</div>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;pks operator name&quot;</span><span class="nt">&gt;</span>
 <span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;method&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;dg modal&quot;</span><span class="nt">/&gt;</span>
 <span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;method order&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;int&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;2&quot;</span><span class="nt">/&gt;</span>
@@ -1481,6 +1469,7 @@ It employes the old schema.</p>
 <span class="nt">&lt;/ParameterList&gt;</span>
 </pre></div>
 </div>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/operators/PDE_AdvectionUpwind.hh">src/operators/PDE_AdvectionUpwind.hh</a></p>
 <p><code class="docutils literal notranslate"><span class="pre">PDE_AdvectionUpwind</span></code> assembles the discrete form of:</p>
 <div class="math notranslate nohighlight">
 \[\nabla \cdot (q C)\]</div>
@@ -1490,15 +1479,14 @@ for use in diffusion-dominated advection-diffusion equations.</p>
 </section>
 </section>
 <section id="field-initializers">
-<h2>Field Initializers<a class="headerlink" href="#field-initializers" title="Permalink to this heading">#</a></h2>
+<h2>Field Initializers<a class="headerlink" href="#field-initializers" title="Link to this heading">#</a></h2>
 <p>Fields, also known by their underlying datatype, the CompositeVector,
 can be initialized in a variety of ways.  These are used in a variety
 of places as generic capability.</p>
 <section id="function-initialization">
-<h3>Function Initialization<a class="headerlink" href="#function-initialization" title="Permalink to this heading">#</a></h3>
-<blockquote id="compositevectorfunction">
-<div><p>Mesh Functions, evaluate a function on a mesh and stick the result in a vector.</p>
-</div></blockquote>
+<h3>Function Initialization<a class="headerlink" href="#function-initialization" title="Link to this heading">#</a></h3>
+<p id="compositevectorfunction"><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/mesh_functions/CompositeVectorFunctionFactory.hh">src/mesh_functions/CompositeVectorFunctionFactory.hh</a></p>
+<p>Mesh Functions, evaluate a function on a mesh and stick the result in a vector.</p>
 <p>CompositeVectorFunctions are ways of evaluating a piecewise function on a
 mesh and sticking the result into a CompositeVector.</p>
 <p>This is used in a variety of ways – Initial Conditions, Boundary
@@ -1540,9 +1528,10 @@ used to initialize all existing components.</p></li>
 </div>
 </section>
 <section id="column-file-initialization">
-<h3>Column File Initialization<a class="headerlink" href="#column-file-initialization" title="Permalink to this heading">#</a></h3>
+<h3>Column File Initialization<a class="headerlink" href="#column-file-initialization" title="Link to this heading">#</a></h3>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/mesh_functions/ColumnMeshFunction.hh">src/mesh_functions/ColumnMeshFunction.hh</a></p>
 <p>Interpolate a depth-based, 1D column of data onto a mesh.  Values are
-prescribed only to cells.  Expected is an HDF5 file in the format:</p>
+prescribed only to cells.  Expected is an HDF5 or NetCDF file in the format:</p>
 <p>Depth coordinates z:</p>
 <blockquote>
 <div><dl class="simple">
@@ -1556,8 +1545,8 @@ z_i &gt; z_(i-1)</p>
 <blockquote>
 <div><p>/f[:] = (f_0(z_0), f_1(z_1), …, f_n(z_n))</p>
 </div></blockquote>
-<div class="admonition-column-initialization-spec admonition" id="column-initialization-spec">
-<p class="admonition-title">column-initialization-spec</p>
+<div class="admonition-column-file-initialization-spec admonition" id="column-file-initialization-spec">
+<p class="admonition-title">column-file-initialization-spec</p>
 <ul class="simple">
 <li><p><cite>“file</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> HDF5 filename</p></li>
 <li><p><cite>“z header</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> name of the z-coordinate data: <cite>z</cite> above.  Depth
@@ -1567,7 +1556,15 @@ coordinates (positive downward from the surface), [m]</p></li>
 </div>
 </section>
 <section id="exodus-file-initialization">
-<h3>Exodus File Initialization<a class="headerlink" href="#exodus-file-initialization" title="Permalink to this heading">#</a></h3>
+<h3>Exodus File Initialization<a class="headerlink" href="#exodus-file-initialization" title="Link to this heading">#</a></h3>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/state/IO.hh">src/state/IO.hh</a></p>
+<div class="admonition-exodus-file-initialization-spec admonition" id="exodus-file-initialization-spec">
+<p class="admonition-title">exodus-file-initialization-spec</p>
+<ul class="simple">
+<li><p><cite>“file</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> The filename to read.</p></li>
+<li><p><cite>“attributes</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> List of variables to read from the file.</p></li>
+</ul>
+</div>
 </section>
 </section>
 </section>
@@ -1609,8 +1606,8 @@ coordinates (positive downward from the surface), [m]</p></li>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
-<script src="../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -1630,7 +1627,7 @@ coordinates (positive downward from the surface), [m]</p></li>
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.2.1.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
     <br/>
   </p>
 </div>
@@ -1643,7 +1640,8 @@ coordinates (positive downward from the surface), [m]</p></li>
       
         <div class="footer-item">
 <p class="theme-version">
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.3.
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
 </p></div>
       
     </div>

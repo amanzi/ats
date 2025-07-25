@@ -10,13 +10,13 @@
       averaged to faces, while the absolute permeability may be a
       tensor. We therefore store the first three terms together, but
       incorrectly call this "relative_permeability." Furthermore,
-      because K is order :math:`10^{\{-10 \dash -15\}}`, but
+      because K is order :math:`10^{\{-10 -- -15\}}`, but
       :math:`\frac{{n}}{{\mu}}` is order :math:`10^7`, we are
       multiplying a very small number by a very large number, a
       classic problem in numerics.  Therefore, we typically rescale
       both, moving 7 orders of magnitude off of the scalar and putting
       them on the tensor.  As a result, the units of this variable are
-      something like: :math:`[mol m^-3 Pa^-1 s^-1 10^7]`, and typical
+      something like: [mol m^-3 Pa^-1 s^-1 10^7]`, and typical
       values range from 0 to ~6.  Note that the rescaling factor is
       NOT stored on the absolute permeability, so permeability is in
       the typical units :math:`[m^2]`.
@@ -31,4 +31,9 @@
    6. We use the word "specific" to mean a quantity that is per unit
       extent, e.g. specific enthalpy is per unit mol of water, or
       specific leaf area is per unit dry mass.
-
+   7. This is somewhat of a misnomer -- molar density is a property of
+      a component in a phase.  These are the molar density of H2O in a
+      given phase, not total mols in a given phase.  Perhaps a better
+      name would be molar_density_water_as_liquid.
+   8. Note that, unless otherwise specified, [mol] always means mols of water.
+   9. [mol C] implies mols of an arbitrary component C.

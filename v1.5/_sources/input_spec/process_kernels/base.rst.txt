@@ -1,0 +1,181 @@
+Base PKs
+========
+There are several types of PKs, and each PK has its own valid input
+spec.  However, there are three main types of PKs, from which nearly
+all PKs derive.  Note that none of these are true PKs and cannot stand
+alone.
+
+PK base class
+-------------
+ The interface for a Process Kernel, an equation or system of equations.
+
+A process kernel represents a single or system of partial/ordinary
+differential equation(s) or conservation law(s), and is used as the
+fundamental unit for coupling strategies.
+
+Implementations of this interface typically are either an MPC
+(multi-process coupler) whose job is to heirarchically couple several
+other PKs and represent the system of equations, or a Physical PK,
+which represents a single equation.
+
+Note there are two PK specs -- the first is the "typed" spec, which appears in
+the "cycle driver" list in the PK tree and has no other parameters other than
+its type and its children.  The second is the spec for the base class PK, which
+is inherited and included by each actual PK, lives in the "PKs" sublist of
+"main", and has all needed parameters.
+
+.. _pk-typed-spec:
+.. admonition:: pk-typed-spec
+
+    * `"PK type`" ``[string]`` One of the registered PK types
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="PK tree">
+    <ParameterList name="Top level MPC">
+      <Parameter name="PK type" type="string" value="strong MPC"/>
+      <ParameterList name="sub PK 1">
+        ...
+      </ParameterList>
+      <ParameterList name="sub PK 2">
+        ...
+      </ParameterList>
+      ...
+    </ParameterList>
+  </ParameterList>
+
+
+.. _pk-spec:
+.. admonition:: pk-spec
+
+    * `"PK type`" ``[string]`` One of the registered PK types.  Note this must
+      match the corresponding entry in the ``[pk-typed-spec]``
+    * `"verbose object`" ``[verbose-object-spec]`` **optional** See `Verbose Object`_
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="PKs">
+    <ParameterList name="my cool PK">
+      <Parameter name="PK type" type="string" value="my cool PK"/>
+       ...
+    </ParameterList>
+  </ParameterList>
+
+
+
+
+PK: Physical
+------------
+ A base class with default implementations of methods for a leaf of the PK tree (a conservation equation, or similar).
+
+`PKPhysicalBase` is a base class providing some functionality for PKs which
+are defined on a single mesh, and represent a single process model.  Typically
+all leaves of the PK tree will inherit from `PKPhysicalBase`.
+
+.. _pk-physical-default-spec:
+.. admonition:: pk-physical-default-spec
+
+    * `"domain name`" ``[string]`` Name from the Mesh_ list on which this PK is defined.
+
+    * `"primary variable key`" ``[string]`` The primary variable
+      e.g. `"pressure`", or `"temperature`".  Most PKs supply sane defaults.
+
+    * `"initial condition`" ``[initial-conditions-spec]``  See InitialConditions_.
+
+    * `"max valid change`" ``[double]`` **-1** Sets a limiter on what is a
+      valid change in a single timestep.  Changes larger than this are declared
+      invalid and the timestep shrinks.  By default, any change is valid.
+      Units are the same as the primary variable.
+
+    INCLUDES:
+
+    - ``[pk-spec]`` This *is a* PK_.
+    - ``[debugger-spec]`` Uses a Debugger_
+
+
+
+
+
+PK: BDF
+-------
+ A base class with default implementations of methods for a PK that can be implicitly integrated in time.
+
+`PKBDFBase` is a base class from which PKs that want to use the `BDF`
+series of implicit time integrators must derive.  It specifies both the
+`BDFFnBase` interface and implements some basic functionality for `BDF`
+PKs.
+
+.. _pk-bdf-default-spec:
+.. admonition:: pk-bdf-default-spec
+
+    * `"initial time step [s]`" ``[double]`` **1.** Initial time step size [s]
+
+    * `"assemble preconditioner`" ``[bool]`` **true** A flag, typically not set
+      by user but by an MPC.
+
+    * `"time integrator`" ``[bdf1-ti-spec]`` **optional**
+      A TimeIntegrator_.  Note that this is only required if this PK is not
+      strongly coupled to other PKs.
+
+    * `"inverse`" ``[inverse-typed-spec]`` **optional** A Preconditioner_.
+      Note that this is only used if this PK is not strongly coupled to other PKs.
+
+    INCLUDES:
+
+    - ``[pk-spec]`` This *is a* PK_.
+
+
+
+
+
+PK: Physical and BDF
+--------------------
+ Default implementation of both BDF and Physical PKs.
+
+A base class for all PKs that are both physical, in the sense that they
+implement an equation and are not couplers, and BDF, in the sense that they
+support the implicit integration interface.  This largely just supplies a
+default error norm based on error in conservation relative to the extent of the
+conserved quantity.
+
+By default, the error norm used by solvers is given by:
+
+:math:`ENORM(u, du) = |du| / ( a_tol + r_tol * |u| )`
+
+The defaults here are typically good, or else good defaults are set in the
+code, so usually are not supplied by the user.
+
+
+.. _pk-physical-bdf-default-spec:
+.. admonition:: pk-physical-bdf-default-spec
+
+    * `"conserved quantity key`" ``[string]`` Name of the conserved quantity.
+      Usually a sane default is set by the PK.
+
+    * `"absolute error tolerance`" ``[double]`` **1.0** Absolute tolerance,
+      :math:`a_tol` in the equation above.  Unit are the same as the conserved
+      quantity.  Note that this default is often overridden by PKs with more
+      physical values, and very rarely are these set by the user.
+
+    * `"relative error tolerance`" ``[double]`` **1.0** Relative tolerance,
+      :math:`r_tol` in the equation above.  ``[-]`` Note that this default can
+      be overridden by PKs with more physical values, and very rarely are these
+      set by the user.
+
+    * `"flux error tolerance`" ``[double]`` **1.0** Relative tolerance on the
+      flux.  Note that this default is often overridden by PKs with more physical
+      values, and very rarely are these set by the user.
+
+    INCLUDES:
+
+    - ``[pk-bdf-default-spec]`` *Is a* `PK: BDF`_
+    - ``[pk-physical-default-spec]`` *Is a* `PK: Physical`_
+
+
+
+
+

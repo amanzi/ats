@@ -51,7 +51,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.6';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             false;
         </script>
@@ -325,6 +325,7 @@ Version dev</div>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../state/index.html">State</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../state/primary.html">Primary Variables</a></li>
+
 <li class="toctree-l2"><a class="reference internal" href="../../state/independent.html">Independent Variables</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../state/secondary.html">Secondary Variables</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../state/conserved.html">Conserved quantities</a></li>
@@ -444,21 +445,22 @@ be paired with a PK for reactions, typically in an operator-split form, to
 solve reactive transport.</p>
 <p>The advection-dispersion equation for component <em>i</em> may be written as:</p>
 <div class="math notranslate nohighlight">
-\[\frac{\partial (\Theta \xi_i)}{\partial t} = - \boldsymbol{\nabla} \cdot (\boldsymbol{q} \xi_i)
-+ \boldsymbol{\nabla} \cdot (\Theta \, (\boldsymbol{D^*}_l + \tau \boldsymbol{D}_i) \boldsymbol{\nabla} \xi_i) + Q_s,\]</div>
-<p>The primary variable for this PK is <span class="math notranslate nohighlight">\(\xi_i\)</span>, the <strong>mole ratio</strong> of a
-specie <span class="math notranslate nohighlight">\(i\)</span> in the aqueous phase, with units of [mol i / mol H2O].</p>
+\[\frac{\partial (\Theta \chi_i)}{\partial t} = - \boldsymbol{\nabla} \cdot (\boldsymbol{q} \chi_i)
++ \boldsymbol{\nabla} \cdot (\Theta \, (\boldsymbol{D^*}_l + \tau \boldsymbol{D}_i) \boldsymbol{\nabla} \chi_i) + Q_s,\]</div>
+<p>The primary variable for this PK is <span class="math notranslate nohighlight">\(\chi_i\)</span>, the <strong>mole fraction</strong> of a
+specie <span class="math notranslate nohighlight">\(i\)</span> in the aqueous phase, with units of [mol i mol liquid^-1].</p>
 <p>This seems a bit odd to most people who are used to reactive transport codes
-where the primary variable is total component concentration <span class="math notranslate nohighlight">\(C\)</span>, in units of [mol i
-/ L].  The reason for this differences is to better enable variable-density
-problems.  Note that the two are related:</p>
+where the primary variable is total component concentration <span class="math notranslate nohighlight">\(C\)</span>, in units
+of [mol i L^-1].  The reason for this differences is to better enable
+variable-density problems.  Note that the two are related:</p>
 <div class="math notranslate nohighlight">
-\[C_i = n_l \xi_i\]</div>
-<p>for molar density of liquid water <span class="math notranslate nohighlight">\(n_l\)</span>.</p>
-<p>For reactive transport problems, both concentration and mole ratio are output
-in the visualization file.  For transport-only problems, concentration may be
-output by adding a total component concentration evaluator that multiplies the
-two quantities using an <cite>“evaluator type</cite>” = <cite>“multiplicative evaluator</cite>”.</p>
+\[C_i = n_l \chi_i\]</div>
+<p>for molar density of liquid <span class="math notranslate nohighlight">\(n_l\)</span>.</p>
+<p>For reactive transport problems, both concentration and mole fraction are
+output in the visualization file.  For transport-only problems, concentration
+may be output by adding a total component concentration evaluator that
+multiplies the two quantities using an <cite>“evaluator type</cite>” = <cite>“multiplicative
+evaluator</cite>”.</p>
 <p><cite>“PK type</cite>” = <cite>“transport ATS</cite>”</p>
 <div class="admonition-pk-transport-ats-spec admonition" id="pk-transport-ats-spec">
 <p class="admonition-title">pk-transport-ats-spec</p>
@@ -505,7 +507,7 @@ advection schemes.  See <span class="xref std std-ref">Reconstructions</span>.</
 </ul>
 <p>KEYS</p>
 <ul>
-<li><p><cite>“primary variable</cite>” <strong>“molar_ratio”</strong> [mol C mol H2O^-1]</p></li>
+<li><p><cite>“primary variable</cite>” <strong>“mole_fraction”</strong> [mol C mol H2O^-1]</p></li>
 <li><p><cite>“liquid water content</cite>” <strong>“water_content”</strong> This variable is a multiplier
 in in the accumulation term. This is often just <cite>“water_content</cite>”, but
 not in frozen cases, where it must be defined by the user (typically as
@@ -525,9 +527,9 @@ concentration and a water source, is evaluated as:</p>
 <blockquote>
 <div><p>Concentration [mol C L^-1] <span class="math notranslate nohighlight">\(\times\)</span>
 1000 [L m^-3] of water <span class="math notranslate nohighlight">\(\times\)</span>
-water source [mol H2O m^-3 s^-1] <span class="math notranslate nohighlight">\(\times\)</span>
+water source [mol m^-3 s^-1] <span class="math notranslate nohighlight">\(\times\)</span>
 volume of injection domain [m^3] <span class="math notranslate nohighlight">\(/\)</span>
-molar density of water [mol H2O m^-3]</p>
+molar density of water [mol m^-3]</p>
 </div></blockquote>
 </li>
 </ul>
@@ -649,7 +651,69 @@ in the regression tests and demos.</p>
 <section id="sediment-transport">
 <h2>Sediment Transport<a class="headerlink" href="#sediment-transport" title="Link to this heading">#</a></h2>
 <p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/transport/sediment_transport_pk.hh">src/physics/ats/src/pks/transport/sediment_transport_pk.hh</a></p>
-<p>Document me &#64;dasvyat</p>
+<p>This PK solves sediment transport in surface flows. The assumpotion is that
+there is only one sediment component which is called ‘sediment’. The
+advection-diffusion equation for this component</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial (\Theta \chi_i)}{\partial t} = - \boldsymbol{\nabla} \cdot (\boldsymbol{q} \chi_i)
++ \boldsymbol{\nabla} \cdot ( \tau \, \boldsymbol{\nabla} \chi_i) + Q_e - Q_t - Q_s,\]</div>
+<p>As well as in transport ATS PK the primary variable is the <strong>mole fraction</strong> of a sediment with units of
+[mol i mol liquid^-1]</p>
+<p><cite>“PK type</cite>” = <cite>“sediment transport</cite>”</p>
+<div class="admonition-pk-sediment-transport-spec admonition" id="pk-sediment-transport-spec">
+<p class="admonition-title">pk-sediment-transport-spec</p>
+<ul class="simple">
+<li><p><cite>“sediment diffusion coefficient [m^2 s^-1]</cite>” <code class="docutils literal notranslate"><span class="pre">[molecular-diffusivity-spec]</span></code> See
+below.</p></li>
+</ul>
+<p>Math and solver algorithm options:</p>
+<ul class="simple">
+<li><p><cite>“diffusion</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-diffusion-typedinline-spec]</span></code> Diffusion drives the
+distribution.  Typically we use finite volume here, but mimetic schemes
+may be used.  See <a class="reference internal" href="../../math/operators.html#diffusion"><span class="std std-ref">Diffusion</span></a></p></li>
+<li><p><cite>“diffusion preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-diffusion-typedinline-spec]</span></code> Inverse
+of the above.  Likely only Jacobian term options are needed here, as the
+others default to the same as the <cite>“diffusion</cite>” list.  See
+<a class="reference internal" href="../../math/operators.html#diffusion"><span class="std std-ref">Diffusion</span></a>.</p></li>
+<li><p><cite>“inverse</cite>” <code class="docutils literal notranslate"><span class="pre">[inverse-typed-spec]</span></code> <span class="xref std std-ref">Inverse</span> method for the
+diffusion-dispersion solve.  See <span class="xref std std-ref">Inverse</span>.</p></li>
+<li><p><cite>“cfl</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.0</strong> Courant-Friedrichs-Lewy condition, a limiter
+on the timestep size relative to spatial size.  Must be &lt;= 1.</p></li>
+<li><p><cite>“advection spatial discretization order</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>1</strong> Defines
+accuracy of the spatial discretization in the advection term.  It permits
+values 1 or 2. Default value is 1 (donor upwind) but 2 (a limiter scheme)
+is much less numerically diffusive, and recommended for most cases.</p></li>
+<li><p><cite>“temporal discretization order</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>1</strong> Defines accuracy of
+temporal discretization.  It permits values 1 (forward Euler) and 2 (a
+Runga-Kutta scheme).</p></li>
+<li><p><cite>“reconstruction</cite>” <code class="docutils literal notranslate"><span class="pre">[reconstruction-spec]</span></code> collects reconstruction
+parameters for use in reconstructing the velocity field for 2nd order
+advection schemes.  See <span class="xref std std-ref">Reconstructions</span>.</p></li>
+</ul>
+<p>KEYS</p>
+<ul>
+<li><p><cite>“primary variable</cite>” <strong>“mole_fraction”</strong> [mol C mol H2O^-1]</p></li>
+<li><p><cite>“liquid water content</cite>” <strong>“water_content”</strong> This variable is a multiplier
+in in the accumulation term. This is often just <cite>“water_content</cite>”, but
+not in frozen cases, where it must be defined by the user (typically as
+<span class="math notranslate nohighlight">\(\phi s n_l |V|\)</span> in the subsurface, or <span class="math notranslate nohighlight">\(h n_l |V|\)</span> on the
+surface.</p></li>
+<li><p><cite>“molar density liquid</cite>” [mol H2O m^-3]</p></li>
+<li><p><cite>“water flux</cite>” The face-based water flux in [mol H2O s^-1].</p></li>
+<li><p><cite>“water source</cite>” Defines the water injection rate [mol H2O m^-2 s^-1] in
+surface and [mol H2O m^-3 s^-1] in subsurface) which applies to
+concentrations specified by the <cite>“geochemical conditions</cite>”.  Note that if
+this PK is coupled to a surface flow PK, the unit of the water source
+there <em>must</em> be in [mol m^-2 s^-1], <em>not</em> in [m s^-1] as is an option for
+that PK (e.g. <cite>“water source in meters</cite>” must be set to <cite>“false</cite>” in the
+overland flow PK).</p>
+<p>The sources for sediments transport are defined via “erosion rate”,
+<span class="math notranslate nohighlight">\(Q_e\)</span>, “traping rate”, <span class="math notranslate nohighlight">\(Q_t\)</span>, “settling rate”, <span class="math notranslate nohighlight">\(Q_s\)</span>
+evaluators. These evaluators are defined in unit of [m/s]. Moreover
+sediment density has to be defined as a scalar value.</p>
+</li>
+</ul>
+</div>
 </section>
 </section>
 

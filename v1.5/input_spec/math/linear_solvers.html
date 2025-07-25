@@ -1,0 +1,747 @@
+
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Linear Solvers &#8212; Amanzi-ATS</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/custom_theme.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'input_spec/math/linear_solvers';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.15.3';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
+        </script>
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
+    <script src="../../_static/main.js"></script>
+    <link rel="icon" href="../../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Preconditioners" href="preconditioners.html" />
+    <link rel="prev" title="Nonlinear Solver" href="nonlinear_solvers.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/logo_full.png" class="logo__image only-light" alt="Amanzi-ATS documentation -- Home"/>
+    <script>document.write(`<img src="../../_static/logo_full.png" class="logo__image only-dark" alt="Amanzi-ATS documentation -- Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../demos.html">
+    ATS Demo Problems
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    ATS Input Specification
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../demos.html">
+    ATS Demo Problems
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    ATS Input Specification
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item"><!-- This will display the version of the docs -->
+Version 1.5</div>
+        <div class="sidebar-primary-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="pst-version-switcher-button-2"
+      type="button"
+      class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-2"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="pst-version-switcher-list-2"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-2">
+      <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">About the Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html">Main</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="../mesh.html">Mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../region.html">Region</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../io/index.html">IO</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../io/ioevent.html">IOEvent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../io/visualization.html">Visualization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../io/observations.html">Observations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../io/checkpoint.html">Checkpoint</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../process_kernels/index.html">Process Kernels</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../process_kernels/base.html">Base PKs</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../process_kernels/physical/index.html">Physical PKs</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../process_kernels/physical/flow.html">Flow PKs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../process_kernels/physical/transport.html">Transport PK</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../process_kernels/physical/energy.html">Energy PKs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../process_kernels/physical/seb.html">Surface Energy Balance PKs</a></li>
+
+
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../process_kernels/mpcs/index.html">MPC</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../process_kernels/mpcs/base.html">Base MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../process_kernels/mpcs/physical.html">Physical MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../process_kernels/mpcs/globalization.html">Globalization Delegates</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../state/index.html">State</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../state/primary.html">Primary Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../state/independent.html">Independent Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../state/secondary.html">Secondary Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../state/conserved.html">Conserved quantities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../state/subsurface_flow.html">Subsurface flow evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../state/surface_flow.html">Surface flow evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../state/thermo.html">Thermodynamic evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../state/eos.html">Equations of State</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../state/seb.html">Surface energy balance evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../state/snow.html">Snow evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../state/canopy.html">Canopy evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../state/bgc.html">Carbon and Biogeochemistry Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../state/multiscale.html">Multiscale Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../state/geometric.html">Geometric evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../state/generic.html">Generic evaluators</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Time integrators, solvers, and other mathematical specs</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="time_integrators.html">Time Integrators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nonlinear_solvers.html">Nonlinear Solver</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Linear Solvers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="preconditioners.html">Preconditioners</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operators.html">Operators</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../common.html">Shared Specs</a></li>
+</ul>
+</div>
+</nav></div>
+        <div class="sidebar-primary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#linear-solver-pcg">Linear Solver: PCG</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#linear-solver-gmres">Linear Solver: GMRES</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#linear-solver-nka">Linear Solver: NKA</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#linear-solver-amesos">Linear Solver: Amesos</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Linear Solver: Amesos</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#linear-solver-belos-gmres">Linear Solver: Belos (GMRES)</a></li>
+</ul>
+  </nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">ATS Input Specification</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Time integrators, solvers, and other mathematical specs</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">Linear Solvers</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="linear-solvers">
+<h1>Linear Solvers<a class="headerlink" href="#linear-solvers" title="Permalink to this heading">#</a></h1>
+<blockquote id="inverse">
+<span id="linear-solver"></span><span id="linearsolvers"></span><span id="linearoperator"></span><div><p>Base class for providing ApplyInverse() methods on operators.</p>
+</div></blockquote>
+<p>Matrix provides existing Operators with an inverse.  Note this may be
+iterative or non-iterative, assembled or non-assembled, approximate or exact to
+machine precision.</p>
+<div class="admonition-inverse-typed-spec admonition" id="inverse-typed-spec">
+<p class="admonition-title">inverse-typed-spec</p>
+<ul class="simple">
+<li><p><cite>“iterative method</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>optional</strong></p></li>
+<li><p><cite>“direct method</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>optional</strong></p></li>
+<li><p><cite>“preconditioning method</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>optional</strong></p></li>
+</ul>
+</div>
+<p>DOCUMENT ME!</p>
+<section id="linear-solver-pcg">
+<h2>Linear Solver: PCG<a class="headerlink" href="#linear-solver-pcg" title="Permalink to this heading">#</a></h2>
+<blockquote>
+<div><p>Preconditioned conjugate gradient method for a linear solver.</p>
+</div></blockquote>
+<div class="admonition-iterative-method-pcg-spec admonition" id="iterative-method-pcg-spec">
+<p class="admonition-title">iterative-method-pcg-spec</p>
+<ul class="simple">
+<li><p><cite>“error tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.e-6</strong> Tolerance on which to declare success.</p></li>
+<li><p><cite>“maximum number of iterations</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>100</strong> Maximum iterations before declaring failure.</p></li>
+<li><p><cite>“overflow tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>3.e50</strong> Error above this value results in failure.</p></li>
+<li><p><cite>“convergence criterial</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> <strong>{relative rhs}</strong> A list of
+criteria, any of which can be applied.  Valid include:</p>
+<ul>
+<li><p><cite>“relative rhs</cite>” : measure error relative to the norm of the RHS vector</p></li>
+<li><p><cite>“relative residual</cite>” : measure error relative to the norm of the residual</p></li>
+<li><p><cite>“absolute residual</cite>” : measure error directly, norm of error</p></li>
+<li><p><cite>“make one iteration</cite>” : require at least one iteration to be performed before declaring success</p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;_PCG with HYPRE AMG&quot;</span><span class="nt">&gt;</span><span class="w">  </span><span class="cm">&lt;!-- parent list --&gt;</span>
+<span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;pcg parameters&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;error tolerance&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;1e-12&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;maximum number of iterations&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;int&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;400&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;convergence criteria&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{relative residual,make one iteration}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;overflow tolerance&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;3.0e+50&quot;</span><span class="nt">/&gt;</span>
+
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;verbose object&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;verbosity level&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;high&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="linear-solver-gmres">
+<h2>Linear Solver: GMRES<a class="headerlink" href="#linear-solver-gmres" title="Permalink to this heading">#</a></h2>
+<blockquote>
+<div><p>Generalized minimum residual method for a linear solver.</p>
+</div></blockquote>
+<p>Based on the methods of Yu. Kuznetsov, 1968; Y.Saad, 1986.  Deflated version of
+GMRES is due to R.Morgan, GMRES with deflated restarting, 2002 SISC; S.Rollin,
+W.Fichtner, Improving accuracy of GMRES with deflated restarting, 2007 SISC.</p>
+<div class="admonition-iterative-method-gmres-spec admonition" id="iterative-method-gmres-spec">
+<p class="admonition-title">iterative-method-gmres-spec</p>
+<ul class="simple">
+<li><p><cite>“error tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.e-6</strong> Tolerance on which to declare success.</p></li>
+<li><p><cite>“maximum number of iterations</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>100</strong> Maximum iterations before declaring failure.</p></li>
+<li><p><cite>“overflow tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>3.e50</strong> Error above this value results in failure.</p></li>
+<li><p><cite>“convergence criterial</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> <strong>{relative rhs}</strong> A list of
+criteria, any of which can be applied.  Valid include:</p>
+<ul>
+<li><p><cite>“relative rhs</cite>” : measure error relative to the norm of the RHS vector</p></li>
+<li><p><cite>“relative residual</cite>” : measure error relative to the norm of the residual</p></li>
+<li><p><cite>“absolute residual</cite>” : measure error directly, norm of error</p></li>
+<li><p><cite>“make one iteration</cite>” : require at least one iteration to be performed before declaring success</p></li>
+</ul>
+</li>
+<li><p><cite>“size of Krylov space</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>10</strong> Size of the Krylov space used to span the residual.</p></li>
+<li><p><cite>“controller training start</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>0</strong> Start iteration for determining
+convergence rates. (Add more please!)</p></li>
+<li><p><cite>“controller training end</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>3</strong> Start iteration for determining
+convergence rates. (Add more please!)</p></li>
+<li><p><cite>“preconditioning strategy</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>left</strong> Valid are “left” and
+“right”-type preconditioning (see Saad 1986)</p></li>
+<li><p><cite>“maximum size of deflation space</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>0</strong> Size of the deflation space, see Rollin et al.</p></li>
+</ul>
+</div>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;_GMRES with HYPRE AMG&quot;</span><span class="nt">&gt;</span><span class="w">  </span><span class="cm">&lt;!-- parent list --&gt;</span>
+<span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;gmres parameters&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;error tolerance&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;1e-12&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;maximum number of iterations&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;int&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;400&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;convergence criteria&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{relative residual}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;size of Krylov space&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;int&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;10&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;overflow tolerance&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;3.0e+50&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;maximum size of deflation space&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;int&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;preconditioning strategy`&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;left&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;release Krylov vectors&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;bool&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;false&quot;</span><span class="nt">/&gt;</span>
+
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;verbose object&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;verbosity level&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;high&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+
+<span class="cm">&lt;!-- Alternative implementation</span>
+<span class="cm">&lt;ParameterList name=&quot;belos gmres parameters&quot;&gt;</span>
+<span class="cm">  &lt;Parameter name=&quot;error tolerance&quot; type=&quot;double&quot; value=&quot;1e-12&quot;/&gt;</span>
+<span class="cm">  &lt;Parameter name=&quot;maximum number of iterations&quot; type=&quot;int&quot; value=&quot;400&quot;/&gt;</span>
+<span class="cm">  &lt;Parameter name=&quot;convergence criteria&quot; type=&quot;Array(string)&quot; value=&quot;{relative residual}&quot;/&gt;</span>
+<span class="cm">  &lt;Parameter name=&quot;size of Krylov space&quot; type=&quot;int&quot; value=&quot;10&quot;/&gt;</span>
+<span class="cm">  &lt;Parameter name=&quot;overflow tolerance&quot; type=&quot;double&quot; value=&quot;3.0e+50&quot;/&gt;</span>
+<span class="cm">&lt;/ParameterList--&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="linear-solver-nka">
+<h2>Linear Solver: NKA<a class="headerlink" href="#linear-solver-nka" title="Permalink to this heading">#</a></h2>
+<blockquote>
+<div><p>Uses NKA method as a linear solver.</p>
+</div></blockquote>
+<p>This is effectively equivalent to GMRES with a rolling restart, where vectors
+fall off the end of the space.</p>
+<div class="admonition-iterative-method-nka-spec admonition" id="iterative-method-nka-spec">
+<p class="admonition-title">iterative-method-nka-spec</p>
+<ul class="simple">
+<li><p><cite>“error tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.e-6</strong> Tolerance on which to declare success.</p></li>
+<li><p><cite>“maximum number of iterations</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>100</strong> Maximum iterations before declaring failure.</p></li>
+<li><p><cite>“overflow tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>3.e50</strong> Error above this value results in failure.</p></li>
+<li><p><cite>“convergence criterial</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> <strong>{relative rhs}</strong> A list of
+criteria, any of which can be applied.  Valid include:</p>
+<ul>
+<li><p><cite>“relative rhs</cite>” : measure error relative to the norm of the RHS vector</p></li>
+<li><p><cite>“relative residual</cite>” : measure error relative to the norm of the residual</p></li>
+<li><p><cite>“absolute residual</cite>” : measure error directly, norm of error</p></li>
+<li><p><cite>“make one iteration</cite>” : require at least one iteration to be performed before declaring success</p></li>
+</ul>
+</li>
+<li><p><cite>“max nka vectors</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>10</strong> Size of the NKA space used to span the residual, conceptually equivalent to the size of the Krylov space.</p></li>
+<li><p><cite>“nka vector tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.05</strong> Vectors whose dot product are within this tolerance are considered parallel, and therefore the old vector is thrown out.</p></li>
+</ul>
+</div>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;_NKA&quot;</span><span class="nt">&gt;</span><span class="w">  </span><span class="cm">&lt;!-- parent list --&gt;</span>
+<span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;nka parameters&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;error tolerance&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;1e-12&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;maximum number of iterations&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;int&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;400&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;convergence criteria&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{relative residual}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;overflow tolerance&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;3.0e+50&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;max nka vectors&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;int&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;10&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;nka vector tolerance&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0.05&quot;</span><span class="nt">/&gt;</span>
+
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;verbose object&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;verbosity level&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;high&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="linear-solver-amesos">
+<h2>Linear Solver: Amesos<a class="headerlink" href="#linear-solver-amesos" title="Permalink to this heading">#</a></h2>
+<blockquote>
+<div><p>Direct solvers via Trilinos.</p>
+</div></blockquote>
+<p>Amesos library of Trilinos package provides interfaces to a few direct solvers.
+List <cite>“amesos parameters</cite>” contains parameters that understood by this library.
+These parameters may violate the camel-case convention employed by this spec.
+Additional parameters are:</p>
+<ul class="simple">
+<li><p><cite>“solver name</cite>” [string] declares name of one of the supported direct solvers.
+Available options are <cite>“klu</cite>”, <cite>“superludist</cite>”, <cite>“basker</cite>”, etc, see Amesos and
+Amesos2 manuals for details. The default value is serial solver <cite>“klu</cite>”.</p></li>
+<li><p><cite>“amesos version</cite>” [int] specifies version of Amesos. Available options are 1 and 2.
+The default value is 1.</p></li>
+</ul>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;_AMESOS KLU&quot;</span><span class="nt">&gt;</span><span class="w">  </span><span class="cm">&lt;!-- parent list --&gt;</span>
+<span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;direct method&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;amesos&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;amesos parameters&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;solver name&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;klu&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;amesos version&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;int&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;1&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="id1">
+<h2>Linear Solver: Amesos<a class="headerlink" href="#id1" title="Permalink to this heading">#</a></h2>
+<blockquote>
+<div><p>Direct solvers via Trilinos.</p>
+</div></blockquote>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>undocumented</p>
+</div>
+</section>
+<section id="linear-solver-belos-gmres">
+<h2>Linear Solver: Belos (GMRES)<a class="headerlink" href="#linear-solver-belos-gmres" title="Permalink to this heading">#</a></h2>
+<blockquote>
+<div><p>Trilinos/Belos implementations of iterative methods.</p>
+</div></blockquote>
+<p>Includes GMRES and other Belos methods.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>undocumented</p>
+</div>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="nonlinear_solvers.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Nonlinear Solver</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="preconditioners.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Preconditioners</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 202X, jointly shared by contributor institutions.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.2.1.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.3.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

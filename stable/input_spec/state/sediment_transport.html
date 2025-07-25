@@ -1,0 +1,554 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Sediment Transport &#8212; Amanzi-ATS</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/custom_theme.css?v=a03f4c85" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../_static/documentation_options.js?v=3ce10a4d"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'input_spec/state/sediment_transport';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.6';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
+    <script src="../../_static/main.js?v=b10558fa"></script>
+    <link rel="icon" href="../../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="dev" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/logo_full.png" class="logo__image only-light" alt="Amanzi-ATS documentation -- Home"/>
+    <img src="../../_static/logo_full.png" class="logo__image only-dark pst-js-only" alt="Amanzi-ATS documentation -- Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../demos.html">
+    ATS Demo Problems
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../index.html">
+    ATS Input Specification
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../demos.html">
+    ATS Demo Problems
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../index.html">
+    ATS Input Specification
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item"><!-- This will display the version of the docs -->
+Version dev</div>
+        <div class="sidebar-primary-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        <div class="sidebar-primary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#biomass">Biomass</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#organic-matter">Organic Matter</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#erosion">Erosion</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#settlement">Settlement</a></li>
+</ul>
+  </nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Sediment Transport</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="sediment-transport">
+<h1>Sediment Transport<a class="headerlink" href="#sediment-transport" title="Link to this heading">#</a></h1>
+<p>Most of the below are rates of suspension / fallout used in sediment
+transport.  The biomass evaluator lets the others be a function of
+biomass.</p>
+<section id="biomass">
+<h2>Biomass<a class="headerlink" href="#biomass" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/transport/constitutive_relations/sediment_transport/biomass_evaluator.hh">src/physics/ats/src/pks/transport/constitutive_relations/sediment_transport/biomass_evaluator.hh</a></p>
+<p>This biomass model evaluates evolution of biomass as a function of <cite>“mean sea
+level</cite>”.  There are 2 models implemented.</p>
+<p>Model 1:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}B = \left\{\begin{array}{ll}
+      B_{max}\frac{(z_{max} - z_b)}{(z_{max} - z_{min})} &amp;\qquad\mbox{if}\qquad z_{min}&lt;z_b&lt;z_{max} \\
+      0 &amp;\qquad\mbox{otherwise}
+    \end{array}\right.\end{split}\]</div>
+<p>Model 2:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}B = \left\{\begin{array}{ll}
+      B_{max} &amp;\qquad\mbox{if}\qquad z_b\ge z_{max} \\
+      B_{max} \frac{(z_b - z_{min})}{(z_{max} - z_{min})} &amp;\qquad\mbox{if}\qquad z_{min}&lt;z_b&lt;z_{max} \\
+      0 &amp;\qquad\mbox{otherwise}
+    \end{array}\right.\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(B_{max}\)</span> is a maximum biomass, <span class="math notranslate nohighlight">\(z_b = h - MSL\)</span>, MSL is a
+mean sea level, and <span class="math notranslate nohighlight">\(h\)</span> is a surface elevation.</p>
+<p><cite>“evaluator type</cite>” = <cite>“biomass</cite>”</p>
+<div class="admonition-evaluator-biomass-spec admonition" id="evaluator-biomass-spec">
+<p class="admonition-title">evaluator-biomass-spec</p>
+<ul class="simple">
+<li><p><cite>“Bmax</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>2000.0</strong></p></li>
+<li><p><cite>“zmax</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.8</strong></p></li>
+<li><p><cite>“zmin</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.0</strong></p></li>
+</ul>
+<p>DEPENDENCIES:</p>
+<ul class="simple">
+<li><p><cite>“mean sea level</cite>” <strong>DOMAIN-mean_sea_level</strong></p></li>
+<li><p><cite>“elevation</cite>” <strong>DOMAIN-elevation</strong></p></li>
+</ul>
+</div>
+</section>
+<section id="organic-matter">
+<h2>Organic Matter<a class="headerlink" href="#organic-matter" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/transport/constitutive_relations/sediment_transport/organic_matter_evaluator.hh">src/physics/ats/src/pks/transport/constitutive_relations/sediment_transport/organic_matter_evaluator.hh</a></p>
+<p>The organic evaluator gets the organic matter deposition rates.</p>
+<p>..math:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Q_</span><span class="p">{</span><span class="n">db</span><span class="p">}</span> <span class="o">=</span> <span class="n">Q_</span><span class="p">{</span><span class="n">db_0</span><span class="p">}</span> \<span class="n">frac</span><span class="p">{</span><span class="n">B</span><span class="p">}{</span><span class="n">B_</span><span class="p">{</span><span class="nb">max</span><span class="p">}}</span>
+</pre></div>
+</div>
+<p>where <span class="math notranslate nohighlight">\(Q_{db_0}\)</span> is a typical deposition rate, empirical coefficient with
+the dimensions of [L/T], which is derived empirically from field measurements,
+<span class="math notranslate nohighlight">\(B\)</span> is the current biomass, <span class="math notranslate nohighlight">\(B_{max}\)</span> is the maximum value of the
+biomass.</p>
+<p><cite>“evaluator type</cite>” = <cite>“organic matter rate</cite>”</p>
+<div class="admonition-evaluator-organic-matter-rate-spec admonition" id="evaluator-organic-matter-rate-spec">
+<p class="admonition-title">evaluator-organic-matter-rate-spec</p>
+<ul class="simple">
+<li><p><cite>“empirical coefficient</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>9.5129e-11</strong></p></li>
+<li><p><cite>“maximum biomass</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>2000</strong></p></li>
+</ul>
+<p>DEPENDENCIES:</p>
+<ul class="simple">
+<li><p><cite>“biomass</cite>” <strong>DOMAIN-biomass</strong></p></li>
+</ul>
+</div>
+</section>
+<section id="erosion">
+<h2>Erosion<a class="headerlink" href="#erosion" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/transport/constitutive_relations/sediment_transport/erosion_evaluator.hh">src/physics/ats/src/pks/transport/constitutive_relations/sediment_transport/erosion_evaluator.hh</a></p>
+<p>The erosion evaluator gets the erosion rates.  We evaluate the erosion flux,
+<span class="math notranslate nohighlight">\(Q_e\)</span>, by way of a relationship which can be applied when the bed
+properties are relatively uniform over the depth and the bed is consolidated
+[e.g., Mehta, 1984], namely,</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}Q_e = \left\{\begin{array}{ll}
+                Q_{e_0}\left(\frac{\tau_0}{\tau_e} - 1\right) &amp;\qquad\mbox{if} \qquad \tau_0&gt;\tau_e \\
+                0  &amp;\qquad\mbox{if} \qquad \tau_0\le\tau_e
+             \end{array} \right.\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(Q_{e_0}\)</span> is an empirical coefficient,  <span class="math notranslate nohighlight">\(\tau_e\)</span> is a critical shear stress</p>
+<p><cite>“evaluator type</cite>” = <cite>“erosion rate</cite>”</p>
+<div class="admonition-evaluator-erosion-rate-spec admonition" id="evaluator-erosion-rate-spec">
+<p class="admonition-title">evaluator-erosion-rate-spec</p>
+<ul class="simple">
+<li><p><cite>“critical shear stress</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.4</strong></p></li>
+<li><p><cite>“empirical coefficient</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>3.0e-4</strong></p></li>
+<li><p><cite>“drag coefficient</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.02</strong></p></li>
+<li><p><cite>“specific weight of water</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>9806.0</strong></p></li>
+</ul>
+<p>DEPENDENCIES:</p>
+<ul class="simple">
+<li><p><cite>“velocity</cite>” <strong>DOMAIN-velocity</strong></p></li>
+</ul>
+</div>
+</section>
+<section id="settlement">
+<h2>Settlement<a class="headerlink" href="#settlement" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/transport/constitutive_relations/sediment_transport/settlement_evaluator.hh">src/physics/ats/src/pks/transport/constitutive_relations/sediment_transport/settlement_evaluator.hh</a></p>
+<p>The settlement evaluator gets the settlement rates. We estimate the deposition
+due to settling, Q_ds which is mainly due to the formation and breakup of
+flocs, by way of the formulation proposed by Einstein and Krone [1962] who
+assumed that most of the particles settled in flocs as long as near bed shear
+stresses are small enough to prevent their breaking up, namely,</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}Q_ds = \left\{\begin{array}{ll}
+                 \rho_s w_s min(C, 0.5)\left(1-\frac{\tau_0}{\tau_d}\right) &amp;\qquad\mbox{if} \qquad \tau_0&lt;\tau_d \\
+                 0  &amp;\qquad\mbox{if} \qquad \tau_0\ge\tau_d
+              \end{array} \right.\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\rho_s\)</span> is the sediment density, <span class="math notranslate nohighlight">\(w_s\)</span> is the settling velocity which depends on the size
+of sediment flocs, <span class="math notranslate nohighlight">\(\tau_d\)</span> is a critical shear stress, C in a sediment molar ratio.</p>
+<p><cite>“evaluator type</cite>” = <cite>“settlement rate</cite>”</p>
+<div class="admonition-evaluator-settlement-rate-spec admonition" id="evaluator-settlement-rate-spec">
+<p class="admonition-title">evaluator-settlement-rate-spec</p>
+<ul class="simple">
+<li><p><cite>“critical shear stress</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.1</strong></p></li>
+<li><p><cite>“settling velocity</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.0001</strong></p></li>
+<li><p><cite>“drag coefficient</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.02</strong></p></li>
+<li><p><cite>“specific weight of water</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>9806.0</strong></p></li>
+</ul>
+<p>DEPENDENCIES:</p>
+<ul class="simple">
+<li><p><cite>“velocity</cite>” <strong>DOMAIN-velocity</strong></p></li>
+<li><p><cite>“sediment</cite>” <strong>DOMAIN-sediment</strong></p></li>
+</ul>
+</div>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 202X, jointly shared by contributor institutions.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

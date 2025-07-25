@@ -1,0 +1,882 @@
+
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Flow PKs &#8212; Amanzi-ATS</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+
+  
+  <link href="../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/custom_theme.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
+  <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/sphinx_highlight.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'input_spec/process_kernels/physical/flow';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.15.3';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
+        </script>
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
+    <script src="../../../_static/main.js"></script>
+    <link rel="icon" href="../../../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="Transport PK" href="transport.html" />
+    <link rel="prev" title="Physical PKs" href="index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../_static/logo_full.png" class="logo__image only-light" alt="Amanzi-ATS documentation -- Home"/>
+    <script>document.write(`<img src="../../../_static/logo_full.png" class="logo__image only-dark" alt="Amanzi-ATS documentation -- Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../demos.html">
+    ATS Demo Problems
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="../../index.html">
+    ATS Input Specification
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../demos.html">
+    ATS Demo Problems
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="../../index.html">
+    ATS Input Specification
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item"><!-- This will display the version of the docs -->
+Version 1.5</div>
+        <div class="sidebar-primary-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="pst-version-switcher-button-2"
+      type="button"
+      class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-2"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="pst-version-switcher-list-2"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-2">
+      <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../introduction.html">About the Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main.html">Main</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="../../mesh.html">Mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../region.html">Region</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../io/index.html">IO</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../io/ioevent.html">IOEvent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../io/visualization.html">Visualization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../io/observations.html">Observations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../io/checkpoint.html">Checkpoint</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html">Process Kernels</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../base.html">Base PKs</a></li>
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="index.html">Physical PKs</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3 current active"><a class="current reference internal" href="#">Flow PKs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="transport.html">Transport PK</a></li>
+<li class="toctree-l3"><a class="reference internal" href="energy.html">Energy PKs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seb.html">Surface Energy Balance PKs</a></li>
+
+
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../mpcs/index.html">MPC</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../mpcs/base.html">Base MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../mpcs/physical.html">Physical MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../mpcs/globalization.html">Globalization Delegates</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../state/index.html">State</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../state/primary.html">Primary Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../state/independent.html">Independent Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../state/secondary.html">Secondary Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../state/conserved.html">Conserved quantities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../state/subsurface_flow.html">Subsurface flow evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../state/surface_flow.html">Surface flow evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../state/thermo.html">Thermodynamic evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../state/eos.html">Equations of State</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../state/seb.html">Surface energy balance evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../state/snow.html">Snow evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../state/canopy.html">Canopy evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../state/bgc.html">Carbon and Biogeochemistry Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../state/multiscale.html">Multiscale Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../state/geometric.html">Geometric evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../state/generic.html">Generic evaluators</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../math/index.html">Time integrators, solvers, and other mathematical specs</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../math/time_integrators.html">Time Integrators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math/nonlinear_solvers.html">Nonlinear Solver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math/linear_solvers.html">Linear Solvers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math/preconditioners.html">Preconditioners</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math/operators.html">Operators</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../common.html">Shared Specs</a></li>
+</ul>
+</div>
+</nav></div>
+        <div class="sidebar-primary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#richards-pk">Richards PK</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#permafrost-flow-pk">Permafrost Flow PK</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overland-flow-pk">Overland Flow PK</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overland-flow-with-ice">Overland Flow with Ice</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#snow-distribution-pk">Snow Distribution PK</a></li>
+</ul>
+  </nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">ATS Input Specification</a></li>
+    
+    
+    <li class="breadcrumb-item"><i class="fa-solid fa-ellipsis"></i></li>
+    
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Physical PKs</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">Flow PKs</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="flow-pks">
+<h1>Flow PKs<a class="headerlink" href="#flow-pks" title="Permalink to this heading">#</a></h1>
+<p>Flow PKs describe the conservation of mass of water as it flows both
+above and below-ground.  Subsurface flow PKs are based on 3D Richards
+equation, which describes variably saturated flow in porous media.
+Minor variations to this include the incorporation of freeze-thaw
+processes.  Surface flow PKs are based on a diffusion wave equation
+and Manning’s model for sheet flow.  Variations to this also include
+the incorporation of freeze-thaw processes.  Finally we include in
+flow a “snow distribution” algorithm which takes as input
+precipitation and applies it based on the existing surface level
+(elevation + water + snowpack), thereby “filling in” low-lying areas
+preferentially.  This makes for more accurate snowpacks at fine
+scales.</p>
+<section id="richards-pk">
+<h2>Richards PK<a class="headerlink" href="#richards-pk" title="Permalink to this heading">#</a></h2>
+<blockquote>
+<div><p>Two-phase, variable density Richards equation.</p>
+</div></blockquote>
+<p>Solves Richards equation:</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial \Theta}{\partial t} - \nabla \cdot \frac{k_r n_l}{\mu} K ( \nabla p + \rho g \hat{z} ) = Q_w\]</div>
+<div class="admonition-richards-spec admonition" id="richards-spec">
+<p class="admonition-title">richards-spec</p>
+<ul class="simple">
+<li><p><cite>“domain</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>“domain”</strong>  Defaults to the subsurface mesh.</p></li>
+<li><p><cite>“primary variable key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> The primary variable associated with
+this PK, typically <cite>“DOMAIN-pressure</cite>” Note there is no default – this
+must be provided by the user.</p></li>
+<li><p><cite>“boundary conditions</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code> Defaults to Neuman, 0 normal
+flux.  See <a href="#id2"><span class="problematic" id="id3">`Flow-specific Boundary Conditions`_</span></a></p></li>
+<li><p><cite>“permeability type</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>scalar</strong> This controls the
+number of values needed to specify the absolute permeability.
+One of:</p>
+<ul>
+<li><p><cite>“scalar</cite>” Requires one scalar value.</p></li>
+<li><p><cite>“horizontal and vertical</cite>” Requires two values, horizontal
+then vertical.</p></li>
+<li><p><cite>“diagonal tensor</cite>” Requires dim values: {xx, yy} or {xx, yy,
+zz}</p></li>
+<li><p><cite>“full tensor</cite>”. (Note symmetry is required.)  Either {xx, yy,
+xy} or {xx,yy,zz,xy,xz,yz}.</p></li>
+</ul>
+</li>
+<li><p><cite>“water retention evaluator</cite>” <code class="docutils literal notranslate"><span class="pre">[wrm-evaluator-spec]</span></code> The water
+retention curve.  This needs to go away, and should get moved to
+State.</p></li>
+</ul>
+<p>IF</p>
+<ul class="simple">
+<li><p><cite>“source term</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Is there a source term?</p></li>
+</ul>
+<p>THEN</p>
+<ul class="simple">
+<li><p><cite>“source key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-water_source</strong> Typically not
+set, as the default is good. <code class="docutils literal notranslate"><span class="pre">[mol</span> <span class="pre">s^-1]</span></code></p></li>
+<li><p><cite>“source term is differentiable</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>true</strong> Can the
+source term be differentiated with respect to the primary
+variable?</p></li>
+<li><p><cite>“explicit source term</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Apply the source
+term from the previous time step.</p></li>
+</ul>
+<p>END</p>
+<p>Math and solver algorithm options:</p>
+<ul class="simple">
+<li><p><cite>“diffusion</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-diffusion-spec]</span></code> The (forward) diffusion
+operator, see <a href="#id4"><span class="problematic" id="id5">PDE_Diffusion_</span></a>.</p></li>
+<li><p><cite>“diffusion preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-diffusion-spec]</span></code>
+<strong>optional</strong> The inverse of the diffusion operator.  See
+<a href="#id6"><span class="problematic" id="id7">PDE_Diffusion_</span></a>.  Typically this is only needed to set Jacobian
+options, as all others probably should match those in
+<cite>“diffusion</cite>”, and default to those values.</p></li>
+<li><p><cite>“surface rel perm strategy</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>none</strong> Approach for
+specifying the relative permeabiilty on the surface face.
+<cite>“clobber</cite>” is frequently used for cases where a surface rel
+perm will be provided.  One of:</p>
+<ul>
+<li><p><cite>“none</cite>” : use the upwind direction to determine whether to
+use the boundary face or internal cell</p></li>
+<li><p><cite>“clobber</cite>” : always use the boundary face rel perm</p></li>
+<li><p><cite>“max</cite>” : use the max of the boundary face and internal cell
+values</p></li>
+<li><p><cite>“unsaturated</cite>” : Uses the boundary face when the internal
+cell is not saturated.</p></li>
+</ul>
+</li>
+<li><p><cite>“relative permeability method</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>upwind with Darcy
+flux</strong> Relative permeability is defined on cells, but must be
+calculated on faces to multiply a flux.  There are several
+methods commonly used.  Note these can significantly change
+answers – you don’t want to change these unless you know what
+they mean.  One of:</p>
+<ul>
+<li><p><cite>“upwind with Darcy flux</cite>” First-order upwind method that is
+most common</p></li>
+<li><p><cite>“upwind with gravity</cite>” Upwinds according to the gravitational
+flux direction</p></li>
+<li><p><cite>“cell centered</cite>” This corresponds to the harmonic mean, and is
+most accurate if the problem is always wet, but has issues
+when it is dry.</p></li>
+<li><p><cite>“arithmetic mean</cite>” Face value is the mean of the neighboring
+cells.  Not a good method.</p></li>
+</ul>
+</li>
+</ul>
+<p>Globalization and other process-based hacks:</p>
+<ul class="simple">
+<li><p><cite>“modify predictor with consistent faces</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> In a
+face+cell diffusion discretization, this modifies the predictor to make
+sure that faces, which are a DAE, are consistent with the predicted cells
+(i.e. face fluxes from each sides match).</p></li>
+<li><p><cite>“modify predictor for flux BCs</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Infiltration into
+dry ground can be hard on solvers – this tries to do the local nonlinear
+problem to ensure that face pressures are consistent with the
+prescribed flux in a predictor.</p></li>
+<li><p><cite>“modify predictor via water content</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Modifies the
+predictor using the method of Krabbenhoft [??] paper.  Effectively does a
+change of variables, extrapolating not in pressure but in water content,
+then takes the smaller of the two extrapolants.</p></li>
+<li><p><cite>“max valid change in saturation in a time step [-]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>-1</strong>
+Rejects timesteps whose max saturation change is greater than this value.
+This can be useful to ensure temporally resolved solutions.  Usually a
+good value is 0.1 or 0.2.</p></li>
+<li><p><cite>“max valid change in ice saturation in a time step [-]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code>
+<strong>-1</strong> Rejects timesteps whose max ice saturation change is greater than
+this value.  This can be useful to ensure temporally resolved solutions.
+Usually a good value is 0.1 or 0.2.</p></li>
+<li><p><cite>“limit correction to pressure change [Pa]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>-1</strong> If &gt; 0,
+this limits an iterate’s max pressure change to this value.  Not usually
+helpful.</p></li>
+<li><p><cite>“limit correction to pressure change when crossing atmospheric [Pa]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>-1</strong>
+If &gt; 0, this limits an iterate’s max pressure change
+to this value when they cross atmospheric pressure.  Not usually helpful.</p></li>
+</ul>
+<p>Discretization / operators / solver controls:</p>
+<ul class="simple">
+<li><p><cite>“accumulation preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-accumulation-spec]</span></code> <strong>optional</strong>
+The inverse of the accumulation operator.  See <a href="#id8"><span class="problematic" id="id9">PDE_Accumulation_</span></a>.
+Typically not provided by users, as defaults are correct.</p></li>
+<li><p><cite>“absolute error tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>2750.0</strong> in units of [mol].</p></li>
+<li><p><cite>“compute boundary values</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Used to include boundary
+face unknowns on discretizations that are cell-only (e.g. FV).  This can
+be useful for surface flow or other wierd boundary conditions.  Usually
+provided by MPCs that need them.</p></li>
+</ul>
+<p>Physics control:</p>
+<ul class="simple">
+<li><p><cite>“permeability rescaling</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1e7</strong> Typically 1e7 or order
+<span class="math notranslate nohighlight">\(sqrt(K)\)</span> is about right.  This rescales things to stop from
+multiplying by small numbers (permeability) and then by large number
+(<span class="math notranslate nohighlight">\(\rho / \mu\)</span>).</p></li>
+</ul>
+<p>IF</p>
+<ul class="simple">
+<li><p><cite>“coupled to surface via flux</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> If true, apply
+surface boundary conditions from an exchange flux.  Note, if this is a
+coupled problem, it is probably set by the MPC.  No need for a user to
+set it.</p></li>
+</ul>
+<p>THEN</p>
+<ul class="simple">
+<li><p><cite>“surface-subsurface flux key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-surface_subsurface_flux</strong></p></li>
+</ul>
+<p>END</p>
+<ul class="simple">
+<li><p><cite>“coupled to surface via head</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> If true, apply
+surface boundary conditions from the surface pressure (Dirichlet).</p></li>
+</ul>
+</div>
+</section>
+<section id="permafrost-flow-pk">
+<h2>Permafrost Flow PK<a class="headerlink" href="#permafrost-flow-pk" title="Permalink to this heading">#</a></h2>
+<blockquote>
+<div><p>A three-phase, thermal Richard’s equation with water, water vapor, and ice for permafrost applications.</p>
+</div></blockquote>
+<p>Note that the only difference between permafrost and richards is in
+constitutive relations – the WRM changes to provide three saturations,
+while the water content changes to account for water in ice phase.  As these
+are now drop-in field evaluators, there is very little to change in the PK.</p>
+<p>In the future, this should not even need a different PK.</p>
+<div class="admonition-permafrost-spec admonition" id="permafrost-spec">
+<p class="admonition-title">permafrost-spec</p>
+<ul class="simple">
+<li><p><cite>“saturation ice key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>“DOMAIN-saturation_ice”</strong> volume fraction of the ice phase (only when relevant) <code class="docutils literal notranslate"><span class="pre">[-]</span></code> Typically the default is correct.</p></li>
+</ul>
+<p>INCLUDES:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[richards-spec]</span></code> See <a class="reference internal" href="#richards-pk">Richards PK</a></p></li>
+</ul>
+</div>
+</section>
+<section id="overland-flow-pk">
+<h2>Overland Flow PK<a class="headerlink" href="#overland-flow-pk" title="Permalink to this heading">#</a></h2>
+<blockquote>
+<div><p>Overland flow using the diffusion wave equation.</p>
+</div></blockquote>
+<p>Solves the diffusion wave equation for overland flow with pressure as a primary variable:</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial \Theta}{\partial t} - \nabla n_l k \nabla h(p) = Q_w\]</div>
+<div class="admonition-overland-pressure-spec admonition" id="overland-pressure-spec">
+<p class="admonition-title">overland-pressure-spec</p>
+<p>Keys name variables:</p>
+<ul class="simple">
+<li><p><cite>“domain</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>“surface”</strong>  Defaults to the extracted surface mesh.</p></li>
+<li><p><cite>“primary variable</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> The primary variable associated with
+this PK, typically <cite>“DOMAIN-pressure</cite>” Note there is no default – this
+must be provided by the user.</p></li>
+<li><p><cite>“boundary conditions</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code> Defaults to Neuman, 0 normal flux.</p></li>
+<li><p><cite>“overland conductivity evaluator</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code>
+See <a href="#id10"><span class="problematic" id="id11">`Overland Conductivity Evaluator`_</span></a>.</p></li>
+</ul>
+<p>IF</p>
+<ul class="simple">
+<li><p><cite>“source term</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Is there a source term?</p></li>
+</ul>
+<p>THEN</p>
+<ul class="simple">
+<li><p><cite>“source key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-water_source</strong> Typically
+not set, as the default is good. <code class="docutils literal notranslate"><span class="pre">[m</span> <span class="pre">s^-1]</span></code> or <code class="docutils literal notranslate"><span class="pre">[mol</span> <span class="pre">s^-1]</span></code></p></li>
+<li><p><cite>“water source in meters</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>true</strong> Is the source term in <code class="docutils literal notranslate"><span class="pre">[m</span> <span class="pre">s^-1]</span></code>?</p></li>
+<li><p><cite>“source term is differentiable</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>true</strong> Can the source term
+be differentiated with respect to the primary variable?</p></li>
+</ul>
+<p>END</p>
+<p>Math and solver algorithm options:</p>
+<ul class="simple">
+<li><p><cite>“diffusion</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-diffusion-spec]</span></code> The (forward) diffusion operator,
+see <a href="#id12"><span class="problematic" id="id13">PDE_Diffusion_</span></a>.</p></li>
+<li><p><cite>“diffusion preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-diffusion-spec]</span></code> <strong>optional</strong> The
+inverse of the diffusion operator.  See <a href="#id14"><span class="problematic" id="id15">PDE_Diffusion_</span></a>.  Typically this
+is only needed to set Jacobian options, as all others probably should
+match those in <cite>“diffusion</cite>”, and default to those values.</p></li>
+<li><p><cite>“absolute error tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>550.</strong> Defaults to 1 cm of
+water.  A small, but significant, amount of water.</p></li>
+<li><p><cite>“limit correction to pressure change [Pa]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>-1</strong> If &gt; 0,
+this limits an iterate’s max pressure change to this value.  Not usually
+helpful.</p></li>
+<li><p><cite>“limit correction to pressure change when crossing atmospheric [Pa]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>-1</strong>
+If &gt; 0, this limits an iterate’s max pressure change
+to this value when they cross atmospheric pressure.  Not usually helpful.</p></li>
+<li><p><cite>“allow no negative ponded depths</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Modifies all
+correction updates to ensure only positive ponded depth is allowed.</p></li>
+<li><p><cite>“min ponded depth for velocity calculation</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.e-2</strong> For
+ponded depth below this height, declare the velocity 0.</p></li>
+<li><p><cite>“min ponded depth for tidal bc</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.02</strong> Control on the
+tidal boundary condition.  TODO: This should live in the BC spec?</p></li>
+</ul>
+<p>INCLUDES:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[pk-physical-bdf-default-spec]</span></code> A <a href="#id16"><span class="problematic" id="id17">`PK: Physical and BDF`_</span></a> spec.</p></li>
+</ul>
+<p>Everything below this point is usually not provided by the user, but are
+documented here for completeness.</p>
+<p>Keys name variables:</p>
+<ul class="simple">
+<li><p><cite>“conserved quantity key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-water_content</strong> Typically
+not set, as the default is good. <code class="docutils literal notranslate"><span class="pre">[mol]</span></code></p></li>
+<li><p><cite>“elevation key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-elevation</strong> Typically
+not set, as the default is good. <code class="docutils literal notranslate"><span class="pre">[mol]</span></code></p></li>
+<li><p><cite>“slope magnitude key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-slope_magnitude</strong> Typically
+not set, as the default is good. <code class="docutils literal notranslate"><span class="pre">[mol]</span></code></p></li>
+</ul>
+<p>Algorithmic parameters:</p>
+<ul class="simple">
+<li><p><cite>“coupled to subsurface via flux</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Set by MPC.</p></li>
+<li><p><cite>“coupled to subsurface via head</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Set by MPC.</p></li>
+<li><p><cite>“accumulation preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-accumulation-spec]</span></code> <strong>optional</strong>
+The inverse of the accumulation operator.  See <a href="#id18"><span class="problematic" id="id19">PDE_Accumulation_</span></a>.
+Typically not provided by users, as defaults are correct.</p></li>
+</ul>
+<p>EVALUATORS:</p>
+<ul class="simple">
+<li><p><cite>“conserved quantity</cite>”</p></li>
+<li><p><cite>“water content</cite>”</p></li>
+<li><p><cite>“cell volume</cite>”</p></li>
+<li><p><cite>“surface_subsurface_flux</cite>”</p></li>
+<li><p><cite>“elevation</cite>”</p></li>
+<li><p><cite>“slope magnitude</cite>”</p></li>
+<li><p><cite>“overland_conductivity</cite>”</p></li>
+<li><p><cite>“ponded_depth</cite>”</p></li>
+<li><p><cite>“pres_elev</cite>”</p></li>
+<li><p><cite>“source</cite>”</p></li>
+</ul>
+</div>
+</section>
+<section id="overland-flow-with-ice">
+<h2>Overland Flow with Ice<a class="headerlink" href="#overland-flow-with-ice" title="Permalink to this heading">#</a></h2>
+<blockquote>
+<div><p>Two-phase overland flow equation.</p>
+</div></blockquote>
+<p>This modifies the diffusion wave equation for overland flow that includes
+freeze-thaw processes.  This class could completely go away, but it does some
+error checking on the input file to make sure freeze-thaw processes are done
+correctly.  In the future this service should be done by a preprocessor
+generating the input file, and this class would go away.</p>
+<div class="admonition-icy-overland-spec admonition" id="icy-overland-spec">
+<p class="admonition-title">icy-overland-spec</p>
+<p>INCLUDES:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[overland-pressure-spec]</span></code> See <a class="reference internal" href="#overland-flow-pk">Overland Flow PK</a>.</p></li>
+</ul>
+</div>
+</section>
+<section id="snow-distribution-pk">
+<h2>Snow Distribution PK<a class="headerlink" href="#snow-distribution-pk" title="Permalink to this heading">#</a></h2>
+<blockquote>
+<div><p>Preferential distribution of snow precip in low-lying areas.</p>
+</div></blockquote>
+<p>This PK is a heuristic PK that distributes incoming snow precipitation using a
+diffusion wave equation.  Think of it as an analogue to overland flow – it
+effectively ensures that new snow “flows downhill,” due to a uniformly random
+direction and strength wind, and lands on the lowest lying areas.</p>
+<p>Tweaking the snow-manning_coefficient lets you play with how uniform the snow
+layer ends up.  Most of the parameters are set by your snow precipitation input
+data interval.  The details of this are a bit tricky mathematically, and it may
+take some fiddling with parameters to do this correctly if your data is not
+daily (which all defaults are set for).</p>
+<div class="admonition-snow-distribution-spec admonition" id="snow-distribution-spec">
+<p class="admonition-title">snow-distribution-spec</p>
+<ul class="simple">
+<li><p><cite>“distribution time</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>86400.</strong> Interval of snow precip input dataset. <cite>[s]</cite></p></li>
+<li><p><cite>“precipitation function</cite>” <code class="docutils literal notranslate"><span class="pre">[function-spec]</span></code> Snow precipitation function, see <a href="#id20"><span class="problematic" id="id21">Functions_</span></a>.</p></li>
+<li><p><cite>“diffusion</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-diffusion-spec]</span></code> Diffusion drives the distribution.
+Typically we use finite volume here.  See <a href="#id22"><span class="problematic" id="id23">PDE_Diffusion_</span></a></p></li>
+<li><p><cite>“diffusion preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-diffusion-spec]</span></code> Inverse of the
+above.  Likely only Jacobian term options are needed here, as the others
+default to the same as the <cite>“diffusion</cite>” list.  See <a href="#id24"><span class="problematic" id="id25">PDE_Diffusion_</span></a>.</p></li>
+<li><p><cite>“inverse</cite>” <code class="docutils literal notranslate"><span class="pre">[inverse-typed-spec]</span></code> <a href="#id26"><span class="problematic" id="id27">Inverse_</span></a> method for the solve.</p></li>
+</ul>
+<p>Not typically provided by the user, defaults are good:</p>
+<ul class="simple">
+<li><p><cite>“accumulation preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-accumulation-spec]</span></code> See <a href="#id28"><span class="problematic" id="id29">PDE_Accumulation_</span></a>.</p></li>
+</ul>
+</div>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Physical PKs</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="transport.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Transport PK</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
+<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 202X, jointly shared by contributor institutions.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.2.1.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.3.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

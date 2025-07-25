@@ -1,0 +1,295 @@
+Surface Energy Balance PKs
+------------------------------
+
+Integrated hydrology is not much use without significant process
+complexity in source terms coming from the ecohydrologic environment.
+These include straightforward sources, like precipitation, but also
+more complicated ones such as evaporation and transpiration.
+
+These terms are almost always tied up in a surface energy balance --
+evaporation and transpiration are driven by vapor pressure gradients
+between the atmosphere and the surface (either snow, ponded water,
+soil, or leaf).  Solving a surface energy balance often requires
+providing a bunch of terms, including radiated energy, conducted
+energy, latent and sensible heat models, etc.
+
+ATS currently has several approaches to calculating these -- see
+`ats-demos <https://github.com/amanzi/ats-demos>`_ examples on
+ecohydrology for a more in-depth discussion.
+
+Balance Equation
+^^^^^^^^^^^^^^^^
+ A simple conservation ODE.
+
+This is a very simple vector of ODEs, useful in balance equations, where the
+time derivative of a conserved quantity is determined by a bunch of sources and
+sinks.
+
+.. math::
+    \frac{\partial \Phi }{\partial t} = \sum_i Q_i
+
+.. _balance-pk-spec:
+.. admonition:: balance-pk-spec
+
+    * `"primary variable key`" ``[string]`` The primary variable associated with
+      this PK.  Note there is no default -- this must be provided by the user.
+
+    * `"conserved quantity key`" ``[string]`` The conserved quantity :math:`\Phi`
+
+    * `"source key`" ``[string]`` **DOMAIN-source_sink** Units are in conserved
+      quantity per second per cell volume.
+
+    * `"time discretization theta`" ``[double]`` **1.0** :math:`\theta` in a
+      Crank-Nicholson time integration scheme.  1.0 implies fully implicit, 0.0
+      implies explicit, 0.5 implies C-N.
+
+    * `"modify predictor positivity preserving`" ``[bool]`` **false** If true,
+      predictors are modified to ensure that the conserved quantity is always > 0.
+
+    * `"absolute error tolerance`" ``[double]`` **550.0** a_tol in the standard
+      error norm calculation.  Defaults to a small amount of water.  Units are
+      the same as the conserved quantity.
+
+    INCLUDES:
+
+    - ``[pk-physical-bdf-default-spec]``
+
+
+
+
+
+Snow Balance Equation
+^^^^^^^^^^^^^^^^^^^^^
+ An implicit PK for surface balance snow SWE conservation.
+
+This is a balance PK whose conserved quantity is snow SWE.  The energy balance
+comes in as it provides the energy needed to melt snow.  So source terms
+include snow precipitation and snowmelt.  It also manages snow density, which
+should get rethought a bit.
+
+There is also some wierd hackiness here about area fractions -- see ATS Issue
+#8
+
+.. _subgrid-balance-pk-spec:
+.. admonition:: subgrid-balance-pk-spec
+
+    * `"absolute error tolerance`" ``[double]`` **0.01** ``[m]``
+
+    INCLUDES:
+
+    - ``[balance-pk-spec]`` This *is a* `Balance Equation`_
+
+    Not typically set by user, defaults work:
+
+    * `"conserved quantity key`" ``[string]`` **DOMAIN-snow_water_equivalent**
+      Sets the default conserved quantity key, so this is likely not supplied
+      by the user. `[m]`
+    * `"snow density key`" ``[string]`` **DOMAIN-density** Default snow density
+      key. `[kg m^-3]`
+    * `"snow age key`" ``[string]`` **DOMAIN-age** Default snow age key. `[d]`
+    * `"new snow key`" ``[string]`` **DOMAIN-source** Default new snow key. `[m SWE s^-1]`
+    * `"area fractions key`" ``[string]`` **DOMAIN-fractional_areas** Subgrid
+      model fractional areas, see note above. `[-]`
+    * `"snow death rate key`" ``[string]`` **DOMAIN-death_rate** Deals with last
+      tiny bit of snowmelt.
+
+
+
+
+Biogeochemistry
+---------------
+
+To accurately predict watershed ecohydrology, a carbon cycle model is
+needed to predict transpiration.  By simulating a carbon cycle, we are
+able to predict the rate of photosynthesis as a function of space and
+time, and photosynthesis governs root water uptake.  Currently only
+one big-leaf model is available, but ongoing work is wrapping a
+generalized Common/Colorado Land Model based on that developed within
+the ParFlow team, and another ongoing project is working on wrapping
+kernels from E3SM's Land Model.
+
+Biogeochemistry -- Monolithic Version
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ Above and below-ground carbon cycle model.
+
+This is a multi-leaf layer, big-leaf vegetation model coupled to a Century
+model for belowground carbon decomposition.
+
+It leverages a PFT-based structure which allows multiple height-sorted PFTs to
+coexist on the same grid cells, with the shorter PFTs getting whatever light is
+left in the understory.
+
+The implementation is based on an old, standalone code by Chonggang Xu, and
+adapted for ATS.  While this is not simple, it is called BGC simple as it is
+about the least amount of complexity required to get a reasonable carbon cycle
+into ATS.
+
+Outputs of this include transpiration, a critical sink for hydrology, as it
+solves photosynthesis based on water availability.
+
+Note this is an "explicit update PK," or effectively a forward Euler timestep
+that is not written in ODE form.
+
+Note this works on both the surface (vegetation) and subsurface (decomposition)
+meshes.  **It is required** that the subsurface mesh is a "columnar" mesh, and
+that build_columns in the subsurface Mesh_ spec has been supplied.
+
+.. _bgc-simple-spec:
+.. admonition:: bgc-simple-spec
+
+  * `"initial time step`" ``[double]`` **1.0** Initial time step size `[s]`
+
+  * `"number of carbon pools`" ``[int]`` **7** Unclear whether this can actually change?
+
+  * `"soil carbon parameters`" ``[soil-carbon-spec-list]`` List of soil carbon parameters by soil mesh partition region name.
+
+  * `"pft parameters`" ``[pft-spec-list]`` List of PFT parameters by PFT name.
+
+  * `"latitude [degrees]`" ``[double]`` **60** Latitude of the simulation in degrees.  Used in radiation balance.
+
+  * `"wind speed reference height [m]`" ``[double]`` **2.0** Reference height of the wind speed dataset.
+
+  * `"cryoturbation mixing coefficient [cm^2/yr]`" ``[double]`` **5.0** Controls diffusion of carbon into the subsurface via cryoturbation.
+
+  * `"leaf biomass initial condition`" ``[initial-conditions-spec]`` Sets the leaf biomass IC.
+
+  * `"domain name`" ``[string]`` **domain**
+
+  * `"surface domain name`" ``[string]`` **surface**
+
+  * `"transpiration key`" ``[string]`` **DOMAIN-transpiration** The distributed transpiration flux `[mol s^-1]`
+
+  * `"shaded shortwave radiation key`" ``[string]``
+    **SURFACE_DOMAIN-shaded_shortwave_radiation** Shortwave radiation that gets
+    past the canopy and teo the bare ground for soil evaporation. `[W m^-2]`
+
+  * `"total leaf area index key`" ``[string]`` **SURFACE_DOMAIN-total_leaf_area_index** Total LAI across all PFTs.
+
+  EVALUATORS:
+
+  - `"temperature`" The soil temperature `[K]`
+  - `"pressure`" soil mafic potential `[Pa]`
+  - `"surface-cell_volume`" `[m^2]`
+  - `"surface-incoming shortwave radiation`" `[W m^-2]`
+  - `"surface-air_temperature`" `[K]`
+  - `"surface-vapor_pressure_air`" `[Pa]`
+  - `"surface-wind_speed`" `[m s^-1]`
+  - `"surface-co2_concentration`" `[ppm]`
+
+
+
+
+
+
+Deformation
+-------------
+
+The unstructured mesh framework we use provides the opportunity to
+include deformation of the mesh.  This deformation can be done in two
+ways -- either node coordinate changes are provided, or volumetric
+changes are provided, and the code attempts to iterate toward a global
+coordinate change that satisfies these volumetric changes.  The latter
+can be somewhat fragile for large deformation, but it does allow
+simple deformation such as small, somewhat uniform subsidence.  The
+volumetric deformation PK below does this based on a volumetric change
+given by loss of bulk ice.
+
+Volumetric Deformation
+^^^^^^^^^^^^^^^^^^^^^^
+ Subsidence through bulk ice loss and cell volumetric change.
+
+This process kernel provides for going from a cell volumetric change to an
+updated unstructured mesh, and can be coupled sequentially with flow to solve
+problems of flow in a subsiding porous media.
+
+Note that this PK is slaved to the flow PK.  This PK must be advanced first,
+and be weakly coupled to the flow PK (or an MPC that advances the flow PK), and
+the timestep of this PK must match that of the flow PK (e.g. do not try to
+subcyle one or the other).  This uses a rather hacky, unconventional use of
+time tags, where we use saturations and porosities at the NEXT time, but ASSUME
+they are actually the values of the CURRENT time.  This saves having to stash a
+copy of these variables at the CURRENT time, which would otherwise not be used.
+
+Note that all deformation here is vertical, and we assume that the subsurface
+mesh is **perfectly columnar** and that the "build columns" parameter has been
+given to the subsurface mesh.  See the Mesh_ spec for more.
+
+The process here is governed through two options, the "deformation mode" and
+the "deformation strategy."
+
+The deformation mode describes how the cell volume change is calculated.  There
+are three options here:
+
+- "prescribed" uses a function to precribe the volume changes as a function of (t,x,y,z).
+
+- "structural" decreases the cell volume if the porosity is above a prescribed
+  "structurally connected matrix" porosity.  Think of this as bulk ice
+  "propping up" the soil grains -- as that bulk ice melts, it reduces porosity
+  toward the porosity in at which grains start to touch again and can be
+  structurally sound.
+
+- "saturation" is a heuristic that considers the liquid saturation directly,
+  and tries to relax the liquid saturation back toward a value that is
+  consistent with what the thawed soil should be.
+
+.. todo: Move this into an evaluator!
+
+The deformation strategy describes how the cell volume change is turned into
+node coordinate changes.  Three options are available:
+
+- "average" simply takes the average of volume change/surface area and
+  horizontally averages this quantity across all neighbors.  While this has the
+  advantage of being simple, it has issues when thaw gradients in the
+  horizontal are not zero, as it may result in the loss of volume in a fully
+  frozen cell, blowing up the pressure and breaking the code.  This is great
+  when it works, but it almost never works in real problems, except in
+  column-based models, where it is perfect.
+
+- "mstk implementation" MSTK implements an iterated, local optimization method
+  that, one-at-a-time, moves nodes to try and match the volumes.  This has
+  fewer issues with overfitting, but doesn't always do sane things, and can be
+  expensive if iterations don't work well.  This is not particularly robust
+  either, but it seems to be the preferred method for 2D/3D problems.
+
+- "global optimization" attempts to directly form and solve the minimization
+  problem to find the nodal changes that result in the target volumetric
+  changes.  Note this has issues with overfitting, so penalty methods are used
+  to smooth the solution of the problem.  This is currently disabled.
+
+NOTE: all deformation options are treated EXPLICITLY, and depend only upon
+values from the old time.
+
+.. _volumetric-deformation-pk-spec:
+.. admonition:: volumetric-deformation-pk-spec
+
+    * `"max time step [s]`" ``[double]`` **inf** Sets a maximum time step size.
+
+    * `"deformation mode`" ``[string]`` **prescribed** See above for
+      descriptions.  One of: `"prescribed`", `"structural`", or `"saturation`".
+
+    * `"deformation strategy`" ``[string]`` **global optimization** See above
+      for descriptions.  One of `"average`", `"global optimization`", or `"mstk
+      implementation`"
+
+    * `"domain name`" ``[string]`` **domain**  The mesh to deform.
+
+    * `"surface domain name`" ``[string]`` **surface** The surface mesh.
+
+    * `"deformation function`" ``[function-spec]`` **optional** Only used if
+      "deformation mode" == "prescribed"
+
+    EVALUATORS:
+
+    - `"saturation_ice`" **DOMAIN-saturation_ice**
+    - `"saturation_liquid`" **DOMAIN-saturation_liquid**
+    - `"saturation_gas`" **DOMAIN-saturation_gas**
+    - `"porosity`" **DOMAIN-porosity**
+    - `"cell volume`" **DOMAIN-cell_volume**
+
+    INCLUDES:
+
+    - ``[pk-physical-default-spec]``
+
+
+
+

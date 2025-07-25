@@ -1,0 +1,917 @@
+
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Mesh &#8212; Amanzi-ATS</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/custom_theme.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'input_spec/mesh';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.15.3';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
+        </script>
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
+    <script src="../_static/main.js"></script>
+    <link rel="icon" href="../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Region" href="region.html" />
+    <link rel="prev" title="Main" href="main.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/logo_full.png" class="logo__image only-light" alt="Amanzi-ATS documentation -- Home"/>
+    <script>document.write(`<img src="../_static/logo_full.png" class="logo__image only-dark" alt="Amanzi-ATS documentation -- Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../demos.html">
+    ATS Demo Problems
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    ATS Input Specification
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../demos.html">
+    ATS Demo Problems
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    ATS Input Specification
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item"><!-- This will display the version of the docs -->
+Version 1.5</div>
+        <div class="sidebar-primary-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="pst-version-switcher-button-2"
+      type="button"
+      class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-2"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="pst-version-switcher-list-2"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-2">
+      <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">About the Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main.html">Main</a></li>
+
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="region.html">Region</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="io/index.html">IO</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="io/ioevent.html">IOEvent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="io/visualization.html">Visualization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="io/observations.html">Observations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="io/checkpoint.html">Checkpoint</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="process_kernels/index.html">Process Kernels</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="process_kernels/base.html">Base PKs</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="process_kernels/physical/index.html">Physical PKs</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="process_kernels/physical/flow.html">Flow PKs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_kernels/physical/transport.html">Transport PK</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_kernels/physical/energy.html">Energy PKs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_kernels/physical/seb.html">Surface Energy Balance PKs</a></li>
+
+
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="process_kernels/mpcs/index.html">MPC</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="process_kernels/mpcs/base.html">Base MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_kernels/mpcs/physical.html">Physical MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_kernels/mpcs/globalization.html">Globalization Delegates</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="state/index.html">State</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="state/primary.html">Primary Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/independent.html">Independent Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/secondary.html">Secondary Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/conserved.html">Conserved quantities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/subsurface_flow.html">Subsurface flow evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/surface_flow.html">Surface flow evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/thermo.html">Thermodynamic evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/eos.html">Equations of State</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/seb.html">Surface energy balance evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/snow.html">Snow evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/canopy.html">Canopy evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/bgc.html">Carbon and Biogeochemistry Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/multiscale.html">Multiscale Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/geometric.html">Geometric evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/generic.html">Generic evaluators</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="math/index.html">Time integrators, solvers, and other mathematical specs</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="math/time_integrators.html">Time Integrators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="math/nonlinear_solvers.html">Nonlinear Solver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="math/linear_solvers.html">Linear Solvers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="math/preconditioners.html">Preconditioners</a></li>
+<li class="toctree-l2"><a class="reference internal" href="math/operators.html">Operators</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="common.html">Shared Specs</a></li>
+</ul>
+</div>
+</nav></div>
+        <div class="sidebar-primary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#generated-mesh">Generated Mesh</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#read-mesh-file">Read Mesh File</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#logical-mesh">Logical Mesh</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#surface-mesh">Surface Mesh</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#extracted-mesh">Extracted Mesh</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#aliased-mesh">Aliased Mesh</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#domain-set-meshes">Domain Set Meshes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#column-meshes">Column Meshes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#column-surface-meshes">Column Surface Meshes</a></li>
+</ul>
+  </nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">ATS Input Specification</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">Mesh</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="mesh">
+<h1>Mesh<a class="headerlink" href="#mesh" title="Permalink to this heading">#</a></h1>
+<blockquote>
+<div><p>A list of mesh objects and their domain names.</p>
+</div></blockquote>
+<p>All processes are simulated on a domain, which is discretized through a mesh.</p>
+<p>Multiple domains and therefore meshes can be used in a single simulation, and
+multiple meshes can be constructed on the fly.  The top level <cite>“mesh</cite>” is a
+list of <code class="docutils literal notranslate"><span class="pre">[mesh-typed-spec]</span></code> sublists whose name indicate the mesh or domain
+name.</p>
+<p>Included in that list is at least one mesh: the <cite>“domain</cite>” mesh.  The
+<cite>“domain</cite>” mesh represents the primary domain of simulation – usually the
+subsurface.  Simple, structured meshes may be generated on the fly, or complex
+unstructured meshes are provided as Exodus II files.  The <cite>“domain</cite>” mesh list
+includes either a <a class="reference internal" href="#generated-mesh">Generated Mesh</a>, <a class="reference internal" href="#read-mesh-file">Read Mesh File</a>, or <a class="reference internal" href="#logical-mesh">Logical Mesh</a> spec, as
+described below.</p>
+<p>Additionally, a <a class="reference internal" href="#surface-mesh">Surface Mesh</a> may be formed by lifting the surface of a
+provided mesh and then flattening that mesh to a 2D surface.  <a class="reference internal" href="#column-meshes">Column Meshes</a>
+which split a base mesh into vertical columns of cells for use in 1D models
+may also be generated automatically.</p>
+<p>Finally, mesh generation is hard and error-prone.  A mesh audit is provided,
+which checks for many common geometric and topologic errors in mesh
+generation.  This is reasonably fast, even for big meshes, and can be done
+through providing a “verify mesh” option.</p>
+<div class="admonition-mesh-typed-spec admonition" id="mesh-typed-spec">
+<p class="admonition-title">mesh-typed-spec</p>
+<ul class="simple">
+<li><p><cite>“mesh type</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> One of:</p>
+<ul>
+<li><p><cite>“generate mesh</cite>” See <a class="reference internal" href="#generated-mesh">Generated Mesh</a>.</p></li>
+<li><p><cite>“read mesh file</cite>” See <a class="reference internal" href="#read-mesh-file">Read Mesh File</a>.</p></li>
+<li><p><cite>“logical</cite>” See <a class="reference internal" href="#logical-mesh">Logical Mesh</a>.</p></li>
+<li><p><cite>“surface</cite>” See <a class="reference internal" href="#surface-mesh">Surface Mesh</a>.</p></li>
+<li><p><cite>“extracted</cite>” See <a class="reference internal" href="#extracted-mesh">Extracted Mesh</a>.</p></li>
+<li><p><cite>“domain set indexed</cite>” See <a class="reference internal" href="#domain-set-meshes">Domain Set Meshes</a>.</p></li>
+<li><p><cite>“domain set regions</cite>” See <a class="reference internal" href="#domain-set-meshes">Domain Set Meshes</a>.</p></li>
+<li><p><cite>“column</cite>” See <a class="reference internal" href="#column-meshes">Column Meshes</a>.</p></li>
+<li><p><cite>“column surface</cite>” See <a class="reference internal" href="#column-surface-meshes">Column Surface Meshes</a>.</p></li>
+</ul>
+</li>
+<li><p><cite>“_mesh_type_ parameters</cite>” <code class="docutils literal notranslate"><span class="pre">[_mesh_type_-spec]</span></code> List of parameters
+associated with the type.</p></li>
+<li><p><cite>“verify mesh</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Perform a mesh audit.</p></li>
+<li><p><cite>“deformable mesh</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Will this mesh be deformed?</p></li>
+<li><p><cite>“build columns from set</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>optional</strong> If provided, build
+columnar structures from the provided set.</p></li>
+<li><p><cite>“partitioner</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>zoltan_rcb</strong> Method to partition the
+mesh.  Note this only makes sense on the domain mesh.  One of:</p>
+<ul>
+<li><p><cite>“zoltan_rcb</cite>” a “map view” partitioning that keeps columns of cells together</p></li>
+<li><p><cite>“metis</cite>” uses the METIS graph partitioner</p></li>
+<li><p><cite>“zoltan</cite>” uses the default Zoltan graph-based partitioner.</p></li>
+</ul>
+</li>
+</ul>
+</div>
+<section id="generated-mesh">
+<h2>Generated Mesh<a class="headerlink" href="#generated-mesh" title="Permalink to this heading">#</a></h2>
+<p>Generated mesh are by definition structured, with uniform dx, dy, and dz.
+Such a mesh is specified by a bounding box high and low coordinate, and a list
+of number of cells in each direction.</p>
+<p>Specified by <cite>“mesh type</cite>” of <cite>“generate mesh</cite>”.</p>
+<div class="admonition-mesh-generate-mesh-spec admonition" id="mesh-generate-mesh-spec">
+<p class="admonition-title">mesh-generate-mesh-spec</p>
+<ul class="simple">
+<li><p><cite>“domain low coordinate</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> Location of low corner of domain</p></li>
+<li><p><cite>“domain high coordinate</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> Location of high corner of domain</p></li>
+<li><p><cite>“number of cells</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(int)]</span></code> the number of uniform cells in each coordinate direction</p></li>
+</ul>
+</div>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;mesh&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;domain&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;mesh type&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;generate mesh&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;generate mesh parameters&quot;</span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;number of cells&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(int)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{100, 1, 100}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;domain low coordinate&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(double)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{0.0, 0.0, 0.0}&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;domain high coordinate&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(double)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{100.0, 1.0, 10.0}&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="read-mesh-file">
+<h2>Read Mesh File<a class="headerlink" href="#read-mesh-file" title="Permalink to this heading">#</a></h2>
+<p>Meshes can be pre-generated in a multitude of ways, then written to file, and
+loaded in ATS. Note that in the case of an Exodus II mesh file, the suffix of
+the serial mesh file must be .exo and the suffix of the parallel mesh file must
+be .par.  When running in serial the code will read this the indicated file
+directly.  When running in parallel with a prepartitioned mesh, the suffix is
+.par and the code will instead read the partitioned files that have been
+generated with a Nemesis tool and named as filename.par.N.r where N is the
+number of processors and r is the rank.  When running in parallel and the
+suffix is .exo, the code will partition automatically the serial file.</p>
+<p>Specified by <cite>“mesh type</cite>” of <cite>“read mesh file</cite>”.</p>
+<div class="admonition-mesh-read-mesh-file-spec admonition" id="mesh-read-mesh-file-spec">
+<p class="admonition-title">mesh-read-mesh-file-spec</p>
+<ul class="simple">
+<li><p><cite>“file</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> filename of a pre-generated mesh file</p></li>
+</ul>
+</div>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;mesh&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;domain&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;mesh type&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;read mesh file&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;read mesh file parameters&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;file&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;mesh_filename.exo&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;verify mesh&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;bool&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;true&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="logical-mesh">
+<h2>Logical Mesh<a class="headerlink" href="#logical-mesh" title="Permalink to this heading">#</a></h2>
+<p>Logical meshes are meshes for whom nodal coordinates may not be
+specified, but sufficient information about the geometry of the
+conceptual domain can be specified to allow solving problems.  This
+allows for the conceptual generation of domains that “act” like a mesh
+and can be used like a mesh, but don’t fit MSTK’s view of an
+unstructured mesh.</p>
+<p>This is an active research and development area, and is used most
+frequently for river networks, root networks, and crack networks.</p>
+<p>Specified by <cite>“mesh type</cite>” of <cite>“logical</cite>”.</p>
+<div class="admonition-mesh-logical-spec admonition" id="mesh-logical-spec">
+<p class="admonition-title">mesh-logical-spec</p>
+<p>Not yet completed…</p>
+</div>
+</section>
+<section id="surface-mesh">
+<h2>Surface Mesh<a class="headerlink" href="#surface-mesh" title="Permalink to this heading">#</a></h2>
+<p>To lift a surface off of the mesh, a side-set specifying all surface faces
+must be given.  These faces are lifted locally, so the partitioning of the
+surface cells will be identical to the partitioning of the subsurface faces
+that correspond to these cells.  All communication and ghost cells are set up.
+The mesh is flattened, so all surface faces must have non-zero area when
+projected in the z-direction.  No checks for holes are performed.  Surface
+meshes may similarly be audited to make sure they are reasonable for
+computation.</p>
+<p>Specified by <cite>“mesh type</cite>” of <cite>“surface</cite>”.</p>
+<div class="admonition-mesh-surface-spec admonition" id="mesh-surface-spec">
+<p class="admonition-title">mesh-surface-spec</p>
+<ul class="simple">
+<li><p><cite>“parent domain</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>domain</strong> Parent mesh’s name.</p></li>
+</ul>
+<p>ONE OF</p>
+<ul class="simple">
+<li><p><cite>“surface sideset name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> The <a href="#id2"><span class="problematic" id="id3">Region_</span></a> name containing all surface faces.</p></li>
+</ul>
+<p>OR</p>
+<ul class="simple">
+<li><p><cite>“surface sideset names</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> A list of <a href="#id4"><span class="problematic" id="id5">Region_</span></a> names containing the surface faces.</p></li>
+</ul>
+<p>END</p>
+<ul class="simple">
+<li><p><cite>“verify mesh</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Verify validity of surface mesh.</p></li>
+<li><p><cite>“export mesh to file</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>optional</strong> Export the lifted
+surface mesh to this filename.</p></li>
+<li><p><cite>“create subcommunicator</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> If false, the communicator
+of this mesh is the same as the parent mesh.  If true, the communicator of
+this mesh is the subset of the parent mesh comm that has entries on the
+surface.</p></li>
+</ul>
+</div>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;mesh&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;surface&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;mesh type&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;surface&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;surface parameters&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;surface sideset name&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{surface_region}&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;verify mesh&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;bool&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;true&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;export mesh to file&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;surface_mesh.exo&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;domain&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;mesh type&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;read mesh file&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;read mesh file parameters&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;file&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;../data/open-book-2D.exo&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;format&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;Exodus II&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="extracted-mesh">
+<h2>Extracted Mesh<a class="headerlink" href="#extracted-mesh" title="Permalink to this heading">#</a></h2>
+<p>A mesh is created by lifting a subset of entities from a parent mesh.  Locality
+is preserved, so all local entities in this mesh have parents whose entities
+are local on the parent mesh, so that no communication is ever done when
+passing info between an parent mesh and an extracted mesh.</p>
+<p>Specified by <cite>“mesh type</cite>” of <cite>“extracted</cite>”.</p>
+<div class="admonition-mesh-extracted-spec admonition" id="mesh-extracted-spec">
+<p class="admonition-title">mesh-extracted-spec</p>
+<ul class="simple">
+<li><p><cite>“parent domain</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>domain</strong> Parent mesh’s name.</p></li>
+</ul>
+<p>ONE OF</p>
+<ul class="simple">
+<li><p><cite>“region</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> The <a href="#id6"><span class="problematic" id="id7">Region_</span></a> name containing all surface faces.</p></li>
+</ul>
+<p>OR</p>
+<ul class="simple">
+<li><p><cite>“regions</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> A list of <a href="#id8"><span class="problematic" id="id9">Region_</span></a> names containing the surface faces.</p></li>
+</ul>
+<p>END</p>
+<ul class="simple">
+<li><p><cite>“verify mesh</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Verify validity of surface mesh.</p></li>
+<li><p><cite>“export mesh to file</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>optional</strong> Export the lifted
+surface mesh to this filename.</p></li>
+<li><p><cite>“create subcommunicator</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> If false, the communicator
+of this mesh is the same as the parent mesh.  If true, the communicator of
+this mesh is the subset of the parent mesh comm that has entries on the
+surface.</p></li>
+</ul>
+</div>
+</section>
+<section id="aliased-mesh">
+<h2>Aliased Mesh<a class="headerlink" href="#aliased-mesh" title="Permalink to this heading">#</a></h2>
+<p>Aliased domains are simply domains that share a mesh with another domain.  For
+instance, one might find it useful to define both a “surface water” and a
+“snow” domain that share a common “surface” mesh.  In that case, typically the
+“surface” domain would point to the “surface” mesh, and the “snow” domain would
+be an “aliased” domain whose target is the “surface” mesh.</p>
+<p>Specified by <cite>“mesh type</cite>” of <cite>“aliased</cite>”.</p>
+<div class="admonition-mesh-aliased-spec admonition" id="mesh-aliased-spec">
+<p class="admonition-title">mesh-aliased-spec</p>
+<ul class="simple">
+<li><p><cite>“target</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Mesh that this alias points to.</p></li>
+</ul>
+</div>
+</section>
+<section id="domain-set-meshes">
+<h2>Domain Set Meshes<a class="headerlink" href="#domain-set-meshes" title="Permalink to this heading">#</a></h2>
+<p>A collection of meshes formed by associating a new mesh with each entity of a
+region or set of indices.  This includes generating a 1D column for each
+surface face of a semi-structured subsurface mesh, or for hanging logical
+meshes off of each surface cell as a subgrid model, etc.</p>
+<p>The domain set meshes are then named <cite>“MESH_NAME:X”</cite> for each X, which can be a
+local ID of an entity (in the case of <cite>“domain set indexed</cite>”) or a region name
+(in the case of <cite>“domain set regions</cite>”).</p>
+<p>Indexed domain set meshes are specified by <cite>“mesh type</cite>” of <cite>“domain set indexed</cite>”.</p>
+<div class="admonition-mesh-domain-set-indexed-spec admonition" id="mesh-domain-set-indexed-spec">
+<p class="admonition-title">mesh-domain-set-indexed-spec</p>
+<ul class="simple">
+<li><p><cite>“regions</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> Regions from which indices are created.</p></li>
+<li><p><cite>“entity kind</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> One of <cite>“cell</cite>”, <cite>“face</cite>”, etc.  Entity of the
+region (usually <cite>“cell</cite>”) on which each mesh will be associated.</p></li>
+<li><p><cite>“indexing parent domain</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>domain</strong> Mesh which includes the above region.</p></li>
+<li><p><cite>“referencing parent domain</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>optional</strong> Mesh from which
+the entities of the mesh will be extracted.  For instance, columns may be
+indexed from a surface mesh and referenced from the volume mesh below that
+surface.</p></li>
+</ul>
+</div>
+<p>Note, additionally, there must be a sublist of the name of the domain set,
+which itself is a <cite>“mesh-typed-spec</cite>”_, but may be missing some info
+(e.g. <cite>“entity LID</cite>”) that is filled in by this index.</p>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;column:*&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;mesh type&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;domain set indexed&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;domain set indexed parameters&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;indexing parent domain&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;surface&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;entity kind&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;cell&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;referencing parent domain&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;domain&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;regions&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{surface}&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;column:*&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;mesh type&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;column&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;column parameters&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;parent domain&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;domain&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+<p>Region-based domain set meshes are specified by <cite>“mesh type</cite>” of <cite>“domain set regions</cite>”.</p>
+<div class="admonition-mesh-domain-set-regions-spec admonition" id="mesh-domain-set-regions-spec">
+<p class="admonition-title">mesh-domain-set-regions-spec</p>
+<ul class="simple">
+<li><p><cite>“regions</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> Regions from which indices are created.</p></li>
+<li><p><cite>“entity kind</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> One of <cite>“cell</cite>”, <cite>“face</cite>”, etc.  Entity of the
+region (usually <cite>“cell</cite>”) on which each mesh will be associated.</p></li>
+<li><p><cite>“indexing parent domain</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>domain</strong> Mesh which includes the above region.</p></li>
+<li><p><cite>“referencing parent domain</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>optional</strong> Mesh from which
+the entities of the mesh will be extracted.  For instance, columns may be
+indexed from a surface mesh and referenced from the volume mesh below that
+surface.</p></li>
+</ul>
+</div>
+<p>Note, additionally, there must be a sublist of the name of the domain set,
+which itself is a <cite>“mesh-typed-spec</cite>”_, but may be missing some info
+(e.g. <cite>“region</cite>”) that is filled in by this domain set.</p>
+<p>Example: the below example shows how to extract two subdomains, making them
+each a proper mesh whose communicators only live where they have cells, thereby
+decomposing the domain mesh into two subdomains.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;watershed:*&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;mesh type&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;domain set regions&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;domain set regions parameters&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;indexing parent domain&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;domain&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;entity kind&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;cell&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;referencing parent domain&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;domain&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;regions&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{upstream, downstream}&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;watershed:*&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;mesh type&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;extracted&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;extracted parameters&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;parent domain&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;domain&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;create subcommunicator&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;bool&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;true&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="column-meshes">
+<h2>Column Meshes<a class="headerlink" href="#column-meshes" title="Permalink to this heading">#</a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Note these are rarely if ever created manually by a user.  Instead use
+<a class="reference internal" href="#domain-set-meshes">Domain Set Meshes</a>, which generate a column mesh spec for every face
+of a set.</p>
+</div>
+<p>Specified by <cite>“mesh type</cite>” of <cite>“column</cite>”.</p>
+<div class="admonition-mesh-column-spec admonition" id="mesh-column-spec">
+<p class="admonition-title">mesh-column-spec</p>
+<ul class="simple">
+<li><p><cite>“parent domain</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> The name of the 3D mesh from which columns are generated.
+Note that the <cite>“build columns from set</cite>” parameter must be set in that mesh.</p></li>
+<li><p><cite>“entity LID</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> Local ID of the surface cell that is the top of the column.</p></li>
+<li><p><cite>“verify mesh</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Verify validity of surface mesh.</p></li>
+<li><p><cite>“deformable mesh</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong>  Used for deformation PKs to allow non-const access.</p></li>
+</ul>
+</div>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;mesh&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;column&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;column parameters&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;parent domain&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;domain&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;entity LID&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;int&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;0&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;domain&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;mesh type&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;read mesh file&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;read mesh file parameters&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;file&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;../data/open-book-2D.exo&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;format&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;Exodus II&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="column-surface-meshes">
+<h2>Column Surface Meshes<a class="headerlink" href="#column-surface-meshes" title="Permalink to this heading">#</a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Note these are rarely if ever created manually by a user.  Instead use
+<a class="reference internal" href="#domain-set-meshes">Domain Set Meshes</a>, which generate a column surface mesh spec for every face
+of a set.</p>
+</div>
+<p>Specified by <cite>“mesh type</cite>” of <cite>“column surface</cite>”.</p>
+<div class="admonition-mesh-column-surface-spec admonition" id="mesh-column-surface-spec">
+<p class="admonition-title">mesh-column-surface-spec</p>
+<ul class="simple">
+<li><p><cite>“parent domain</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> The name of the 3D mesh from which columns are generated.
+Note that the <cite>“build columns from set</cite>” parameter must be set in that mesh.</p></li>
+<li><p><cite>“surface region</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Region of the surface of the parent mesh.</p></li>
+<li><p><cite>“verify mesh</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Verify validity of surface mesh.</p></li>
+<li><p><cite>“deformable mesh</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong>  Used for deformation PKs to allow non-const access.</p></li>
+</ul>
+</div>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="main.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Main</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="region.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Region</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 202X, jointly shared by contributor institutions.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.2.1.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.3.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

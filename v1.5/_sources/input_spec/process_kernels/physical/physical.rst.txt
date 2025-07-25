@@ -1,0 +1,1145 @@
+Physical PKs
+============
+Physical PKs are the physical capability implemented within ATS.
+
+Flow PKs
+--------
+
+Flow PKs describe the conservation of mass of water as it flows both
+above and below-ground.  Subsurface flow PKs are based on 3D Richards
+equation, which describes variably saturated flow in porous media.
+Minor variations to this include the incorporation of freeze-thaw
+processes.  Surface flow PKs are based on a diffusion wave equation
+and Manning's model for sheet flow.  Variations to this also include
+the incorporation of freeze-thaw processes.  Finally we include in
+flow a "snow distribution" algorithm which takes as input
+precipitation and applies it based on the existing surface level
+(elevation + water + snowpack), thereby "filling in" low-lying areas
+preferentially.  This makes for more accurate snowpacks at fine
+scales.
+
+Richards PK
+^^^^^^^^^^^
+ Two-phase, variable density Richards equation.
+
+Solves Richards equation:
+
+.. math::
+  \frac{\partial \Theta}{\partial t} - \nabla \cdot \frac{k_r n_l}{\mu} K ( \nabla p + \rho g \hat{z} ) = Q_w
+
+.. _richards-spec:
+.. admonition:: richards-spec
+
+   * `"domain`" ``[string]`` **"domain"**  Defaults to the subsurface mesh.
+
+   * `"primary variable key`" ``[string]`` The primary variable associated with
+     this PK, typically `"DOMAIN-pressure`" Note there is no default -- this
+     must be provided by the user.
+
+   * `"boundary conditions`" ``[list]`` Defaults to Neuman, 0 normal
+     flux.  See `Flow-specific Boundary Conditions`_
+
+   * `"permeability type`" ``[string]`` **scalar** This controls the
+     number of values needed to specify the absolute permeability.
+     One of:
+
+     - `"scalar`" Requires one scalar value.
+     - `"horizontal and vertical`" Requires two values, horizontal
+       then vertical.
+     - `"diagonal tensor`" Requires dim values: {xx, yy} or {xx, yy,
+       zz}
+     - `"full tensor`". (Note symmetry is required.)  Either {xx, yy,
+       xy} or {xx,yy,zz,xy,xz,yz}.
+
+   * `"water retention evaluator`" ``[wrm-evaluator-spec]`` The water
+     retention curve.  This needs to go away, and should get moved to
+     State.
+
+   IF
+
+   * `"source term`" ``[bool]`` **false** Is there a source term?
+
+   THEN
+
+   * `"source key`" ``[string]`` **DOMAIN-water_source** Typically not
+     set, as the default is good. ``[mol s^-1]``
+   * `"source term is differentiable`" ``[bool]`` **true** Can the
+     source term be differentiated with respect to the primary
+     variable?
+   * `"explicit source term`" ``[bool]`` **false** Apply the source
+     term from the previous time step.
+
+   END
+
+   Math and solver algorithm options:
+
+   * `"diffusion`" ``[pde-diffusion-spec]`` The (forward) diffusion
+     operator, see PDE_Diffusion_.
+
+   * `"diffusion preconditioner`" ``[pde-diffusion-spec]``
+     **optional** The inverse of the diffusion operator.  See
+     PDE_Diffusion_.  Typically this is only needed to set Jacobian
+     options, as all others probably should match those in
+     `"diffusion`", and default to those values.
+
+   * `"surface rel perm strategy`" ``[string]`` **none** Approach for
+     specifying the relative permeabiilty on the surface face.
+     `"clobber`" is frequently used for cases where a surface rel
+     perm will be provided.  One of:
+
+     - `"none`" : use the upwind direction to determine whether to
+       use the boundary face or internal cell
+     - `"clobber`" : always use the boundary face rel perm
+     - `"max`" : use the max of the boundary face and internal cell
+       values
+     - `"unsaturated`" : Uses the boundary face when the internal
+       cell is not saturated.
+
+   * `"relative permeability method`" ``[string]`` **upwind with Darcy
+     flux** Relative permeability is defined on cells, but must be
+     calculated on faces to multiply a flux.  There are several
+     methods commonly used.  Note these can significantly change
+     answers -- you don't want to change these unless you know what
+     they mean.  One of:
+
+     - `"upwind with Darcy flux`" First-order upwind method that is
+       most common
+     - `"upwind with gravity`" Upwinds according to the gravitational
+       flux direction
+     - `"cell centered`" This corresponds to the harmonic mean, and is
+       most accurate if the problem is always wet, but has issues
+       when it is dry.
+     - `"arithmetic mean`" Face value is the mean of the neighboring
+       cells.  Not a good method.
+
+   Globalization and other process-based hacks:
+
+   * `"modify predictor with consistent faces`" ``[bool]`` **false** In a
+     face+cell diffusion discretization, this modifies the predictor to make
+     sure that faces, which are a DAE, are consistent with the predicted cells
+     (i.e. face fluxes from each sides match).
+
+   * `"modify predictor for flux BCs`" ``[bool]`` **false** Infiltration into
+     dry ground can be hard on solvers -- this tries to do the local nonlinear
+     problem to ensure that face pressures are consistent with the
+     prescribed flux in a predictor.
+
+   * `"modify predictor via water content`" ``[bool]`` **false** Modifies the
+     predictor using the method of Krabbenhoft [??] paper.  Effectively does a
+     change of variables, extrapolating not in pressure but in water content,
+     then takes the smaller of the two extrapolants.
+
+   * `"max valid change in saturation in a time step [-]`" ``[double]`` **-1**
+     Rejects timesteps whose max saturation change is greater than this value.
+     This can be useful to ensure temporally resolved solutions.  Usually a
+     good value is 0.1 or 0.2.
+
+   * `"max valid change in ice saturation in a time step [-]`" ``[double]``
+     **-1** Rejects timesteps whose max ice saturation change is greater than
+     this value.  This can be useful to ensure temporally resolved solutions.
+     Usually a good value is 0.1 or 0.2.
+
+   * `"limit correction to pressure change [Pa]`" ``[double]`` **-1** If > 0,
+     this limits an iterate's max pressure change to this value.  Not usually
+     helpful.
+
+   * `"limit correction to pressure change when crossing atmospheric [Pa]`" ``[double]`` **-1**
+     If > 0, this limits an iterate's max pressure change
+     to this value when they cross atmospheric pressure.  Not usually helpful.
+
+   Discretization / operators / solver controls:
+
+   * `"accumulation preconditioner`" ``[pde-accumulation-spec]`` **optional**
+     The inverse of the accumulation operator.  See PDE_Accumulation_.
+     Typically not provided by users, as defaults are correct.
+
+   * `"absolute error tolerance`" ``[double]`` **2750.0** in units of [mol].
+
+   * `"compute boundary values`" ``[bool]`` **false** Used to include boundary
+     face unknowns on discretizations that are cell-only (e.g. FV).  This can
+     be useful for surface flow or other wierd boundary conditions.  Usually
+     provided by MPCs that need them.
+
+   Physics control:
+
+   * `"permeability rescaling`" ``[double]`` **1e7** Typically 1e7 or order
+     :math:`sqrt(K)` is about right.  This rescales things to stop from
+     multiplying by small numbers (permeability) and then by large number
+     (:math:`\rho / \mu`).
+
+   IF
+
+   * `"coupled to surface via flux`" ``[bool]`` **false** If true, apply
+     surface boundary conditions from an exchange flux.  Note, if this is a
+     coupled problem, it is probably set by the MPC.  No need for a user to
+     set it.
+
+   THEN
+
+   * `"surface-subsurface flux key`" ``[string]`` **DOMAIN-surface_subsurface_flux**
+
+   END
+
+   * `"coupled to surface via head`" ``[bool]`` **false** If true, apply
+     surface boundary conditions from the surface pressure (Dirichlet).
+
+
+
+
+Permafrost Flow PK
+^^^^^^^^^^^^^^^^^^
+ A three-phase, thermal Richard's equation with water, water vapor, and ice for permafrost applications.
+
+Note that the only difference between permafrost and richards is in
+constitutive relations -- the WRM changes to provide three saturations,
+while the water content changes to account for water in ice phase.  As these
+are now drop-in field evaluators, there is very little to change in the PK.
+
+In the future, this should not even need a different PK.
+
+.. _permafrost-spec:
+.. admonition:: permafrost-spec
+
+    * `"saturation ice key`" ``[string]`` **"DOMAIN-saturation_ice"** volume fraction of the ice phase (only when relevant) ``[-]`` Typically the default is correct.
+
+    INCLUDES:
+
+    - ``[richards-spec]`` See `Richards PK`_
+
+
+
+Overland Flow PK
+^^^^^^^^^^^^^^^^
+ Overland flow using the diffusion wave equation.
+
+Solves the diffusion wave equation for overland flow with pressure as a primary variable:
+
+.. math::
+  \frac{\partial \Theta}{\partial t} - \nabla n_l k \nabla h(p) = Q_w
+
+
+.. _overland-pressure-spec:
+.. admonition:: overland-pressure-spec
+
+    Keys name variables:
+
+    * `"domain`" ``[string]`` **"surface"**  Defaults to the extracted surface mesh.
+
+    * `"primary variable`" ``[string]`` The primary variable associated with
+      this PK, typically `"DOMAIN-pressure`" Note there is no default -- this
+      must be provided by the user.
+
+    * `"boundary conditions`" ``[list]`` Defaults to Neuman, 0 normal flux.
+
+    * `"overland conductivity evaluator`" ``[list]``
+      See `Overland Conductivity Evaluator`_.
+
+    IF
+
+    * `"source term`" ``[bool]`` **false** Is there a source term?
+
+    THEN
+
+    * `"source key`" ``[string]`` **DOMAIN-water_source** Typically
+      not set, as the default is good. ``[m s^-1]`` or ``[mol s^-1]``
+    * `"water source in meters`" ``[bool]`` **true** Is the source term in ``[m s^-1]``?
+    * `"source term is differentiable`" ``[bool]`` **true** Can the source term
+      be differentiated with respect to the primary variable?
+
+    END
+
+    Math and solver algorithm options:
+
+    * `"diffusion`" ``[pde-diffusion-spec]`` The (forward) diffusion operator,
+      see PDE_Diffusion_.
+
+    * `"diffusion preconditioner`" ``[pde-diffusion-spec]`` **optional** The
+      inverse of the diffusion operator.  See PDE_Diffusion_.  Typically this
+      is only needed to set Jacobian options, as all others probably should
+      match those in `"diffusion`", and default to those values.
+
+    * `"absolute error tolerance`" ``[double]`` **550.** Defaults to 1 cm of
+      water.  A small, but significant, amount of water.
+
+    * `"limit correction to pressure change [Pa]`" ``[double]`` **-1** If > 0,
+      this limits an iterate's max pressure change to this value.  Not usually
+      helpful.
+
+    * `"limit correction to pressure change when crossing atmospheric [Pa]`" ``[double]`` **-1**
+      If > 0, this limits an iterate's max pressure change
+      to this value when they cross atmospheric pressure.  Not usually helpful.
+
+    * `"allow no negative ponded depths`" ``[bool]`` **false** Modifies all
+      correction updates to ensure only positive ponded depth is allowed.
+
+    * `"min ponded depth for velocity calculation`" ``[double]`` **1.e-2** For
+      ponded depth below this height, declare the velocity 0.
+
+    * `"min ponded depth for tidal bc`" ``[double]`` **0.02** Control on the
+      tidal boundary condition.  TODO: This should live in the BC spec?
+
+    INCLUDES:
+
+    - ``[pk-physical-bdf-default-spec]`` A `PK: Physical and BDF`_ spec.
+
+    Everything below this point is usually not provided by the user, but are
+    documented here for completeness.
+
+    Keys name variables:
+
+    * `"conserved quantity key`" ``[string]`` **DOMAIN-water_content** Typically
+      not set, as the default is good. ``[mol]``
+    * `"elevation key`" ``[string]`` **DOMAIN-elevation** Typically
+      not set, as the default is good. ``[mol]``
+    * `"slope magnitude key`" ``[string]`` **DOMAIN-slope_magnitude** Typically
+      not set, as the default is good. ``[mol]``
+
+    Algorithmic parameters:
+
+    * `"coupled to subsurface via flux`" ``[bool]`` **false** Set by MPC.
+    * `"coupled to subsurface via head`" ``[bool]`` **false** Set by MPC.
+
+    * `"accumulation preconditioner`" ``[pde-accumulation-spec]`` **optional**
+      The inverse of the accumulation operator.  See PDE_Accumulation_.
+      Typically not provided by users, as defaults are correct.
+
+    EVALUATORS:
+
+    - `"conserved quantity`"
+    - `"water content`"
+    - `"cell volume`"
+    - `"surface_subsurface_flux`"
+    - `"elevation`"
+    - `"slope magnitude`"
+    - `"overland_conductivity`"
+    - `"ponded_depth`"
+    - `"pres_elev`"
+    - `"source`"
+
+
+.. todo:
+    Nearly all variable name roots are hard-coded here, this should get updated.
+
+
+
+
+Overland Flow with Ice
+^^^^^^^^^^^^^^^^^^^^^^
+ Two-phase overland flow equation.
+
+This modifies the diffusion wave equation for overland flow that includes
+freeze-thaw processes.  This class could completely go away, but it does some
+error checking on the input file to make sure freeze-thaw processes are done
+correctly.  In the future this service should be done by a preprocessor
+generating the input file, and this class would go away.
+
+.. _icy-overland-spec:
+.. admonition:: icy-overland-spec
+
+    INCLUDES:
+
+    - ``[overland-pressure-spec]`` See `Overland Flow PK`_.
+
+
+
+
+Snow Distribution PK
+^^^^^^^^^^^^^^^^^^^^
+ Preferential distribution of snow precip in low-lying areas.
+
+This PK is a heuristic PK that distributes incoming snow precipitation using a
+diffusion wave equation.  Think of it as an analogue to overland flow -- it
+effectively ensures that new snow "flows downhill," due to a uniformly random
+direction and strength wind, and lands on the lowest lying areas.
+
+Tweaking the snow-manning_coefficient lets you play with how uniform the snow
+layer ends up.  Most of the parameters are set by your snow precipitation input
+data interval.  The details of this are a bit tricky mathematically, and it may
+take some fiddling with parameters to do this correctly if your data is not
+daily (which all defaults are set for).
+
+.. _snow-distribution-spec:
+.. admonition:: snow-distribution-spec
+
+    * `"distribution time`" ``[double]`` **86400.** Interval of snow precip input dataset. `[s]`
+    * `"precipitation function`" ``[function-spec]`` Snow precipitation function, see Functions_.
+
+    * `"diffusion`" ``[pde-diffusion-spec]`` Diffusion drives the distribution.
+      Typically we use finite volume here.  See PDE_Diffusion_
+
+    * `"diffusion preconditioner`" ``[pde-diffusion-spec]`` Inverse of the
+      above.  Likely only Jacobian term options are needed here, as the others
+      default to the same as the `"diffusion`" list.  See PDE_Diffusion_.
+
+    * `"inverse`" ``[inverse-typed-spec]`` Inverse_ method for the solve.
+
+    Not typically provided by the user, defaults are good:
+
+    * `"accumulation preconditioner`" ``[pde-accumulation-spec]`` See PDE_Accumulation_.
+
+
+.. todo::
+    For this PK, all variable root names are hard-coded.  This should get changed.
+
+
+
+
+
+Transport PK
+------------
+
+The Transport PK describes the conservation of mass of components transported
+with water as it flows. The transport PK is based on the advection-diffusion 
+equation, applies to one or more components that are dissolved in the aqueous 
+phase, and is currently used in both surface and subsurface compartments. 
+The key difference between surface and subsurface transport is in capturing 
+the volume of water. In the subsurface, the volume of water is set by the 
+porosity and saturation of the porous medium, while in the surface it is set 
+by the ponded depth.
+
+
+
+The advection-diffusion equation for component *i* in partially saturated porous media may be written as
+
+.. math::
+  \frac{\partial (\phi s_l C_i)}{\partial t}
+  =
+  - \boldsymbol{\nabla} \cdot (\boldsymbol{q} C_i)
+  + \boldsymbol{\nabla} \cdot (\phi s_l\, (\boldsymbol{D^*}_l + \tau \boldsymbol{D}_i) \boldsymbol{\nabla} C_i) + Q_s,
+
+The advection-diffusion equation for component *i* in the surface may be written as
+
+.. math::
+  \frac{\partial (C_i)}{\partial t}
+  =
+  - \boldsymbol{\nabla} \cdot (\boldsymbol{q_s} C_i)
+  + \boldsymbol{\nabla} \cdot ( (\boldsymbol{D^*}_l + \tau \boldsymbol{D}_i) \boldsymbol{\nabla} C_i) + Q_s,
+
+.. _transport-spec:
+.. admonition:: transport-spec
+
+   * `"PK type`" ``[string]`` **"transport ats"**
+
+   * `"domain name`" ``[string]`` **domain** specifies mesh name that defines
+     the domain of this PK.
+
+   * `"component names`" ``[Array(string)]`` No default. Provides the names of the
+     components that will be transported. Must be in the order: aqueous, gaseous, solid.
+
+   * `"number of aqueous components`" ``[int]`` **-1** The total number of
+     aqueous components.  Default value is the length of `"component names`"
+
+   * `"number of gaseous components`" ``[int]`` **0** The total number of
+     gaseous components.
+
+   * `"boundary conditions`" ``[transport-bc-spec]`` Boundary conditions for
+     transport are dependent on the boundary conditions for flow. See
+     `Flow-specific Boundary Conditions`_ and `Transport-specific Boundary Conditions`_
+
+   * `"component molar masses`" ``[Array(double)]`` No default. Molar mass of
+     each component.
+
+   * `"molecular diffusion`" ``[molecular-diffusion-spec]`` defines names of
+     solutes in aqueous and gaseous phases and related diffusivity values.
+
+   * "material properties" ``[material-properties-spec-list]`` Defines material
+     properties see below).
+
+   Source terms:
+
+   * `"source terms`" ``[transport-source-spec-list]`` Provides solute source.
+
+   Physical model and assumptions:
+
+   * `"physical models and assumptions`" [material-properties-spec] Defines material properties.
+
+   * `"effective transport porosity`" ``[bool]`` **false** If *true*, effective transport porosity
+     will be used by dispersive-diffusive fluxes instead of total porosity.
+
+   Math and solver algorithm options:
+
+   * `"diffusion`" ``[pde-diffusion-spec]`` Diffusion drives the distribution.
+     Typically we use finite volume here.  See PDE_Diffusion_
+
+   * `"diffusion preconditioner`" ``[pde-diffusion-spec]`` Inverse of the
+     above.  Likely only Jacobian term options are needed here, as the others
+     default to the same as the `"diffusion`" list.  See PDE_Diffusion_.
+
+   * `"inverse`" ``[inverse-typed-spec]`` Inverse_ method for the solve.
+
+   * `"cfl`" [double] Time step limiter, a number less than 1. Default value is 1.
+
+   * `"spatial discretization order`" [int] defines accuracy of spatial discretization.
+     It permits values 1 or 2. Default value is 1.
+
+   * `"temporal discretization order`" [int] defines accuracy of temporal discretization.
+     It permits values 1 or 2 and values 3 or 4 when expert parameter
+     `"generic RK implementation`" is set to true. Note that RK3 is not monotone.
+     Default value is 1.
+
+   * `"reconstruction`" [list] collects reconstruction parameters. The available options are
+      describe in the separate section below.
+
+   * `"transport subcycling`" ``[bool]`` **true** The code will default to
+      subcycling for transport within the master PK if there is one.
+
+
+   Developer parameters:
+
+   * `"enable internal tests`" [bool] turns on various internal tests during
+      run time. Default value is `"false`".
+
+   * `"generic RK implementation`" [bool] leads to generic implementation of
+      all Runge-Kutta methods. Default value is `"false`".
+
+   * `"internal tests tolerance`" [double] tolerance for internal tests such as the
+      divergence-free condition. The default value is 1e-6.
+
+   * `"runtime diagnostics: solute names`" [Array(string)] defines solutes that will be
+      tracked closely each time step if verbosity `"high`". Default value is the first
+      solute in the global list of `"aqueous names`" and the first gas in the global list
+      of `"gaseous names`".
+
+   * `"runtime diagnostics: regions`" [Array(string)] defines a boundary region for
+      tracking solutes. Default value is a seepage face boundary, see Flow PK.
+
+   KEYS
+
+   - `"saturation liquid`" This variable is a multiplier in in the
+      accumulation term. For subsurface transport, this will typically be the
+      saturation (`"saturation_liquid`"). For surface transport, this will
+      typically be the ponded depth (`"ponded_depth`").
+
+   - `"previous saturation liquid`"
+
+   - `"molar density liquid`"  Transport is solved
+      for concentrations in units of mol fractions. Molar density is needed for conversion.
+
+   - `"water flux`"
+
+   - `"water source`" Defines the water injection rate [mol H2O m^-2 s^-1] in
+      surface and [mol H2O m^-3 s^-1] in subsurface) which applies to
+      concentrations specified by the `"geochemical conditions`".  Note that if
+      this PK is coupled to a surface flow PK, the unit of the water source
+      there *must* be in [mol m^-2 s^-1], *not* in [m s^-1] as is an option for
+      that PK (e.g. `"water source in meters`" must be set to `"false`" in the
+      overland flow PK).
+
+      The injection rate of a solute [molC s^-1], when given as the product of
+      a concentration and a water source, is evaluated as:
+
+      Concentration [mol C L^-1] *
+        1000 [L m^-3] of water *
+        water source [mol H2O m^-3 s^-1] *
+        volume of injection domain [m^3] /
+        molar density of water [mol H2O m^-3]
+
+
+.. _molecular-diffusion-spec:
+.. admonition:: molecular-diffusion-spec
+
+   * `"aqueous names`" ``[Array(string)]`` List of aqueous component names to
+     be diffused.
+   * `"aqueous values`" ``[Array(string)]`` Diffusivities of each component.
+
+
+.. code-block:: xml
+
+   <ParameterList name="molecular diffusion">
+     <Parameter name="aqueous names" type=Array(string)" value="{CO2(l),Tc-99}"/>
+     <Parameter name="aqueous values" type=Array(double)" value="{1e-8,1e-9}"/>
+   </ParameterList>
+
+
+.. _material-properties-spec:
+.. admonition:: material-properties-spec
+
+   * `"region`" ``[Array(string)]`` Defines geometric regions for material SOIL.
+
+   * `"model`" ``[string]`` **scalar** Defines dispersivity model.  One of:
+
+     - `"scalar`" : scalar dispersivity
+     - `"Bear`" : dispersion split into along- and across- velocity
+     - `"Burnett-Frind`"
+     - `"Lichtner-Kelkar-Robinson`"
+
+   * `"parameters for MODEL`" ``[list]`` where `"MODEL`" is the model name.
+
+   IF model == scalar
+
+   ONE OF
+
+   * `"alpha`" ``[double]`` defines dispersivity in all directions, [m].
+
+   OR
+
+   * `"dispersion coefficient`" ``[double]`` defines dispersion coefficient [m^2 s^-1].
+
+   END
+
+   ELSE IF model == Bear
+
+   * `"alpha_l`" ``[double]`` defines dispersion in the direction of Darcy velocity, [m].
+   * `"alpha_t`" ``[double]`` defines dispersion in the orthogonal direction, [m].
+
+   ELSE IF model == Burnett-Frind
+
+   * `"alphaL`" ``[double]`` defines the longitudinal dispersion in the direction
+     of Darcy velocity, [m].
+   * `"alpha_th`" ``[double]`` Defines the transverse dispersion in the horizonal
+     direction orthogonal directions, [m].
+   * `"alpha_tv`" ``[double]`` Defines dispersion in the orthogonal directions,
+     [m].  When `"alpha_th`" equals to `"alpha_tv`", we obtain dispersion in
+     the direction of the Darcy velocity.
+
+   ELSE IF model == Lichtner-Kelker-Robinson
+
+   * `"alpha_lh`" ``[double]`` defines the longitudinal dispersion in the
+     horizontal direction, [m].
+   * `"alpha_lv`" ``[double]`` Defines the longitudinal dispersion in the vertical
+     direction, [m].  When `"alpha_lh`" equals to `"alpha_lv`", we obtain
+     dispersion in the direction of the Darcy velocity.
+   * `"alpha_th`" ``[double]`` Defines the transverse dispersion in the horizontal
+     direction orthogonal directions, [m].
+   * `"alpha_tv" ``[double]`` Defines dispersion in the orthogonal directions.
+     When `"alpha_th`" equals to `"alpha_tv`", we obtain dispersion in the
+     direction of the Darcy velocity.
+
+   END
+
+   * `"aqueous tortuosity`" ``[double]`` Defines tortuosity for calculating
+     diffusivity of liquid solutes, [-].
+
+   * `"gaseous tortuosity`" ``[double]`` Defines tortuosity for calculating
+     diffusivity of gas solutes, [-].
+
+
+.. _transport-source-spec:
+.. admonition:: transport-source-spec
+
+   * `"component mass source`" ``[list]``  Defines solute source injection rate.
+
+     * `"spatial distribution method`" ``[string]`` One of:
+
+        - `"volume`", source is considered as extensive quantity [molC s^-1] and is evenly distributed across the region.
+        - `"none`", source is considered as intensive quantity. [molC m^-2 s^-1] in surface and [molC m^-3 s^-1] in subsurface
+
+     * `"geochemical`" ``[list]``  Defines a source by setting solute concentration for all components (in moles/L) and an injection
+       rate given by the water source.  Currently, this option is only available for Alquimia provided geochemical conditions.
+
+       - `"geochemical conditions`" ``[Array(string)]`` List of geochemical constraints providing concentration for solute injection.
+
+
+
+
+Energy PKs
+-----------
+
+Energy PKs describe the conservation of energy as it is advected and
+diffuses both above and below-ground.  Both surface and subsurface
+energy equations are based on a simple advection-diffusion equation,
+and include variants with and without freeze-thaw processes.
+
+Energy Base PK
+^^^^^^^^^^^^^^
+ An advection-diffusion equation for energy.
+
+Solves an advection-diffusion equation for energy:
+
+.. math::
+    \frac{\partial E}{\partial t} - \nabla \cdot \kappa \nabla T + \nabla \cdot \mathbf{q} e(T) = Q_w e(T) + Q_e
+
+.. todo:: Document the energy error norm!
+
+.. _energy-pk-spec:
+.. admonition:: energy-pk-spec
+
+    * `"domain`" ``[string]`` **"domain"**  Defaults to the subsurface mesh.
+
+    * `"primary variable`" ``[string]`` The primary variable associated with
+      this PK, typically `"DOMAIN-temperature`" Note there is no default -- this
+      must be provided by the user.
+
+    * `"boundary conditions`" ``[list]`` Defaults to 0 diffusive flux
+      boundary condition.  See `Energy-specific Boundary Conditions`_
+
+    * `"thermal conductivity evaluator`" ``[list]``
+      The thermal conductivity.  This
+      needs to go away, and should get moved to State.
+
+    * `"absolute error tolerance`" ``[double]`` **76.e-6** A small amount of
+      energy, see error norm. `[MJ]`
+
+    * `"upwind conductivity method`" ``[string]`` **arithmetic mean** Method of
+      moving cell-based thermal conductivities onto faces.  One of:
+
+      - `"arithmetic mean`" the default, average of neighboring cells
+      - `"cell centered`" harmonic mean
+
+    IF
+
+    * `"explicit advection`" ``[bool]`` **false** Treat the advection term implicitly.
+
+    ELSE
+
+    * `"supress advective terms in preconditioner`" ``[bool]`` **false**
+      Typically subsurface energy equations are strongly diffusion dominated,
+      and the advective terms may add little.  With this flag on, we ignore
+      theem in the preconditioner, making an easier linear solve and often not
+      negatively impacting the nonlinear solve.
+
+    * `"advection preconditioner`" ``[list]`` **optional**
+      Typically defaults are correct.
+
+    END
+
+    * `"diffusion`" ``[pde-diffusion-spec]`` See PDE_Diffusion_, the diffusion operator.
+
+    * `"diffusion preconditioner`" ``[pde-diffusion-spec]`` See
+      PDE_Diffusion_, the inverse operator.  Typically only adds Jacobian
+      terms, as all the rest default to those values from `"diffusion`".
+
+    IF
+
+    * `"source term`" ``[bool]`` **false** Is there a source term?
+
+    THEN
+
+    * `"source key`" ``[string]`` **DOMAIN-total_energy_source** Typically
+      not set, as the default is good. ``[MJ s^-1]``
+
+    * `"source term is differentiable`" ``[bool]`` **true** Can the source term
+      be differentiated with respect to the primary variable?
+
+    * `"source term finite difference`" ``[bool]`` **false** If the source term
+      is not diffferentiable, we can do a finite difference approximation of
+      this derivative anyway.  This is useful for difficult-to-differentiate
+      terms like a surface energy balance, which includes many terms.
+
+    END
+
+    Globalization:
+
+    * `"modify predictor with consistent faces`" ``[bool]`` **false** In a
+      face+cell diffusion discretization, this modifies the predictor to make
+      sure that faces, which are a DAE, are consistent with the predicted cells
+      (i.e. face fluxes from each sides match).
+
+    * `"modify predictor for freezing`" ``[bool]`` **false** A simple limiter
+      that keeps temperature corrections from jumping over the phase change.
+
+    * `"limit correction to temperature change [K]`" ``[double]`` **-1.0** If >
+      0, stops nonlinear updates from being too big through clipping.
+
+    The following are rarely set by the user, as the defaults are typically right.
+
+    * `"advection`" ``[list]`` **optional** The PDE_Advection_ spec.  Only one
+      current implementation, so defaults are typically fine.
+
+    * `"accumulation preconditioner`" ``[pde-accumulation-spec]`` **optional**
+      The inverse of the accumulation operator.  See PDE_Accumulation_.
+      Typically not provided by users, as defaults are correct.
+
+    IF
+
+    * `"coupled to surface via flux`" ``[bool]`` **false** If true, apply
+      surface boundary conditions from an exchange flux.  Note, if this is a
+      coupled problem, it is probably set by the MPC.  No need for a user to
+      set it.
+
+    THEN
+
+    * `"surface-subsurface energy flux key`" ``[string]`` **DOMAIN-surface_subsurface_energy_flux**
+
+    END
+
+    * `"coupled to surface via temperature`" ``[bool]`` **false** If true, apply
+      surface boundary conditions from the surface temperature (Dirichlet).
+
+    KEYS:
+
+    - `"conserved quantity`" **DOMAIN-energy** The total energy :math:`E` `[MJ]`
+    - `"energy`" **DOMAIN-energy** The total energy :math:`E`, also the conserved quantity. `[MJ]`
+    - `"water content`" **DOMAIN-water_content** The total mass :math:`\Theta`, used in error norm `[mol]`
+    - `"enthalpy`" **DOMAIN-enthalpy** The specific enthalpy :math`e` `[MJ mol^-1]`
+    - `"flux`" **DOMAIN-water_flux** The water flux :math:`\mathbf{q}` used in advection. `[mol s^-1]`
+    - `"diffusive energy`" **DOMAIN-diffusive_energy_flux** :math:`\mathbf{q_e}` `[MJ s^-1]`
+    - `"advected energy`" **DOMAIN-advected_energy_flux** :math:`\mathbf{q_e^{adv}} = q e` `[MJ s^-1]`
+    - `"thermal conductivity`" **DOMAIN-thermal_conductivity** Thermal conductivity on cells `[W m^-1 K^-1]`
+    - `"upwinded thermal conductivity`" **DOMAIN-upwinded_thermal_conductivity** Thermal conductivity on faces `[W m^-1 K^-1]`
+
+    EVALUATORS:
+
+    - `"source term`" **optional** If source key is provided.
+    - `"enthalpy`"
+    - `"cell volume`"
+    - `"thermal conductivity`"
+    - `"conserved quantity`"
+    - `"energy`"
+
+
+
+
+Two-Phase subsurface Energy PK
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ An advection-diffusion equation for energy in two phases.
+
+This is simply a subsurface energy equation that places a few more requirements
+on the base class.  It could probably go away if we refactor to remove
+hard-coded evaluators.
+
+.. _energy-two-phase-pk-spec:
+.. admonition:: energy-two-phase-pk-spec
+
+    INCLUDES:
+
+    - ``[energy-pk-spec]``  See `Energy Base PK`_
+
+
+
+
+Three-Phase subsurface Energy PK
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ An advection-diffusion equation for energy in three phases.
+
+This is simply a subsurface energy equation that places a few more requirements
+on the base class.  It could probably go away if we refactor to remove
+hard-coded evaluators.
+
+.. _energy-three-phase-pk-spec:
+.. admonition:: energy-three-phase-pk-spec
+
+    INCLUDES:
+
+    - ``[energy-two-phase-pk-spec]`` See  `Two-Phase subsurface Energy PK`_
+
+
+
+
+Overland energy with Ice
+^^^^^^^^^^^^^^^^^^^^^^^^
+ An advection-diffusion equation for surface energy in two phases.
+
+This is simply a surface energy equation that places a few more requirements
+on the base class.  It could probably go away if we refactor to remove
+hard-coded evaluators.
+
+.. _energy-surface-ice-pk-spec:
+.. admonition:: energy-surface-ice-pk-spec
+
+    These are typically not set by the user:
+
+    * `"coupled to subsurface via temperature`" ``[bool]`` **false** A coupling
+      scheme, provided by MPC.
+
+    * `"coupled to subsurface via flux`" ``[bool]`` **false** A coupling
+      scheme, provided by MPC.
+
+    * `"subsurface domain name`" ``[string]`` **optional** If one of the above
+      coupling schemes is turned on, we need to know the subsurface mesh.
+      Provided by MPC.
+
+    INCLUDES:
+
+    - ``[energy-pk-spec]``  See `Energy Base PK`_
+
+
+
+
+
+
+Surface Energy Balance PKs
+------------------------------
+
+Integrated hydrology is not much use without significant process
+complexity in source terms coming from the ecohydrologic environment.
+These include straightforward sources, like precipitation, but also
+more complicated ones such as evaporation and transpiration.
+
+These terms are almost always tied up in a surface energy balance --
+evaporation and transpiration are driven by vapor pressure gradients
+between the atmosphere and the surface (either snow, ponded water,
+soil, or leaf).  Solving a surface energy balance often requires
+providing a bunch of terms, including radiated energy, conducted
+energy, latent and sensible heat models, etc.
+
+ATS currently has several approaches to calculating these -- see
+`ats-demos <https://github.com/amanzi/ats-demos>`_ examples on
+ecohydrology for a more in-depth discussion.
+
+Balance Equation
+^^^^^^^^^^^^^^^^
+ A simple conservation ODE.
+
+This is a very simple vector of ODEs, useful in balance equations, where the
+time derivative of a conserved quantity is determined by a bunch of sources and
+sinks.
+
+.. math::
+    \frac{\partial \Phi }{\partial t} = \sum_i Q_i
+
+.. _balance-pk-spec:
+.. admonition:: balance-pk-spec
+
+    * `"primary variable key`" ``[string]`` The primary variable associated with
+      this PK.  Note there is no default -- this must be provided by the user.
+
+    * `"conserved quantity key`" ``[string]`` The conserved quantity :math:`\Phi`
+
+    * `"source key`" ``[string]`` **DOMAIN-source_sink** Units are in conserved
+      quantity per second per cell volume.
+
+    * `"time discretization theta`" ``[double]`` **1.0** :math:`\theta` in a
+      Crank-Nicholson time integration scheme.  1.0 implies fully implicit, 0.0
+      implies explicit, 0.5 implies C-N.
+
+    * `"modify predictor positivity preserving`" ``[bool]`` **false** If true,
+      predictors are modified to ensure that the conserved quantity is always > 0.
+
+    * `"absolute error tolerance`" ``[double]`` **550.0** a_tol in the standard
+      error norm calculation.  Defaults to a small amount of water.  Units are
+      the same as the conserved quantity.
+
+    INCLUDES:
+
+    - ``[pk-physical-bdf-default-spec]``
+
+
+
+
+
+Snow Balance Equation
+^^^^^^^^^^^^^^^^^^^^^
+ An implicit PK for surface balance snow SWE conservation.
+
+This is a balance PK whose conserved quantity is snow SWE.  The energy balance
+comes in as it provides the energy needed to melt snow.  So source terms
+include snow precipitation and snowmelt.  It also manages snow density, which
+should get rethought a bit.
+
+There is also some wierd hackiness here about area fractions -- see ATS Issue
+#8
+
+.. _subgrid-balance-pk-spec:
+.. admonition:: subgrid-balance-pk-spec
+
+    * `"absolute error tolerance`" ``[double]`` **0.01** ``[m]``
+
+    INCLUDES:
+
+    - ``[balance-pk-spec]`` This *is a* `Balance Equation`_
+
+    Not typically set by user, defaults work:
+
+    * `"conserved quantity key`" ``[string]`` **DOMAIN-snow_water_equivalent**
+      Sets the default conserved quantity key, so this is likely not supplied
+      by the user. `[m]`
+    * `"snow density key`" ``[string]`` **DOMAIN-density** Default snow density
+      key. `[kg m^-3]`
+    * `"snow age key`" ``[string]`` **DOMAIN-age** Default snow age key. `[d]`
+    * `"new snow key`" ``[string]`` **DOMAIN-source** Default new snow key. `[m SWE s^-1]`
+    * `"area fractions key`" ``[string]`` **DOMAIN-fractional_areas** Subgrid
+      model fractional areas, see note above. `[-]`
+    * `"snow death rate key`" ``[string]`` **DOMAIN-death_rate** Deals with last
+      tiny bit of snowmelt.
+
+
+
+
+Biogeochemistry
+---------------
+
+To accurately predict watershed ecohydrology, a carbon cycle model is
+needed to predict transpiration.  By simulating a carbon cycle, we are
+able to predict the rate of photosynthesis as a function of space and
+time, and photosynthesis governs root water uptake.  Currently only
+one big-leaf model is available, but ongoing work is wrapping a
+generalized Common/Colorado Land Model based on that developed within
+the ParFlow team, and another ongoing project is working on wrapping
+kernels from E3SM's Land Model.
+
+Biogeochemistry -- Monolithic Version
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ Above and below-ground carbon cycle model.
+
+This is a multi-leaf layer, big-leaf vegetation model coupled to a Century
+model for belowground carbon decomposition.
+
+It leverages a PFT-based structure which allows multiple height-sorted PFTs to
+coexist on the same grid cells, with the shorter PFTs getting whatever light is
+left in the understory.
+
+The implementation is based on an old, standalone code by Chonggang Xu, and
+adapted for ATS.  While this is not simple, it is called BGC simple as it is
+about the least amount of complexity required to get a reasonable carbon cycle
+into ATS.
+
+Outputs of this include transpiration, a critical sink for hydrology, as it
+solves photosynthesis based on water availability.
+
+Note this is an "explicit update PK," or effectively a forward Euler timestep
+that is not written in ODE form.
+
+Note this works on both the surface (vegetation) and subsurface (decomposition)
+meshes.  **It is required** that the subsurface mesh is a "columnar" mesh, and
+that build_columns in the subsurface Mesh_ spec has been supplied.
+
+.. _bgc-simple-spec:
+.. admonition:: bgc-simple-spec
+
+  * `"initial time step`" ``[double]`` **1.0** Initial time step size `[s]`
+
+  * `"number of carbon pools`" ``[int]`` **7** Unclear whether this can actually change?
+
+  * `"soil carbon parameters`" ``[soil-carbon-spec-list]`` List of soil carbon parameters by soil mesh partition region name.
+
+  * `"pft parameters`" ``[pft-spec-list]`` List of PFT parameters by PFT name.
+
+  * `"latitude [degrees]`" ``[double]`` **60** Latitude of the simulation in degrees.  Used in radiation balance.
+
+  * `"wind speed reference height [m]`" ``[double]`` **2.0** Reference height of the wind speed dataset.
+
+  * `"cryoturbation mixing coefficient [cm^2/yr]`" ``[double]`` **5.0** Controls diffusion of carbon into the subsurface via cryoturbation.
+
+  * `"leaf biomass initial condition`" ``[initial-conditions-spec]`` Sets the leaf biomass IC.
+
+  * `"domain name`" ``[string]`` **domain**
+
+  * `"surface domain name`" ``[string]`` **surface**
+
+  * `"transpiration key`" ``[string]`` **DOMAIN-transpiration** The distributed transpiration flux `[mol s^-1]`
+
+  * `"shaded shortwave radiation key`" ``[string]``
+    **SURFACE_DOMAIN-shaded_shortwave_radiation** Shortwave radiation that gets
+    past the canopy and teo the bare ground for soil evaporation. `[W m^-2]`
+
+  * `"total leaf area index key`" ``[string]`` **SURFACE_DOMAIN-total_leaf_area_index** Total LAI across all PFTs.
+
+  EVALUATORS:
+
+  - `"temperature`" The soil temperature `[K]`
+  - `"pressure`" soil mafic potential `[Pa]`
+  - `"surface-cell_volume`" `[m^2]`
+  - `"surface-incoming shortwave radiation`" `[W m^-2]`
+  - `"surface-air_temperature`" `[K]`
+  - `"surface-vapor_pressure_air`" `[Pa]`
+  - `"surface-wind_speed`" `[m s^-1]`
+  - `"surface-co2_concentration`" `[ppm]`
+
+
+
+
+
+
+Deformation
+-------------
+
+The unstructured mesh framework we use provides the opportunity to
+include deformation of the mesh.  This deformation can be done in two
+ways -- either node coordinate changes are provided, or volumetric
+changes are provided, and the code attempts to iterate toward a global
+coordinate change that satisfies these volumetric changes.  The latter
+can be somewhat fragile for large deformation, but it does allow
+simple deformation such as small, somewhat uniform subsidence.  The
+volumetric deformation PK below does this based on a volumetric change
+given by loss of bulk ice.
+
+Volumetric Deformation
+^^^^^^^^^^^^^^^^^^^^^^
+ Subsidence through bulk ice loss and cell volumetric change.
+
+This process kernel provides for going from a cell volumetric change to an
+updated unstructured mesh, and can be coupled sequentially with flow to solve
+problems of flow in a subsiding porous media.
+
+Note that this PK is slaved to the flow PK.  This PK must be advanced first,
+and be weakly coupled to the flow PK (or an MPC that advances the flow PK), and
+the timestep of this PK must match that of the flow PK (e.g. do not try to
+subcyle one or the other).  This uses a rather hacky, unconventional use of
+time tags, where we use saturations and porosities at the NEXT time, but ASSUME
+they are actually the values of the CURRENT time.  This saves having to stash a
+copy of these variables at the CURRENT time, which would otherwise not be used.
+
+Note that all deformation here is vertical, and we assume that the subsurface
+mesh is **perfectly columnar** and that the "build columns" parameter has been
+given to the subsurface mesh.  See the Mesh_ spec for more.
+
+The process here is governed through two options, the "deformation mode" and
+the "deformation strategy."
+
+The deformation mode describes how the cell volume change is calculated.  There
+are three options here:
+
+- "prescribed" uses a function to precribe the volume changes as a function of (t,x,y,z).
+
+- "structural" decreases the cell volume if the porosity is above a prescribed
+  "structurally connected matrix" porosity.  Think of this as bulk ice
+  "propping up" the soil grains -- as that bulk ice melts, it reduces porosity
+  toward the porosity in at which grains start to touch again and can be
+  structurally sound.
+
+- "saturation" is a heuristic that considers the liquid saturation directly,
+  and tries to relax the liquid saturation back toward a value that is
+  consistent with what the thawed soil should be.
+
+.. todo: Move this into an evaluator!
+
+The deformation strategy describes how the cell volume change is turned into
+node coordinate changes.  Three options are available:
+
+- "average" simply takes the average of volume change/surface area and
+  horizontally averages this quantity across all neighbors.  While this has the
+  advantage of being simple, it has issues when thaw gradients in the
+  horizontal are not zero, as it may result in the loss of volume in a fully
+  frozen cell, blowing up the pressure and breaking the code.  This is great
+  when it works, but it almost never works in real problems, except in
+  column-based models, where it is perfect.
+
+- "mstk implementation" MSTK implements an iterated, local optimization method
+  that, one-at-a-time, moves nodes to try and match the volumes.  This has
+  fewer issues with overfitting, but doesn't always do sane things, and can be
+  expensive if iterations don't work well.  This is not particularly robust
+  either, but it seems to be the preferred method for 2D/3D problems.
+
+- "global optimization" attempts to directly form and solve the minimization
+  problem to find the nodal changes that result in the target volumetric
+  changes.  Note this has issues with overfitting, so penalty methods are used
+  to smooth the solution of the problem.  This is currently disabled.
+
+NOTE: all deformation options are treated EXPLICITLY, and depend only upon
+values from the old time.
+
+.. _volumetric-deformation-pk-spec:
+.. admonition:: volumetric-deformation-pk-spec
+
+    * `"max time step [s]`" ``[double]`` **inf** Sets a maximum time step size.
+
+    * `"deformation mode`" ``[string]`` **prescribed** See above for
+      descriptions.  One of: `"prescribed`", `"structural`", or `"saturation`".
+
+    * `"deformation strategy`" ``[string]`` **global optimization** See above
+      for descriptions.  One of `"average`", `"global optimization`", or `"mstk
+      implementation`"
+
+    * `"domain name`" ``[string]`` **domain**  The mesh to deform.
+
+    * `"surface domain name`" ``[string]`` **surface** The surface mesh.
+
+    * `"deformation function`" ``[function-spec]`` **optional** Only used if
+      "deformation mode" == "prescribed"
+
+    EVALUATORS:
+
+    - `"saturation_ice`" **DOMAIN-saturation_ice**
+    - `"saturation_liquid`" **DOMAIN-saturation_liquid**
+    - `"saturation_gas`" **DOMAIN-saturation_gas**
+    - `"porosity`" **DOMAIN-porosity**
+    - `"cell volume`" **DOMAIN-cell_volume**
+
+    INCLUDES:
+
+    - ``[pk-physical-default-spec]``
+
+
+
+

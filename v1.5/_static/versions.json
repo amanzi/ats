@@ -1,0 +1,12 @@
+[
+    {
+        "name": "1.5 (stable)",
+        "version": "1.5",
+        "url": "https://amanzi.github.io/ats/stable/",
+        "preferred": "1.5"
+    },
+    {
+        "version": "dev",
+        "url": "https://amanzi.github.io/ats/dev/"
+    }
+]

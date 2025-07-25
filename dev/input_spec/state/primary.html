@@ -50,7 +50,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.6';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             false;
         </script>
@@ -324,6 +324,7 @@ Version dev</div>
 </details></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">State</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">Primary Variables</a></li>
+
 <li class="toctree-l2"><a class="reference internal" href="independent.html">Independent Variables</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="secondary.html">Secondary Variables</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="conserved.html">Conserved quantities</a></li>
@@ -355,6 +356,19 @@ Version dev</div>
 </ul>
 </div>
 </nav></div>
+        <div class="sidebar-primary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Primary Variables</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#aliased-variables">Aliased Variables</a></li>
+</ul>
+
+  </nav></div>
     </div>
   
   
@@ -431,6 +445,14 @@ but implied by either the requester or by a fully qualified variable name
 (e.g. <a class="reference external" href="mailto:pressure&#37;&#52;&#48;NEXT">pressure<span>&#64;</span>NEXT</a> enforces that, on construction, <cite>“tag</cite>” = <cite>“NEXT</cite>”.</p></li>
 </ul>
 </div>
+</section>
+<section id="aliased-variables">
+<h1>Aliased Variables<a class="headerlink" href="#aliased-variables" title="Link to this heading">#</a></h1>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/state/evaluators/EvaluatorAlias.hh">src/state/evaluators/EvaluatorAlias.hh</a></p>
+<p>An evaluator that aliases to another key/tag pair, doing no work itself.</p>
+<p>Note this may alias to any type of evaluator – primary, secondary, or
+independent.  These are typically not specified by the user in the input spec,
+but instead manually constructed by a PK or MPC.</p>
 </section>
 
 

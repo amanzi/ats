@@ -1,13 +1,12 @@
 
-
 <!DOCTYPE html>
 
 
-<html lang="en" data-content_root="" >
+<html lang="en" data-content_root="../../../" >
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Globalization Delegates &#8212; Amanzi-ATS</title>
   
@@ -17,50 +16,55 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../../../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
-<link href="../../../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
-<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link href="../../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
-  
-  <link href="../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
-
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/styles/custom_theme.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/custom_theme.css?v=a03f4c85" />
   
+  <!-- So that users can add custom icons -->
+  <script src="../../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
-<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
-  <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../../_static/jquery.js"></script>
-    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-    <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../../_static/documentation_options.js?v=3ce10a4d"></script>
+    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'input_spec/process_kernels/mpcs/globalization';</script>
     <script>
-        DOCUMENTATION_OPTIONS.theme_version = '0.15.3';
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
-        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.6';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
         </script>
     <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
-    <script src="../../../_static/main.js"></script>
+    <script src="../../../_static/main.js?v=b10558fa"></script>
     <link rel="icon" href="../../../_static/favicon.ico"/>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
     <link rel="next" title="State" href="../../state/index.html" />
-    <link rel="prev" title="Physical MPCs" href="physical.html" />
+    <link rel="prev" title="Multiple Domain MPCs" href="multiple_domain.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="dev" />
   </head>
   
   
@@ -76,19 +80,8 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
-  
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
-  
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="../../../search.html"
       method="get">
@@ -96,7 +89,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search the docs ..."
          aria-label="Search the docs ..."
          autocomplete="off"
@@ -104,8 +96,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -114,7 +106,7 @@
   
     <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
 <div class="bd-header__inner bd-page-width">
-  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
     <span class="fa-solid fa-bars"></span>
   </button>
   
@@ -123,6 +115,8 @@
     
       <div class="navbar-item">
 
+  
+    
   
 
 <a class="navbar-brand logo" href="../../../index.html">
@@ -137,7 +131,7 @@
     
     
     <img src="../../../_static/logo_full.png" class="logo__image only-light" alt="Amanzi-ATS documentation -- Home"/>
-    <script>document.write(`<img src="../../../_static/logo_full.png" class="logo__image only-dark" alt="Amanzi-ATS documentation -- Home"/>`);</script>
+    <img src="../../../_static/logo_full.png" class="logo__image only-dark pst-js-only" alt="Amanzi-ATS documentation -- Home"/>
   
   
 </a></div>
@@ -149,17 +143,17 @@
     <div class="me-auto navbar-header-items__center">
       
         <div class="navbar-item">
-<nav class="navbar-nav">
+<nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item pst-header-nav-item">
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../../../demos.html">
     ATS Demo Problems
   </a>
 </li>
 
 
-<li class="nav-item pst-header-nav-item current active">
+<li class="nav-item current active">
   <a class="nav-link nav-internal" href="../../index.html">
     ATS Input Specification
   </a>
@@ -176,29 +170,21 @@
         <div class="navbar-item navbar-persistent--container">
           
 
- <script>
- document.write(`
-   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
         </div>
       
       
         <div class="navbar-item">
 
-<script>
-document.write(`
-  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
-    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
-    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
-  </button>
-`);
-</script></div>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
       
     </div>
     
@@ -207,15 +193,11 @@ document.write(`
   
     <div class="navbar-persistent--mobile">
 
- <script>
- document.write(`
-   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
     </div>
   
 
@@ -230,7 +212,8 @@ document.write(`
       
       
       
-      <div class="bd-sidebar-primary bd-sidebar">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -242,17 +225,17 @@ document.write(`
           
           
             <div class="navbar-item">
-<nav class="navbar-nav">
+<nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item pst-header-nav-item">
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../../../demos.html">
     ATS Demo Problems
   </a>
 </li>
 
 
-<li class="nav-item pst-header-nav-item current active">
+<li class="nav-item current active">
   <a class="nav-link nav-internal" href="../../index.html">
     ATS Input Specification
   </a>
@@ -270,15 +253,11 @@ document.write(`
         
           <div class="navbar-item">
 
-<script>
-document.write(`
-  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
-    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
-    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
-  </button>
-`);
-</script></div>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
         
       </div>
     
@@ -286,30 +265,26 @@ document.write(`
   
     <div class="sidebar-primary-items__start sidebar-primary__section">
         <div class="sidebar-primary-item"><!-- This will display the version of the docs -->
-Version 1.5</div>
+Version dev</div>
         <div class="sidebar-primary-item">
-<script>
-document.write(`
-  <div class="version-switcher__container dropdown">
-    <button id="pst-version-switcher-button-2"
-      type="button"
-      class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle"
-      data-bs-toggle="dropdown"
-      aria-haspopup="listbox"
-      aria-controls="pst-version-switcher-list-2"
-      aria-label="Version switcher list"
-    >
-      Choose version  <!-- this text may get changed later by javascript -->
-      <span class="caret"></span>
-    </button>
-    <div id="pst-version-switcher-list-2"
-      class="version-switcher__menu dropdown-menu list-group-flush py-0"
-      role="listbox" aria-labelledby="pst-version-switcher-button-2">
-      <!-- dropdown will be populated by javascript on page load -->
-    </div>
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
   </div>
-`);
-</script></div>
+</div></div>
         <div class="sidebar-primary-item">
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
@@ -325,22 +300,24 @@ document.write(`
 <li class="toctree-l2"><a class="reference internal" href="../../io/visualization.html">Visualization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../io/observations.html">Observations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../io/checkpoint.html">Checkpoint</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../io/logfile.html">Logfile Control</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html">Process Kernels</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../base.html">Base PKs</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../physical/index.html">Physical PKs</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../physical/flow.html">Flow PKs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../physical/transport.html">Transport PK</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../physical/transport.html">Geochemical Transport</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../physical/energy.html">Energy PKs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../physical/seb.html">Surface Energy Balance PKs</a></li>
-
-
+<li class="toctree-l3"><a class="reference internal" href="../physical/bgc.html">Biogeochemistry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../physical/deformation.html">Deformation</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="index.html">MPC</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="base.html">Base MPCs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="physical.html">Physical MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tightly_coupled.html">Tightly Coupled MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="multiple_domain.html">Multiple Domain MPCs</a></li>
 <li class="toctree-l3 current active"><a class="current reference internal" href="#">Globalization Delegates</a></li>
 </ul>
 </details></li>
@@ -348,20 +325,24 @@ document.write(`
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../state/index.html">State</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../state/primary.html">Primary Variables</a></li>
+
 <li class="toctree-l2"><a class="reference internal" href="../../state/independent.html">Independent Variables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/secondary.html">Secondary Variables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/conserved.html">Conserved quantities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/subsurface_flow.html">Subsurface flow evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/surface_flow.html">Surface flow evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/thermo.html">Thermodynamic evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/eos.html">Equations of State</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/seb.html">Surface energy balance evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/snow.html">Snow evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/canopy.html">Canopy evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/bgc.html">Carbon and Biogeochemistry Models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/multiscale.html">Multiscale Models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/geometric.html">Geometric evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../state/generic.html">Generic evaluators</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../state/secondary.html">Secondary Variables</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../state/conserved.html">Conserved quantities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/subsurface_flow.html">Subsurface Flow Evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/surface_flow.html">Surface Flow Evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/transport.html">Transport evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/thermo.html">Thermodynamic evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/eos.html">Equations of State</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/seb.html">Surface Energy Balance Evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/snow.html">Snow evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/canopy.html">Canopy evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/bgc.html">Carbon and Biogeochemistry Models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/multiscale.html">Multiscale Models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/geometric.html">Geometric evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../state/generic.html">Generic evaluators</a></li>
+</ul>
+</details></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../math/index.html">Time integrators, solvers, and other mathematical specs</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -392,9 +373,14 @@ document.write(`
   
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
   </div>
-  
-  <div id="rtd-footer-container"></div>
 
 
       </div>
@@ -412,10 +398,6 @@ document.write(`
       
         <div class="header-article-item">
 
-
-
-
-
 <nav aria-label="Breadcrumb" class="d-print-none">
   <ul class="bd-breadcrumbs">
     
@@ -428,12 +410,12 @@ document.write(`
     <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">ATS Input Specification</a></li>
     
     
-    <li class="breadcrumb-item"><i class="fa-solid fa-ellipsis"></i></li>
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Process Kernels</a></li>
     
     
     <li class="breadcrumb-item"><a href="index.html" class="nav-link">MPC</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page">Globalizatio...</li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Globalization Delegates</span></li>
   </ul>
 </nav>
 </div>
@@ -451,7 +433,7 @@ document.write(`
                 <article class="bd-article">
                   
   <section id="globalization-delegates">
-<h1>Globalization Delegates<a class="headerlink" href="#globalization-delegates" title="Permalink to this heading">#</a></h1>
+<h1>Globalization Delegates<a class="headerlink" href="#globalization-delegates" title="Link to this heading">#</a></h1>
 <p>Globalization is the art of convincing a solver to find the solution.
 Remember – physics typically cares very little about <em>how</em> you get to
 a solution, only that you get there.  If you can guess or otherwise
@@ -465,13 +447,57 @@ and not converging.</p>
 <p>Much of the efficiency of ATS comes from these delegates, and more of
 them are always welcome contributions.</p>
 <section id="coupled-water-globalization-delegate">
-<h2>Coupled Water Globalization Delegate<a class="headerlink" href="#coupled-water-globalization-delegate" title="Permalink to this heading">#</a></h2>
+<h2>Coupled Water Globalization Delegate<a class="headerlink" href="#coupled-water-globalization-delegate" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/mpc/mpc_delegate_water_decl.hh">src/physics/ats/src/pks/mpc/mpc_delegate_water_decl.hh</a></p>
+<p>The water delegate works to deal with discontinuities and strong nonlinearities
+when surface cells shift from dry to wet (i.e. the surface pressure goes from &lt;
+atmospheric pressure to &gt; atmospheric pressure.</p>
+<p>These methods work to alter the predictor around this nonlinearity.</p>
+<div class="admonition-mpc-delegate-water-spec admonition" id="mpc-delegate-water-spec">
+<p class="admonition-title">mpc-delegate-water-spec</p>
+<ul class="simple">
+<li><p><cite>“modify predictor with heuristic</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> This simply
+limits the prediction to backtrack to just above atmospheric on both the
+first and second timesteps that take us over atmospheric.</p></li>
+<li><p><cite>“modify predictor damp and cap the water spurt</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> The
+second both limits (caps) and damps all surface cells to ensure that all
+nearby cells are also not overshooting.  This is the preferred method.</p></li>
+</ul>
+<p>These methods work to alter the preconditioned correction for the same
+reasons described above.</p>
+<ul class="simple">
+<li><p><cite>“global water face limiter</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.e99</strong> This is simply a limit
+to the maximum allowed size of the correction (in [Pa]) on all faces.  Any
+correction larger than this is set to this.</p></li>
+<li><p><cite>“cap the water spurt</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> If a correction takes the
+pressure on a surface cell from below atmospheric (dry) to above (wet),
+the correction is set to a value which results in the new iterate to being
+CAP_SIZE over atmospheric.</p></li>
+<li><p><cite>“damp the water spurt</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> A damping factor (less than
+one) is calculated to multiply the correction such that the largest
+correction takes a cell to just above atmospheric.  All faces (globally)
+are affected.</p></li>
+<li><p><cite>“damp and cap the water spurt</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> None of the above
+should really be used.  Capping, when the cap is particularly severe,
+results in faces whose values are very out of equilibrium with their
+neighboring cells which are not capped.  Damping results in a tiny
+timestep in which, globally, at MOST one face can go from wet to dry.
+This looks to do a combination, in which all things are damped, but faces
+that are initially expected to go from dry to wet are pre-scaled to
+ensure that, when damped, they are also (like the biggest change) allowed
+to go from dry to wet (so that multiple cells can wet in the same step).
+This is the preferred method.</p></li>
+</ul>
+<p>In these methods, the following parameters are useful:</p>
+<ul class="simple">
+<li><p><cite>“cap over atmospheric</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>100</strong> This sets the max size over
+atmospheric to which things are capped or damped. <cite>[Pa]</cite></p></li>
+</ul>
+</div>
 </section>
 <section id="ewc-globalization-delegate">
-<h2>EWC Globalization Delegate<a class="headerlink" href="#ewc-globalization-delegate" title="Permalink to this heading">#</a></h2>
-<blockquote>
-<div><p>Globalization for nonlinearity associated with phase change and latent heat.</p>
-</div></blockquote>
+<h2>EWC Globalization Delegate<a class="headerlink" href="#ewc-globalization-delegate" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/mpc/mpc_delegate_ewc.hh">src/physics/ats/src/pks/mpc/mpc_delegate_ewc.hh</a></p>
 <p>The EWC delegate works to deal with strong nonlinearities associated with
 latent heat and phase change.  Provided a change in primary variables pressure
 and temperature, it works by first multiplying those changes by the local
@@ -492,9 +518,9 @@ provides the initial guess to the nonlinear solve.</p>
 <div class="admonition-mpc-delegate-ewc-spec admonition" id="mpc-delegate-ewc-spec">
 <p class="admonition-title">mpc-delegate-ewc-spec</p>
 <ul class="simple">
-<li><p><cite>“verbose object</cite>” <code class="docutils literal notranslate"><span class="pre">[verbose-object-spec]</span></code> See <a href="#id1"><span class="problematic" id="id2">`Verbose Object`_</span></a>.</p></li>
-<li><p><cite>“PK name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Name of the owning PK – simply for logging and
-debugging.</p></li>
+<li><p><cite>“verbose object</cite>” <code class="docutils literal notranslate"><span class="pre">[verbose-object-spec]</span></code> See <a class="reference internal" href="../../io/logfile.html#verbose-object"><span class="std std-ref">Verbose Object</span></a>.</p></li>
+<li><p><cite>“PK name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>optional</strong> Name of the owning PK – simply for
+logging and debugging.  Typically set by the owning PK, not by the user.</p></li>
 <li><p><cite>“domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>“domain”</strong> The mesh.</p></li>
 <li><p><cite>“preconditioner type</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> When to use EWC on the nonlinear
 iterate’s correction.  One of:</p>
@@ -514,24 +540,28 @@ of:</p>
 take the EWC correction if it is smaller than the standard correction.</p></li>
 </ul>
 </li>
-<li><p><cite>“freeze-thaw cusp width [K]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> Controls a width over which
-to assume we are close to the latent heat cliff, and begins applying the
-EWC algorithm in <cite>“ewc smarter</cite>”.</p></li>
-<li><p><cite>“freeze-thaw cusp width (freezing) [K]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> Controls a width
+<li><p><cite>“freeze-thaw cusp width [K]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>optional</strong> Controls a width
+over which to assume we are close to the latent heat cliff, and begins
+applying the EWC algorithm in <cite>“ewc smarter</cite>”.  Note that this overrides
+the following two parameters with this value.</p></li>
+<li><p><cite>“freeze-thaw cusp width (freezing) [K]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.</strong> Controls a width
 over which to assume we are close to the latent heat cliff as we get
 colder, and begins applying the EWC algorithm in <cite>“ewc smarter</cite>”.</p></li>
-<li><p><cite>“freeze-thaw cusp width (thawing) [K]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> Controls a width
+<li><p><cite>“freeze-thaw cusp width (thawing) [K]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.</strong> Controls a width
 over which to assume we are close to the latent heat cliff as we get
 warmer, and begins applying the EWC algorithm in <cite>“ewc smarter</cite>”.</p></li>
-<li><p><cite>“pressure key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-pressure</strong></p></li>
-<li><p><cite>“temperature key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-temperature</strong></p></li>
-<li><p><cite>“water content key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-water_content</strong></p></li>
-<li><p><cite>“energy key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-energy</strong></p></li>
-<li><p><cite>“cell volume key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-cell_volume</strong></p></li>
+</ul>
+<p>KEYS</p>
+<ul class="simple">
+<li><p><cite>“pressure</cite>”</p></li>
+<li><p><cite>“temperature</cite>”</p></li>
+<li><p><cite>“water content</cite>”</p></li>
+<li><p><cite>“energy</cite>”</p></li>
+<li><p><cite>“cell volume</cite>”</p></li>
 </ul>
 <p>INCLUDES</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">[debugger-spec]</span></code> Uses a <a href="#id3"><span class="problematic" id="id4">Debugger_</span></a></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[debugger-spec]</span></code> Uses a <a class="reference internal" href="../../io/logfile.html#debugger"><span class="std std-ref">Debugger</span></a></p></li>
 </ul>
 </div>
 </section>
@@ -548,12 +578,12 @@ warmer, and begins applying the EWC algorithm in <cite>“ewc smarter</cite>”.
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="physical.html"
+       href="multiple_domain.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Physical MPCs</p>
+        <p class="prev-next-title">Multiple Domain MPCs</p>
       </div>
     </a>
     <a class="right-next"
@@ -583,8 +613,8 @@ warmer, and begins applying the EWC algorithm in <cite>“ewc smarter</cite>”.
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
-<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -604,7 +634,7 @@ warmer, and begins applying the EWC algorithm in <cite>“ewc smarter</cite>”.
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.2.1.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
     <br/>
   </p>
 </div>
@@ -617,7 +647,8 @@ warmer, and begins applying the EWC algorithm in <cite>“ewc smarter</cite>”.
       
         <div class="footer-item">
 <p class="theme-version">
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.3.
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
 </p></div>
       
     </div>

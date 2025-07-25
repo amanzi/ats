@@ -50,7 +50,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.6';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             false;
         </script>
@@ -324,6 +324,7 @@ Version dev</div>
 </details></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">State</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="primary.html">Primary Variables</a></li>
+
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">Independent Variables</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="secondary.html">Secondary Variables</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="conserved.html">Conserved quantities</a></li>
@@ -462,6 +463,19 @@ exaustive functional format capability provided in Amanzi’s <a class="referenc
 <ul class="simple">
 <li><p><cite>“constant in time</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> If true, only evaluate the
 functions once as they are time-independent.</p></li>
+<li><p><cite>“dot with normal</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> If true, this expects a 1-dof,
+face-based vector and a N-D function (N is mesh space dim) and will dot
+the normal of the face with the function to compute the field.</p></li>
+<li><p><cite>“spatial distribution method</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>none</strong> Describes a strategy
+for mapping the function values into the field.</p>
+<ul>
+<li><p><cite>“none</cite>” is the 1-1 map, just evaluate the function</p></li>
+<li><p><cite>“volume</cite>” Divides each function spec value by a region total volume.
+This is used when, for instance, the function represents a total {mass,
+energy, etc} flux of a source that is uniformly distributed across the
+region such that the integral is equal to the function value.</p></li>
+</ul>
+</li>
 <li><p><cite>“function</cite>” <code class="docutils literal notranslate"><span class="pre">[composite-vector-function-spec-list]</span></code></p></li>
 </ul>
 </div>

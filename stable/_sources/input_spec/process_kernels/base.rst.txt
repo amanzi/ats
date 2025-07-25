@@ -1,13 +1,15 @@
 Base PKs
 ========
-There are several types of PKs, and each PK has its own valid input
-spec.  However, there are three main types of PKs, from which nearly
-all PKs derive.  Note that none of these are true PKs and cannot stand
-alone.
 
-PK base class
--------------
- The interface for a Process Kernel, an equation or system of equations.
+There are many PKs, and each PK has its own valid input spec.
+However, there are three main types of PKs, from which nearly all PKs
+derive.  Note that none of these are true PKs and cannot stand alone.
+
+PK
+---
+`src/pks/PK.hh <https://github.com/amanzi/amanzi/blob/master/src/pks/PK.hh>`_
+
+The interface for a Process Kernel, an equation or system of equations.
 
 A process kernel represents a single or system of partial/ordinary
 differential equation(s) or conservation law(s), and is used as the
@@ -24,18 +26,22 @@ its type and its children.  The second is the spec for the base class PK, which
 is inherited and included by each actual PK, lives in the "PKs" sublist of
 "main", and has all needed parameters.
 
+.. _pk-spec:
 .. _pk-typed-spec:
-.. admonition:: pk-typed-spec
+.. admonition:: pk-spec
 
-    * `"PK type`" ``[string]`` One of the registered PK types
+   * `"PK type`" ``[string]`` One of the registered PK types.  Note this must
+     match the corresponding entry in the ``[pk-typed-spec]``
+   * `"verbose object`" ``[verbose-object-spec]`` **optional** See
+     :ref:`Verbose Object`
 
 Example:
 
 .. code-block:: xml
 
   <ParameterList name="PK tree">
-    <ParameterList name="Top level MPC">
-      <Parameter name="PK type" type="string" value="strong MPC"/>
+    <ParameterList name="my cool MPC PK">
+      <Parameter name="PK type" type="string" value="my cool MPC PK"/>
       <ParameterList name="sub PK 1">
         ...
       </ParameterList>
@@ -47,86 +53,85 @@ Example:
   </ParameterList>
 
 
-.. _pk-spec:
-.. admonition:: pk-spec
-
-    * `"PK type`" ``[string]`` One of the registered PK types.  Note this must
-      match the corresponding entry in the ``[pk-typed-spec]``
-    * `"verbose object`" ``[verbose-object-spec]`` **optional** See `Verbose Object`_
-
-Example:
-
-.. code-block:: xml
-
-  <ParameterList name="PKs">
-    <ParameterList name="my cool PK">
-      <Parameter name="PK type" type="string" value="my cool PK"/>
-       ...
-    </ParameterList>
-  </ParameterList>
-
-
 
 
 PK: Physical
 ------------
- A base class with default implementations of methods for a leaf of the PK tree (a conservation equation, or similar).
+`src/pks/PK_Physical_Default.hh <https://github.com/amanzi/amanzi/blob/master/src/pks/PK_Physical_Default.hh>`_
 
-`PKPhysicalBase` is a base class providing some functionality for PKs which
-are defined on a single mesh, and represent a single process model.  Typically
-all leaves of the PK tree will inherit from `PKPhysicalBase`.
+
+A physical PK is single PDE or DAE defined on a single mesh, and represents a
+single process model.  Typically all leaves of the PK tree will be a physical PK.
 
 .. _pk-physical-default-spec:
 .. admonition:: pk-physical-default-spec
 
-    * `"domain name`" ``[string]`` Name from the Mesh_ list on which this PK is defined.
+   * `"domain name`" ``[string]`` Name from the :ref:`Mesh` list on which this PK is defined.
 
-    * `"primary variable key`" ``[string]`` The primary variable
-      e.g. `"pressure`", or `"temperature`".  Most PKs supply sane defaults.
+   * `"primary variable key`" ``[string]`` The primary variable
+     e.g. `"pressure`", or `"temperature`".  Most PKs supply sane defaults.
 
-    * `"initial condition`" ``[initial-conditions-spec]``  See InitialConditions_.
+   * `"initial conditions`" ``[initial-conditions-spec]``  See below.
 
-    * `"max valid change`" ``[double]`` **-1** Sets a limiter on what is a
-      valid change in a single timestep.  Changes larger than this are declared
-      invalid and the timestep shrinks.  By default, any change is valid.
-      Units are the same as the primary variable.
+   * `"max valid change`" ``[double]`` **-1** Sets a limiter on what is a
+     valid change in a single timestep.  Changes larger than this are declared
+     invalid and the timestep fails.  By default, any change is valid.
+     Units are the same as the primary variable.
 
-    INCLUDES:
+   INCLUDES:
 
-    - ``[pk-spec]`` This *is a* PK_.
-    - ``[debugger-spec]`` Uses a Debugger_
+   - ``[pk-spec]`` This *is a* PK_.
+   - ``[debugger-spec]`` Uses a :ref:`Debugger`
 
+
+Note that initial conditions use shared specs for CompositeVectors:
+
+.. _initial-conditions-spec:
+.. admonition:: initial-conditions-spec
+
+   INCLUDES:
+
+   - ``[constants-composite-vector-spec]`` The shared functionality for
+     specifying time-independent values.  See :ref:`Initial Conditions`.
+   
+
+     
 
 
 
 
 PK: BDF
 -------
- A base class with default implementations of methods for a PK that can be implicitly integrated in time.
+`src/physics/ats/src/pks/pk_bdf_default.hh <https://github.com/amanzi/ats/blob/master/src/pks/pk_bdf_default.hh>`_
 
-`PKBDFBase` is a base class from which PKs that want to use the `BDF`
-series of implicit time integrators must derive.  It specifies both the
-`BDFFnBase` interface and implements some basic functionality for `BDF`
-PKs.
+
+A BDF or Backward Difference Formula a process kernel that is integrated in
+time using an "implicit" or "backwards difference" method.  Both Physical PKs
+and MPCs may be BDF PKs -- when an MPC is integrated using a BDF method we say
+it is coupled through a "globally implicit" method (as opposed to sequential or
+operator split method).
 
 .. _pk-bdf-default-spec:
 .. admonition:: pk-bdf-default-spec
 
-    * `"initial time step [s]`" ``[double]`` **1.** Initial time step size [s]
+   * `"initial timestep [s]`" ``[double]`` **1.** Initial timestep size used
+     for the first timestep.  After this, the `"timestep controller`" may
+     change the step size.
 
-    * `"assemble preconditioner`" ``[bool]`` **true** A flag, typically not set
-      by user but by an MPC.
+   * `"time integrator`" ``[bdf1-ti-spec]`` **optional**
+     A TimeIntegrator_.  Note that this is only required if this PK is not
+     strongly coupled to other PKs.
 
-    * `"time integrator`" ``[bdf1-ti-spec]`` **optional**
-      A TimeIntegrator_.  Note that this is only required if this PK is not
-      strongly coupled to other PKs.
+   * `"assemble preconditioner`" ``[bool]`` **true** A flag, typically not set
+     by user but by an MPC.
 
-    * `"inverse`" ``[inverse-typed-spec]`` **optional** A Preconditioner_.
-      Note that this is only used if this PK is not strongly coupled to other PKs.
+   * `"inverse`" ``[inverse-typed-spec]`` **optional** A :ref:`Linear Solver`
+     or :ref:`Preconditioner` provided as an :ref:`Inverse`.  Note that this is
+     only used if this PK is not strongly coupled to other PKs.
 
-    INCLUDES:
+   INCLUDES:
 
-    - ``[pk-spec]`` This *is a* PK_.
+   - ``[pk-spec]`` This *is a* PK_.
 
 
 
@@ -134,17 +139,17 @@ PKs.
 
 PK: Physical and BDF
 --------------------
- Default implementation of both BDF and Physical PKs.
+`src/physics/ats/src/pks/pk_physical_bdf_default.hh <https://github.com/amanzi/ats/blob/master/src/pks/pk_physical_bdf_default.hh>`_
 
-A base class for all PKs that are both physical, in the sense that they
-implement an equation and are not couplers, and BDF, in the sense that they
-support the implicit integration interface.  This largely just supplies a
-default error norm based on error in conservation relative to the extent of the
-conserved quantity.
 
-By default, the error norm used by solvers is given by:
+PKs that are both Physical and BDF are likely conservation equations.  Given a
+conserved quantity, we can supply a default error norm for conservation.  By
+default, the error norm used by solvers is given by:
 
-:math:`ENORM(u, du) = |du| / ( a_tol + r_tol * |u| )`
+:math:`ENORM(u, du) = |du| / ( a_{tol} + r_{tol} * |u| )`
+
+where :math:`u` is the conserved quantity and :math:`du` is the error in
+conservation.
 
 The defaults here are typically good, or else good defaults are set in the
 code, so usually are not supplied by the user.
@@ -153,28 +158,28 @@ code, so usually are not supplied by the user.
 .. _pk-physical-bdf-default-spec:
 .. admonition:: pk-physical-bdf-default-spec
 
-    * `"conserved quantity key`" ``[string]`` Name of the conserved quantity.
-      Usually a sane default is set by the PK.
+   * `"conserved quantity key`" ``[string]`` Name of the conserved quantity.
+     Usually a sane default is set by the PK.
 
-    * `"absolute error tolerance`" ``[double]`` **1.0** Absolute tolerance,
-      :math:`a_tol` in the equation above.  Unit are the same as the conserved
-      quantity.  Note that this default is often overridden by PKs with more
-      physical values, and very rarely are these set by the user.
+   * `"absolute error tolerance`" ``[double]`` **1.0** Absolute tolerance,
+     :math:`a_{tol}` in the equation above.  Unit are the same as the conserved
+     quantity.  Note that this default is often overridden by PKs with more
+     physical values, and very rarely are these set by the user.
 
-    * `"relative error tolerance`" ``[double]`` **1.0** Relative tolerance,
-      :math:`r_tol` in the equation above.  ``[-]`` Note that this default can
-      be overridden by PKs with more physical values, and very rarely are these
-      set by the user.
+   * `"relative error tolerance`" ``[double]`` **1.0** Relative tolerance,
+     :math:`r_{tol}` in the equation above.  ``[-]`` Note that this default can
+     be overridden by PKs with more physical values, and very rarely are these
+     set by the user.
 
-    * `"flux error tolerance`" ``[double]`` **1.0** Relative tolerance on the
-      flux.  Note that this default is often overridden by PKs with more physical
-      values, and very rarely are these set by the user.
+   * `"flux error tolerance`" ``[double]`` **1.0** Relative tolerance on the
+     flux, or face-based error caused by a mismatch in flux from either side of
+     the face.  Note that this default is often overridden by PKs with more
+     physical values, and very rarely are these set by the user.
 
-    INCLUDES:
+   INCLUDES:
 
-    - ``[pk-bdf-default-spec]`` *Is a* `PK: BDF`_
-    - ``[pk-physical-default-spec]`` *Is a* `PK: Physical`_
-
+   - ``[pk-bdf-default-spec]`` *Is a* `PK: BDF`_
+   - ``[pk-physical-default-spec]`` *Is a* `PK: Physical`_
 
 
 

@@ -1331,8 +1331,8 @@ Function values u:
 
   /f[:] = (f_0(z_0), f_1(z_1), ..., f_n(z_n))
 
-.. _column-initialization-spec:
-.. admonition:: column-initialization-spec
+.. _column-file-initialization-spec:
+.. admonition:: column-file-initialization-spec
 
    * `"file`" ``[string]`` HDF5 filename
    * `"z header`" ``[string]`` name of the z-coordinate data: `z` above.  Depth
@@ -1345,4 +1345,13 @@ Function values u:
 Exodus File Initialization
 --------------------------
 `src/state/IO.hh <https://github.com/amanzi/amanzi/blob/master/src/state/IO.hh>`_
+
+
+.. _exodus-file-initialization-spec:
+.. admonition:: exodus-file-initialization-spec
+
+   * `"file`" ``[string]`` The filename to read.
+   * `"attributes`" ``[Array(string)]`` List of variables to read from the file.
+
+
 

@@ -3,16 +3,20 @@ Carbon and Biogeochemistry Models
 
 Carbon Decomposition Rate
 ^^^^^^^^^^^^^^^^^^^^^^^^^
+`src/physics/ats/src/constitutive_relations/eos/carbon_decomposition_rate_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/constitutive_relations/eos/carbon_decomposition_rate_evaluator.hh>`_
 
 
 Cryo/bioturbation
 ^^^^^^^^^^^^^^^^^
+`src/physics/ats/src/pks/biogeochemistry/constitutive_models/carbon/bioturbation_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/biogeochemistry/constitutive_models/carbon/bioturbation_evaluator.hh>`_
 
 
 Pool Decomposition
 ^^^^^^^^^^^^^^^^^^
+`src/physics/ats/src/pks/biogeochemistry/constitutive_models/carbon/pool_decomposition_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/biogeochemistry/constitutive_models/carbon/pool_decomposition_evaluator.hh>`_
 
 
 Pool Transfer
 ^^^^^^^^^^^^^
+`src/physics/ats/src/pks/biogeochemistry/constitutive_models/carbon/pool_transfer_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/biogeochemistry/constitutive_models/carbon/pool_transfer_evaluator.hh>`_
 

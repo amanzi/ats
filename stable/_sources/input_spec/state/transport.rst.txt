@@ -1,0 +1,167 @@
+Transport evaluators
+--------------------
+
+Only dispersivity requires an evaluator unique to transport.
+
+Mechanical Dispersion Model Evaluator
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`src/pks/transport/EvaluatorMDM.hh <https://github.com/amanzi/amanzi/blob/master/src/pks/transport/EvaluatorMDM.hh>`_
+
+Evaluates a dispersion tensor.
+
+The dispersion tensor may be parameterized by a variety of different models,
+and is specified by region to allow different models across, e.g. stream vs
+sheet flow, or fracture vs matrix.
+
+Note that this computes the dispersion coefficient tensor, units [m^2 s^-1].
+
+It does NOT include the water content term which multiplies this tensor to
+become the diffusion tensor.  This is different from Amanzi, which uses the MDM
+class to include the water content term.
+
+`"evaluator type`" = `"dispersion tensor`"
+
+.. _evaluator-mdm-spec:
+.. admonition: evaluator-mdm-spec
+
+   * `"mechanical dispersion parameters`"
+     ``[mechanical-dispersion-typed-spec-list]`` List of region-based
+     models defining the dispersion model.
+
+   * `"is surface`" ``[bool]`` **optional** Default is set if "surface" is in
+     the domain name of this variable's key, e.g. in the case
+     "surface-dispersion_coefficient".
+
+   KEYS:
+
+   - `"velocity`"
+   - `"porosity`" Note this is only used if `"is surface`" = False.
+   
+
+
+
+Isotropic Dispersion
+~~~~~~~~~~~~~~~~~~~~~~
+`src/pks/transport/MDM_Isotropic.hh <https://github.com/amanzi/amanzi/blob/master/src/pks/transport/MDM_Isotropic.hh>`_
+
+
+An isotropic mechanical dispersion model.  Note this is rarely used for real
+problems, but is useful for testing.  Note there is no velocity component to
+this model -- it is equivalent to isotropic diffusion.  Prefer to use Bear for
+a basic dispersion model.
+
+`"mechanical dispersion type`" = `"scalar`"
+
+OR
+
+`"mechanical dispersion type`" = `"isotropic`"
+
+
+.. _mdm-scalar-spec
+.. admonition:: mdm-scalar-spec
+
+  ONE OF:
+
+  * `"dispersivity [m]`" ``[double]``
+
+  OR
+
+  * `"dispersivity [m]`" ``[function-spec]``
+
+  OR
+
+  * `"dispersion coefficient [m^2 s^-1]`" ``[double]``
+
+  OR
+
+  * `"dispersion coefficient [m^2 s^-1]`" ``[function-spec]``
+
+  END
+
+
+
+
+Bear's Dispersion Model
+~~~~~~~~~~~~~~~~~~~~~~~
+`src/pks/transport/MDM_Bear.hh <https://github.com/amanzi/amanzi/blob/master/src/pks/transport/MDM_Bear.hh>`_
+
+
+An anisotropic mechanical dispersion model by Bear that splits longitudinal
+from transverse.
+
+`"mechanical dispersion type`" = `"Bear`"
+
+.. _mdm-bear-spec
+.. admonition:: mdm-bear-spec
+
+   ONE OF
+
+   * `"alpha_l`" ``[double]`` Longitudinal dispersivity.
+
+   OR
+
+   * `"longitudinal dispersivity [m]`" ``[double]``
+
+   END
+
+   ONE OF
+
+   * `"alpha_t`" ``[double]`` Transverse dispersivity.
+
+   OR
+
+   * `"transverse dispersivity [m]`" ``[double]``
+
+   END
+
+
+
+
+Burnett-Frind Dispersion Model
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+`src/pks/transport/MDM_BurnettFrind.hh <https://github.com/amanzi/amanzi/blob/master/src/pks/transport/MDM_BurnettFrind.hh>`_
+
+
+Anisotropic mechanical dispersion model by Burnett & Frind that splits the
+transverse component of dispersion between the horizontal and vertical.
+
+`"mechanical dispersion type`" = `"Burnett-Frind`"
+
+.. _mdm-burnett-frind-spec
+.. admonition:: mdm-burnett-frind-spec
+
+   * `"alpha_l`" ``[double]`` Longitudinal dispersivity/dispersion coefficient.
+
+   * `"alpha_tv`" ``[double]`` Vertical transverse dispersivity/dispersion
+     coefficient.
+
+   * `"alpha_th`" ``[double]`` Horizontal transverse dispersivity/dispersion
+     coefficient.
+
+
+
+Lichtner-Kelkar-Robinson Dispersion Model
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+`src/pks/transport/MDM_LichtnerKelkarRobinson.hh <https://github.com/amanzi/amanzi/blob/master/src/pks/transport/MDM_LichtnerKelkarRobinson.hh>`_
+
+
+Anisotropic mechanical dispersion model by Lichtner, Kelkar, and Robinson, that
+splits vertical from horizontal and longitudinal from transverse.
+
+`"mechanical dispersion type`" = `"Lichtner-Kelkar-Robinson`"
+
+.. _mdm-lichtner-kelkar-robinson-spec
+.. admonition:: mdm-lichtner-kelkar-robinson-spec
+
+   * `"alpha_lv`" ``[double]`` **0.** Vertical longitudinal
+     dispersivity/dispersion coefficient.
+   * `"alpha_lh`" ``[double]`` **0.** Horizontal longitudinal
+     dispersivity/dispersion coefficient.
+   * `"alpha_tv`" ``[double]`` **0.** Vertical transverse
+     dispersivity/dispersion coefficient.
+   * `"alpha_th`" ``[double]`` **0.** Horizontal transverse
+     dispersivity/dispersion coefficient.
+
+
+

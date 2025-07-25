@@ -1,0 +1,41 @@
+
+\documentclass{report}
+\usepackage{tikz}
+\usepackage[active,tightpage]{preview}
+\PreviewEnvironment{tikzpicture}
+\setlength\PreviewBorder{5pt}
+\usepackage{subcaption}
+\usepackage{xcolor}
+
+\definecolor{independent}{HTML}{C4973B}
+\definecolor{secondary}{HTML}{368CC9}
+\definecolor{primary}{HTML}{EB3B14}
+\definecolor{aliased}{HTML}{5885af}
+\definecolor{time_advanced}{HTML}{832DD2}
+
+\begin{document}
+\begin{figure}
+  \begin{tikzpicture}
+      \draw
+        (-3.0, -4.0) node[rectangle, shading=axis, left color=time_advanced!60!white, right color = time_advanced!30!white,shading angle=-45, anchor=north,style={draw=time_advanced, align=center},minimum height=2em, minimum width=4em, font=\normalsize,scale=2] (5@CURRENT){$\Theta\;\;_{@CURRENT}$}
+        (0.0, 0.0) node[rectangle, shading=axis, left color=secondary!60!white, right color = secondary!30!white,shading angle=-45, anchor=north,style={draw=secondary, align=center},minimum height=2em, minimum width=4em, font=\normalsize,scale=2] (dWC@NEXT){$\frac{d\Theta}{dt}\;\;_{@NEXT}$}
+        (3.0, -4.0) node[rectangle, shading=axis, left color=secondary!60!white, right color = secondary!30!white,shading angle=-45, anchor=north,style={draw=secondary, align=center},minimum height=2em, minimum width=4em, font=\normalsize,scale=2] (5@NEXT){$\Theta\;\;_{@NEXT}$}
+        (-3.0, -8.0) node[rectangle, shading=axis, left color=secondary!60!white, right color = secondary!30!white,shading angle=-45, anchor=north,style={draw=secondary, align=center},minimum height=2em, minimum width=4em, font=\normalsize,scale=2] (sl@NEXT){$s_l\;\;_{@NEXT}$}
+        (3.0, -8.0) node[rectangle, shading=axis, left color=secondary!60!white, right color = secondary!30!white,shading angle=-45, anchor=north,style={draw=secondary, align=center},minimum height=2em, minimum width=4em, font=\normalsize,scale=2] (r@NEXT){$\rho\;\;_{@NEXT}$}
+        (9.0, -8.0) node[rectangle, shading=axis, left color=independent!60!white, right color = independent!30!white,shading angle=-45, anchor=north,style={draw=independent, align=center},minimum height=2em, minimum width=4em, font=\normalsize,scale=2] (0@NEXT){$\phi\;\;_{@NEXT}$}
+        (-3.0, -12.0) node[rectangle, shading=axis, left color=primary!60!white, right color = primary!30!white,shading angle=-45, anchor=north,style={draw=primary, align=center},minimum height=2em, minimum width=4em, font=\normalsize,scale=2] (p@NEXT){$p\;\;_{@NEXT}$}
+        (3.0, -12.0) node[rectangle, shading=axis, left color=independent!60!white, right color = independent!30!white,shading angle=-45, anchor=north,style={draw=independent, align=center},minimum height=2em, minimum width=4em, font=\normalsize,scale=2] (T@NEXT){$T\;\;_{@NEXT}$};
+      \begin{scope}[->]
+        \draw (5@CURRENT) to (5@NEXT);
+        \draw (dWC@NEXT) to (5@NEXT);
+        \draw (dWC@NEXT) to (5@CURRENT);
+        \draw (5@NEXT) to (sl@NEXT);
+        \draw (5@NEXT) to (r@NEXT);
+        \draw (5@NEXT) to (0@NEXT);
+        \draw (sl@NEXT) to (p@NEXT);
+        \draw (r@NEXT) to (p@NEXT);
+        \draw (r@NEXT) to (T@NEXT);
+      \end{scope}
+    \end{tikzpicture}
+\end{figure}
+\end{document}

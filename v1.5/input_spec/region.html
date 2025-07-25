@@ -1,0 +1,994 @@
+
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Region &#8212; Amanzi-ATS</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/custom_theme.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'input_spec/region';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.15.3';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
+        </script>
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
+    <script src="../_static/main.js"></script>
+    <link rel="icon" href="../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="IO" href="io/index.html" />
+    <link rel="prev" title="Mesh" href="mesh.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/logo_full.png" class="logo__image only-light" alt="Amanzi-ATS documentation -- Home"/>
+    <script>document.write(`<img src="../_static/logo_full.png" class="logo__image only-dark" alt="Amanzi-ATS documentation -- Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../demos.html">
+    ATS Demo Problems
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    ATS Input Specification
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../demos.html">
+    ATS Demo Problems
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    ATS Input Specification
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item"><!-- This will display the version of the docs -->
+Version 1.5</div>
+        <div class="sidebar-primary-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="pst-version-switcher-button-2"
+      type="button"
+      class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-2"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="pst-version-switcher-list-2"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-2">
+      <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">About the Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main.html">Main</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="mesh.html">Mesh</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Region</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="io/index.html">IO</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="io/ioevent.html">IOEvent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="io/visualization.html">Visualization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="io/observations.html">Observations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="io/checkpoint.html">Checkpoint</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="process_kernels/index.html">Process Kernels</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="process_kernels/base.html">Base PKs</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="process_kernels/physical/index.html">Physical PKs</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="process_kernels/physical/flow.html">Flow PKs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_kernels/physical/transport.html">Transport PK</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_kernels/physical/energy.html">Energy PKs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_kernels/physical/seb.html">Surface Energy Balance PKs</a></li>
+
+
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="process_kernels/mpcs/index.html">MPC</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="process_kernels/mpcs/base.html">Base MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_kernels/mpcs/physical.html">Physical MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_kernels/mpcs/globalization.html">Globalization Delegates</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="state/index.html">State</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="state/primary.html">Primary Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/independent.html">Independent Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/secondary.html">Secondary Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/conserved.html">Conserved quantities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/subsurface_flow.html">Subsurface flow evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/surface_flow.html">Surface flow evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/thermo.html">Thermodynamic evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/eos.html">Equations of State</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/seb.html">Surface energy balance evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/snow.html">Snow evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/canopy.html">Canopy evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/bgc.html">Carbon and Biogeochemistry Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/multiscale.html">Multiscale Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/geometric.html">Geometric evaluators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state/generic.html">Generic evaluators</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="math/index.html">Time integrators, solvers, and other mathematical specs</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="math/time_integrators.html">Time Integrators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="math/nonlinear_solvers.html">Nonlinear Solver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="math/linear_solvers.html">Linear Solvers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="math/preconditioners.html">Preconditioners</a></li>
+<li class="toctree-l2"><a class="reference internal" href="math/operators.html">Operators</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="common.html">Shared Specs</a></li>
+</ul>
+</div>
+</nav></div>
+        <div class="sidebar-primary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#all">All</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#box">Box</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#plane">Plane</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#labeled-set">Labeled Set</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#function-color">Function Color</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#point">Point</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#logical">Logical</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#polygon">Polygon</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#enumerated">Enumerated</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#boundary">Boundary</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#box-volume-fractions">Box Volume Fractions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#line-segment">Line Segment</a></li>
+</ul>
+  </nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">ATS Input Specification</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">Region</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="region">
+<h1>Region<a class="headerlink" href="#region" title="Permalink to this heading">#</a></h1>
+<blockquote>
+<div><p>A geometric or discrete subdomain of the full domain.</p>
+</div></blockquote>
+<p>Regions are geometrical constructs used to define subsets of
+the computational domain in order to specify the problem to be solved, and the
+output desired. Regions may represents zero-, one-, two- or three-dimensional
+subsets of physical space.  For a three-dimensional problem, the simulation
+domain will be a three-dimensional region bounded by a set of two-dimensional
+regions.  If the simulation domain is N-dimensional, the boundary conditions
+must be specified over a set of regions are (N-1)-dimensional.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Surface files contain labeled triangulated face sets.  The user is
+responsible for ensuring that the intersections with other surfaces in the
+problem, including the boundaries, are <em>exact</em> (<em>i.e.</em> that surface
+intersections are <em>watertight</em> where applicable), and that the surfaces are
+contained within the computational domain.  If nodes in the surface fall
+outside the domain, the elements they define are ignored.</p>
+<p>Examples of surface files are given in the <em>Exodus II</em> file format here.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Region names must NOT be repeated.</p>
+</div>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList&gt;</span><span class="w">  </span><span class="cm">&lt;!-- parent list --&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;regions&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;TOP SECTION&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;region: box&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;low coordinate&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(double)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{2, 3, 5}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;high coordinate&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(double)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{4, 5, 8}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;MIDDLE SECTION&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;region: box&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;low coordinate&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(double)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{2, 3, 3}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;high coordinate&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(double)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{4, 5, 5}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;BOTTOM SECTION&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;region: box&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;low coordinate&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(double)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{2, 3, 0}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;high coordinate&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(double)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{4, 5, 3}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;INFLOW SURFACE&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;region: labeled set&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;label&quot;</span><span class="w">  </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;sideset_2&quot;</span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;file&quot;</span><span class="w">   </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;F_area_mesh.exo&quot;</span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;format&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;Exodus II&quot;</span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;entity&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;face&quot;</span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;OUTFLOW PLANE&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;region: plane&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;point&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(double)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{0.5, 0.5, 0.5}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;normal&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(double)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{0, 0, 1}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;BLOODY SAND&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;region: color function&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;file&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;F_area_col.txt&quot;</span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;value&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;int&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;25&quot;</span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;FLUX PLANE&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;region: polygon&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;number of points&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;int&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;5&quot;</span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;points&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(double)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{-0.5, -0.5, -0.5,</span>
+<span class="s">                                                               0.5, -0.5, -0.5,</span>
+<span class="s">                                                               0.8, 0.0, 0.0,</span>
+<span class="s">                                                               0.5,  0.5, 0.5,</span>
+<span class="s">                                                              -0.5, 0.5, 0.5}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">       </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+<p>In this example, <em>TOP SECTION</em>, <em>MIDDLE SECTION</em> and <em>BOTTOM SECTION</em>
+are three box-shaped volumetric regions. <em>INFLOW SURFACE</em> is a
+surface region defined in an Exodus II-formatted labeled set
+file and <em>OUTFLOW PLANE</em> is a planar region. <em>BLOODY SAND</em> is a volumetric
+region defined by the value 25 in color function file.</p>
+<nav class="contents local" id="region-types">
+<p class="topic-title"><strong>Region Types</strong></p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#all" id="id1">All</a></p></li>
+<li><p><a class="reference internal" href="#box" id="id2">Box</a></p></li>
+<li><p><a class="reference internal" href="#plane" id="id3">Plane</a></p></li>
+<li><p><a class="reference internal" href="#labeled-set" id="id4">Labeled Set</a></p></li>
+<li><p><a class="reference internal" href="#function-color" id="id5">Function Color</a></p></li>
+<li><p><a class="reference internal" href="#point" id="id6">Point</a></p></li>
+<li><p><a class="reference internal" href="#logical" id="id7">Logical</a></p></li>
+<li><p><a class="reference internal" href="#polygon" id="id8">Polygon</a></p></li>
+<li><p><a class="reference internal" href="#enumerated" id="id9">Enumerated</a></p></li>
+<li><p><a class="reference internal" href="#boundary" id="id10">Boundary</a></p></li>
+<li><p><a class="reference internal" href="#box-volume-fractions" id="id11">Box Volume Fractions</a></p></li>
+<li><p><a class="reference internal" href="#line-segment" id="id12">Line Segment</a></p></li>
+</ul>
+</nav>
+<section id="all">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">All</a><a class="headerlink" href="#all" title="Permalink to this heading">#</a></h2>
+<blockquote>
+<div><p>A region consisting of all entities on a mesh.</p>
+</div></blockquote>
+<p>No parameters required.</p>
+<p><code class="docutils literal notranslate"><span class="pre">[region-all-spec]</span></code></p>
+<blockquote>
+<div><ul class="simple">
+<li><p><cite>“empty</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>True</strong> This is simply here to avoid issues with
+empty lists.</p></li>
+</ul>
+</div></blockquote>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;domain&quot;</span><span class="nt">&gt;</span><span class="w">  </span><span class="cm">&lt;!-- parent list --&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;region: all&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="box">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Box</a><a class="headerlink" href="#box" title="Permalink to this heading">#</a></h2>
+<blockquote>
+<div><p>RegionBox: a rectangular region in space, defined by two corners</p>
+</div></blockquote>
+<p>List <em>region: box</em> defines a region bounded by coordinate-aligned
+planes. Boxes are allowed to be of zero thickness in only one
+direction in which case they are equivalent to planes.</p>
+<div class="admonition-region-box-spec admonition" id="region-box-spec">
+<p class="admonition-title">region-box-spec</p>
+<ul class="simple">
+<li><p><cite>“low coordinate</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> Location of the boundary point with the lowest coordinates.</p></li>
+<li><p><cite>“high coordinate</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> Location of the boundary points with the highest coordinates.</p></li>
+</ul>
+</div>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;WELL&quot;</span><span class="nt">&gt;</span><span class="w">  </span><span class="cm">&lt;!-- parent list --&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;region: box&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;low coordinate&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(double)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{-5.0,-5.0, -5.0}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;high coordinate&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(double)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{5.0, 5.0,  5.0}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="plane">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Plane</a><a class="headerlink" href="#plane" title="Permalink to this heading">#</a></h2>
+<blockquote>
+<div><p>RegionPlane: A planar (infinite) region in space, defined by a point and a normal.</p>
+</div></blockquote>
+<p>List <em>region: plane</em> defines a plane using a point lying on the plane and normal to the plane.</p>
+<div class="admonition-region-plane-spec admonition" id="region-plane-spec">
+<p class="admonition-title">region-plane-spec</p>
+<ul class="simple">
+<li><p><cite>“normal</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> Normal to the plane.</p></li>
+<li><p><cite>“point</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> Point in space.</p></li>
+</ul>
+</div>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;TOP_SECTION&quot;</span><span class="nt">&gt;</span><span class="w"> </span><span class="cm">&lt;!-- parent list --&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;region: plane&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;point&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(double)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{2, 3, 5}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;normal&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(double)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{1, 1, 0}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;expert parameters&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;tolerance&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;1.0e-05&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="labeled-set">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">Labeled Set</a><a class="headerlink" href="#labeled-set" title="Permalink to this heading">#</a></h2>
+<blockquote>
+<div><p>RegionLabeledSet: A region defined by a set of mesh entities in a mesh file</p>
+</div></blockquote>
+<p>The list <em>region: labeled set</em> defines a named set of mesh entities
+existing in an input mesh file. This is the same file that contains
+the computational mesh. The name of the entity set is given
+by <em>label</em>.  For example, a mesh file in the Exodus II
+format can be processed to tag cells, faces and/or nodes with
+specific labels, using a variety of external tools. Regions based
+on such sets are assigned a user-defined label for Amanzi, which may
+or may not correspond to the original label in the exodus file.
+Note that the file used to express this labeled set may be in any
+Amanzi-supported mesh format (the mesh format is specified in the
+parameters for this option).  The <em>entity</em> parameter may be
+necessary to specify a unique set.  For example, an Exodus file
+requires <em>cell</em>, <em>face</em> or <em>node</em> as well as a label (which is
+an integer).  The resulting region will have the dimensionality
+associated with the entities in the indicated set.</p>
+<div class="admonition-region-labeled-set-spec admonition" id="region-labeled-set-spec">
+<p class="admonition-title">region-labeled-set-spec</p>
+<ul class="simple">
+<li><p><cite>“label</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Set per label defined in the mesh file.</p></li>
+<li><p><cite>“file</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> File name.</p></li>
+<li><p><cite>“format</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Currently, we only support mesh files in the “Exodus II” format.</p></li>
+<li><p><cite>“entity</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Type of the mesh object (cell, face, etc).</p></li>
+</ul>
+</div>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;AQUIFER&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;region: labeled set&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;entity&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;cell&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;file&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;porflow4_4.exo&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;format&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;Exodus II&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;label&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;1&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="function-color">
+<h2><a class="toc-backref" href="#id5" role="doc-backlink">Function Color</a><a class="headerlink" href="#function-color" title="Permalink to this heading">#</a></h2>
+<blockquote>
+<div><p>RegionFunctionColor: A region defined by the value of an indicator function in a file.</p>
+</div></blockquote>
+<p>The list <em>region: color function</em> defines a region based a specified integer
+color, <em>value</em>, in a structured color function file, <em>file</em>.  The format of
+the color function file is given below in the “Tabulated function file format”
+section. As shown in the file, the color values may be specified at the nodes
+or cells of the color function grid. A computational cell is assigned the
+‘color’ of the data grid cell containing its cell centroid (cell-based colors)
+or the data grid nearest its cell-centroid (node-based colors). Computational
+cells sets are then built from all cells with the specified color <em>Value</em>.</p>
+<p>In order to avoid, gaps and overlaps in specifying materials, it is strongly
+recommended that regions be defined using a single color function file.</p>
+<div class="admonition-region-color-function-spec admonition" id="region-color-function-spec">
+<p class="admonition-title">region-color-function-spec</p>
+<ul class="simple">
+<li><p><cite>“file</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> File name containing color function.</p></li>
+<li><p><cite>“value</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> Color that defines the set in the tabulated function file.</p></li>
+</ul>
+</div>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;SOIL_TOP&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;region: color function&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;file&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;geology_resamp_2D.tf3&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;value&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;int&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;1&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="point">
+<h2><a class="toc-backref" href="#id6" role="doc-backlink">Point</a><a class="headerlink" href="#point" title="Permalink to this heading">#</a></h2>
+<blockquote>
+<div><p>RegionPoint: a point in space.</p>
+</div></blockquote>
+<p>List <em>region: point</em> defines a point in space.
+This region consists of cells containing this point.</p>
+<div class="admonition-region-point-spec admonition" id="region-point-spec">
+<p class="admonition-title">region-point-spec</p>
+<ul class="simple">
+<li><p><cite>“coordinate</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> Location of point in space.</p></li>
+</ul>
+</div>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;DOWN_WIND150&quot;</span><span class="nt">&gt;</span><span class="w"> </span><span class="cm">&lt;!-- parent list defining the name --&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;region: point&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;coordinate&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(double)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{-150.0, 0.0, 0.0}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="logical">
+<h2><a class="toc-backref" href="#id7" role="doc-backlink">Logical</a><a class="headerlink" href="#logical" title="Permalink to this heading">#</a></h2>
+<blockquote>
+<div><p>RegionLogical: A region defined by a logical operation on one or two other regions</p>
+</div></blockquote>
+<p>The list <em>region: logical</em> defines logical operations on regions allow for
+more advanced region definitions. At this time the logical region allows for
+logical operations on a list of regions.  <em>union</em> and <em>intersection</em> are
+self-evident. In the case of <em>subtraction</em>, subtraction is performed from the
+first region in the list.  The <em>complement</em> is a special case in that it is
+the only case that operates on single region, and returns the complement to it
+within the domain ENTIRE_DOMAIN.  Currently, multi-region booleans are not
+supported in the same expression.</p>
+<div class="admonition-region-logical-spec admonition" id="region-logical-spec">
+<p class="admonition-title">region-logical-spec</p>
+<ul class="simple">
+<li><p><cite>“operation</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> defines operation on the list of regions.
+One of: <cite>“union</cite>”, <cite>“intersect</cite>”, <cite>“subtract</cite>”, <cite>“complement</cite>”</p></li>
+<li><p><cite>“regions</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> specifies the list of involved regions.</p></li>
+</ul>
+</div>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;LOWER_LAYERs&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;region: logical&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;operation&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;union&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;regions&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{Middle1, Middle2, Bottom}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="polygon">
+<h2><a class="toc-backref" href="#id8" role="doc-backlink">Polygon</a><a class="headerlink" href="#polygon" title="Permalink to this heading">#</a></h2>
+<blockquote>
+<div><p>RegionPolygon: A closed polygonal segment of a plane.</p>
+</div></blockquote>
+<p>The list <em>region: polygon</em> defines a polygonal region on which mesh faces and
+nodes can be queried. NOTE that one cannot ask for cells in a polygonal surface
+region. In 2D, the polygonal region is a line and is specified by 2 points.
+In 3D, the polygonal region is specified by an arbitrary number of points.
+In both cases the point coordinates are given as a linear array. The polygon
+can be non-convex.</p>
+<p>This provides a set of faces with a normal for computing flux.</p>
+<p>The polygonal surface region can be queried for a normal. In 2D, the normal is
+defined as [Vy,-Vx] where [Vx,Vy] is the vector from point 1 to point 2.
+In 3D, the normal of the polygon is defined by the order in which points
+are specified.</p>
+<p><code class="docutils literal notranslate"><span class="pre">[region-polygon-spec]</span></code></p>
+<ul class="simple">
+<li><p><cite>“number of points</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> Number of polygon points.</p></li>
+<li><p><cite>“points</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> Point coordinates in a linear array.</p></li>
+</ul>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;XY_PENTAGON&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;region: polygon&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;number of points&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;int&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;5&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;points&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(double)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{-0.5, -0.5, -0.5,</span>
+<span class="s">                                                           0.5, -0.5, -0.5,</span>
+<span class="s">                                                           0.8, 0.0, 0.0,</span>
+<span class="s">                                                           0.5,  0.5, 0.5,</span>
+<span class="s">                                                          -0.5, 0.5, 0.5}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;expert parameters&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;tolerance&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;double&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;1.0e-3&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="enumerated">
+<h2><a class="toc-backref" href="#id9" role="doc-backlink">Enumerated</a><a class="headerlink" href="#enumerated" title="Permalink to this heading">#</a></h2>
+<blockquote>
+<div><p>RegionEnumerated: A region enumerated as a list of IDs.</p>
+</div></blockquote>
+<p>List <em>region: enumerated set</em> defines a set of mesh entities via the list
+of input global ids. Note that global ids are not defined correctly when
+parallel mesh is created on a fly.</p>
+<div class="admonition-region-enumerated-spec admonition" id="region-enumerated-spec">
+<p class="admonition-title">region-enumerated-spec</p>
+<ul class="simple">
+<li><p><cite>“entity</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Type of the mesh object.  One of: <cite>“cell</cite>”, <cite>“face</cite>”, <cite>“edge</cite>”, <cite>“node</cite>”</p></li>
+<li><p><cite>“entity gids</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(int)]</span></code> List of the global IDs of the entities.</p></li>
+</ul>
+</div>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;WELL&quot;</span><span class="nt">&gt;</span><span class="w"> </span><span class="cm">&lt;!-- parent list --&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;region: enumerated set&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;entity&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;face&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;entity gids&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(int)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{1, 12, 23, 34}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="boundary">
+<h2><a class="toc-backref" href="#id10" role="doc-backlink">Boundary</a><a class="headerlink" href="#boundary" title="Permalink to this heading">#</a></h2>
+<blockquote>
+<div><p>RegionBoundary:  A region consisting of all entities on the domain boundary</p>
+</div></blockquote>
+<p>List <em>region: boundary</em> defines a set of all boundary faces.
+Using this definition, faces located on the domain boundary are extracted.</p>
+<div class="admonition-region-boundary-spec admonition" id="region-boundary-spec">
+<p class="admonition-title">region-boundary-spec</p>
+<ul class="simple">
+<li><p><cite>“entity</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Type of the mesh object.  Unclear whether this is
+used or can be other things than <cite>“face</cite>”?</p></li>
+</ul>
+</div>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;DOMAIN_BOUNDARY&quot;</span><span class="nt">&gt;</span><span class="w"> </span><span class="cm">&lt;!-- parent list names the region --&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;region: boundary&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;entity&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;face&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="box-volume-fractions">
+<h2><a class="toc-backref" href="#id11" role="doc-backlink">Box Volume Fractions</a><a class="headerlink" href="#box-volume-fractions" title="Permalink to this heading">#</a></h2>
+<blockquote>
+<div><p>RegionBoxVolumeFractions: A rectangular region in space, defined by two corner points and normals to sides.</p>
+</div></blockquote>
+<p>List <em>region: box volume fraction</em> defines a region bounded by a box <em>not</em>
+aligned with coordinate axes.
+Boxes are allowed to be of zero thickness in only one direction in which case
+they are equivalent to rectangles on a plane or segments on a line.</p>
+<div class="admonition-region-box-volume-fractions-spec admonition" id="region-box-volume-fractions-spec">
+<p class="admonition-title">region-box-volume-fractions-spec</p>
+<ul class="simple">
+<li><p><cite>“corner coordinate</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> Location of one box corner.</p></li>
+<li><p><cite>“opposite corner coordinate</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> Location of the opposite box corner.</p></li>
+<li><p><cite>“normals</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> Normals to sides in a linear array. Default is columns of
+the identity matrix. The normals may be scaled arbitrarily but must be orthogonal to
+one another and form the right coordinate frame.</p></li>
+</ul>
+</div>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;BASIN&quot;</span><span class="nt">&gt;</span><span class="w">  </span><span class="cm">&lt;!-- parent list --&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;region: box volume fractions&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;corner coordinate&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(double)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{-1.0,-1.0, 1.0}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;opposite corner coordinate&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(double)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{1.0, 1.0, 1.0}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;normals&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(double)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{1.0, 0.0, 0.0</span>
+<span class="s">                                                           0.0, 2.0, 0.0,</span>
+<span class="s">                                                           0.0, 0.0, 3.0}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+<p>This example defines a degenerate box, a square on a surface <em>z=1</em>.</p>
+</section>
+<section id="line-segment">
+<h2><a class="toc-backref" href="#id12" role="doc-backlink">Line Segment</a><a class="headerlink" href="#line-segment" title="Permalink to this heading">#</a></h2>
+<blockquote>
+<div><p>RegionLineSegment: A line segment, defined by two points in space.</p>
+</div></blockquote>
+<p>List <em>region: line segment</em> desribes a region defined by a line
+segment. This region is a set of cells which intersect with a line
+segment.  The line segment is allowed to intersect with one or more cells. Zero length
+line segments are allowed. The line segment is defined by its ends
+points.</p>
+<div class="admonition-region-line-segment-spec admonition" id="region-line-segment-spec">
+<p class="admonition-title">region-line-segment-spec</p>
+<ul class="simple">
+<li><p><cite>“end coordinate</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> Location of one end of a line
+segment.</p></li>
+<li><p><cite>“opposite end coordinate</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> Location of the opposite
+end of a line segment.</p></li>
+</ul>
+</div>
+<p>Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;WELL&quot;</span><span class="nt">&gt;</span><span class="w"> </span><span class="cm">&lt;!-- parent list --&gt;</span>
+<span class="w">   </span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;region: line segment&quot;</span><span class="nt">&gt;</span>
+<span class="w">     </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;end coordinate&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(double)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{497542.44, 5393755.77, 0.0}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">     </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;opposite end coordinate&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;Array(double)&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;{497542.44, 5393755.77, 100.0}&quot;</span><span class="nt">/&gt;</span>
+<span class="w">   </span><span class="nt">&lt;/ParameterList&gt;</span>
+<span class="w"> </span><span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="mesh.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Mesh</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="io/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">IO</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 202X, jointly shared by contributor institutions.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.2.1.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.3.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

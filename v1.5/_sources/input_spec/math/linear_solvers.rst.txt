@@ -1,0 +1,230 @@
+Linear Solvers
+==============
+.. _LinearOperator:
+.. _`LinearSolvers`:
+.. _`Linear Solver`:
+.. _`Inverse`:
+
+ Base class for providing ApplyInverse() methods on operators.
+
+Matrix provides existing Operators with an inverse.  Note this may be
+iterative or non-iterative, assembled or non-assembled, approximate or exact to
+machine precision.
+
+.. _inverse-typed-spec:
+.. admonition:: inverse-typed-spec
+
+   * `"iterative method`" ``[string]`` **optional**
+   * `"direct method`" ``[string]`` **optional**
+   * `"preconditioning method`" ``[string]`` **optional**
+
+DOCUMENT ME!
+
+
+
+
+Linear Solver: PCG
+--------------------
+ Preconditioned conjugate gradient method for a linear solver.
+
+.. _iterative-method-pcg-spec:
+.. admonition:: iterative-method-pcg-spec
+
+    * `"error tolerance`" ``[double]`` **1.e-6** Tolerance on which to declare success.
+
+    * `"maximum number of iterations`" ``[int]`` **100** Maximum iterations before declaring failure.
+
+    * `"overflow tolerance`" ``[double]`` **3.e50** Error above this value results in failure.
+
+    * `"convergence criterial`" ``[Array(string)]`` **{relative rhs}** A list of
+      criteria, any of which can be applied.  Valid include:
+
+      - `"relative rhs`" : measure error relative to the norm of the RHS vector
+      - `"relative residual`" : measure error relative to the norm of the residual
+      - `"absolute residual`" : measure error directly, norm of error
+      - `"make one iteration`" : require at least one iteration to be performed before declaring success
+
+.. code-block:: xml
+
+  <ParameterList name="_PCG with HYPRE AMG">  <!-- parent list -->
+  <ParameterList name="pcg parameters">
+    <Parameter name="error tolerance" type="double" value="1e-12"/>
+    <Parameter name="maximum number of iterations" type="int" value="400"/>
+    <Parameter name="convergence criteria" type="Array(string)" value="{relative residual,make one iteration}"/>
+    <Parameter name="overflow tolerance" type="double" value="3.0e+50"/>
+
+    <ParameterList name="verbose object">
+      <Parameter name="verbosity level" type="string" value="high"/>
+    </ParameterList>
+  </ParameterList>
+  </ParameterList>
+
+
+
+
+Linear Solver: GMRES
+--------------------
+ Generalized minimum residual method for a linear solver.
+
+Based on the methods of Yu. Kuznetsov, 1968; Y.Saad, 1986.  Deflated version of
+GMRES is due to R.Morgan, GMRES with deflated restarting, 2002 SISC; S.Rollin,
+W.Fichtner, Improving accuracy of GMRES with deflated restarting, 2007 SISC.
+
+.. _iterative-method-gmres-spec:
+.. admonition:: iterative-method-gmres-spec
+
+    * `"error tolerance`" ``[double]`` **1.e-6** Tolerance on which to declare success.
+
+    * `"maximum number of iterations`" ``[int]`` **100** Maximum iterations before declaring failure.
+
+    * `"overflow tolerance`" ``[double]`` **3.e50** Error above this value results in failure.
+
+    * `"convergence criterial`" ``[Array(string)]`` **{relative rhs}** A list of
+      criteria, any of which can be applied.  Valid include:
+
+      - `"relative rhs`" : measure error relative to the norm of the RHS vector
+      - `"relative residual`" : measure error relative to the norm of the residual
+      - `"absolute residual`" : measure error directly, norm of error
+      - `"make one iteration`" : require at least one iteration to be performed before declaring success
+
+    * `"size of Krylov space`" ``[int]`` **10** Size of the Krylov space used to span the residual.
+
+    * `"controller training start`" ``[int]`` **0** Start iteration for determining
+      convergence rates. (Add more please!)
+
+    * `"controller training end`" ``[int]`` **3** Start iteration for determining
+      convergence rates. (Add more please!)
+
+    * `"preconditioning strategy`" ``[string]`` **left** Valid are "left" and
+      "right"-type preconditioning (see Saad 1986)
+
+    * `"maximum size of deflation space`" ``[int]`` **0** Size of the deflation space, see Rollin et al.
+
+.. code-block:: xml
+
+  <ParameterList name="_GMRES with HYPRE AMG">  <!-- parent list -->
+  <ParameterList name="gmres parameters">
+    <Parameter name="error tolerance" type="double" value="1e-12"/>
+    <Parameter name="maximum number of iterations" type="int" value="400"/>
+    <Parameter name="convergence criteria" type="Array(string)" value="{relative residual}"/>
+    <Parameter name="size of Krylov space" type="int" value="10"/>
+    <Parameter name="overflow tolerance" type="double" value="3.0e+50"/>
+    <Parameter name="maximum size of deflation space" type="int" value="0"/>
+    <Parameter name="preconditioning strategy`" type="string" value="left"/>
+    <Parameter name="release Krylov vectors" type="bool" value="false"/>
+
+    <ParameterList name="verbose object">
+      <Parameter name="verbosity level" type="string" value="high"/>
+    </ParameterList>
+  </ParameterList>
+
+  <!-- Alternative implementation
+  <ParameterList name="belos gmres parameters">
+    <Parameter name="error tolerance" type="double" value="1e-12"/>
+    <Parameter name="maximum number of iterations" type="int" value="400"/>
+    <Parameter name="convergence criteria" type="Array(string)" value="{relative residual}"/>
+    <Parameter name="size of Krylov space" type="int" value="10"/>
+    <Parameter name="overflow tolerance" type="double" value="3.0e+50"/>
+  </ParameterList-->
+  </ParameterList>
+
+
+
+
+Linear Solver: NKA
+--------------------
+ Uses NKA method as a linear solver.
+
+This is effectively equivalent to GMRES with a rolling restart, where vectors
+fall off the end of the space.
+
+.. _iterative-method-nka-spec:
+.. admonition:: iterative-method-nka-spec
+
+    * `"error tolerance`" ``[double]`` **1.e-6** Tolerance on which to declare success.
+
+    * `"maximum number of iterations`" ``[int]`` **100** Maximum iterations before declaring failure.
+
+    * `"overflow tolerance`" ``[double]`` **3.e50** Error above this value results in failure.
+
+    * `"convergence criterial`" ``[Array(string)]`` **{relative rhs}** A list of
+      criteria, any of which can be applied.  Valid include:
+
+      - `"relative rhs`" : measure error relative to the norm of the RHS vector
+      - `"relative residual`" : measure error relative to the norm of the residual
+      - `"absolute residual`" : measure error directly, norm of error
+      - `"make one iteration`" : require at least one iteration to be performed before declaring success
+
+    * `"max nka vectors`" ``[int]`` **10** Size of the NKA space used to span the residual, conceptually equivalent to the size of the Krylov space.
+
+    * `"nka vector tolerance`" ``[double]`` **0.05** Vectors whose dot product are within this tolerance are considered parallel, and therefore the old vector is thrown out.
+
+.. code-block:: xml
+
+  <ParameterList name="_NKA">  <!-- parent list -->
+  <ParameterList name="nka parameters">
+    <Parameter name="error tolerance" type="double" value="1e-12"/>
+    <Parameter name="maximum number of iterations" type="int" value="400"/>
+    <Parameter name="convergence criteria" type="Array(string)" value="{relative residual}"/>
+    <Parameter name="overflow tolerance" type="double" value="3.0e+50"/>
+    <Parameter name="max nka vectors" type="int" value="10"/>
+    <Parameter name="nka vector tolerance" type="double" value="0.05"/>
+
+    <ParameterList name="verbose object">
+      <Parameter name="verbosity level" type="string" value="high"/>
+    </ParameterList>
+  </ParameterList>
+  </ParameterList>
+
+
+
+
+Linear Solver: Amesos
+---------------------
+ Direct solvers via Trilinos.
+
+Amesos library of Trilinos package provides interfaces to a few direct solvers.
+List `"amesos parameters`" contains parameters that understood by this library.
+These parameters may violate the camel-case convention employed by this spec.
+Additional parameters are:
+
+* `"solver name`" [string] declares name of one of the supported direct solvers.
+  Available options are `"klu`", `"superludist`", `"basker`", etc, see Amesos and
+  Amesos2 manuals for details. The default value is serial solver `"klu`".
+
+* `"amesos version`" [int] specifies version of Amesos. Available options are 1 and 2.
+  The default value is 1.
+
+.. code-block:: xml
+
+  <ParameterList name="_AMESOS KLU">  <!-- parent list -->
+  <Parameter name="direct method" type="string" value="amesos"/>
+  <ParameterList name="amesos parameters">
+    <Parameter name="solver name" type="string" value="klu"/>
+    <Parameter name="amesos version" type="int" value="1"/>
+  </ParameterList>
+  </ParameterList>
+
+
+
+
+Linear Solver: Amesos
+---------------------
+ Direct solvers via Trilinos.
+
+.. warning:: undocumented
+
+
+
+
+Linear Solver: Belos (GMRES)
+----------------------------
+ Trilinos/Belos implementations of iterative methods.
+
+Includes GMRES and other Belos methods.
+
+.. warning:: undocumented
+
+
+
+

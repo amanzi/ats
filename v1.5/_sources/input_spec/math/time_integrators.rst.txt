@@ -1,0 +1,303 @@
+Time Integrators
+================
+
+Currently there are two classes of time integration schemes used in
+ATS: explicit (including a range of single and multi-stage) methods
+and BDF1, or Backward Euler.
+
+Explicit Time Integration
+-------------------------
+ Explicit time integration methods in a generalized form.
+
+This class implements several explicit Runge Kutta methods:
+
+- forward Euler     (1st order)  --> "forward_euler"
+- Heun-Euler method (2nd order)  --> "heun_euler"
+- Midpoint method   (2nd order)  --> "midpoint"
+- Ralston method    (2nd order)  --> "ralston"
+- TVD RK method     (3rd order)  --> "tvd_3rd_order"
+- Kutta method      (3rd order)  --> "kutta_3rd_order"
+- Runge Kutta       (4th order)  --> "runge_kutta_4th_order"
+- User defined      (whatever)   --> user_defined, use special constructor to create
+
+Note that user-defined is only for developers currently, and cannot be created from an input file.
+
+The RK tableau is made up of the three private objects a, b, and c below.  they
+are arranged as follows:
+
+.. code-block:
+
+    c[0]   |
+    c[1]   | a(1,0)
+     .     | a(2,0)    a(2,1)
+     .     |   .         .
+     .     |   .         .
+    c[s-1 ]| a(s-1,0)  a(s-1,1)  . . .  a(s-1,s-2)
+    ---------------------------------------------------------
+           |   b[0]      b[1]    . . .    b[s-2]      b[s-1]
+
+Note that c[0] should always equal zero, and that the entries in the matrix a
+that are not listed in this tableau are not used
+
+The implemented general Runge Kutta scheme of order s based on this tableau arrangement is
+
+.. math::
+    y_{n+1} = y_n + \sum{i=0}^{s-1} b[i]*k_i
+
+    with
+
+      k_0 = h * f(t_n, y_n) \\
+      k_1 = h * f(t_n + c[1]*h, y_n + a(1,0)*k_0) \\
+      k_2 = h * f(t_n + c[2]*h, y_n + a(2,0)*k_0 + a(2,1)*k_1) \\
+       . \\
+       . \\
+       . \\
+      k_{s-1} = h * f(t_n + c[s-1]*h, y_n + a(s-1,0)*k_0 + ... + a(s-1,s-2)*k_{s-2})
+
+
+.. _explicit-ti-rk-spec:
+.. admonition:: explicit-ti-rk-spec
+
+    * `"verbose object`" ``[verbose-object-spec]`` A `Verbose Object`_
+
+    * `"RK method`" ``[string]`` **forward euler**  One of: `"forward Euler`", `"heun euler`", `"midpoint`", `"ralston`", `"tvd 3rd order`", `"kutta 3rd order`", `"runge kutta 4th order`"
+
+
+
+
+Backward Euler
+--------------
+ Solves globally implicit systems using backward Euler
+
+Backward Euler is the simplest of the implicit methods.  It solves time
+integration schemes by evaluating all time derivatives at the new time.  This
+makes it unconditionally stable, though potentially not very accurate.  This
+unconditional stability tends to make it the workhorse of the types of stiff,
+nonlinear parabolic equations such as Richards equation and the diffusion wave
+approximation.
+
+In this method, we look to solve:
+
+.. math::
+    \frac{\partial \mathbf{u}}{\partial t} = f(\mathbf{u},\mathbf{x},t)
+
+via the time discretization scheme:
+
+.. math::
+    \frac{\mathbf{u}^{t + \Delta t} - \mathbf{u}^{t}}{\Delta t} = f(\mathbf{u}^{t + \Delta t}, \mathbf{x}, t + \Delta t)
+
+.. _bdf1-ti-spec:
+.. admonition:: bdf1-ti-spec
+
+    * `"verbose object`" ``[verbose-object-spec]`` A `Verbose Object`_
+
+    * `"residual debugger`" ``[residual-debugger-spec]`` A `Residual Debugger`_ object.
+
+    * `"max preconditioner lag iterations`" ``[int]`` **0** specifies frequency
+      of preconditioner recalculation.
+
+    * `"freeze preconditioner`" ``[bool]`` **false** enforces preconditioner to
+      be updated only once per non-linear solver. When set to true, the above
+      parameter is ignored.
+
+    * `"extrapolate initial guess`" ``[bool]`` **true** identifies forward time
+      extrapolation of the initial guess.
+
+    * `"nonlinear iteration initial guess extrapolation order`" ``[int]`` **1**
+      defines extrapolation algorithm. Zero value implies no extrapolation.
+
+    * `"restart tolerance relaxation factor`" ``[double]`` **1** Changes the
+      nonlinear tolerance on restart. The time integrator is usually restarted
+      when a boundary condition changes drastically. It may be beneficial to
+      loosen the nonlinear tolerance on the first several time steps after the
+      time integrator restart. The default value is 1, while a reasonable value
+      may be as large as 1000.
+
+    * `"restart tolerance relaxation factor damping`" ``[double]`` **1**
+      Controls how fast the loosened nonlinear tolerance will revert back to
+      the one specified in `"nonlinear tolerance`". If the nonlinear tolerance
+      is "tol", the relaxation factor is "factor", and the damping is "d", and
+      the time step count is "n" then the actual nonlinear tolerance is "tol *
+      max(1.0, factor * d ** n)". Reasonable values are between 0 and 1.
+
+    INCLUDES
+    - ``[solver-typed-spec]`` *Uses a* Solver_.
+    - ``[timestep-controller-typed-spec]`` *Uses a* `Timestep Controller`_
+
+
+Note this also accepts an object that provides the `BDF1 Solver Interface`_.
+
+.. code-block:: xml
+
+  <ParameterList name="time integrator">
+    <Parameter name="time integration method" type="string" value="BDF1"/>
+    <ParameterList name="BDF1">
+      <Parameter name="max preconditioner lag iterations" type="int" value="5"/>
+      <Parameter name="freeze preconditioner" type="bool" value="false"/>
+      <Parameter name="extrapolate initial guess" type="bool" value="true"/>
+      <Parameter name="nonlinear iteration initial guess extrapolation order" type="int" value="1"/>
+      <Parameter name="restart tolerance relaxation factor" type="double" value="1.0"/>
+      <Parameter name="restart tolerance relaxation factor damping" type="double" value="1.0"/>
+
+      <Parameter name="timestep controller type" type="string" value="standard"/>
+      <ParameterList name="timestep controller standard parameters">
+        ...
+      </ParameterList>
+
+      <Parameter name="solver type" type="string" value="nka"/>
+      <ParameterList name="nka parameters">
+        ...
+      </ParameterList>
+    </ParameterList>
+  </ParameterList>
+
+
+
+
+BDF1 Solver Interface
+^^^^^^^^^^^^^^^^^^^^^
+
+
+Timestep Controller
+-------------------
+ Factory for creating TimestepController objects
+
+A TimestepController object sets what size timestep to take.  This can be a
+variety of things, from fixed timestep size, to adaptive based upon error
+control, to adapter based upon simple nonlinear iteration counts.
+
+Available types include:
+
+- `Timestep Controller Fixed`_  (type `"fixed`"), a constant timestep
+- `Timestep Controller Standard`_ (type `'standard`"), an adaptive timestep based upon nonlinear iterations
+- `Timestep Controller Smarter`_ (type `'smarter`"), an adaptive timestep based upon nonlinear iterations with more control
+- `Timestep Controller Adaptive`_ (type `"adaptive`"), an adaptive timestep based upon error control.
+- `Timestep Controller From File`_ (type `"from file`"), uses a timestep history loaded from an HDF5 file.  (Usually only used for regression testing.)
+
+
+.. _timestep-controller-typed-spec:
+.. admonition:: timestep-controller-typed-spec
+
+    * `"timestep controller type`" ``[string]`` Set the type.  One of: `"fixed`", `"standard`", `"smarter`", `"adaptive`", or `"from file`"
+    * `"timestep controller X parameters`" ``[list]`` List of parameters for a timestep controller of type X.
+
+
+
+
+Timestep Controller Fixed
+^^^^^^^^^^^^^^^^^^^^^^^^^
+ Timestep controller providing constant timestep size.
+
+``TimestepControllerFixed`` is a simple timestep control mechanism which sets
+a constant timestep size.  Note that the actual timestep size is given by the
+minimum of PK's initial timestep sizes.
+
+No parameters are required.
+
+
+
+
+Timestep Controller Standard
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ Simple timestep control based upon previous iteration count.
+
+This is a simple timestep control mechanism
+which sets the next timestep based upon the previous timestep and how many
+nonlinear iterations the previous timestep took to converge.
+
+The timestep for step :math:`k+1`, :math:`\Delta t_{k+1}`, is given by:
+
+- if :math:`N_k > N^{max}` then :math:`\Delta t_{k+1} = f_{reduction} * \Delta t_{k}`
+- if :math:`N_k < N^{min}` then :math:`\Delta t_{k+1} = f_{increase} * \Delta t_{k}`
+- otherwise :math:`\Delta t_{k+1} = \Delta t_{k}`
+
+where :math:`\Delta t_{k}` is the previous timestep and :math:`N_k` is the number of
+nonlinear iterations required to solve step :math:`k`:.
+
+.. _timestep-controller-standard-spec:
+.. admonition:: timestep-controller-standard-spec
+
+    * `"max iterations`" ``[int]`` :math:`N^{max}`, decrease the timestep if the previous step took more than this.
+    * `"min iterations`" ``[int]`` :math:`N^{min}`, increase the timestep if the previous step took less than this.
+    * `"time step reduction factor`" ``[double]`` :math:`f_{reduction}`, reduce the previous timestep by this multiple.
+    * `"time step increase factor`" ``[double]`` :math:`f_{increase}`, increase the previous timestep by this multiple.
+    * `"max time step`" ``[double]`` The max timestep size allowed.
+    * `"min time step`" ``[double]`` The min timestep size allowed.  If the step has failed and the new step is below this cutoff, the simulation fails.
+
+.. code-block:: xml
+
+  <ParameterList name="BDF1"> <!-- parent list -->
+    <Parameter name="timestep controller type" type="string" value="standard"/>
+    <ParameterList name="timestep controller standard parameters">
+      <Parameter name="min iterations" type="int" value="10"/>
+      <Parameter name="max iterations" type="int" value="15"/>
+      <Parameter name="time step increase factor" type="double" value="1.2"/>
+      <Parameter name="time step reduction factor" type="double" value="0.5"/>
+      <Parameter name="max time step" type="double" value="1e+9"/>
+      <Parameter name="min time step" type="double" value="0.0"/>
+    </ParameterList>
+  </ParameterList>
+
+In this example, the time step is increased by factor 1.2 when the nonlinear
+solver converges in 10 or less iterations.
+The time step is not changed when the number of nonlinear iterations is
+between 11 and 15.
+The time step will be cut twice if the number of nonlinear iterations exceeds 15.
+
+
+
+
+Timestep Controller Smarter
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ Slightly smarter timestep controller based upon a history of previous timesteps.
+
+This is based on `Timestep Controller Standard`_, but also tries to be a bit
+smarter to avoid repeated increase/decrease loops where the step size
+decreases, converges in few iterations, increases, but then fails again.  It
+also tries to grow the step geometrically to more quickly recover from tricky
+nonlinearities.
+
+.. _timestep-controller-smarter-spec:
+.. admonition:: timestep-controller-smarter-spec
+
+    * `"max iterations`" ``[int]`` :math:`N^{max}`, decrease the timestep if the previous step took more than this.
+    * `"min iterations`" ``[int]`` :math:`N^{min}`, increase the timestep if the previous step took less than this.
+    * `"time step reduction factor`" ``[double]`` :math:`f_{reduction}`, reduce the previous timestep by this multiple.
+    * `"time step increase factor`" ``[double]`` :math:`f_{increase}`, increase the previous timestep by this multiple.  Note that this can be modified geometrically in the case of repeated successful steps.
+    * `"max time step increase factor`" ``[double]`` **10.** The max :math:`f_{increase}` will ever get.
+    * `"growth wait after fail`" ``[int]`` Wait at least this many timesteps before attempting to grow the timestep after a failed timestep.
+    * `"count before increasing increase factor`" ``[int]`` Require this many successive increasions before multiplying :math:`f_{increase}` by itself.
+
+
+
+
+
+Timestep Controller Adaptive
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ Adaptive timestep control based upon previous iteration count.
+
+This is under development and is based on a posteriori error estimates.
+
+
+
+
+Timestep Controller From File
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ Timestep controller which loads a timestep history from file.
+
+This loads a timestep history from a file, then advances the step size with
+those values.  This is mostly used for testing purposes, where we need to force
+the same timestep history as previous runs to do regression testing.  Otherwise
+even machine roundoff can eventually alter number of iterations enough to alter
+the timestep history, resulting in solutions which are enough different to
+cause doubt over their correctness.
+
+.. _timestep-controller-from-file-spec:
+.. admonition:: timestep-controller-from-file-spec
+
+    * `"file name`" ``[string]`` Path to hdf5 file containing timestep information.
+    * `"timestep header`" ``[string]`` Name of the dataset containing the history of timestep sizes.
+
+
+
+

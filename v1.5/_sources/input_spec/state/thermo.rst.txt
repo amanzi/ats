@@ -1,0 +1,477 @@
+Thermodynamic evaluators
+-------------------------
+
+Internal energy, enthalpy, thermal conductivity, etc used for both
+surface and subsurface transport of energy.
+
+Internal energy
+^^^^^^^^^^^^^^^
+
+
+Computes (specific) internal energy of as a function of temperature.
+
+`"evaluator type`" = `"iem`"
+
+.. _iem-evaluator-spec:
+.. admonition:: iem-evaluator-spec
+
+   * `"IEM parameters`" ``[IEM-model-typedinline-spec-list]``
+
+   KEYS:
+
+   - `"temperature`"
+
+
+
+
+Linear
+~~~~~~
+ Internal energy based on a linear fit.
+
+Linear internal energy model -- function of Cv and temperature
+
+.. math::
+
+    u = L_f +  C_v * (T - T_{ref})
+
+`"IEM type`" = `"linear`"
+
+.. _IEM-model-linear-spec:
+.. admonition:: IEM-model-linear-spec
+
+    * `"reference temperature [K]`" ``[double]`` **273.15** The phase transition point, T_ref above
+
+    ONE OF
+
+    * `"latent heat [J kg^-1]`" ``[double]`` Latent heat of fusion, L_f above
+    * `"heat capacity [J kg^-1 K^-1]`" ``[double]`` C_v above
+
+    OR
+
+    * `"latent heat [J mol^-1]`" ``[double]`` Latent heat of fusion, L_f above.
+    * `"heat capacity [J mol^-1 K^-1]`" ``[double]`` C_v above
+
+    END
+
+
+
+
+Quadratic
+~~~~~~~~~
+ Internal energy based on a quadratic fit to data.
+
+Quadratic internal energy model -- function of Cv and temperature
+
+.. math::
+
+    u = L_f + C_v * (T - T_{ref}) + b(T - T_{ref})^2
+
+`"IEM type`" = `"quadratic`"
+
+.. _IEM-model-quadratic-spec:
+.. admonition:: IEM-model-quadratic-spec
+
+    * `"reference temperature [K]`" ``[double]`` **273.15** The phase transition point, T_ref above.
+
+    ONE OF
+
+    * `"latent heat [J kg^-1]`" ``[double]`` Latent heat of fusion, L_f above
+    * `"heat capacity [J kg^-1 K^-1]`" ``[double]`` C_v above
+    * `"quadratic b [J kg^-1 K^-2]`" ``[double]`` b above
+
+    OR
+
+    * `"latent heat [J mol^-1]`" ``[double]`` Latent heat of fusion, L_f above.
+    * `"heat capacity [J mol^-1 K^-1]`" ``[double]`` C_v above
+    * `"quadratic b [J mol^-1 K^-2]`" ``[double]`` b above
+
+    END
+
+
+
+
+Water Vapor
+~~~~~~~~~~~
+
+
+Computes (specific) internal energy of as a function of temperature and molar
+fraction of water vapor in the gaseous phase.
+
+`"evaluator type`" = `"iem water vapor`"
+
+.. _iem-water-vapor-evaluator-spec:
+.. admonition:: iem-water-vapor-evaluator-spec
+
+   * `"IEM parameters`" ``[IEM-water-vapor-model-spec]``
+
+   KEYS:
+
+   - `"temperature`"
+   - `"vapor molar fraction`"
+
+
+
+ Internal energy model for air and water vapor.
+
+.. _iem-water-vapor-model-spec:
+.. admonition:: iem-water-vapor-model-spec
+
+    * `"latent heat [J mol^-1]`" ``[double]`` Latent heat of vaporization
+    * `"heat capacity [J mol^-1 K^-1]`" ``[double]`` C_v
+
+
+
+
+Enthalpy
+~~~~~~~~
+
+
+Computes enthalpy [MJ / mol] of as a function of internal energy, pressure, and density.
+
+.. math::
+   e = u + 10^{-6} * \frac{p}{n_l}
+
+`"evaluator type`" = `"enthalpy`"
+
+.. _enthalpy-evaluator-spec:
+.. admonition:: enthalpy-evaluator-spec
+
+   * `"include work term`" ``[bool]`` **false** If false, e = u, ignoring the work term.
+
+   KEYS:
+
+   - `"internal energy`"
+   - `"pressure`"
+   - `"mass density`"
+
+
+
+
+Thermal Conductivity, two phases
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+Thermal conductivity based on two-phases (air,liquid) composition of the
+porous media.
+
+`"evaluator type`" = `"two-phase thermal conductivity`"
+
+.. _thermal-conductivity-twophase-evaluator-spec:
+.. admonition:: thermal-conductivity-twophase-evaluator-spec
+
+   * `"thermal conductivity parameters`" ``[thermal-conductivity-twophase-typedinline-spec-list]``
+
+   KEYS:
+
+   - `"porosity`"
+   - `"saturation liquid`"
+
+
+
+
+Wet-Dry Model
+~~~~~~~~~~~~~
+
+
+Simple model of two-phase thermal conductivity, based upon:
+
+- Interpolation between saturated and dry conductivities via a Kersten number.
+- Power-law Kersten number.
+
+`"thermal conductivity type`" = `"two-phase wet/dry`"
+
+.. _thermal-conductivity-twophase-wetdry-spec:
+.. admonition:: thermal-conductivity-twophase-wetdry-spec
+
+   * `"region`" ``[string]`` Region name on which to apply these parameters.
+   * `"thermal conductivity, wet [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of saturated soil
+   * `"thermal conductivity, dry [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of dry soil
+   * `"unsaturated alpha [-]`" ``[double]`` Interpolating exponent
+   * `"epsilon`" ``[double]`` **1e-10** Epsilon to keep saturations bounded away from 0.
+
+Example:
+
+.. code:: xml
+
+  <ParameterList name="thermal conductivity model">
+    <Parameter name="thermal conductivity type" type="string" value="two-phase wet/dry"/>
+    <Parameter name="thermal conductivity, wet [W m^-1 K^-1]" type="double" value=""/>
+    <Parameter name="thermal conductivity, dry [W m^-1 K^-1]" type="double" value=""/>
+    <Parameter name="epsilon" type="double" value="1.e-10"/>
+    <Parameter name="unsaturated alpha" type="double" value="1.0"/>
+  </ParameterList>
+
+Units: [W m^-1 K^-1]
+
+
+
+
+Peters-Lidard Model
+~~~~~~~~~~~~~~~~~~~
+
+
+A two-phase thermal conductivity, based upon:
+
+- Interpolation between saturated and dry conductivities via a Kersten number.
+- Power-law Kersten number.
+- Emperical fit for dry conductivity from Peters-Lidard et al '98.
+
+See Atchley et al GMD 2015 Supplementary Material for equations.
+
+`"thermal conductivity type`" = `"two-phase Peters-Lidard`"
+
+.. _thermal-conductivity-twophase-peterslidard-spec:
+.. admonition:: thermal-conductivity-twophase-peterslidard-spec
+
+    * `"region`" ``[string]`` Region name on which to apply these parameters.
+    * `"thermal conductivity of soil [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of soil grains (not bulk soil)
+    * `"thermal conductivity of liquid [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of liquid (water)
+    * `"thermal conductivity of gas [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of gas (air)
+    * `"unsaturated alpha [-]`" ``[double]`` Interpolating exponent
+    * `"epsilon`" ``[double]`` **1e-10** Epsilon to keep saturations bounded away from 0.
+
+Example:
+
+.. code:: xml
+
+  <ParameterList name="Thermal Conductivity Model">
+    <Parameter name="thermal conductivity type" type="string" value="two-phase Peters-Lidard"/>
+    <Parameter name="thermal conductivity of soil [W m^-1 K^-1]" type="double" value=""/>
+    <Parameter name="thermal conductivity of liquid [W m^-1 K^-1]" type="double" value=""/>
+    <Parameter name="thermal conductivity of gas [W m^-1 K^-1]" type="double" value=""/>
+    <Parameter name="unsaturated alpha" type="double" value="1.0"/>
+    <Parameter name="epsilon" type="double" value="1.e-10"/>
+  </ParameterList>
+
+Units: [W m^-1 K^-1]
+
+
+
+
+Thermal Conductivity, three phases
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+Thermal conductivity based on a three-phase (air,liquid,ice) composition of the
+porous media.
+
+`"evaluator type`" = `"three-phase thermal conductivity`"
+
+.. _thermal-conductivity-threephase-evaluator-spec:
+.. admonition:: thermal-conductivity-threephase-evaluator-spec
+
+   * `"thermal conductivity parameters`" ``[thermal-conductivity-threephase-typedinline-spec-list]``
+
+   KEYS:
+
+   - `"porosity`"
+   - `"saturation liquid`"
+   - `"second saturation`"
+   - `"temperature`"
+
+
+
+
+Wet-Dry Model
+~~~~~~~~~~~~~
+ Three-phase thermal conductivity based on paper by Peters-Lidard.
+
+A three-phase thermal conductivity, based upon:
+
+- Interpolation between saturated and dry conductivities via a Kersten number.
+- Power-law Kersten number.
+- Empirical relationship for frozen soil based on Peters-Lidard
+
+See Atchley et al GMD 2015 Supplementary Material for equations.
+
+`"thermal conductivity type`" = `"three-phase wet/dry`"
+
+.. _thermal-conductivity-threephase-wetdry-spec:
+.. admonition:: thermal-conductivity-threephase-wetdry-spec
+
+   * `"region`" ``[string]`` Region name on which to apply these parameters.
+   * `"thermal conductivity, saturated (unfrozen) [W m^-1 K^-1]`" ``[double]``
+     Thermal conductivity of fully saturated, unfrozen bulk soil.
+   * `"thermal conductivity, dry [W m^-1 K^-1]`" ``[double]`` Thermal conductivity
+     of fully dried bulk soil.
+   * `"unsaturated alpha unfrozen [-]`" ``[double]`` Interpolating exponent
+   * `"unsaturated alpha frozen [-]`" ``[double]`` Interpolating exponent
+   * `"saturated beta frozen [-]`" ``[double]`` **1.0** Interpolating exponent
+   * `"epsilon`" ``[double]`` **1e-10** Epsilon to keep saturations bounded away from 0.
+
+
+
+
+Peters-Lidard Model
+~~~~~~~~~~~~~~~~~~~
+ Three-phase thermal conductivity based on paper by Peters-Lidard.
+
+A three-phase thermal conductivity, based upon:
+
+- A mixture model using interpolation across various components.
+- Power-law Kersten number.
+
+See Atchley et al GMD 2015 Supplementary Material for equations.
+
+`"thermal conductivity type`" = `"three-phase Peters-Lidard`"
+
+.. _thermal-conductivity-threephase-peterslidard-spec:
+.. admonition:: thermal-conductivity-threephase-peterslidard-spec
+
+    * `"region`" ``[string]`` Region name on which to apply these parameters.
+    * `"thermal conductivity of soil [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of soil grains (not bulk soil)
+    * `"thermal conductivity of liquid [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of liquid (water)
+    * `"thermal conductivity of gas [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of gas (air)
+    * `"thermal conductivity of ice [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of ice
+    * `"unsaturated alpha unfrozen [-]`" ``[double]`` Interpolating exponent
+    * `"unsaturated alpha frozen [-]`" ``[double]`` Interpolating exponent
+    * `"epsilon`" ``[double]`` **1e-10** Epsilon to keep saturations bounded away from 0.
+
+Example:
+
+.. code:: xml
+
+  <ParameterList name="thermal_conductivity">
+    <Parameter name="thermal conductivity type" type="string" value="three-phase Peters-Lidard"/>
+    <Parameter name="thermal conductivity of soil [W m^-1 K^-1]" type="double" value=""/>
+    <Parameter name="thermal conductivity of liquid [W m^-1 K^-1]" type="double" value=""/>
+    <Parameter name="thermal conductivity of gas [W m^-1 K^-1]" type="double" value=""/>
+    <Parameter name="thermal conductivity of ice [W m^-1 K^-1]" type="double" value=""/>
+
+    <Parameter name="unsaturated alpha unfrozen [-]" type="double" value=""/>
+    <Parameter name="unsaturated alpha frozen [-]" type="double" value=""/>
+
+    <Parameter name="epsilon" type="double" value="1.e-10"/>
+  </ParameterList>
+
+
+
+
+Volume-averaged Model
+~~~~~~~~~~~~~~~~~~~~~
+ A volume-averaged thermal conductivity based on TCs of raw components.
+
+A simple model of three-phase thermal conductivity, based upon volume-averaging
+of four consitutive components.
+
+`"thermal conductivity type`" = `"three-phase volume averaged`"
+
+See Atchley et al GMD 2015 Supplementary Material for equations.
+
+.. _thermal-conductivity-volume-averaged-spec:
+.. admonition:: thermal-conductivity-volume-averaged-spec
+
+    * `"region`" ``[string]`` Region name on which to apply these parameters.
+    * `"thermal conductivity of soil [W m^-1 K^-1]`" ``[double]`` Thermal
+      conductivity of soil **grains**
+    * `"thermal conductivity of liquid [W m^-1 K^-1]`" ``[double]`` Thermal
+      conductivity of liquid water.
+    * `"thermal conductivity of gas [W m^-1 K^-1]`" ``[double]`` Thermal
+      conductivity of air.
+    * `"thermal conductivity of ice [W m^-1 K^-1]`" ``[double]`` Thermal
+      conductivity of frozen water.
+
+
+
+
+Sutra-ICE model
+~~~~~~~~~~~~~~~~~~~
+
+
+Thermal conductivity model with constant values as a function of temperature,
+requires the sutra model for permafrost WRM to also be used.  This only exists
+to support the INTERFROST comparison.
+
+Usage:
+
+.. code:: xml
+
+  <ParameterList name="Thermal Conductivity Model">
+    <Parameter name="Thermal Conductivity Type" type="string" value="sutra hacked"/>
+    <Parameter name="thermal conductivity of frozen" type="double" value=""/>
+    <Parameter name="thermal conductivity of mushy" type="double" value=""/>
+    <Parameter name="thermal conductivity of unfrozen" type="double" value=""/>
+    <Parameter name="residual saturation" type="double" value=""/>
+  </ParameterList>
+
+Units: [W m^-1 K^-1]
+
+
+
+Thermal Conductivity, Surface
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+Thermal conductivity of surface water that can be either frozen or liquid phase.
+
+`"evaluator type`" = `"surface thermal conductivity`"
+
+.. _thermal-conductivity-surface-evaluator-spec:
+.. admonition:: thermal-conductivity-surface-evaluator-spec
+
+   * `"thermal conductivity parameters`" ``[thermal-conductivity-surface-spec]``
+
+   KEYS:
+
+   - `"unfrozen fraction`"
+   - `"ponded depth`"
+
+.. _thermal-conductivity-surface-spec:
+.. admonition:: thermal-conductivity-surface-spec
+
+   * `"thermal conductivity of water [W m^-1 K^-1]`" ``[double]`` **0.58**
+   * `"thermal conductivity of ice [W m^-1 K^-1]`" ``[double]`` **2.18**
+   * `"minimum thermal conductivity`" ``[double]`` **1.e-14**
+
+
+
+
+Advected Energy Source
+^^^^^^^^^^^^^^^^^^^^^^
+
+
+Active Layer Averaged Temperature
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+Water Table
+^^^^^^^^^^^
+
+
+Computes the depth to a saturated water table.
+
+`"evaluator type`" = `"water table depth`"
+
+.. _water-table-depth-spec:
+.. admonition:: water-table-depth-spec
+
+    KEYS:
+
+    - `"saturation of gas`" **SUBSURFACE_DOMAIN-saturation-gas**
+    - `"subsurface cell volume`" **SUBSURFACE_DOMAIN-cell_volume**
+    - `"surface cell volume`" **DOMAIN-cell_volume**
+
+
+
+
+
+Thaw Depth
+^^^^^^^^^^
+
+
+Computes the depth to a saturated water table.
+
+`"evaluator type`" = `"thaw depth`"
+
+.. _thaw-depth-spec:
+.. admonition:: thaw-depth-spec
+
+    KEYS:
+
+    - `"temperature`" **SUBSURFACE_DOMAIN-temperature**
+    - `"subsurface cell volume`" **SUBSURFACE_DOMAIN-cell_volume**
+    - `"surface cell volume`" **DOMAIN-cell_volume**
+
+
+
+

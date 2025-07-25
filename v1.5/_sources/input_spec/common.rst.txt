@@ -1,0 +1,1300 @@
+Shared Specs
+############
+
+
+Initial Conditions
+==================
+
+Initial condition specs are used in three places:
+
+* In the `"initial conditions`" sublist of state, in which the value
+  of atomic constants are provided (not really initial conditions and
+  should be renamed).  These atomic values are not controlled by
+  evaluators, and are not included in the DaG.
+
+* Within the PK_ spec which describes the initial condition of primary variables (true
+  initial conditions).
+
+* In :ref:`Independent Variable Constant`
+
+The first may be of multiple types of data, while the latter two are
+nearly always fields on a mesh (e.g. CompositeVectors).  The specific
+available options for initializing various data in state differ by
+data type.
+
+
+
+.. _constants-scalar-spec:
+.. admonition:: constants-scalar-spec
+
+   * `"value`" ``[double]`` Value of a scalar constant
+
+.. _constants-dense-vector-spec:
+.. admonition:: constants-dense-vector-spec
+
+   * `"value`" ``[Array(double)]`` Value of a dense, local vector.
+
+.. _constants-point-spec:
+.. admonition:: constants-point-spec
+
+   * `"value`" ``[Array(double)]`` Array containing the values of the point.
+
+
+.. _constants-composite-vector-spec:
+.. admonition:: constants-composite-vector-spec
+
+   * `"constant`" ``[double]`` **optional** Constant value.
+   * `"value`" ``[double]`` **optional** Constant value, same as `"constant`" above.
+   * `"function`" ``[composite-vector-function-spec-list]`` **optional**
+     Initialize from a function, see CompositeVectorFunction_
+   * `"restart file`" ``[string]`` **optional** Path to a checkpoint file from
+     which to read the values.
+   * `"cells from file`" ``[string]`` **optional** Same as `"restart file`",
+     but only reads the cell component.
+   * `"exodus file initialization`" ``[exodus-file-initialization-spec]``
+     **optional** See `Exodus File Initialization`_.
+   * `"initialize from 1D column`" ``[column-file-initialization-spec]``
+     **optional** See `Column File Initialization`_.
+
+
+
+
+Boundary Conditions
+====================
+
+
+
+In general, boundary conditions are provided in a hierarchical list by
+boundary condition type, then functional form.  Boundary condition specs are
+split between two types -- those which require a user-provided function
+(i.e. Dirichlet data, etc) and those which do not (i.e. zero gradient
+conditions).
+
+A list of conditions might pull in both Dirichlet and Neumann data on
+different regions, or use different functions on different regions.  The
+following example illustrates how boundary conditions are prescribed across
+the domain for a typical PK:
+
+Example:
+
+.. code-block:: xml
+
+ <ParameterList name="boundary conditions">
+   <ParameterList name="DIRICHLET_TYPE">
+     <ParameterList name="BC west">
+       <Parameter name="regions" type="Array(string)" value="{west}"/>
+       <ParameterList name="DIRICHLET_FUNCTION_NAME">
+         <ParameterList name="function-constant">
+           <Parameter name="value" type="double" value="101325.0"/>
+         </ParameterList>
+       </ParameterList>
+     </ParameterList>
+     <ParameterList name="BC east">
+       <Parameter name="regions" type="Array(string)" value="{east}"/>
+       <ParameterList name="DIRICHLET_FUNCTION_NAME">
+         <ParameterList name="function-constant">
+           <Parameter name="value" type="double" value="102325."/>
+         </ParameterList>
+       </ParameterList>
+     </ParameterList>
+   </ParameterList>
+   <ParameterList name="water flux">
+     <ParameterList name="BC north">
+       <Parameter name="regions" type="Array(string)" value="{north}"/>
+       <ParameterList name="outward water flux">
+         <ParameterList name="function-constant">
+           <Parameter name="value" type="double" value="0."/>
+         </ParameterList>
+       </ParameterList>
+     </ParameterList>
+   </ParameterList>
+   <ParameterList name="zero gradient">
+     <ParameterList name="BC south">
+       <Parameter name="regions" type="Array(string)" value="{south}"/>
+     </ParameterList>
+   </ParameterList>
+ </ParameterList>
+
+
+Different PKs populate this general format with different names, replacing
+DIRICHLET_TYPE and DIRICHLET_FUNCTION_NAME.
+
+ 
+
+
+Flow-specific Boundary Conditions
+----------------------------------
+
+
+
+Flow boundary conditions must follow the general format shown in
+BoundaryConditions_.  Specific conditions implemented include:
+
+Dirichlet (pressure) boundary conditions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Used for both surface and subsurface flows, this provides pressure data on
+boundaries (in [Pa]).
+
+Example:
+
+.. code-block:: xml
+
+ <ParameterList name="boundary conditions">
+   <ParameterList name="pressure">
+     <ParameterList name="BC west">
+       <Parameter name="regions" type="Array(string)" value="{west}"/>
+       <ParameterList name="boundary pressure">
+         <ParameterList name="function-constant">
+           <Parameter name="value" type="double" value="101325.0"/>
+         </ParameterList>
+       </ParameterList>
+     </ParameterList>
+   </ParameterList>
+ </ParameterList>
+
+Dirichlet (head) boundary conditions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Used for both surface and subsurface flows, this provides head data (in [m]
+above the land surface), typically as a function of x & y.  In the subsurface
+case, the z-value is given by hydrostatic relative to that head.
+
+.. math::
+  p = p_{atm} + rho * g * (h(x,y) + z_{surf} - z)
+
+where h is the head function provided.
+
+Example:
+
+.. code-block:: xml
+
+ <ParameterList name="boundary conditions">
+   <ParameterList name="head">
+     <ParameterList name="BC west">
+       <Parameter name="regions" type="Array(string)" value="{west}"/>
+       <ParameterList name="boundary head">
+         <ParameterList name="function-constant">
+           <Parameter name="value" type="double" value="0.01"/>
+         </ParameterList>
+       </ParameterList>
+     </ParameterList>
+   </ParameterList>
+ </ParameterList>
+
+
+Dirichlet (fixed level) boundary conditions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This fixes the water table at a constant elevation.  It is a head condition
+that adapts to the surface elevation, adjusting the head to a datum that is a
+fixed absolute z coordinate.
+
+.. math::
+  p = p_{atm} + rho * g * (h(x,y) - z)
+
+where h is the head function provided.
+
+Example:
+
+.. code-block:: xml
+
+ <ParameterList name="boundary conditions">
+   <ParameterList name="fixed level">
+     <ParameterList name="BC west">
+       <Parameter name="regions" type="Array(string)" value="{west}"/>
+       <ParameterList name="fixed level">
+         <ParameterList name="function-constant">
+           <Parameter name="value" type="double" value="0.0"/>
+         </ParameterList>
+       </ParameterList>
+     </ParameterList>
+   </ParameterList>
+ </ParameterList>
+
+
+Neumann (water flux) boundary conditions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Used for both surface and subsurface flows, this provides water flux data (in [mol m^-2 s^-1], for the subsurface, or [mol m^-1 s^-1] for the surface, in the outward normal direction) on boundaries.
+
+Example:
+
+.. code-block:: xml
+
+ <ParameterList name="boundary conditions">
+   <ParameterList name="water flux">
+     <ParameterList name="BC west">
+       <Parameter name="regions" type="Array(string)" value="{west}"/>
+       <ParameterList name="outward water flux">
+         <ParameterList name="function-constant">
+           <Parameter name="value" type="double" value="-1.e-3"/>
+         </ParameterList>
+       </ParameterList>
+     </ParameterList>
+   </ParameterList>
+ </ParameterList>
+
+Neumann (fix level flux) boundary conditions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Used for surface only,  this provides fixed level ([m])  velocity data (in [m s^-1], in the outward normal direction on boundaries.
+
+Example:
+
+.. code-block:: xml
+
+     <ParameterList name="boundary conditions">
+       <ParameterList name="fixed level flux">
+          <ParameterList name="river level south">
+            <Parameter name="regions" type="Array(string)" value="{river south}"/>
+            <ParameterList name="fixed level">
+               <ParameterList name="function-constant">
+                 <Parameter name="value" type="double" value="0.5"/>
+               </ParameterList>
+            </ParameterList>
+            <ParameterList name="velocity">
+               <ParameterList name="function-constant">
+                 <Parameter name="value" type="double" value="2.5"/>
+               </ParameterList>
+            </ParameterList>
+          </ParameterList>
+       </ParameterList>
+    </ParameterList>
+
+
+
+Seepage face boundary conditions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A variety of seepage face boundary conditions are permitted for both surface
+and subsurface flow PKs.  Typically seepage conditions are of the form:
+
+  - if :math:`q \cdot \hat{n} < 0`, then :math:`q = 0`
+  - if :math:`p > p0`, then :math:`p = p0`
+
+This ensures that flow is only out of the domain, but that the max pressure on
+the boundary is specified by :math:`p0`.
+
+Example: pressure (for surface or subsurface)
+
+.. code-block:: xml
+
+ <ParameterList name="boundary conditions">
+   <ParameterList name="seepage face pressure">
+     <ParameterList name="BC west">
+       <Parameter name="regions" type="Array(string)" value="{west}"/>
+       <ParameterList name="boundary pressure">
+         <ParameterList name="function-constant">
+           <Parameter name="value" type="double" value="101325."/>
+         </ParameterList>
+       </ParameterList>
+     </ParameterList>
+   </ParameterList>
+ </ParameterList>
+
+
+Example: head (for surface)
+
+.. code-block:: xml
+
+ <ParameterList name="boundary conditions">
+   <ParameterList name="seepage face head">
+     <ParameterList name="BC west">
+       <Parameter name="regions" type="Array(string)" value="{west}"/>
+       <ParameterList name="boundary head">
+         <ParameterList name="function-constant">
+           <Parameter name="value" type="double" value="0.0"/>
+         </ParameterList>
+       </ParameterList>
+     </ParameterList>
+   </ParameterList>
+ </ParameterList>
+
+
+Additionally, an infiltration flux may be prescribed, which describes the max
+flux.  This is for surface faces on which a typical precipitation rate might
+be prescribed, to be enforced until the water table rises to the surface, at
+which point the precip is turned off and water seeps into runoff.  This
+capability is experimental and has not been well tested.
+
+  - if :math:`q \cdot \hat{n} < q_0`, then :math:`q = q_0`
+  - if :math:`p > p_{atm}`, then :math:`p = p_{atm}`
+
+Note the condition also accepts a parameter:
+
+* `"explicit time index`" ``[bool]`` **false** If true, the _type_ of the BC is
+  evaluated at the old time, keeping it fixed while the nonlinear solve
+  iterates.
+
+Example: seepage with infiltration
+
+.. code-block:: xml
+
+ <ParameterList name="boundary conditions">
+   <ParameterList name="seepage face with infiltration">
+     <ParameterList name="BC west">
+       <Parameter name="explicit time index" type="bool" value="true"/>
+       <Parameter name="regions" type="Array(string)" value="{west}"/>
+       <ParameterList name="outward water flux">
+         <ParameterList name="function-constant">
+           <Parameter name="value" type="double" value="-1.e-5"/>
+         </ParameterList>
+       </ParameterList>
+     </ParameterList>
+   </ParameterList>
+ </ParameterList>
+
+Note it would be straightforward to add both p0 and q0 in the same condition;
+this has simply not had a use case yet.
+
+
+Zero head gradient boundary conditions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Used for surface flows, this is an "outlet" boundary condition which looks to
+enforce the condition that
+
+.. math::
+  \div h \cdot \hat{n} = 0
+
+for head :math:`h` and outward normal :math:`\hat{n}`.  Note that this is an
+"outlet" boundary, in the sense that it should really not be used on a
+boundary in which
+
+.. math::
+  \div z \cdot \hat{n} > 0.
+
+This makes it a useful boundary condition for benchmark and 2D problems, where
+the elevation gradient is clear, but not so useful for DEM-based meshes.
+
+Example:
+
+.. code-block:: xml
+
+ <ParameterList name="boundary conditions">
+   <ParameterList name="zero gradient">
+     <ParameterList name="BC west">
+       <Parameter name="regions" type="Array(string)" value="{west}"/>
+     </ParameterList>
+   </ParameterList>
+ </ParameterList>
+
+
+Critical depth boundary conditions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Also for surface flows, this is an "outlet" boundary condition which looks to
+set an outward flux to take away runoff.  This condition is given by:
+
+.. math::
+  q = \sqrt{g \hat{z}} n_{liq} h^1.5
+
+Example:
+
+.. code-block:: xml
+
+ <ParameterList name="boundary conditions">
+   <ParameterList name="critical depth">
+     <ParameterList name="BC west">
+       <Parameter name="regions" type="Array(string)" value="{west}"/>
+     </ParameterList>
+   </ParameterList>
+ </ParameterList>
+
+
+Dynamic boundary condutions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The type of boundary conditions maybe changed in time depending on the switch function of TIME.
+
+.. code-block:: xml
+
+   <ParameterList name="dynamic">
+     <Parameter name="regions" type="Array(string)" value="{surface west}"/>
+     <ParameterList name="switch function">
+       <ParameterList name="function-tabular">
+         <Parameter name="file" type="string" value="../data/floodplain2.h5" />
+         <Parameter name="x header" type="string" value="Time" />
+         <Parameter name="y header" type="string" value="Switch" />
+         <Parameter name="form" type="Array(string)" value="{constant}"/>
+       </ParameterList>
+     </ParameterList>
+
+     <ParameterList name="bcs">
+       <Parameter name="bc types" type="Array(string)" value="{head, water flux}"/>
+       <Parameter name="bc functions" type="Array(string)" value="{boundary head, outward water flux}"/>
+
+       <ParameterList name="water flux">
+         <ParameterList name="BC west">
+           <Parameter name="regions" type="Array(string)" value="{surface west}"/>
+           <ParameterList name="outward water flux">
+             <ParameterList name="function-tabular">
+               <Parameter name="file" type="string" value="../data/floodplain2.h5" />
+               <Parameter name="x header" type="string" value="Time" />
+               <Parameter name="y header" type="string" value="Flux" />
+               <Parameter name="form" type="Array(string)" value="{linear}"/>
+             </ParameterList>
+            </ParameterList>
+          </ParameterList>
+       </ParameterList>
+
+       <ParameterList name="head">
+          <ParameterList name="BC west">
+            <Parameter name="regions" type="Array(string)" value="{surface west}"/>
+            <ParameterList name="boundary head">
+              <ParameterList name="function-tabular">
+                 <Parameter name="file" type="string" value="../data/floodplain2.h5" />
+                 <Parameter name="x header" type="string" value="Time" />
+                 <Parameter name="y header" type="string" value="Head" />
+                 <Parameter name="form" type="Array(string)" value="{linear}"/>
+               </ParameterList>
+            </ParameterList>
+          </ParameterList>
+        </ParameterList>
+     </ParameterList>
+
+   </ParameterList>
+
+ 
+
+
+Transport-specific Boundary Conditions
+--------------------------------------
+
+
+
+
+Energy-specific Boundary Conditions
+-----------------------------------
+
+
+
+Energy boundary conditions must follow the general format shown in
+BoundaryConditions_.  Energy-specific conditions implemented include:
+
+Dirichlet (temperature) boundary conditions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Provide temperature data in units of [K].
+
+Example:
+
+.. code-block:: xml
+
+ <ParameterList name="boundary conditions">
+   <ParameterList name="temperature">
+     <ParameterList name="BC west">
+       <Parameter name="regions" type="Array(string)" value="{west}"/>
+       <ParameterList name="boundary temperature">
+         <ParameterList name="function-constant">
+           <Parameter name="value" type="double" value="276.15."/>
+         </ParameterList>
+       </ParameterList>
+     </ParameterList>
+   </ParameterList>
+ </ParameterList>
+
+
+Neumann (diffusive energy flux) boundary conditions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Note that for an energy equation, there are two mechanisms by which energy can
+be fluxed into the domain: through diffusion and through advection.  This
+boundary condition sets the diffusive flux of energy, and allows the advective
+flux to be whatever it may be.  Frequently this is used in combination with
+boundaries where water is expected to be advected out of the domain, and we
+wish to allow the energy of that water to be advected away with it, but wish to
+independently specify diffusive fluxes.  This can also be used in cases where
+the mass flux is prescribed to be zero (e.g. bottom boundaries, where this
+might be the geothermal gradient).
+
+Units are in **[MW m^-2]**, noting the deviation from SI units!
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="boundary conditions">
+   <ParameterList name="diffusive flux">
+     <ParameterList name="BC west">
+       <Parameter name="regions" type="Array(string)" value="{west}"/>
+       <ParameterList name="outward diffusive flux">
+         <ParameterList name="function-constant">
+           <Parameter name="value" type="double" value="0."/>
+         </ParameterList>
+       </ParameterList>
+     </ParameterList>
+   </ParameterList>
+ </ParameterList>
+
+Note that another commonly implemented boundary condition is one where the
+diffusive flux is prescribed, and also the temperature of incoming water is
+prescribed.  This is not currently implemented, but would be straightforward to
+do so if requested.
+
+
+Neumann (total energy flux) boundary conditions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This boundary condition sets the total flux of energy, from both advection and
+diffusion.  This is not used all that often in real applications, but is common
+for benchmarks or other testing.
+
+Units are in **[MW m^-2]**, noting the deviation from SI units!
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="boundary conditions">
+   <ParameterList name="enthalpy flux">
+     <ParameterList name="BC west">
+       <Parameter name="regions" type="Array(string)" value="{west}"/>
+       <ParameterList name="outward enthalpy flux">
+         <ParameterList name="function-constant">
+           <Parameter name="value" type="double" value="0."/>
+         </ParameterList>
+       </ParameterList>
+     </ParameterList>
+   </ParameterList>
+ </ParameterList>
+
+
+
+
+
+
+
+Functions
+=========
+
+ A base class for all functions of space and time.
+
+Analytic, algabraic functions of space and time are used for a variety of
+purposes, including boundary conditions, initial conditions, and independent
+variables.
+
+For initial conditions, functions are prescribed of space only, i.e.
+
+.. math::
+   u = f(x,y,z)
+
+For boundary conditions and independent variables, functions are also a
+function of time:
+
+.. math::
+   u = f(t,x,y,z)
+
+
+
+
+It is straightforward to add new functions as needed.
+
+Constant Function
+-------------------------
+ FunctionConstant: Implements the Function interface using a constant value.
+
+Constant function is defined as :math:`f(x) = a`, for all :math:`x`.
+
+* `"value`" ``[double]`` The constant to be applied.
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="function-constant">
+    <Parameter name="value" type="double" value="1.0"/>
+  </ParameterList>
+
+
+  
+
+Tabular Function
+-------------------------
+ FunctionTabular: Piecewise-defined function.
+
+A piecewise function of one variable.
+
+A tabular function is tabulated on a series of intervals; given values
+:math:`{{x_i}}, {{y_i}},, i=0, ... n-1` and functional forms :math:`{{f_j}},,
+j=0, ... n-2` a tabular function :math:`f(x)` is defined as:
+
+.. math::
+  \begin{matrix}
+  f(x) &=& y_0, & x \le x_0,\\
+  f(x) &=& f_{{i-1}}(x)  & x \in (x_{{i-1}}, x_i],\\
+  f(x) &=& y_{{n-1}}, & x > x_{{n-1}}.
+  \end{matrix}
+
+The functional forms :math:`{f_j}` may be constant, which uses the left endpoint, i.e.
+
+:math:`f_i(x) = y_i`,
+
+linear, i.e.
+
+:math:`f_i(x) = ( y_i * (x - x_i) + y_{{i+1}} * (x_{{i+1}} - x) ) / (x_{{i+1}} - x_i)`
+
+or arbitrary, in which the :math:`f_j` must be provided.
+
+The :math:`x_i` and :math:`y_i` may be provided in one of two ways -- explicitly in the input spec or from an HDF5 file.  The length of these must be equal, and the :math:`x_i` must be monotonically increasing.  Forms, as defined on intervals, must be of length equal to the length of the :math:`x_i` less one.
+
+Explicitly specifying the data:
+
+.. _function-tabular-spec:
+.. admonition:: function-tabular-spec
+
+   * `"x values`" ``[Array(double)]`` the :math:`x_i`
+   * `"y values`" ``[Array(double)]`` the :math:`y_i`
+
+   * `"forms`" ``[Array(string)]`` **optional** Form of the interpolant, either
+     `"constant`", `"linear`", or `"USER_DEFINED`" Default is linear for each *
+     interval.  Note the length of this array should be one per interval, or
+     one less than len of x and y values.
+
+   * `"USER_DEFINED`" ``[function-spec]`` **optional** user-provided functional
+     forms on the interval
+
+   * `"x coordinate`" ``[string]`` **t**, `"x`", `"y`", `"z`" defines which
+     coordinate direction the :math:`x_i` are formed, defaulting to time.
+
+The below example defines a function that is zero on interval :math:`(-\infty,\,0]`,
+linear on interval :math:`(0,\,1]`, constant (`f(x)=1`) on interval :math:`(1,\,2]`,
+square root of `t` on interval :math:`(2,\,3]`,
+and constant (`f(x)=2`) on interval :math:`(3,\,\infty]`.
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="function-tabular">
+    <Parameter name="x values" type="Array(double)" value="{0.0, 1.0, 2.0, 3.0}"/>
+    <Parameter name="x coordinate" type="string" value="t"/>
+    <Parameter name="y values" type="Array(double)" value="{0.0, 1.0, 2.0, 2.0}"/>
+    <Parameter name="forms" type="Array(string)" value="{linear, constant, USER_FUNC}"/>
+
+    <ParameterList name="USER_FUNC">
+      <ParameterList name="function-standard-math">
+        <Parameter name="operator" type="string" value="sqrt"/>
+      </ParameterList>
+    </ParameterList>
+  </ParameterList>
+
+
+Loading table from file.  (Note that `"USER_DEFINED`" is not an option here,
+but could be made so if requested).
+
+.. _function-tabular-fromfile-spec:
+.. admonition:: function-tabular-fromfile-spec
+
+   * `"file`" ``[string]`` filename of the HDF5 data
+   * `"x header`" ``[string]`` name of the dataset for the :math:`x_i` in the file
+   * `"y header`" ``[string]`` name of the dataset for the :math:`y_i` in the file
+   * `"forms`" ``[string]`` **optional**, Form of the interpolant, either
+     `"constant`" or `"linear`"
+
+The example below would perform linear-interpolation on the intervals provided by data within the hdf5 file `"my_data.h5`".
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="function-tabular">
+    <Parameter name="file" type="string" value="my_data.h5"/>
+    <Parameter name="x coordinate" type="string" value="t"/>
+    <Parameter name="x header" type="string" value="/time"/>
+    <Parameter name="y header" type="string" value="/data"/>
+  </ParameterList>
+
+
+
+
+Smooth step Function
+-------------------------
+ FunctionSmoothStep: a smoothed discontinuity.
+
+A smooth :math:`C^2` function `f(x)` on interval :math:`[x_0,\,x_1]` is
+defined such that `f(x) = y_0` for `x < x0`, `f(x) = y_1` for `x > x_1`, and
+monotonically increasing for :math:`x \in [x_0, x_1]` through cubic
+interpolation.
+
+.. _function-smooth-step-spec:
+.. admonition:: function-smooth-step-spec
+
+   * `"x0`" ``[double]`` First fitting point
+   * `"y0`" ``[double]`` First fitting value
+   * `"x1`" ``[double]`` Second fitting point
+   * `"y1`" ``[double]`` Second fitting value
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="function-smooth-step">
+    <Parameter name="x0" type="double" value="0.0"/>
+    <Parameter name="y0" type="double" value="0.0"/>
+    <Parameter name="x1" type="double" value="1.0"/>
+    <Parameter name="y1" type="double" value="2.0"/>
+  </ParameterList>
+
+
+
+
+Polynomial Function
+-------------------------
+ FunctionPolynomial: a polynomial
+
+A generic polynomial function is given by the following expression:
+
+.. math::
+  f(x) = \sum_{{j=0}}^n c_j (x - x_0)^{{p_j}}
+
+where :math:`c_j` are coefficients of monomials,
+:math:`p_j` are integer exponents, and :math:`x_0` is the reference point.
+
+.. _function-polynomial-spec:
+.. admonition:: function-polynomial-spec
+
+   * `"coefficients`" ``[Array(double)]`` c_j polynomial coefficients
+   * `"exponents`" ``[Array(int)]`` p_j polynomail exponents
+   * `"reference point`" ``[double]`` x0 to which polynomial argument is normalized.
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="function-polynomial">
+    <Parameter name="coefficients" type="Array(double)" value="{1.0, 1.0}"/>
+    <Parameter name="exponents" type="Array(int)" value="{2, 4}"/>
+    <Parameter name="reference point" type="double" value="0.0"/>
+  </ParameterList>
+
+
+  
+
+Multi-variable linear Function
+------------------------------
+ FunctionLinear: a multivariate linear function.
+
+A multi-variable linear function is formally defined by
+
+.. math::
+  f(x) = y_0 + \sum_{{j=0}}^{{n-1}} g_j (x_j - x_{{0,j}})
+
+with the constant term "math:`y_0` and gradient :math:`g_0,\, g_1\,..., g_{{n-1}}`.
+If the reference point :math:`x_0` is specified, it must have the same
+number of values as the gradient.  Otherwise, it defaults to zero.
+Note that one of the parameters in a multi-valued linear function can be time.
+
+.. _function-linear-spec:
+.. admonition:: function-linear-spec
+
+   * `"y0`" ``[double]`` y_0 in f = y0 + g * (x - x0)
+   * `"gradient`" ``[Array(double)]`` g in f = y0 + g * (x - x0)
+   * `"x0`" ``[Array(double)]`` x0 in f = y0 + g * (x - x0)
+
+Conditions:
+
+.. code-block:: python
+
+  len(x0) == len(gradient)
+
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="function-linear">
+    <Parameter name="y0" type="double" value="1.0"/>
+    <Parameter name="gradient" type="Array(double)" value="{1.0, 2.0, 3.0}"/>
+    <Parameter name="x0" type="Array(double)" value="{2.0, 3.0, 1.0}"/>
+  </ParameterList>
+
+
+  
+
+Separable Function
+------------------
+ FunctionSeparable: f(x,y) = f1(x)*f2(y)
+
+A separable function is defined as the product of other functions such as
+
+.. math::
+  f(x_0, x_1,...,x_{{n-1}}) = f_1(x_0)\, f_2(x_1,...,x_{{n-1}})
+
+where :math:`f_1` is defined by the `"function1`" sublist, and
+:math:`f_2` by the `"function2`" sublist.
+
+.. _function-separable-spec:
+.. admonition:: function-separable-spec
+
+   * `"function1`" ``[function-spec]`` :math:`f_1` in :math:`f(x) = f_1(x0) * f_2(x1...)`
+   * `"function2`" ``[function-spec]`` :math:`f_2` in :math:`f(x) = f_1(x0) * f_2(x1...)`
+
+
+.. code-block:: xml
+
+  <ParameterList name="function-separable">
+    <ParameterList name="function1">
+      function-specification
+    </ParameterList>
+    <ParameterList name="function2">
+      function-specification
+    </ParameterList>
+  </ParameterList>
+
+
+
+
+Additive Function
+------------------
+ FunctionAdditive: f(x,y) = f1(x,y) + f2(x,y)
+
+An additive function simply adds two other function results together.
+
+.. math::
+  f(x) = f_1(x) + f_2(x)
+
+where :math:`f_1` is defined by the `"function1`" sublist, and
+:math:`f_2` by the `"function2`" sublist.
+
+.. _function-additive-spec:
+.. admonition:: function-additive-spec
+
+   * `"function1`" ``[function-typedinline-spec]`` :math:`f_1` in :math:`f(x) = f_1(x) + f_2(x)`
+   * `"function2`" ``[function-typedinline-spec]`` :math:`f_2` in :math:`f(x) = f_1(x) + f_2(x)`
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="function-additive">
+    <ParameterList name="function1">
+      function-specification
+    </ParameterList>
+    <ParameterList name="function2">
+      function-specification
+    </ParameterList>
+  </ParameterList>
+
+
+
+Multiplicative Function
+--------------------------
+ FunctionMultiplicative: f(x,y) = f1(x,y) * f2(x,y)
+
+A multiplicative function simply multiplies two other function results together.
+
+.. math::
+  f(x) = f_1(x) * f_2(x)
+
+where :math:`f_1` is defined by the `"function1`" sublist, and
+:math:`f_2` by the `"function2`" sublist.
+
+.. _function-multiplicative-spec:
+.. admonition:: function-multiplicative-spec
+
+   * `"function1`" ``[function-typedinline-spec]`` :math:`f_1` in :math:`f(x) = f_1(x) * f_2(x)`
+   * `"function2`" ``[function-typedinline-spec]`` :math:`f_2` in :math:`f(x) = f_1(x) * f_2(x)`
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="function-multiplicative">
+    <ParameterList name="function1">
+      function-specification
+    </ParameterList>
+    <ParameterList name="function2">
+      function-specification
+    </ParameterList>
+  </ParameterList>
+
+
+
+Composition Function
+--------------------------
+ FunctionComposition: f(x,y) = f1(x,y) * f2(x,y)
+
+Function composition simply applies one function to the result of another.
+
+.. math::
+  f(x) = f_1( f_2(x) )
+
+where :math:`f_1` is defined by the `"function1`" sublist, and
+:math:`f_2` by the `"function2`" sublist.
+
+.. _function-composition-spec:
+.. admonition:: function-composition-spec
+
+   * `"function1`" ``[function-typedinline-spec]`` :math:`f_1` in :math:`f(x) = f_1(f_2(x))`
+   * `"function2`" ``[function-typedinline-spec]`` :math:`f_2` in :math:`f(x) = f_1(f_2(x))`
+
+
+.. code-block:: xml
+
+  <ParameterList name="function-composition">
+    <ParameterList name="function1">
+      function-specification
+    </ParameterList>
+    <ParameterList name="function2">
+      function-specification
+    </ParameterList>
+  </ParameterList>
+
+
+
+Piecewise Bilinear Function
+---------------------------
+ FunctionBilinear: a piecewise bilinear function.
+
+A piecewise bilinear function extends the linear form of the tabular function to two variables.
+
+Define :math:`i(x) = i : x_i < x <= x_{{i+1}}` and similarly :math:`j(y) = j : y_j < y <= y_{{j+1}}` for monotonically increasing :math:`x_i` and :math:`y_j`.
+
+Given a two-dimensional array :math:`u_{i,j}`, :math:`f` is then defined by
+bilinear interpolation on :math:`u_{i(x),j(y)}, u_{i(x)+1,j(y)}, u_{i(x),j(y)+1}, u_{i(x)+1,j(y)+1}`,
+if :math:`(x,y)` is in :math:`[x_0,x_n] \times [y_0,y_m]`, linear interpolation if one of :math:`x,y`
+are out of those bounds, and constant at the corner value if both are out of
+bounds.
+
+.. _function-bilinear-spec:
+.. admonition:: function-bilinear-spec
+
+   * `"file`" ``[string]`` HDF5 filename of the data
+   * `"row header`" ``[string]`` name of the row dataset, the :math:`x_i`
+   * `"row coordinate`" ``[string]`` one of `"t`",`"x`",`"y`",`"z`"
+   * `"column header`" ``[string]`` name of the column dataset, the :math:`y_i`
+   * `"column coordinate`" ``[string]`` one of `"t`",`"x`",`"y`",`"z`"
+   * `"value header`" ``[string]`` name of the values dataset, the :math:`u_{{i,j}}`
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="function-bilinear">
+    <Parameter name="file" type="string" value="pressure.h5"/>
+    <Parameter name="row header" type="string" value="/time"/>
+    <Parameter name="row coordinate" type="string" value="t"/>
+    <Parameter name="column header" type="string" value="/x"/>
+    <Parameter name="column coordinate" type="string" value="x"/>
+    <Parameter name="value header" type="string" value="/pressure"/>
+  </ParameterList>
+
+
+
+
+Distance Function
+-----------------
+ FunctionDistance: distance from a reference point.
+
+A distance function calculates distance from reference point :math:`x_0`
+using by the following expression:
+
+.. math::
+  f(x) = \sqrt( \sum_{j=0}^{n} m_j (x_j - x_{0,j})^2 )
+
+Note that the first parameter in :math:`x` can be time.
+
+.. _function-distance-spec:
+.. admonition:: function-distance-spec
+
+   * `"x0`" ``[Array(double)]`` Point from which distance is measured.
+   * `"metric`" ``[Array(double)]`` Linear scaling metric, typically all 1s.
+
+Here is an example of a distance function using isotropic metric:
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="function-distance">
+    <Parameter name="x0" type="Array(double)" value="{1.0, 3.0, 0.0}"/>
+    <Parameter name="metric" type="Array(double)" value="{1.0, 1.0, 1.0}"/>
+  </ParameterList>
+
+
+
+
+Monomial Function
+-----------------
+ FunctionMonomial: a multivariate monomial function.
+
+A multi-variable monomial function is given by the following expression:
+
+.. math::
+  f(x) = c \prod_{j=0}^{n} (x_j - x_{0,j})^{p_j}
+
+with the constant factor :math:`c`, the reference point :math:`x_0`, and
+integer exponents :math:`p_j`.
+Note that the first parameter in :math:`x` can be time.
+
+.. _function-monomial-spec:
+.. admonition:: function-monomial-spec
+
+   * `"c`" ``[double]`` c in :math:`f = c \prod_{j=0}^{n} (x_j - x_{0,j})^{p_j}`
+   * `"x0`" ``[Array(double)]`` x0 in :math:`f = c \prod_{j=0}^{n} (x_j - x_{0,j})^{p_j}`
+   * `"exponents`" ``[Array(int)]`` p in :math:`f = c \prod_{j=0}^{n} (x_j - x_{0,j})^{p_j}`
+
+Conditions:
+
+.. code-block:: python
+
+  len(x0) == len(exponents)
+
+Here is an example of monomial of degree 6 in three variables:
+
+.. code-block:: xml
+
+  <ParameterList name="function-monomial">
+    <Parameter name="c" type="double" value="1.0"/>
+    <Parameter name="x0" type="Array(double)" value="{1.0, 3.0, 0.0}"/>
+    <Parameter name="exponents" type="Array(int)" value="{2, 3, 1}"/>
+  </ParameterList>
+
+
+
+
+Standard Math Function
+----------------------
+ Provides access to many common mathematical functions.
+
+These functions allow to set up non-trivial time-dependent boundary conditions
+which increases a set of analytic solutions that can be used in convergence
+analysis tests.
+
+.. math::
+  f(x) = A * operator( p * (x - s) )
+
+or
+
+.. math::
+  f(x) = A * operator(x-s, p)
+
+Note that these operate only on the first coordinate, which is often time.
+Function composition can be used to apply these to other coordinates (or
+better yet a dimension could/should be added upon request).
+
+.. _function-standard-math-spec:
+.. admonition:: function-standard-math-spec
+
+   * `"operator`" ``[string]`` specifies the name of a standard mathematical
+     function.  Available options are:
+
+     - trigonometric operators: `"cos`", `"sin`", `"tan`", `"acos`", `"asin`",
+       `"atan`"
+     - hyperbolic trig operators: `"cosh`", `"sinh`", `"tanh`"
+     - power/log operators: `"pow`", `"exp`", `"log`", `"log10`", `"sqrt`",
+     - integral operators: `"ceil`", `"floor`", `"mod`",
+     - `"abs`", `"fabs`", `"positive`" (0 for negative values), `"negative`" (0
+       for positive values), `"heaviside`", `"sign`"
+
+   * `"amplitude`" ``[double]`` specifies a multiplication factor `a` in
+     formula `a f(x)`.  The multiplication factor is ignored by function
+     `mod`. Default value is 1.
+
+   * `"parameter`" ``[double]`` **1.0** specifies additional parameter `p` for
+     math functions with two arguments. These functions are `"a pow(x[0], p)`"
+     and `"a mod(x[0], p)`".  Alternative, scales the argument before
+     application, for use in changing the period of trig functions.
+
+   * `"shift`" ``[double]`` specifies a shift of the function argument. Default
+     is 0.
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="function-standard-math">
+    <Parameter name="operator" type="string" value="sqrt"/>
+    <Parameter name="amplitude" type="double" value="1e-7"/>
+    <Parameter name="shift" type="double" value="0.1"/>
+  </ParameterList>
+
+This example defines function `1e-7 sqrt(t-0.1)`.
+ 
+
+
+
+
+PDE_Advection
+-------------
+
+
+
+A high-order advection operator may have different domain and range and therefore requires two schemas.
+The structure of the new schema is described in the previous section.
+A high-order advection operator has two terms in a weak formulation, corresponding to
+volume and surface integrals. These two terms are discretixed using two operators with
+matrix of types *advection* and *flux*, respectively.
+
+
+* `"pks operator name`" [list] a PK specific name for the advection operator.
+
+  * `"method`" [string] defines a discretization method. The available option is `"dg modal`".
+
+  * `"method order`" [int] defines method order. For example, the classical low-order finite
+    volume scheme is equivalent to DG of order 0.
+
+  * `"matrix type`" [string] defines matrix type. The supported options are `"advection`"
+    and `"flux`".
+
+  * `"dg basis`" [string] defines bases for DG schemes. The available options are
+    `"regularized`" (recommended), `"normalized`", `"orthonormalized`", and `"natural`"
+    (not recommended).
+
+  * `"gradient operator on test function`" [bool] defines place of the gradient operator.
+    For integration by parts schemes, the gradient is transfered to a test function.
+    This option is needed for discretizing volumetric integrals.
+
+  * `"jump operator on test function`" [bool] defines place of the jump operator.
+    For integration by parts schemes, the jump operator is applied to a test function.
+    This option is needed for discretizing surface fluxes.
+
+  * `"flux formula`" [string] defines type of the flux. The available options
+    are `"Rusanov`" (default), `"upwind`", `"downwind`", and `"NavierStokes`".
+
+  * `"schema domain`" [list] defines a discretization schema for the operator domain.
+
+  * `"schema range`" [list] defines a discretization schema for the operator range.
+
+.. code-block:: xml
+
+  <ParameterList name="pks operator name">
+    <Parameter name="method" type="string" value="dg modal"/>
+    <Parameter name="method order" type="int" value="2"/>
+    <Parameter name="flux formula" type="string" value="Rusanov"/>
+    <Parameter name="matrix type" type="string" value="flux"/>
+    <Parameter name="jump operator on test function" type="bool" value="true"/>
+
+    <ParameterList name="schema domain">
+      <Parameter name="base" type="string" value="cell"/>
+      <Parameter name="location" type="Array(string)" value="{node, face}"/>
+      <Parameter name="type" type="Array(string)" value="{scalar, normal component}"/>
+      <Parameter name="number" type="Array(int)" value="{2, 1}"/>
+    </ParameterList>
+    <ParameterList name="schema range">
+      <Parameter name="base" type="string" value="cell"/>
+      <Parameter name="location" type="Array(string)" value="{cell}"/>
+      <Parameter name="type" type="Array(string)" value="{scalar}"/>
+      <Parameter name="number" type="Array(int)" value="{1}"/>
+    </ParameterList>
+  </ParameterList>
+
+In this example, we construct an operator for volumetric integrals in a weak formulation
+of advection problem.
+
+The only low-order advection operator in Amanzi is the upwind operator.
+It employes the old schema.
+
+.. code-block:: xml
+
+  <ParameterList name="pks operator name">
+    <Parameter name="base" type="string" value="face"/>
+    <Parameter name="schema" type="Array(string)" value="{cell}"/>
+    <Parameter name="method order" type="int" value="0"/>
+    <Parameter name="matrix type" type="string" value="advection"/>
+  </ParameterList>
+
+
+
+
+
+``PDE_AdvectionUpwind`` assembles the discrete form of:
+
+.. math::
+  \nabla \cdot (q C)
+
+which advects quantity :math:`C` with fluxes :math:`q`.
+
+This is a simple, first-order donor-upwind scheme, and is recommended
+for use in diffusion-dominated advection-diffusion equations.
+
+
+
+
+Field Initializers
+==================
+
+Fields, also known by their underlying datatype, the CompositeVector,
+can be initialized in a variety of ways.  These are used in a variety
+of places as generic capability.
+
+Function Initialization
+-----------------------
+.. _CompositeVectorFunction:
+
+ Mesh Functions, evaluate a function on a mesh and stick the result in a vector.
+
+CompositeVectorFunctions are ways of evaluating a piecewise function on a
+mesh and sticking the result into a CompositeVector.
+
+This is used in a variety of ways -- Initial Conditions, Boundary
+Conditions, and Independent Variable Evaluators.
+
+Typically any containing object of this spec is a list of these specs.  The
+list is indexed by Region, and the regions (logically) should partition the
+domain (or boundary of the domain in the case of BCs).
+
+Each entry in that list is a:
+
+.. _composite-vector-function-spec:
+.. admonition:: composite-vector-function-spec
+
+   ONE OF
+
+   * `"region`" ``[string]`` Region on which this function is evaluated.
+
+   OR
+
+   * `"regions`" ``[Array(string)]`` List of regions on which this function is evaluated.
+
+   END
+
+   ONE OF
+
+   * `"component`" ``[string]`` Mesh component to evaluate this on.  This is
+     one of "cell", "face", "node", "edge", or "boundary_face". The last two
+     may require additional conditions, such as a proper mesh initialization.
+     The mask "*" could be used in place of the component name.
+
+   OR
+
+   * `"components`" ``[Array(string)]`` Mesh components to evaluate this on.
+     This is some collection of "cell", "face", "node", "edge", and/or
+     "boundary_face". The last two may require additional conditions, such as a
+     proper mesh initialization.  The array with the single entry "*" could be
+     used to initialize all existing components.
+
+   END
+
+   * `"function`" ``[function-typedinline-spec]`` The spec to provide the actual algebraic function.
+
+ 
+
+
+Column File Initialization
+--------------------------
+
+
+Interpolate a depth-based, 1D column of data onto a mesh.  Values are
+prescribed only to cells.  Expected is an HDF5 file in the format:
+
+Depth coordinates z:
+
+  /z[:] = (z_0, z_1, ... , z_n)
+     z_0 = 0.0
+     z_n >= max depth of mesh
+     z_i > z_(i-1)
+
+Function values u:
+
+  /f[:] = (f_0(z_0), f_1(z_1), ..., f_n(z_n))
+
+.. _column-initialization-spec:
+.. admonition:: column-initialization-spec
+
+   * `"file`" ``[string]`` HDF5 filename
+   * `"z header`" ``[string]`` name of the z-coordinate data: `z` above.  Depth
+     coordinates (positive downward from the surface), [m]
+   * `"f header`" ``[string]`` name of the function data: `f` above.
+
+
+
+
+Exodus File Initialization
+--------------------------
+

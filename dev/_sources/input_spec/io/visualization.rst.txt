@@ -2,7 +2,6 @@ Visualization
 ##############
 `src/state/Visualization.hh <https://github.com/amanzi/amanzi/blob/master/src/state/Visualization.hh>`_
 
-Manages simulation output to disk.
 
 A user may request periodic writes of field data for the purposes of
 visualization in the `"visualization`" sublists.

@@ -1,37 +1,88 @@
 Traceback (most recent call last):
-  File "/Users/uec/code/mambaforge/lib/python3.10/site-packages/nbclient/client.py", line 778, in _async_poll_for_reply
-    msg = await ensure_async(self.kc.shell_channel.get_msg(timeout=new_timeout))
-  File "/Users/uec/code/mambaforge/lib/python3.10/site-packages/jupyter_core/utils/__init__.py", line 182, in ensure_async
-    result = await obj
-  File "/Users/uec/code/mambaforge/lib/python3.10/site-packages/jupyter_client/channels.py", line 315, in get_msg
-    raise Empty
-_queue.Empty
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/Users/uec/code/mambaforge/lib/python3.10/site-packages/jupyter_cache/executors/utils.py", line 58, in single_nb_execution
+  File "/home/ecoon/code/miniforge3/envs/default/lib/python3.11/site-packages/jupyter_cache/executors/utils.py", line 58, in single_nb_execution
     executenb(
-  File "/Users/uec/code/mambaforge/lib/python3.10/site-packages/nbclient/client.py", line 1305, in execute
+  File "/home/ecoon/code/miniforge3/envs/default/lib/python3.11/site-packages/nbclient/client.py", line 1314, in execute
     return NotebookClient(nb=nb, resources=resources, km=km, **kwargs).execute()
-  File "/Users/uec/code/mambaforge/lib/python3.10/site-packages/jupyter_core/utils/__init__.py", line 166, in wrapped
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ecoon/code/miniforge3/envs/default/lib/python3.11/site-packages/jupyter_core/utils/__init__.py", line 165, in wrapped
     return loop.run_until_complete(inner)
-  File "/Users/uec/code/mambaforge/lib/python3.10/asyncio/base_events.py", line 649, in run_until_complete
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ecoon/code/miniforge3/envs/default/lib/python3.11/asyncio/base_events.py", line 654, in run_until_complete
     return future.result()
-  File "/Users/uec/code/mambaforge/lib/python3.10/site-packages/nbclient/client.py", line 705, in async_execute
+           ^^^^^^^^^^^^^^^
+  File "/home/ecoon/code/miniforge3/envs/default/lib/python3.11/site-packages/nbclient/client.py", line 709, in async_execute
     await self.async_execute_cell(
-  File "/Users/uec/code/mambaforge/lib/python3.10/site-packages/nbclient/client.py", line 1001, in async_execute_cell
-    exec_reply = await self.task_poll_for_reply
-  File "/Users/uec/code/mambaforge/lib/python3.10/site-packages/nbclient/client.py", line 802, in _async_poll_for_reply
-    error_on_timeout_execute_reply = await self._async_handle_timeout(timeout, cell)
-  File "/Users/uec/code/mambaforge/lib/python3.10/site-packages/nbclient/client.py", line 852, in _async_handle_timeout
-    raise CellTimeoutError.error_from_timeout_and_cell(
-nbclient.exceptions.CellTimeoutError: A cell timed out while it was being executed, after 30 seconds.
-The message was: Cell execution timed out.
-Here is a preview of the cell contents:
--------------------
-['# plot the solution', 'def plot(testname, axs, style):', '    directory = testname+".demo"', '    run_demos.run_demo_local(testname)', '    ']
-...
-["    axs.set_ylabel('z coordinate [m]')", '    axs.legend()', '    ', 'fig, axs = plt.subplots(1,1, figsize=(14,4))', "plot('permafrost_transect', axs, '-')"]
--------------------
+  File "/home/ecoon/code/miniforge3/envs/default/lib/python3.11/site-packages/nbclient/client.py", line 1062, in async_execute_cell
+    await self._check_raise_for_error(cell, cell_index, exec_reply)
+  File "/home/ecoon/code/miniforge3/envs/default/lib/python3.11/site-packages/nbclient/client.py", line 918, in _check_raise_for_error
+    raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
+nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
+------------------
+
+# full column
+fig, axs = plt.subplots(1,3, figsize=(14,4))
+plot('freezeup', axs, '-')
+decorate(axs)
+
+# and a zoomed version that shows the very shallow subsurface
+fig, axs = plt.subplots(1,3, figsize=(14,4))
+plot('freezeup', axs, '-')
+decorate(axs)
+axs[0].set_ylim([4.5,5])
+axs[1].set_ylim([4.5,5])
+axs[2].set_ylim([4.5,5])
+
+
+plt.show()
+------------------
+
+----- stdout -----
+  Test log file : LOGS/ats-tests-2024-08-31_08-00-40.testlog
+------------------
+
+[0;31m---------------------------------------------------------------------------[0m
+[0;31mAttributeError[0m                            Traceback (most recent call last)
+Cell [0;32mIn[3], line 3[0m
+[1;32m      1[0m [38;5;66;03m# full column[39;00m
+[1;32m      2[0m fig, axs [38;5;241m=[39m plt[38;5;241m.[39msubplots([38;5;241m1[39m,[38;5;241m3[39m, figsize[38;5;241m=[39m([38;5;241m14[39m,[38;5;241m4[39m))
+[0;32m----> 3[0m [43mplot[49m[43m([49m[38;5;124;43m'[39;49m[38;5;124;43mfreezeup[39;49m[38;5;124;43m'[39;49m[43m,[49m[43m [49m[43maxs[49m[43m,[49m[43m [49m[38;5;124;43m'[39;49m[38;5;124;43m-[39;49m[38;5;124;43m'[39;49m[43m)[49m
+[1;32m      4[0m decorate(axs)
+[1;32m      6[0m [38;5;66;03m# and a zoomed version that shows the very shallow subsurface[39;00m
+
+Cell [0;32mIn[2], line 17[0m, in [0;36mplot[0;34m(testname, axs, style)[0m
+[1;32m     15[0m [38;5;28;01mdef[39;00m [38;5;21mplot[39m(testname, axs, style):
+[1;32m     16[0m     directory [38;5;241m=[39m testname[38;5;241m+[39m[38;5;124m"[39m[38;5;124m.demo[39m[38;5;124m"[39m
+[0;32m---> 17[0m     [43mrun_demos[49m[38;5;241;43m.[39;49m[43mrun_demo_local[49m[43m([49m[43mtestname[49m[43m)[49m
+[1;32m     19[0m     [38;5;66;03m# load the data[39;00m
+[1;32m     20[0m     vis [38;5;241m=[39m ats_xdmf[38;5;241m.[39mVisFile(directory, time_unit[38;5;241m=[39m[38;5;124m'[39m[38;5;124md[39m[38;5;124m'[39m)
+
+File [0;32m~/code/ats/ats/repos/dev/src/physics/ats/docs/documentation/source/ats_demos/run_demos.py:185[0m, in [0;36m_preserve_cwd.<locals>.decorator[0;34m(*args, **kwargs)[0m
+[1;32m    183[0m [38;5;28;01mdef[39;00m [38;5;21mdecorator[39m([38;5;241m*[39margs, [38;5;241m*[39m[38;5;241m*[39mkwargs):
+[1;32m    184[0m    cwd [38;5;241m=[39m os[38;5;241m.[39mgetcwd()
+[0;32m--> 185[0m    result [38;5;241m=[39m [43mfunction[49m[43m([49m[38;5;241;43m*[39;49m[43margs[49m[43m,[49m[43m [49m[38;5;241;43m*[39;49m[38;5;241;43m*[39;49m[43mkwargs[49m[43m)[49m
+[1;32m    186[0m    os[38;5;241m.[39mchdir(cwd)
+[1;32m    187[0m    [38;5;28;01mreturn[39;00m result
+
+File [0;32m~/code/ats/ats/repos/dev/src/physics/ats/docs/documentation/source/ats_demos/run_demos.py:211[0m, in [0;36mrun_demo_local[0;34m(testnames, config_dir, options_list, force)[0m
+[1;32m    209[0m options_list [38;5;241m+[39m[38;5;241m=[39m [config_dir, [38;5;124m'[39m[38;5;124m-t[39m[38;5;124m'[39m] [38;5;241m+[39m testnames
+[1;32m    210[0m opts [38;5;241m=[39m commandline_options(options_list)
+[0;32m--> 211[0m [43mmain[49m[43m([49m[43mopts[49m[43m)[49m
+
+File [0;32m~/code/ats/ats/repos/dev/src/physics/ats/docs/documentation/source/ats_demos/run_demos.py:85[0m, in [0;36mmain[0;34m(options)[0m
+[1;32m     83[0m test_manager[38;5;241m.[39mcheck_options(options)
+[1;32m     84[0m executable [38;5;241m=[39m test_manager[38;5;241m.[39mcheck_for_executable(options, testlog)
+[0;32m---> 85[0m mpiexec [38;5;241m=[39m [43mtest_manager[49m[38;5;241;43m.[39;49m[43mcheck_for_mpiexec[49m[43m([49m[43moptions[49m[43m,[49m[43m [49m[43mtestlog[49m[43m)[49m
+[1;32m     86[0m config_file_list [38;5;241m=[39m test_manager[38;5;241m.[39mgenerate_config_file_list(options)
+[1;32m     88[0m [38;5;28mprint[39m([38;5;124m"[39m[38;5;124mRunning ATS demo problems :[39m[38;5;124m"[39m)
+
+File [0;32m~/code/ats/ats/repos/dev/src/physics/ats/tools/testing/test_manager.py:1555[0m, in [0;36mcheck_for_mpiexec[0;34m(options, testlog)[0m
+[1;32m   1552[0m     [38;5;28;01mreturn[39;00m [38;5;28;01mNone[39;00m
+[1;32m   1553[0m [38;5;28;01melse[39;00m:
+[1;32m   1554[0m     mpiexec_opts [38;5;241m=[39m [38;5;28mdict[39m(mpiexec[38;5;241m=[39mmpiexec,
+[0;32m-> 1555[0m                         mpiexec_global_args[38;5;241m=[39m[43moptions[49m[38;5;241;43m.[39;49m[43mmpiexec_global_args[49m,
+[1;32m   1556[0m                         always_mpiexec[38;5;241m=[39moptions[38;5;241m.[39malways_mpiexec)
+[1;32m   1557[0m     [38;5;28;01mif[39;00m options[38;5;241m.[39mmpiexec_numprocs_flag [38;5;129;01mis[39;00m [38;5;28;01mNone[39;00m:
+[1;32m   1558[0m         mpiexec_opts[[38;5;124m'[39m[38;5;124mmpiexec_numprocs_flag[39m[38;5;124m'[39m] [38;5;241m=[39m [38;5;124m'[39m[38;5;124m-n[39m[38;5;124m'[39m
+
+[0;31mAttributeError[0m: 'Namespace' object has no attribute 'mpiexec_global_args'
 

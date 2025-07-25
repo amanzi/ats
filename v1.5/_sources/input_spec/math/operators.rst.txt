@@ -1,0 +1,338 @@
+Operators
+=========
+
+ Operator represents a linear map, and typically encapsulates a discretization.
+
+Operators are discrete forms of linearized PDEs operators.
+They form a layer between physical process kernels and solvers
+and include accumulation, diffusion, advection, elasticity, reaction,
+and source operators.
+The residual associated with an operator :math:`L_h` helps to
+understand the employed sign convention:
+
+.. math::
+  r = f - L_h u.
+
+Operator represents a map from linear space X to linear space Y.  Typically,
+this map is a linear map, and encapsulates much of the discretization involved
+in moving from continuous to discrete equations. The spaces X and Y are described
+by CompositeVectors (CV). A few maps X->Y are supported.
+
+An operator provides an interface for applying both the forward and inverse
+linear map (assuming the map is invertible).
+
+Typically the Operator is never seen by the user; instead the user provides
+input information for helper classes based on the continuous mathematical
+operator and the desired discretization.  These helpers build the needed
+``Operator``, which may include information from multiple helpers (i.e. in the
+case of Jacobian Operators for a PDE).
+
+However, one option may be provided by the user, which is related to dealing
+with nearly singular operators:
+
+* `"diagonal shift`" ``[double]`` **0.0** Adds a scalar shift to the diagonal
+  of the ``Operator``, which can be useful if the ``Operator`` is singular or
+  near-singular.
+
+A PK decides how to bundle operators in a collection of operators.
+For example, an advection-diffusion problem may benefit from using
+a single operator that combines two operators representing diffusion and advection process.
+Collection of operators must be used for implicit solvers and for building preconditioners.
+In such a case, the collections acts as a single operator.
+
+Operators use a few tools that are generic in nature and can be used independently by PKs.
+The list includes reconstruction and limiting algorithms.
+
+
+Schema
+------
+
+The operators use notion of schema to describe operator's abstract structure.
+Old operators use a simple schema which is simply the list of geometric objects where
+scalar degrees of freedom are defined.
+New operators use a list to define location, type, and number of degrees of freedom.
+In addition, the base of local stencil is either *face* or *cell*.
+A rectangular operator needs two schemas do describe its domain (called `"schema domain`")
+and its range (called `"schema range`").
+A square operator may use either two identical schema lists or a single list called `"schema`".
+
+.. code-block:: xml
+
+  <ParameterList name="pks operator name">  <!-- parent list-->
+  <ParameterList name="schema domain">
+    <Parameter name="base" type="string" value="cell"/>
+    <Parameter name="location" type="Array(string)" value="{node, face}"/>
+    <Parameter name="type" type="Array(string)" value="{scalar, normal component}"/>
+    <Parameter name="number" type="Array(int)" value="{2, 1}"/>
+  </ParameterList>
+  <ParameterList name="schema domain">
+    <Parameter name="base" type="string" value="cell"/>
+    <Parameter name="location" type="Array(string)" value="{node, face}"/>
+    <Parameter name="type" type="Array(string)" value="{scalar, normal component}"/>
+    <Parameter name="number" type="Array(int)" value="{2, 1}"/>
+  </ParameterList>
+  </ParameterList>
+
+This example describes a square operator with two degrees of freedom per mesh node and one
+degree of freedom per mesh face.
+The face-based degree of freedom is the normal component of a vector field.
+Such set of degrees of freedom is used in the Bernardi-Raugel element for discretizing
+Stokes equations.
+Parameter `"base`" indicates that local matrices are associated with mesh cells.
+
+
+
+
+PDE_Accumulation
+----------------
+
+``PDE_Accumulation`` assembles the discrete form of :math:`\frac{\partial A}{\partial t}`.
+
+This class is usually used as part of a preconditioner, providing the linearization:
+
+.. math::
+  \frac{\partial}{\partial A} \left[ \frac{\partial A}{\partial t} \right]_{A_0} i
+  = \frac{|\Omega_E|}{\Delta t}
+
+for a grid element :math:`\Omega_E`.
+
+
+.. _pde-accumulation-spec:
+.. admonition:: pde-accumulation-spec
+
+  * `"entity kind`" ``[string]`` **optional** Typically set by the PK
+  * `"number of vectors`" ``[int]`` **optional** Typically set by the PK
+
+
+
+
+PDE_Diffusion
+-------------
+
+
+``PDE_Diffusion`` forms local ``Op`` s and global ``Operator`` s for elliptic equations:
+
+.. math::
+  \nabla \cdot k \nabla u
+
+with a variety of discretizations. Note also, for reasons that are one part historical
+and potentially not that valid, this also supports and implementation with an advective
+source, i.e.:
+
+.. math::
+  \nabla \cdot K k (\nabla (u + b g z))
+
+for gravitational terms in Richards equations.
+
+The input spec for a diffusion operator consists of:
+
+* `"discretization primary`" ``[string]`` See below for supported options.
+
+  - `"fv: default`" the standard two-point flux finite volume discretization
+  - `"nlfv: default`" the nonlinear finite volume method of ???
+  - MFD methods, including:
+
+    - `"mfd: default`"
+    - `"mfd: monotone for hex`"
+    - `"mfd: optimized for monotonicity`"
+    - `"mfd: two-point flux approximation`"
+    - `"mfd: optimized for sparsity`"
+    - `"mfd: support operator`"
+
+ Note that the most commonly used are `"fv: default`" for simple test
+ problems (this method is not particularly accurate for distorted
+ meshes), `"mfd: optimized for sparsity`" for most real problems on
+ unstructured meshes, and `"mfd: optimized for monotonicity`" for
+ orthogonal meshes with diagonal tensor/scalar coefficients.
+
+* `"gravity`" ``[bool]`` **false** specifies if the gravitational flow term is included
+
+* `"Newton correction`" ``[string]`` specifies a model for non-physical terms
+  that must be added to the matrix. These terms represent Jacobian and are needed
+  for the preconditioner. Available options are `"true Jacobian`" and `"approximate Jacobian`".
+  The FV scheme accepts only the first options. The other schemes accept only the second option.
+
+* `"scaled constraint equation`" ``[bool]`` **false** rescales flux continuity equations
+  on mesh faces.  These equations are formed without the nonlinear
+  coefficient. This option allows us to treat the case of zero nonlinear
+  coefficient, which otherwise generates zero rows in the operator, which is
+  then singular.  At moment this feature does not work with non-zero gravity
+  term.
+
+* `"constraint equation scaling cutoff`" ``[double]`` specifies the cutoff value for
+  applying rescaling strategy described above.
+
+
+
+ Diffusion generates local Ops and global Operators for an elliptic operator.
+
+Diffusion is the most frequently used operator. It employs the old schema.
+
+* `"pks operator name`" [list] a PK specific name for the diffusion operator.
+
+  * `"discretization primary`" [string] specifies an advanced discretization method that
+    has useful properties under some a priori conditions on the mesh and/or permeability tensor.
+    The available options are `"mfd: optimized for sparsity`", `"mfd: optimized for monotonicity`",
+    `"mfd: default`", `"mfd: support operator`", `"mfd: two-point flux approximation`",
+    `"fv: default`", and `"nlfv: default`".
+    The first option is recommended for general meshes.
+    The second option is recommended for orthogonal meshes and diagonal absolute
+    permeability tensor.
+
+  * `"discretization secondary`" [string] specifies the most robust discretization method
+    that is used when the primary selection fails to satisfy all a priori conditions.
+    Default value is equal to that for the primary discretization.
+
+  * `"diffusion tensor`" [string] specifies additional properties of the diffusion tensor.
+    It allows us to solve problems with non-symmetric but positive definite tensors.
+    Available options are *symmetric* (default) and *nonsymmetric*.
+
+  * `"nonlinear coefficient`" [string] specifies a method for treating nonlinear diffusion
+    coefficient, if any. Available options are `"none`", `"upwind: face`", `"divk: cell-face`" (default),
+    `"divk: face`", `"standard: cell`", and `"divk: cell-face-twin`".
+    Symmetry preserving methods are the divk-family of methods and the classical cell-centered
+    method (`"standard: cell`"). The first part of the name indicates the base scheme.
+    The second part (after the semi-column) indicates required components of the composite vector
+    that must be provided by a physical PK.
+    Default is `"none`".
+
+  * `"schema`" [Array(string)] defines the operator stencil. It is a collection of
+    geometric objects. It equals to `"{cell}`" for finite volume schemes.
+    It is typically `"{face, cell}`" for mimetic discretizations.
+
+  * `"preconditioner schema`" [Array(string)] defines the preconditioner stencil.
+    It is needed only when the default assembling procedure is not desirable.
+    If skipped, the `"schema`" is used instead.
+
+  * `"gravity`" [bool] specifies if flow is driven also by the gravity.
+
+  * `"gravity term discretization`" [string] selects a model for discretizing the
+    gravity term. Available options are `"hydraulic head`" [default] and `"finite volume`".
+    The first option starts with equation for the shifted solution, i.e. the hydraulic head,
+    and derives gravity discretization by the reserve shifting.
+    The second option is based on the divergence formula.
+
+  * `"gravity magnitude`" [double] defined magnitude of the gravity vector.
+
+  * `"Newton correction`" [string] specifies a model for correction (non-physical) terms
+    that must be added to the preconditioner. These terms approximate some Jacobian terms.
+    Available options are `"true Jacobian`" and `"approximate Jacobian`".
+    The FV scheme accepts only the first options. The othre schemes accept only the second option.
+
+  * `"scaled constraint equation`" [bool] rescales flux continuity equations on mesh faces.
+    These equations are divided by the nonlinear coefficient. This option allows us to
+    treat the case of zero nonlinear coefficient. At moment this feature does not work
+    with non-zero gravity term. Default is *false*.
+
+  * `"constraint equation scaling cutoff"`" [double] specifies the cutoff value for
+    applying rescaling strategy described above.
+
+  * `"consistent faces`" [list] may contain a `"preconditioner`" and
+    `"linear operator`" list (see sections Preconditioners_ and LinearSolvers_
+    respectively).  If these lists are provided, and the `"discretization
+    primary`" is of type `"mfd: *`", then the diffusion method
+    UpdateConsistentFaces() can be used.  This method, given a set of cell
+    values, determines the faces constraints that satisfy the constraint
+    equation in MFD by assembling and inverting the face-only system.  This is
+    not currently used by any Amanzi PKs.
+
+  * `"fracture`" [Array(string)] provides list of regions that defines a fracture network.
+    This parameter is used only by the coupled flow PK.
+
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="pks operator name">
+    <Parameter name="discretization primary" type="string" value="mfd: optimized for monotonicity"/>
+    <Parameter name="discretization secondary" type="string" value="mfd: two-point flux approximation"/>
+    <Parameter name="schema" type="Array(string)" value="{face, cell}"/>
+    <Parameter name="preconditioner schema" type="Array(string)" value="{face}"/>
+    <Parameter name="gravity" type="bool" value="true"/>
+    <Parameter name="gravity term discretization" type="string" value="hydraulic head"/>
+    <Parameter name="gravity magnitude" type="double" value="9.81"/>
+    <Parameter name="nonlinear coefficient" type="string" value="upwind: face"/>
+    <Parameter name="Newton correction" type="string" value="true Jacobian"/>
+
+    <ParameterList name="consistent faces">
+      <ParameterList name="linear solver">
+        ...
+      </ParameterList>
+      <ParameterList name="preconditioner">
+        ...
+      </ParameterList>
+    </ParameterList>
+  </ParameterList>
+
+This example creates a p-lambda system, i.e. the pressure is
+discretized in mesh cells and on mesh faces.
+The preconditioner is defined on faces only, i.e. cell-based unknowns
+are eliminated explicitly and the preconditioner is applied to the
+Schur complement.
+
+
+
+
+
+
+Additional options available only for the MFD family of discretizations include:
+
+* `"nonlinear coefficient`" ``[string]`` specifies a method for treating nonlinear
+  diffusion coefficient, if any. Available options are `"none`", `"upwind:
+  face`", `"divk: cell-face`" (default), `"divk: face`", `"standard: cell`",
+  `"divk: cell-face-twin`" and `"divk: cell-grad-face-twin`".  Symmetry
+  preserving methods are the divk-family of methods and the classical
+  cell-centered method (`"standard: cell`"). The first part of the name
+  indicates the base scheme.  The second part (after the semi-column)
+  indicates required components of the composite vector that must be provided
+  by a physical PK.
+
+* `"discretization secondary`" ``[string]`` specifies the most robust
+  discretization method that is used when the primary selection fails to
+  satisfy all a priori conditions.  This is typically `"mfd: default`", and is
+  used only when an MFD `"discretization primary`" is used.
+
+* `"schema`" ``[Array(string)]`` defines the operator stencil. It is a collection of
+  geometric objects.  Typically this is set by the implementation and is not provided.
+
+* `"preconditioner schema`" ``[Array(string)]`` **{face,cell}** Defines the
+  preconditioner stencil.  It is needed only when the default assembling
+  procedure is not desirable. If skipped, the `"schema`" is used instead.
+  In addition to the default, **{face}** may be used, which forms the Schur
+  complement.
+
+* `"consistent faces`" ``[list]`` may contain a `"preconditioner`" and
+  `"linear operator`" list (see sections Preconditioners_ and LinearSolvers_
+  respectively).  If these lists are provided, and the `"discretization
+  primary`" is of type `"mfd: *`", then the diffusion method
+  UpdateConsistentFaces() can be used.  This method, given a set of cell
+  values, determines the faces constraints that satisfy the constraint
+  equation in MFD by assembling and inverting the face-only system.  This is
+  not currently used by any Amanzi PKs.
+
+* `"diffusion tensor`" ``[string]`` allows us to solve problems with symmetric and
+  non-symmetric (but positive definite) tensors. Available options are *symmetric*
+  (default) and *nonsymmetric*.
+
+* `"use manifold flux`"  ``[bool]`` **false** Computes the flux using algorithms
+  and data structures for manifolds or fracture networks.
+
+
+
+
+
+Additional options for MFD with the gravity term include:
+
+* `"gravity term discretization`" ``[string]`` selects a model for discretizing the
+  gravity term. Available options are `"hydraulic head`" (default) and `"finite volume`".
+  The first option starts with equation for the shifted solution, i.e. the hydraulic
+  head, and derives gravity discretization by the reserve shifting.
+  The second option is based on the divergence formula.
+
+
+
+
+
+
+

@@ -1,0 +1,206 @@
+Surface flow evaluators
+-----------------------
+
+Assorted evaluators used for surface flow, including potential
+surfaces, Manning's conductivity, and their frozen equivalents.
+
+Like the subsurface flow evaluators, many of these evaluators show up
+in nearly all ATS simulations.  For real examples, see `ats-demos
+<https://github.com/amanzi/ats-demos>`_
+
+
+Ponded Depth or Water Height
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+Computes ponded depth from surface water pressure.
+
+.. math::
+   h = \frac{H(p - p_{atm})}{\rho g}
+
+where :math:`H` is the Heaviside function.
+
+`"evaluator type`" = `"ponded depth`"
+
+.. _height-evaluator-spec:
+.. admonition:: height-evaluator-spec
+
+   KEYS:
+
+   - `"mass density`"
+   - `"pressure`"
+
+
+
+
+Ponded Depth, Frozen
+^^^^^^^^^^^^^^^^^^^^
+
+
+
+Effective, or Smoothed Height
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+Computes ponded depth from surface water pressure using a smoothed term to make
+derivative smooth near 0.  This is pretty much never used anymore.
+
+`"evaluator type`" = `"effective height`"
+
+.. _effective-height-evaluator-spec:
+.. admonition:: effective-height-evaluator-spec
+
+   * `"smoothing width [m]`" ``[double]`` **0.01** the width over which smoothing
+     is applied.
+
+   KEYS:
+
+   - `"height`" The unsmoothed ponded depth
+
+
+
+
+Unfrozen fraction
+^^^^^^^^^^^^^^^^^
+
+
+An empirical equation for freezing ponded water -- this is simply a smooth
+sinusoidal curve from 0 to 1 over a given transition in temperature.
+
+`"evaluator type`" = `"unfrozen fraction`"
+
+.. _unfrozen-fraction-evaluator-spec:
+.. admonition:: unfrozen-fraction-evaluator-spec
+
+   * `"unfrozen fraction model`" ``[unfrozen-fraction-model-spec]``
+
+   KEYS:
+
+   - `"temperature`"
+
+
+
+
+.. _unfrozen-fraction-model-spec:
+.. admonition:: unfrozen-fraction-model-spec
+
+   * `"transition width [K]`" ``[double]`` **0.2** Degrees over which to
+     transition from no ice to all ice.
+
+   * `"freezing point [K]`" ``[double]`` **273.15** Center of the transition,
+     at this point unfrozen fraction is 0.5.
+
+   * `"minimum unfrozen fraction [-]`" ``[double]`` **0** Sets a minimum value.
+
+
+
+
+Unfrozen Flowing Depth
+^^^^^^^^^^^^^^^^^^^^^^
+ Evaluates the unfrozen mobile depth.
+
+In freezing conditions, water is only mobile if it is unfrozen.  This evaluator
+determines how much water is allowed to flow given that it is partially frozen.
+
+.. math:
+
+   \delta_{mobile} = \delta \chi^{\alpha}
+
+Given a ponded depth, an unfrozen fraction, and an optional power-law exponent,
+which we call the ice retardation exponent.
+
+.. _unfrozen-effective-depth-evaluator-spec:
+.. admonition:: unfrozen-effective-depth-evaluator-spec
+
+  * `"ice retardation exponent [-]`" ``[double]`` **1.0** exponent alpha
+    controlling how quickly ice turns off flow.
+
+  DEPENDENCIES:
+  - `"depth`" **DOMAIN-depth**
+  - `"unfrozen fraction`" **DOMAIN-unfrozen_fraction**
+
+
+
+
+SurfacePotential
+^^^^^^^^^^^^^^^^^^^
+ Evaluates the potential surface upon which overland flow acts.
+
+.. math::
+   h + z
+
+`"evaluator type`" =
+
+.. _pres-elev-evaluator-spec:
+.. admonition:: pres-elev-evaluator-spec
+
+   KEYS:
+
+   - `"height`" **DOMAIN-ponded_depth** Names the height variable. [m]
+   - `"elevation`" **DOMAIN-elevation** Names the elevation variable. [m]
+
+
+NOTE: This is a legacy evaluator, and is not in the factory, so need not be in
+the input spec.  However, we include it here because this could easily be
+abstracted for new potential surfaces, kinematic wave, etc, at which point it
+would need to be added to the factory and the input spec.
+
+NOTE: This could easily be replaced by a generic Additive_ Evaluator.
+
+
+
+
+Overland Conductivity, sheet flow
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. _`Overland Conductivity Evaluator`:
+ Evaluates the conductivity of surface flow.
+
+This implements the conductivity of overland flow, which is the nonlinear
+coefficient in the diffusion wave equation.  The term is given by:
+
+.. math:
+   k = \frac{\delta^{coef}}{n_{mann} \sqrt(| \nabla z |)}
+
+Optionally, this may include a density factor, typically a molar density, which
+converts the flow law to water flux rather than volumetric flux.
+
+Also, this evaluator can be used in snow redistribution, and in that case needs
+some extra factors (timestep size) to ensure the correct flow law in that case.
+
+`"evaluator type`" = `"overland conductivity`"
+
+.. _overland-conductivity-evaluator-spec:
+.. admonition:: overland-conductivity-evaluator-spec
+
+   * `"include density`" ``[bool]`` **true** Include the density prefactor,
+     converting the flux from volumetric flux to water flux.
+   * `"dt factor [s]`" ``[double]`` **-1** The artificial timestep size used in calculating
+      snow redistribution, only used in that case.
+   * `"swe density factor [-]`" ``[double]`` **10** Ratio of water to snow density.
+
+   DEPENDENCIES:
+
+   - `"mobile depth`" **DOMAIN-mobile_depth** Depth of the mobile water; delta
+     in the above equation.
+   - `"slope`" **DOMAIN-slope_magnitude** Magnitude of the bed surface driving
+     flow; | \nabla z | above.
+   - `"coefficient`" **DOMAIN-manning_coefficient** Surface roughness/shape
+     coefficient; n_{mann} above.
+   - `"molar density liquid`" **DOMAIN-molar_density_liquid** If `"include
+     density`" is true, the density.
+
+
+
+
+
+Overland Conductivity, litter resistance
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+(missing documentation!)
+
+
+
+
+
+

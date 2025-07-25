@@ -1,4 +1,4 @@
-Surface energy balance evaluators
+Surface Energy Balance Evaluators
 ---------------------------------
 
 Evaluators used to solve the fluxes to and from the atmosphere and
@@ -18,90 +18,91 @@ full-cell quantities.
 
 Two-component model
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
- A subgrid model for determining the area fraction of snow vs not snow within a grid cell.
+`src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/area_fractions_twocomponent_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/area_fractions_twocomponent_evaluator.hh>`_
+
+A subgrid model for determining the area fraction of snow vs not snow within a grid cell.
 
 Uses a simple linear transition to vary between liquid and bare ground, and
 another linear transition to vary between snow-covered and not-snow-covered.
 
 Ordering of the area fractions calculated are: [bare ground/water, snow].
 
+This evaluator simplifies the situation by assuming constant water density.
+This make it so that ice and water see the same geometry per unit pressure,
+which isn't quite true thanks to density differences.  However, we hypothesize
+that these differences, on the surface (unlike in the subsurface) really don't
+affect the solution.
+
+
 `"evaluator type`" = `"area fractions, two components`"
 
-.. _area-fractions-twocomponent-evaluator-spec:
-.. admonition:: area-fractions-twocomponent-evaluator-spec:
+.. _evaluator-area-fractions-two-components-spec:
+.. admonition:: evaluator-area-fractions-two-components-spec:
 
-   * `"minimum fractional area [-]`" ``[double]`` **1.e-5**
-         Mimimum area fraction allowed, less than this is rebalanced as zero.
+   * `"minimum fractional area [-]`" ``[double]`` **1.e-5** Minimum area
+     fraction allowed, less than this is rebalanced as zero.
 
    DEPENDENCIES:
 
    - `"snow depth`" ``[string]``
 
-.. note:
+.. note::
 
-   This evaluator also uses the LandCover_ types.  From that struct, it
+   This evaluator also uses the :ref:`Land Cover` types.  From that struct, it
    requires the value of the following parameters:
 
-   - `"snow transition height [m]`" ``[double]`` **0.02**
-      Minimum thickness for specifying the snow gradient.
-
-.. note:
-
-   This evaluator simplifies the situation by assuming constant density.  This
-   make it so that ice and water see the same geometry per unit pressure, which
-   isn't quite true thanks to density differences.  However, we hypothesize
-   that these differences, on the surface (unlike in the subsurface) really
-   don't affect the solution.
+   - `"snow transition height [m]`"
 
 
 
 
 Three-component model
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
- A subgrid model for determining the area fraction of land, water, and snow within a grid cell.
+`src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/area_fractions_threecomponent_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/area_fractions_threecomponent_evaluator.hh>`_
+
+A subgrid model for determining the area fraction of land, water, and snow within a grid cell.
 
 Uses a simple linear transition to vary between liquid and bare ground, and
 another linear transition to vary between snow-covered and not-snow-covered.
 
 Ordering of the area fractions calculated are: [bare ground, water, snow].
 
+This evaluator simplifies the situation by assuming constant water density.
+This make it so that ice and water see the same geometry per unit pressure,
+which isn't quite true thanks to density differences.  However, we hypothesize
+that these differences, on the surface (unlike in the subsurface) really don't
+affect the solution.
+
+
 `"evaluator type`" = `"area fractions, three components`"
 
-.. _area-fractions-threecomponent-evaluator-spec:
-.. admonition:: area-fractions-threecomponent-evaluator-spec:
+.. _evaluator-area-fractions-three-components-spec:
+.. admonition:: evaluator-area-fractions-three-components-spec:
 
-   * `"minimum fractional area [-]`" ``[double]`` **1.e-5**
-      Mimimum area fraction allowed, less than this is rebalanced as zero.
+   * `"minimum fractional area [-]`" ``[double]`` **1.e-5** Mimimum area
+     fraction allowed, less than this is rebalanced as zero.
 
    DEPENDENCIES:
 
    - `"snow depth`" **DOMAIN_SNOW-depth**
    - `"ponded depth`" **DOMAIN-ponded_depth**
 
-.. note:
+.. note::
 
-   This evaluator also uses the LandCover_ types.  From that struct, it
+   This evaluator also uses the :ref:`Land Cover` types.  From that struct, it
    requires the value of the following parameters:
 
-   - `"snow transition height [m]`" ``[double]`` **0.02**
-      Minimum thickness for specifying the snow gradient.
-   - `"water transition height [m]`" ``[double]`` **0.02**
-         Minimum thickness for specifying the water gradient.
-
-.. note:
-
-   This evaluator simplifies the situation by assuming constant density.  This
-   make it so that ice and water see the same geometry per unit pressure, which
-   isn't quite true thanks to density differences.  However, we hypothesize
-   that these differences, on the surface (unlike in the subsurface) really
-   don't affect the solution.
+   - `"snow transition height [m]`"
+   - `"water transition height [m]`"
 
 
 
 
 Three-component model, with microtopography
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- A subgrid model for determining the area fraction of land, open water, and snow within a grid cell.
+`src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/area_fractions_threecomponent_microtopography_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/area_fractions_threecomponent_microtopography_evaluator.hh>`_
+
+A subgrid model for determining the area fraction of land, open water, and snow within a grid cell.
 
 Uses the subgrid equation from Jan et al WRR 2018 for volumetric or effective
 ponded depth to determine the area of water, then heuristically places snow on
@@ -109,8 +110,8 @@ top of that surface.
 
 `"evaluator type`" = `"area fractions, three components with microtopography`"
 
-.. _area-fractions-threecomponent-microtopography-evaluator-spec:
-.. admonition:: area-fractions-threecomponent-microtopography-evaluator-spec
+.. _evaluator-area-fractions-three-components-with-microtopography-spec:
+.. admonition:: evaluator-area-fractions-three-components-with-microtopography-spec
 
    * `"snow transitional height [m]`" ``[double]`` **0.02**
      Minimum thickness for specifying the snow gradient.
@@ -133,13 +134,6 @@ top of that surface.
      The name of the snow depth.
 
 
-NOTE: this evaluator simplifies the situation by assuming constant density.
-This make it so that ice and water see the same geometry per unit pressure,
-which isn't quite true thanks to density differences.  However, we hypothesize
-that these differences, on the surface (unlike in the subsurface) really don't
-matter much. --etc
-
-
 
 
 
@@ -154,15 +148,17 @@ availability, etc.
 
 Priestley-Taylor Potential Evapotranspiration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- Evaluates potential evapotranpiration (PET) using Priestley & Taylor formulation.
+`src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/pet_priestley_taylor_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/pet_priestley_taylor_evaluator.hh>`_
+
+Evaluates potential evapotranpiration (PET) using Priestley & Taylor formulation.
 
 This implementation is based on models provided in the PRMS-IV, Version 4, see
 pages 90-93, Equations 1-57 to 1-60
 
 Requires the following dependencies:
 
-.. _pet-priestley-taylor-evaluator-spec:
-.. admonition:: pet-priestley-taylor-evaluator-spec:
+.. _evaluator-pet-priestley-taylor-spec:
+.. admonition:: evaluator-pet-priestley-taylor-spec:
 
    * `"include limiter`" ``[bool]`` **false** If true, multiply potential ET by
      a limiter to get an actual ET.
@@ -178,15 +174,16 @@ Requires the following dependencies:
    * `"1 - limiter dof`" ``[int]`` **0** Area fractions are often used
      as limiters, and these have multiple dofs.  This provides which one to use.
    * `"sublimate snow`" ``[bool]`` **false** If true, use latent heat of
-      vaporization of snow, not water.
+     vaporization of snow, not water.
 
    KEYS:
 
    - `"air temperature`" **DOMAIN-air_temperature** Air temp, in [K]
-   - `"surface temperature`" **DOMAIN-temperature** Ground or leaf temp, in [K].  Note this may be the
-      same as air temperature.
+   - `"surface temperature`" **DOMAIN-temperature** Ground or leaf temp, in
+     [K].  Note this may be the same as air temperature.
    - `"elevation`" **DOMAIN-elevation** Elevation [m]
-   - `"net radiation`" **DOMAIN-net_radiation** [W m^-2] Net radiation balance, positive to the ground.
+   - `"net radiation`" **DOMAIN-net_radiation** [W m^-2] Net radiation balance,
+     positive to the ground.
    - `"limiter`" [-] See `"include limiter`" above.
    - `"1 - limiter`" [-] See `"include 1 - limiter`" above.
 
@@ -203,7 +200,9 @@ actual ET.
 
 Transpiration Distribution
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
- Distributes and downregulates potential transpiration to the rooting zone.
+`src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/transpiration_distribution_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/transpiration_distribution_evaluator.hh>`_
+
+Distributes and downregulates potential transpiration to the rooting zone.
 
 The transpiration distribution evaluator looks to take a potential
 evapotranspiration and distribute it across the vertical column based on water
@@ -244,19 +243,13 @@ long.  Good choices for those models depend upon the local climate, but may be
 something like Julian day 101 for leaf on and Julian day 254 for leaf off (PRMS
 defaults for US temperate forests).
 
-Note that `"leaf on doy`" and `"leaf off doy`" are relative to the simulation's
-zero time, not the start time.  Typically these are Julian day of the year, but
-this assumes that the 0 time of the simulation (not the "start time", but time
-0!) is Jan 1.  This leaf on/off cycle is modulo the `"year duration`"
-(typically 1 noleap).  Note if `"leaf off doy`" < `"leaf on time`" is ok too --
-this is the case if simulation time zero is mid-summer.  These parameters come
-from the LandCover type.
+`"evaluator type`" = `"transpiration distribution, rooting depth`"
 
-.. _transpiration-distribution-evaluator-spec:
-.. admonition:: transpiration-distribution-evaluator-spec
+.. _evaluator-transpiration-distribution-rooting-depth-spec:
+.. admonition:: evaluator-transpiration-distribution-rooting-depth-spec
+
    * `"year duration`" ``[double]`` **1**
    * `"year duration units`" ``[string]`` **noleap**
-
    * `"water limiter function`" ``[function-spec]`` **optional** If provided,
      limit the total water sink as a function of the integral of the water
      potential * rooting fraction.
@@ -270,11 +263,23 @@ from the LandCover type.
    - `"surface cell volume`" **DOMAIN_SURF-cell_volume**
 
 
+.. note::
+
+   This evaluator also uses the :ref:`Land Cover` types.  From that struct, it
+   requires the value of the following parameters:
+
+   - `"leaf on time [doy]`"
+   - `"leaf off time [doy]`"
+
+
+
 
 
 Rooting Depth Fraction
 ~~~~~~~~~~~~~~~~~~~~~~
- Provides a depth-based profile of root density.
+`src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/rooting_depth_fraction_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/rooting_depth_fraction_evaluator.hh>`_
+
+Provides a depth-based profile of root density.
 
 Sets the (discrete) root fraction as a function of depth.  The rooting density
 is given by:
@@ -287,14 +292,11 @@ computing this over the vertical corridor is done by integrating this function
 between the depth of the face above and below for each grid cell, with the
 bottom-most grid cell integrating to infinity.
 
-Note that the two parameters, :math:`\alpha` and :math:`\beta` are provided in
-the Land Cover class as `"rooting profile alpha`" and `"rooting profile beta`"
-respectively.
+.. _evaluator-rooting-depth-fraction-spec:
+.. admonition:: evaluator-rooting-depth-fraction-spec
 
-.. _rooting-depth-fraction-evaluator-spec:
-.. admonition:: rooting-depth-fraction-evaluator-spec
-
-   * `"surface domain name`" ``[string]`` **SURFACE_DOMAIN** Sane default provided for most domain names.
+   * `"surface domain name`" ``[string]`` **SURFACE_DOMAIN** Sane default
+     provided for most domain names.
 
    KEYS:
 
@@ -302,48 +304,194 @@ respectively.
    - `"surface area`" **SURFACE_DOMAIN-cell_volume**
 
 
+.. note::
+
+   This evaluator also uses the :ref:`Land Cover` types.  From that struct, it
+   requires the value of the following parameters:
+
+   - `"rooting profile alpha [-]`"
+   - `"rooting profile beta [-]`"
+   - `"rooting depth max [m]`"
+
+
 
 
 Plant Wilting Point
 ~~~~~~~~~~~~~~~~~~~
- Plant wilting factor provides a moisture availability-based limiter on transpiration.
+`src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/plant_wilting_factor_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/plant_wilting_factor_evaluator.hh>`_
+
+Plant wilting factor provides a moisture availability-based limiter on transpiration.
 
 Also known as Beta, or the water availability factor, or the plant wilting
 factor, or the transpiration reduction function.
 
 .. math::
-   Beta =  (p_closed - p) / (p_closed - p_open)
+
+   \beta =  \frac{p_{closed} - p}{p_{closed} - p_{open}}
 
 where p is the capillary pressure or water potential, and closed
 and open indicate the values at which stomates are fully open or fully
 closed (the wilting point).
 
-Note this makes use of LandCover objects for water potential of fully open and
-fully closed stomata.
-
 Note the challenges of using this model with arbitrary van Genuchten WRMs.  See
-Verhoef & Egea, Ag. & Forest Meteorology, 2014
-https://doi.org/10.1016/j.agrformet.2014.02.009
+`Verhoef & Egea, Ag. & Forest Meteorology, 2014
+<https://doi.org/10.1016/j.agrformet.2014.02.009>`_
 
 
-.. _plant-wilting-factor-evaluator-spec:
-.. admonition:: plant-wilting-factor-evaluator-spec
+.. _evaluator-plant-wilting-factor-spec:
+.. admonition:: evaluator-plant-wilting-factor-spec
 
    KEYS:
 
    - `"capillary pressure`" **DOMAIN-capillary_pressure_gas_liq**
 
+.. note::
+
+   This evaluator also uses the :ref:`Land Cover` types.  From that struct, it
+   requires the value of the following parameters:
+
+   - `"capillary pressure at fully closed stomata [Pa]`"
+   - `"capillary pressure at fully open stomata [Pa]`"
 
 
 
 
-Soil Resistance
-^^^^^^^^^^^^^^^
 
-Downregulates evaporation through a dessicated zone via soil resistance.
-Currently support two soil resistance methods: Sakagucki-Zeng and Sellers.
-This will call soil resistance evaluator.
+Evaporation Downregulation
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+`src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/evaporation_downregulation_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/evaporation_downregulation_evaluator.hh>`_
 
+
+This evaluator computes actual evaporation from potential evaporation due to a
+dessicated zone via soil resistance.
+
+.. math::
+
+   E = \frac{E_{potential}}{1 + R_{soil}}
+
+`"evaluator type`" = `"evaporation downregulation, soil resistance`"
+
+.. _evaluator-evaporation-downregulation-soil-resistance:
+.. admonition:: evaluator-evaporation-downregulation-soil-resistance
+
+   DEPENDENCIES:
+
+   - `"potential evaporation`"
+   - `"soil resistance`"
+
+
+
+
+Soil Resistance, Sakagucki & Zeng
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+`src/physics/ats/src/pks/flow/constitutive_relations/sources/soil_resistance_sakagucki_zeng_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/flow/constitutive_relations/sources/soil_resistance_sakagucki_zeng_evaluator.hh>`_
+
+Evaluates the soil resistance at top cells through the Sakagucki-Zeng model
+referred to Sakagucki and Zeng (2009).
+
+`"evaluator type`" = `"soil resistance, Sakagucki-Zeng`"
+
+.. _evaluator-soil-resistance-sakagucki-zeng-spec
+.. admonition:: evaluator-soil-resistance-sakagucki-zeng-spec
+
+   * `"model parameters`" ``[string]`` **WRM parameters** Soil resistance based
+     on Sakagucki-Zeng method uses soil properties defined in `"WRM
+     parameters`" which is given through `"model parameters`" under state.
+
+     - If `"van Genuchten`" is used for WRM, either `"van Genuchten n [-]`" or
+       `"van Genuchten m [-]`" will be used to determine Clapp-Hornberger-b
+       through method 2 in Ma et al. (1999). Originally this method is from
+       Lenhard et al. (1989).
+     - If `"Brooks-Corey`" is used for WRM, `"Brooks-Corey lambda [-]`" will be
+       used to determine Clapp-Hornberger-b, which is the reciprocal of
+       `"Brooks-Corey lambda [-]`".
+     - `"residual saturation [-]`" ``[double]`` **0.0**
+     - `"dessicated zone thickness [m]`" ``[double]`` **0.1**
+
+   KEYS:
+
+   - `"gas saturation`" Note only the column's top grid cell is used
+   - `"porosity`" Note only the column's top grid cell is used
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="state" type="ParameterList">
+    <ParameterList name="model parameters" type="ParameterList">
+      <ParameterList name="WRM parameters" type="ParameterList">
+        <ParameterList name="domain" type="ParameterList">
+          <Parameter name="region" type="string" value="domain" />
+          <Parameter name="wrm type" type="string" value="van Genuchten" />
+          <Parameter name="van Genuchten alpha [Pa^-1]" type="double" value="2e-05" />
+          <Parameter name="van Genuchten n [-]" type="double" value="1.58" />
+          <Parameter name="residual saturation [-]" type="double" value="0.2" />
+          <Parameter name="smoothing interval width [saturation]" type="double" value="0.05" />
+          <Parameter name="dessicated zone thickness [m]" type="double" value="0.1" />
+        </ParameterList>
+      </ParameterList>
+    </ParameterList>
+    <ParameterList name="evaluators" type="ParameterList">
+      <ParameterList name="surface-soil_resistance" type="ParameterList">
+        <Parameter name="evaluator type" type="string" value="soil resistance, Sakagucki-Zeng" />
+        <Parameter name="model parameters" type="string" value="WRM parameters" />
+      </ParameterList>
+      ...
+    </ParameterList>
+    ...
+  </ParameterList>
+
+
+
+
+Soil Resistance, Sellers
+~~~~~~~~~~~~~~~~~~~~~~~~
+`src/physics/ats/src/pks/flow/constitutive_relations/sources/soil_resistance_sellers_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/flow/constitutive_relations/sources/soil_resistance_sellers_evaluator.hh>`_
+
+Evaluates the soil resistance at top cells through the Sellers model
+referred to Sellers et al. (1992).
+
+.. math::
+
+      R_{soil} = \mathrm{exp}(8.206 - 4.255 s_l)
+
+
+`"evaluator type`" = `"soil resistance, Sellers`"
+
+.. _evaluator-soil-resistance-sellers-spec
+.. admonition:: evaluator-soil-resistance-sellers-spec
+
+   KEYS:
+
+   - `"liquid saturation`" of top cells
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="state" type="ParameterList">
+    <ParameterList name="model parameters" type="ParameterList">
+      <ParameterList name="WRM parameters" type="ParameterList">
+        <ParameterList name="domain" type="ParameterList">
+          <Parameter name="region" type="string" value="domain" />
+          <Parameter name="wrm type" type="string" value="van Genuchten" />
+          <Parameter name="van Genuchten alpha [Pa^-1]" type="double" value="2e-05" />
+          <Parameter name="van Genuchten n [-]" type="double" value="1.58" />
+          <Parameter name="residual saturation [-]" type="double" value="0.2" />
+          <Parameter name="smoothing interval width [saturation]" type="double" value="0.05" />
+          <Parameter name="dessicated zone thickness [m]" type="double" value="0.1" />
+        </ParameterList>
+      </ParameterList>
+    </ParameterList>
+    <ParameterList name="evaluators" type="ParameterList">
+      <ParameterList name="surface-soil_resistance" type="ParameterList">
+        <Parameter name="evaluator type" type="string" value="soil resistance, Sellers" />
+        <Parameter name="model parameters" type="string" value="WRM parameters" />
+      </ParameterList>
+      ...
+    </ParameterList>
+    ...
+  </ParameterList>
 
 
 
@@ -360,7 +508,10 @@ meterological forcing dataset.
 
 Radiation Balance
 ~~~~~~~~~~~~~~~~~
- Evaluates a net radiation balance for ground and canopy.
+`src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/radiation_balance_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/radiation_balance_evaluator.hh>`_
+
+
+This evaluates a net radiation balance for ground and canopy.
 
 Here the net radiation is positive for energy inputs to the layer.  Note that
 ground is based on the two-channel (land + snow) while canopy is assumed to be
@@ -368,8 +519,6 @@ a simple, single layer.
 
 This evaluator requires that the surface temperature, snow temperature, and
 canopy temperature are known, or at least being solved for.
-
-Requires the use of LandCover types, for albedo and Beer's law coefficients.
 
 This is combination of CLM v4.5 Tech Note and Beer's law for attenuation of
 radiation absorption.  In particular, long-wave is exactly as Figure 4.1c in CLM
@@ -399,15 +548,19 @@ Computes:
    bounces (e.g. reflected atmosphere->canopy->cloud->back to canopy, or
    transmitted by the canopy, reflected by snow/surface.
 
-Requires the use of LandCover types, for canopy albedo and Beer's law
-coefficients.
-
 `"evaluator type`" = `"radiation balance, surface and canopy`"
 
-.. _radiation-balance-evaluator-spec:
-.. admonition:: radiation-balance-evaluator-spec
+.. _evaluator-radiation-balance-spec:
+.. admonition:: evaluator-radiation-balance-spec
 
    KEYS:
+
+   - `"surface radiation balance`"
+   - `"snow radiation balance`"
+   - `"canopy radiation balance`"
+
+   DEPENDENCIES:
+
    - `"surface albedos`" **SURFACE_DOMAIN-albedos**
    - `"surface emissivities`" **SURFACE_DOMAIN-emissivities**
    - `"incoming shortwave radiation`" **SURFACE_DOMAIN-incoming_shortwave_radiation**
@@ -418,7 +571,18 @@ coefficients.
    - `"leaf area index`" **CANOPY_DOMAIN-leaf_area_index**
    - `"area fractions`" **SURFACE_DOMAIN-area_fractions**
 
-Note that this is a superset of the physics in the "canopy radiation
+
+.. note::
+
+   This evaluator also uses the :ref:`Land Cover` types.  From that struct, it
+   requires the value of the following parameters:
+
+   - `"Beer's law extinction coefficient, shortwave [-]`"
+   - `"Beer's law extinction coefficient, longwave [-]`"
+   - `"albedo of canopy [-]`"
+
+
+Note that this is a *superset* of the physics in the "canopy radiation
 evaluator," and is therefore mutually exclusive with that model.
 
 
@@ -426,13 +590,11 @@ evaluator," and is therefore mutually exclusive with that model.
 
 Canopy Radiation Balance
 ~~~~~~~~~~~~~~~~~~~~~~~~
- Evaluates the canopy radiation balance, providing canopy net and radiation to the snow/surface.
+`src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/canopy_radiation_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/canopy_radiation_evaluator.hh>`_
+
 
 Computes and sums the downward radiation terms, determining the total radiation
 sent down to the surface from the canopy and above.
-
-Requires the use of LandCover types, for albedo and emissivity of the canopy
-itself, along with Beer's law coefficients.
 
 Computes:
 
@@ -467,28 +629,42 @@ solve all of these balances to convergence simultaneously.
 
 `"evaluator type`" = `"canopy radiation balance from above`"
 
-.. _canopy-radiation-evaluator-spec:
-.. admonition:: canopy-radiation-evaluator-spec
+.. _evaluator-canopy-radiation-balance-from-above-spec:
+.. admonition:: evaluator-canopy-radiation-balance-from-above-spec:
 
    KEYS:
+
+   - `"canopy downward shortwave radiation`" **CANOPY_DOMAIN-downward_shortwave_radiation**
+   - `"canopy downward longwave radiation`" **CANOPY_DOMAIN-downward_longwave_radiation**
+   - `"canopy radiation balance`" **CANOPY_DOMAIN-radiation_balance**
+
+   DEPENDENCIES:
+
    - `"incoming shortwave radiation`" **SURFACE_DOMAIN-incoming_shortwave_radiation**
    - `"incoming longwave radiation`" **SURFACE_DOMAIN-incoming_longwave_radiation**
    - `"canopy temperature`" **CANOPY_DOMAIN-temperature**
    - `"leaf area index`" **CANOPY_DOMAIN-leaf_area_index**
 
-Note that this is a subset of the physics in the "radiation balance evaluator,"
+.. note::
+
+   This evaluator also uses the :ref:`Land Cover` types.  From that struct, it
+   requires the value of the following parameters:
+
+   - `"Beer's law extinction coefficient, shortwave [-]`"
+   - `"Beer's law extinction coefficient, longwave [-]`"
+   - `"albedo of canopy [-]`"
+
+
+Note that this is a *subset* of the physics in the "radiation balance evaluator,"
 and is therefore mutually exclusive with that model.
 
 
 
 
-Surface Albedo
-~~~~~~~~~~~~~~
+Surface Albedo, Two Components
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+`src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/albedo_twocomponent_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/albedo_twocomponent_evaluator.hh>`_
 
-Note that albedo is also a multiple subgrid component model, like
-surface balance.
-
- Evaluates albedos and emissivities in a two-component subgrid model.
 
 Evaluates the albedo and emissivity as an interpolation on the surface
 properties and cover.  This allows for two components -- snow and not snow
@@ -497,10 +673,10 @@ snow density.
 
 Components are indexed by: 0 = land/ice/water, 1 = snow.
 
-Requires the use of LandCover types, for ground albedo and emissivity.
+`"evaluator type`" = `"subgrid albedos, two components`"
 
-.. _albedo-evaluator-spec:
-.. admonition:: albedo-evaluator-spec
+.. _evaluator-subgrid-albedos-two-components-spec:
+.. admonition:: evaluator-subgrid-albedos-two-components-spec
 
    * `"albedo ice [-]`" ``[double]`` **0.44**
    * `"albedo water [-]`" ``[double]`` **0.1168**
@@ -521,9 +697,21 @@ Requires the use of LandCover types, for ground albedo and emissivity.
    - `"unfrozen fraction`" **DOMAIN-unfrozen_fraction**
 
 
+.. note::
+
+   This evaluator also uses the :ref:`Land Cover` types.  From that struct, it
+   requires the value of the following parameters:
+
+   - `"emissivity of bare ground [-]`"
+   - `"albedo of bare ground [-]`"
 
 
- Evaluates albedos and emissivities in a three-component subgrid model.
+
+
+Surface Albedo, Two Components
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+`src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/albedo_threecomponent_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/albedo_threecomponent_evaluator.hh>`_
+
 
 Evaluates the albedo and emissivity as an interpolation on the surface
 properties and cover.  This allows for three components -- water/ice, land, and
@@ -531,10 +719,10 @@ snow.  Note this internally calculates albedo of snow based upon snow density.
 
 Components are: 0 = land, 1 = ice/water, 2 = snow.
 
-Requires the use of LandCover types, for ground albedo and emissivity.
+`"evaluator type`" = `"subgrid albedos, three components`"
 
-.. _albedo-evaluator-subgrid-spec:
-.. admonition:: albedo-evaluator-subgrid-spec
+.. _evaluator-subgrid-albedos-three-components-spec:
+.. admonition:: evaluator-subgrid-albedos-three-components-spec
 
    * `"albedo ice [-]`" ``[double]`` **0.44**
    * `"albedo water [-]`" ``[double]`` **0.1168**
@@ -554,11 +742,23 @@ Requires the use of LandCover types, for ground albedo and emissivity.
    - `"unfrozen fraction`" **DOMAIN-unfrozen_fraction**
 
 
+.. note::
+
+   This evaluator also uses the :ref:`Land Cover` types.  From that struct, it
+   requires the value of the following parameters:
+
+   - `"emissivity of bare ground [-]`"
+   - `"albedo of bare ground [-]`"
+
+
 
 
 Incident Shortwave Radiation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- Evaluates the radiation incident on a non-flat surface.
+`src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/incident_shortwave_radiation_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/incident_shortwave_radiation_evaluator.hh>`_
+
+
+Evaluates the radiation incident on a non-flat surface.
 
 Aspect modified shortwave radiation is determined by a factor which is
 multiplied by the 'incoming radiation incident on a flat surface' to determine
@@ -578,23 +778,27 @@ This implementation is derived from `LandLab code
 <https://github.com/landlab/landlab/blob/master/landlab/components/radiation/radiation.py>`_,
 which is released under the MIT license.
 
+`"evaluator type`" = `"incident shortwave radiation`"
 
-.. _incident_shortwave_radiation_evaluator-spec:
-.. admonition:: incident_shortwave_radiation_evaluator-spec
+.. _evaluator-incident_shortwave_radiation-spec:
+.. admonition:: evaluator-incident_shortwave_radiation-spec
 
-    * `"incident shortwave radiation parameters`" ``[incident_shortwave_radiation_model-spec]``
+    * `"incident shortwave radiation parameters`" ``[incident-shortwave-radiation-model-spec]``
 
-    KEYS:
-    - `"slope`" **DOMAIN-slope_magnitude**
-    - `"aspect`" **DOMAIN-aspect**
-    - `"incoming shortwave radiation`" **DOMAIN-incoming_shortwave_radiation**
+    DEPENDENCIES:
+
+    - `"slope`"
+    - `"aspect`"
+    - `"incoming shortwave radiation`"
 
 
 
- Evaluates shortwave as a function of slope/aspect/etc.
+`src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/incident_shortwave_radiation_model.hh <https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/incident_shortwave_radiation_model.hh>`_
 
-.. _incident_shortwave_radiation_model-spec:
-.. admonition:: incident_shortwave_radiation_model-spec
+Evaluates shortwave as a function of slope/aspect/etc.
+
+.. _incident-shortwave-radiation-model-spec:
+.. admonition:: incident-shortwave-radiation-model-spec
 
    * `"latitude [degrees]`" ``[double]`` Latitude of the site.  A single
      typical value is fine for most domains, even relatively large ones
@@ -612,16 +816,18 @@ which is released under the MIT license.
 
 Longwave Radiation
 ~~~~~~~~~~~~~~~~~~
- Evaluates incoming longwave radiation from vapor pressure and air temperature.
-
-.. _longwave_evaluator-spec:
-.. admonition:: longwave_evaluator-spec
+`src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/longwave_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/longwave_evaluator.hh>`_
 
 
-    DEPENDENCIES:
+Estimates incoming longwave radiation from vapor pressure and air temperature.
 
-    * `"air temperature key`" ``[string]`` **DOMAIN-air_temperature**
-    * `"vapor pressure air key`" ``[string]`` **DOMAIN-vapor_pressure_air**
+.. _evaluator-incoming-longwave-radiation-spec:
+.. admonition:: evaluator-incoming-longwave-radiation-spec
+
+   DEPENDENCIES:
+
+   * `"air temperature key`"
+   * `"vapor pressure air key`"
 
 
 
@@ -634,7 +840,9 @@ monolithic models.
 
 Bare Soil Surface Energy Balance
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- Calculates source terms for surface fluxes to and from the atmosphere and a ground surface.
+`src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/seb_twocomponent_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/seb_twocomponent_evaluator.hh>`_
+
+Calculates source terms for surface fluxes to and from the atmosphere and a ground surface.
 
 The ground is assumed to consist of two potential area-fraction components --
 snow and no-snow.  In the case of snow on the ground, this solves for a snow
@@ -644,8 +852,8 @@ the ground from the atmosphere.
 
 `"evaluator type`" = `"surface energy balance, two components`"
 
-.. _seb-twocomponent-evaluator-spec:
-.. admonition:: seb-twocomponent-evaluator-spec
+.. _evaluator-seb-twocomponent-spec:
+.. admonition:: evaluator-seb-twocomponent-spec
 
    * `"wind speed reference height [m]`" ``[double]`` **2.0** Reference height at which
      wind speed is measured.
@@ -722,7 +930,9 @@ the ground from the atmosphere.
 
 
 
- Calculates source terms for surface fluxes to and from the atmosphere and a ground surface.
+`src/physics/ats/src/pks/surface_balance/constitutive_relations/land_cover/seb_threecomponent_evaluator.hh <https://github.com/amanzi/ats/blob/master/src/pks/surface_balance/constitutive_relations/land_cover/seb_threecomponent_evaluator.hh>`_
+
+Calculates source terms for surface fluxes to and from the atmosphere and a ground surface.
 
 Calculates source terms for surface fluxes to and from the atmosphere and a
 ground surface characterized by three components -- snow, water-covered ground,
@@ -736,10 +946,10 @@ approach for water.  All snow is assumed to first cover water (likely ice),
 then cover land, as both water and snow prefer low-lying depressions due to
 gravity- and wind-driven redistributions, respectively.
 
-`"evaluator type`" = `"surface energy balance, two components`"
+`"evaluator type`" = `"surface energy balance, three components`"
 
-.. _seb-threecomponent-evaluator-spec:
-.. admonition:: seb-threecomponent-evaluator-spec
+.. _evaluator-seb-threecomponent-spec:
+.. admonition:: evaluator-seb-threecomponent-spec
 
    * `"wind speed reference height [m]`" ``[double]`` **2.0** Reference height at which
      wind speed is measured.

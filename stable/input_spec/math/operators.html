@@ -1,13 +1,12 @@
 
-
 <!DOCTYPE html>
 
 
-<html lang="en" data-content_root="" >
+<html lang="en" data-content_root="../../" >
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Operators &#8212; Amanzi-ATS</title>
   
@@ -17,43 +16,47 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
-<link href="../../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
-<link href="../../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link href="../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
-  
-  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
-
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/styles/custom_theme.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/custom_theme.css?v=a03f4c85" />
   
+  <!-- So that users can add custom icons -->
+  <script src="../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
-<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
-  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../_static/documentation_options.js?v=3ce10a4d"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'input_spec/math/operators';</script>
     <script>
-        DOCUMENTATION_OPTIONS.theme_version = '0.15.3';
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
-        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.6';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
         </script>
     <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
-    <script src="../../_static/main.js"></script>
+    <script src="../../_static/main.js?v=b10558fa"></script>
     <link rel="icon" href="../../_static/favicon.ico"/>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -61,6 +64,7 @@
     <link rel="prev" title="Preconditioners" href="preconditioners.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="dev" />
   </head>
   
   
@@ -76,19 +80,8 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
-  
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
-  
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="../../search.html"
       method="get">
@@ -96,7 +89,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search the docs ..."
          aria-label="Search the docs ..."
          autocomplete="off"
@@ -104,8 +96,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -114,7 +106,7 @@
   
     <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
 <div class="bd-header__inner bd-page-width">
-  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
     <span class="fa-solid fa-bars"></span>
   </button>
   
@@ -123,6 +115,8 @@
     
       <div class="navbar-item">
 
+  
+    
   
 
 <a class="navbar-brand logo" href="../../index.html">
@@ -137,7 +131,7 @@
     
     
     <img src="../../_static/logo_full.png" class="logo__image only-light" alt="Amanzi-ATS documentation -- Home"/>
-    <script>document.write(`<img src="../../_static/logo_full.png" class="logo__image only-dark" alt="Amanzi-ATS documentation -- Home"/>`);</script>
+    <img src="../../_static/logo_full.png" class="logo__image only-dark pst-js-only" alt="Amanzi-ATS documentation -- Home"/>
   
   
 </a></div>
@@ -149,17 +143,17 @@
     <div class="me-auto navbar-header-items__center">
       
         <div class="navbar-item">
-<nav class="navbar-nav">
+<nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item pst-header-nav-item">
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../../demos.html">
     ATS Demo Problems
   </a>
 </li>
 
 
-<li class="nav-item pst-header-nav-item current active">
+<li class="nav-item current active">
   <a class="nav-link nav-internal" href="../index.html">
     ATS Input Specification
   </a>
@@ -176,29 +170,21 @@
         <div class="navbar-item navbar-persistent--container">
           
 
- <script>
- document.write(`
-   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
         </div>
       
       
         <div class="navbar-item">
 
-<script>
-document.write(`
-  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
-    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
-    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
-  </button>
-`);
-</script></div>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
       
     </div>
     
@@ -207,15 +193,11 @@ document.write(`
   
     <div class="navbar-persistent--mobile">
 
- <script>
- document.write(`
-   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
     </div>
   
 
@@ -230,7 +212,8 @@ document.write(`
       
       
       
-      <div class="bd-sidebar-primary bd-sidebar">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -242,17 +225,17 @@ document.write(`
           
           
             <div class="navbar-item">
-<nav class="navbar-nav">
+<nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item pst-header-nav-item">
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../../demos.html">
     ATS Demo Problems
   </a>
 </li>
 
 
-<li class="nav-item pst-header-nav-item current active">
+<li class="nav-item current active">
   <a class="nav-link nav-internal" href="../index.html">
     ATS Input Specification
   </a>
@@ -270,15 +253,11 @@ document.write(`
         
           <div class="navbar-item">
 
-<script>
-document.write(`
-  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
-    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
-    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
-  </button>
-`);
-</script></div>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
         
       </div>
     
@@ -286,30 +265,26 @@ document.write(`
   
     <div class="sidebar-primary-items__start sidebar-primary__section">
         <div class="sidebar-primary-item"><!-- This will display the version of the docs -->
-Version 1.5</div>
+Version dev</div>
         <div class="sidebar-primary-item">
-<script>
-document.write(`
-  <div class="version-switcher__container dropdown">
-    <button id="pst-version-switcher-button-2"
-      type="button"
-      class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle"
-      data-bs-toggle="dropdown"
-      aria-haspopup="listbox"
-      aria-controls="pst-version-switcher-list-2"
-      aria-label="Version switcher list"
-    >
-      Choose version  <!-- this text may get changed later by javascript -->
-      <span class="caret"></span>
-    </button>
-    <div id="pst-version-switcher-list-2"
-      class="version-switcher__menu dropdown-menu list-group-flush py-0"
-      role="listbox" aria-labelledby="pst-version-switcher-button-2">
-      <!-- dropdown will be populated by javascript on page load -->
-    </div>
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
   </div>
-`);
-</script></div>
+</div></div>
         <div class="sidebar-primary-item">
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
@@ -325,22 +300,24 @@ document.write(`
 <li class="toctree-l2"><a class="reference internal" href="../io/visualization.html">Visualization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../io/observations.html">Observations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../io/checkpoint.html">Checkpoint</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../io/logfile.html">Logfile Control</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../process_kernels/index.html">Process Kernels</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../process_kernels/base.html">Base PKs</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../process_kernels/physical/index.html">Physical PKs</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../process_kernels/physical/flow.html">Flow PKs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../process_kernels/physical/transport.html">Transport PK</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../process_kernels/physical/transport.html">Geochemical Transport</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../process_kernels/physical/energy.html">Energy PKs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../process_kernels/physical/seb.html">Surface Energy Balance PKs</a></li>
-
-
+<li class="toctree-l3"><a class="reference internal" href="../process_kernels/physical/bgc.html">Biogeochemistry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../process_kernels/physical/deformation.html">Deformation</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../process_kernels/mpcs/index.html">MPC</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../process_kernels/mpcs/base.html">Base MPCs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../process_kernels/mpcs/physical.html">Physical MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../process_kernels/mpcs/tightly_coupled.html">Tightly Coupled MPCs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../process_kernels/mpcs/multiple_domain.html">Multiple Domain MPCs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../process_kernels/mpcs/globalization.html">Globalization Delegates</a></li>
 </ul>
 </details></li>
@@ -348,20 +325,24 @@ document.write(`
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../state/index.html">State</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../state/primary.html">Primary Variables</a></li>
+
 <li class="toctree-l2"><a class="reference internal" href="../state/independent.html">Independent Variables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../state/secondary.html">Secondary Variables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../state/conserved.html">Conserved quantities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../state/subsurface_flow.html">Subsurface flow evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../state/surface_flow.html">Surface flow evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../state/thermo.html">Thermodynamic evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../state/eos.html">Equations of State</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../state/seb.html">Surface energy balance evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../state/snow.html">Snow evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../state/canopy.html">Canopy evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../state/bgc.html">Carbon and Biogeochemistry Models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../state/multiscale.html">Multiscale Models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../state/geometric.html">Geometric evaluators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../state/generic.html">Generic evaluators</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../state/secondary.html">Secondary Variables</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../state/conserved.html">Conserved quantities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../state/subsurface_flow.html">Subsurface Flow Evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../state/surface_flow.html">Surface Flow Evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../state/transport.html">Transport evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../state/thermo.html">Thermodynamic evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../state/eos.html">Equations of State</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../state/seb.html">Surface Energy Balance Evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../state/snow.html">Snow evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../state/canopy.html">Canopy evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../state/bgc.html">Carbon and Biogeochemistry Models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../state/multiscale.html">Multiscale Models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../state/geometric.html">Geometric evaluators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../state/generic.html">Generic evaluators</a></li>
+</ul>
+</details></li>
 </ul>
 </details></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Time integrators, solvers, and other mathematical specs</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
@@ -385,17 +366,22 @@ document.write(`
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#schema">Schema</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pde-accumulation">PDE_Accumulation</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pde-diffusion">PDE_Diffusion</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#accumulation">Accumulation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#diffusion">Diffusion</a></li>
 </ul>
   </nav></div>
     </div>
   
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
   </div>
-  
-  <div id="rtd-footer-container"></div>
 
 
       </div>
@@ -413,8 +399,6 @@ document.write(`
       
         <div class="header-article-item">
 
-
-
 <nav aria-label="Breadcrumb" class="d-print-none">
   <ul class="bd-breadcrumbs">
     
@@ -429,7 +413,7 @@ document.write(`
     
     <li class="breadcrumb-item"><a href="index.html" class="nav-link">Time integrators, solvers, and other mathematical specs</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page">Operators</li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Operators</span></li>
   </ul>
 </nav>
 </div>
@@ -447,10 +431,9 @@ document.write(`
                 <article class="bd-article">
                   
   <section id="operators">
-<h1>Operators<a class="headerlink" href="#operators" title="Permalink to this heading">#</a></h1>
-<blockquote>
-<div><p>Operator represents a linear map, and typically encapsulates a discretization.</p>
-</div></blockquote>
+<h1>Operators<a class="headerlink" href="#operators" title="Link to this heading">#</a></h1>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/operators/Operator.hh">src/operators/Operator.hh</a></p>
+<p>Operator represents a linear map, and typically encapsulates a discretization.</p>
 <p>Operators are discrete forms of linearized PDEs operators.
 They form a layer between physical process kernels and solvers
 and include accumulation, diffusion, advection, elasticity, reaction,
@@ -472,11 +455,14 @@ operator and the desired discretization.  These helpers build the needed
 case of Jacobian Operators for a PDE).</p>
 <p>However, one option may be provided by the user, which is related to dealing
 with nearly singular operators:</p>
+<div class="admonition-operators-spec admonition">
+<p class="admonition-title">operators-spec</p>
 <ul class="simple">
 <li><p><cite>“diagonal shift</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.0</strong> Adds a scalar shift to the diagonal
 of the <code class="docutils literal notranslate"><span class="pre">Operator</span></code>, which can be useful if the <code class="docutils literal notranslate"><span class="pre">Operator</span></code> is singular or
 near-singular.</p></li>
 </ul>
+</div>
 <p>A PK decides how to bundle operators in a collection of operators.
 For example, an advection-diffusion problem may benefit from using
 a single operator that combines two operators representing diffusion and advection process.
@@ -485,7 +471,7 @@ In such a case, the collections acts as a single operator.</p>
 <p>Operators use a few tools that are generic in nature and can be used independently by PKs.
 The list includes reconstruction and limiting algorithms.</p>
 <section id="schema">
-<h2>Schema<a class="headerlink" href="#schema" title="Permalink to this heading">#</a></h2>
+<h2>Schema<a class="headerlink" href="#schema" title="Link to this heading">#</a></h2>
 <p>The operators use notion of schema to describe operator’s abstract structure.
 Old operators use a simple schema which is simply the list of geometric objects where
 scalar degrees of freedom are defined.
@@ -517,8 +503,9 @@ Such set of degrees of freedom is used in the Bernardi-Raugel element for discre
 Stokes equations.
 Parameter <cite>“base</cite>” indicates that local matrices are associated with mesh cells.</p>
 </section>
-<section id="pde-accumulation">
-<h2>PDE_Accumulation<a class="headerlink" href="#pde-accumulation" title="Permalink to this heading">#</a></h2>
+<section id="accumulation">
+<h2>Accumulation<a class="headerlink" href="#accumulation" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/operators/PDE_Accumulation.hh">src/operators/PDE_Accumulation.hh</a></p>
 <p><code class="docutils literal notranslate"><span class="pre">PDE_Accumulation</span></code> assembles the discrete form of <span class="math notranslate nohighlight">\(\frac{\partial A}{\partial t}\)</span>.</p>
 <p>This class is usually used as part of a preconditioner, providing the linearization:</p>
 <div class="math notranslate nohighlight">
@@ -533,8 +520,9 @@ Parameter <cite>“base</cite>” indicates that local matrices are associated w
 </ul>
 </div>
 </section>
-<section id="pde-diffusion">
-<h2>PDE_Diffusion<a class="headerlink" href="#pde-diffusion" title="Permalink to this heading">#</a></h2>
+<section id="diffusion">
+<h2>Diffusion<a class="headerlink" href="#diffusion" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/operators/PDE_DiffusionFactory.hh">src/operators/PDE_DiffusionFactory.hh</a></p>
 <p><code class="docutils literal notranslate"><span class="pre">PDE_Diffusion</span></code> forms local <code class="docutils literal notranslate"><span class="pre">Op</span></code> s and global <code class="docutils literal notranslate"><span class="pre">Operator</span></code> s for elliptic equations:</p>
 <div class="math notranslate nohighlight">
 \[\nabla \cdot k \nabla u\]</div>
@@ -585,14 +573,14 @@ term.</p></li>
 <li><p><cite>“constraint equation scaling cutoff</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> specifies the cutoff value for
 applying rescaling strategy described above.</p></li>
 </ul>
-<blockquote>
-<div><p>Diffusion generates local Ops and global Operators for an elliptic operator.</p>
-</div></blockquote>
-<p>Diffusion is the most frequently used operator. It employs the old schema.</p>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/operators/PDE_Diffusion.hh">src/operators/PDE_Diffusion.hh</a></p>
+<p>Diffusion generates local Ops and global Operators for an elliptic operator.</p>
+<p>The diffusion operator supports multiple discretization methods to implement
+diffusion.</p>
+<div class="admonition-pde-diffusion-spec admonition" id="pde-diffusion-spec">
+<p class="admonition-title">pde-diffusion-spec</p>
 <ul class="simple">
-<li><p><cite>“pks operator name</cite>” [list] a PK specific name for the diffusion operator.</p>
-<ul>
-<li><p><cite>“discretization primary</cite>” [string] specifies an advanced discretization method that
+<li><p><cite>“discretization primary</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> specifies an advanced discretization method that
 has useful properties under some a priori conditions on the mesh and/or permeability tensor.
 The available options are <cite>“mfd: optimized for sparsity</cite>”, <cite>“mfd: optimized for monotonicity</cite>”,
 <cite>“mfd: default</cite>”, <cite>“mfd: support operator</cite>”, <cite>“mfd: two-point flux approximation</cite>”,
@@ -600,56 +588,75 @@ The available options are <cite>“mfd: optimized for sparsity</cite>”, <cite>
 The first option is recommended for general meshes.
 The second option is recommended for orthogonal meshes and diagonal absolute
 permeability tensor.</p></li>
-<li><p><cite>“discretization secondary</cite>” [string] specifies the most robust discretization method
-that is used when the primary selection fails to satisfy all a priori conditions.
-Default value is equal to that for the primary discretization.</p></li>
-<li><p><cite>“diffusion tensor</cite>” [string] specifies additional properties of the diffusion tensor.
-It allows us to solve problems with non-symmetric but positive definite tensors.
-Available options are <em>symmetric</em> (default) and <em>nonsymmetric</em>.</p></li>
-<li><p><cite>“nonlinear coefficient</cite>” [string] specifies a method for treating nonlinear diffusion
-coefficient, if any. Available options are <cite>“none</cite>”, <cite>“upwind: face</cite>”, <cite>“divk: cell-face</cite>” (default),
-<cite>“divk: face</cite>”, <cite>“standard: cell</cite>”, and <cite>“divk: cell-face-twin</cite>”.
-Symmetry preserving methods are the divk-family of methods and the classical cell-centered
-method (<cite>“standard: cell</cite>”). The first part of the name indicates the base scheme.
-The second part (after the semi-column) indicates required components of the composite vector
-that must be provided by a physical PK.
-Default is <cite>“none</cite>”.</p></li>
-<li><p><cite>“schema</cite>” [Array(string)] defines the operator stencil. It is a collection of
-geometric objects. It equals to <cite>“{cell}</cite>” for finite volume schemes.
-It is typically <cite>“{face, cell}</cite>” for mimetic discretizations.</p></li>
-<li><p><cite>“preconditioner schema</cite>” [Array(string)] defines the preconditioner stencil.
-It is needed only when the default assembling procedure is not desirable.
-If skipped, the <cite>“schema</cite>” is used instead.</p></li>
-<li><p><cite>“gravity</cite>” [bool] specifies if flow is driven also by the gravity.</p></li>
-<li><p><cite>“gravity term discretization</cite>” [string] selects a model for discretizing the
-gravity term. Available options are <cite>“hydraulic head</cite>” [default] and <cite>“finite volume</cite>”.
-The first option starts with equation for the shifted solution, i.e. the hydraulic head,
-and derives gravity discretization by the reserve shifting.
-The second option is based on the divergence formula.</p></li>
-<li><p><cite>“gravity magnitude</cite>” [double] defined magnitude of the gravity vector.</p></li>
-<li><p><cite>“Newton correction</cite>” [string] specifies a model for correction (non-physical) terms
-that must be added to the preconditioner. These terms approximate some Jacobian terms.
-Available options are <cite>“true Jacobian</cite>” and <cite>“approximate Jacobian</cite>”.
-The FV scheme accepts only the first options. The othre schemes accept only the second option.</p></li>
-<li><p><cite>“scaled constraint equation</cite>” [bool] rescales flux continuity equations on mesh faces.
-These equations are divided by the nonlinear coefficient. This option allows us to
-treat the case of zero nonlinear coefficient. At moment this feature does not work
-with non-zero gravity term. Default is <em>false</em>.</p></li>
-<li><p><cite>“constraint equation scaling cutoff”</cite>” [double] specifies the cutoff value for
-applying rescaling strategy described above.</p></li>
-<li><p><cite>“consistent faces</cite>” [list] may contain a <cite>“preconditioner</cite>” and
-<cite>“linear operator</cite>” list (see sections <a href="#id1"><span class="problematic" id="id2">Preconditioners_</span></a> and <a href="#id3"><span class="problematic" id="id4">LinearSolvers_</span></a>
-respectively).  If these lists are provided, and the <cite>“discretization
-primary</cite>” is of type <cite>“mfd: *</cite>”, then the diffusion method
-UpdateConsistentFaces() can be used.  This method, given a set of cell
-values, determines the faces constraints that satisfy the constraint
-equation in MFD by assembling and inverting the face-only system.  This is
-not currently used by any Amanzi PKs.</p></li>
-<li><p><cite>“fracture</cite>” [Array(string)] provides list of regions that defines a fracture network.
-This parameter is used only by the coupled flow PK.</p></li>
+<li><p><cite>“discretization secondary</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>optional</strong> specifies the most
+robust discretization method that is used when the primary selection fails
+to satisfy all a priori conditions.  Default value is equal to that for
+the primary discretization.</p></li>
+<li><p><cite>“diffusion tensor</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>optional</strong> specifies additional
+properties of the diffusion tensor.  It allows us to solve problems with
+non-symmetric but positive definite tensors.  Available options are
+<cite>“symmetric</cite>” and <cite>“nonsymmetric</cite>”.</p></li>
+<li><p><cite>“schema</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> <strong>optional</strong> defines the operator
+stencil. It is a collection of geometric objects. It is <cite>“{cell}</cite>” for
+finite volume schemes.  It is typically <cite>“{face, cell}</cite>” for mimetic
+discretizations.  This is typically not set by the user.</p></li>
+<li><p><cite>“preconditioner schema</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> <strong>optional</strong> defines the
+preconditioner stencil.  It is needed only when the default assembling
+procedure is not desirable.  If skipped, the <cite>“schema</cite>” is used instead.
+For instance, if <cite>“{face}</cite>” is provided for a <cite>“{face,cell}</cite>” schema, then
+the Schur complement is implemented for the preconditioner.</p></li>
+<li><p><cite>“gravity</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>optional</strong> specifies if flow is driven also by
+the gravity.  This is typically set by the PK using this operator.</p></li>
+<li><p><cite>“Newton correction</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>none</strong> specifies a model for
+correction terms that may be added to the preconditioner for nonlinear
+coefficients. These terms approximate some Jacobian terms.  Available
+options are <cite>“true Jacobian</cite>” and <cite>“approximate Jacobian</cite>”.  The FV scheme
+accepts only the first option. The other schemes accept only the second
+option.</p></li>
 </ul>
-</li>
+</div>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/operators/PDE_DiffusionMFD.hh">src/operators/PDE_DiffusionMFD.hh</a></p>
+<p>Mimetic Finite Difference class of methods for diffusion.</p>
+<p><cite>“discretization primary</cite>” = <cite>“mfd: *</cite>”</p>
+<div class="admonition-pde-diffusion-mfd-spec admonition" id="pde-diffusion-mfd-spec">
+<p class="admonition-title">pde-diffusion-mfd-spec</p>
+<ul class="simple">
+<li><p><cite>“nonlinear coefficient</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>none</strong> specifies a method for treating
+nonlinear diffusion coefficient, if any. Available options are <cite>“none</cite>”,
+<cite>“upwind: face</cite>”, <cite>“divk: cell-face</cite>” (default), <cite>“divk: face</cite>”,
+<cite>“standard: cell</cite>”, <cite>“divk: cell-face-twin</cite>” and <cite>“divk:
+cell-grad-face-twin</cite>”.  Symmetry preserving methods are the divk-family of
+methods and the classical cell-centered method (<cite>“standard: cell</cite>”). The
+first part of the name indicates the base scheme.  The second part (after
+the semi-column) indicates required components of the composite vector
+that must be provided by a physical PK.</p></li>
+<li><p><cite>“discretization secondary</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>optional</strong> specifies the most robust
+discretization method that is used when the primary selection fails to
+satisfy all a priori conditions.  This is typically <cite>“mfd: default</cite>”, and
+is used only when an MFD <cite>“discretization primary</cite>” is used.</p></li>
+<li><p><cite>“gravity term discretization</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>“hydraulic head”</strong> selects
+a model for discretizing the gravity term. Available options are
+<cite>“hydraulic head</cite>” [default] and <cite>“finite volume</cite>”.  The first option
+starts with equation for the shifted solution, i.e. the hydraulic head,
+and derives gravity discretization by the reserve shifting.  The second
+option is based on the divergence formula.</p></li>
+<li><p><cite>“consistent faces</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code> <strong>optional</strong> may contain a <cite>“preconditioner</cite>” and
+<cite>“linear operator</cite>” list (see sections <a class="reference internal" href="preconditioners.html#preconditioners"><span class="std std-ref">Preconditioners</span></a> and
+<a class="reference internal" href="linear_solvers.html#linear-solvers"><span class="std std-ref">Linear Solvers</span></a> respectively).  If these lists are provided, then,
+given a set of cell values, the faces constraints that satisfy the
+constraint equation in MFD may be computed by assembling and inverting the
+face-only system.  This is not currently used by any Amanzi PKs.</p></li>
+<li><p><cite>“diffusion tensor</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>symmetric</strong> allows us to solve problems with
+symmetric and non-symmetric (but positive definite) tensors. Available
+options are <em>symmetric</em> (default) and <em>nonsymmetric</em>.</p></li>
+<li><p><cite>“use manifold flux</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Computes the flux using
+algorithms and data structures for manifolds or fracture networks.</p></li>
 </ul>
+<p>INCLUDES:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[pde-diffusion-spec]</span></code></p></li>
+</ul>
+</div>
 <p>Example:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;pks operator name&quot;</span><span class="nt">&gt;</span>
 <span class="w">  </span><span class="nt">&lt;Parameter</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;discretization primary&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;mfd: optimized for monotonicity&quot;</span><span class="nt">/&gt;</span>
@@ -678,42 +685,7 @@ discretized in mesh cells and on mesh faces.
 The preconditioner is defined on faces only, i.e. cell-based unknowns
 are eliminated explicitly and the preconditioner is applied to the
 Schur complement.</p>
-<p>Additional options available only for the MFD family of discretizations include:</p>
-<ul class="simple">
-<li><p><cite>“nonlinear coefficient</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> specifies a method for treating nonlinear
-diffusion coefficient, if any. Available options are <cite>“none</cite>”, <cite>“upwind:
-face</cite>”, <cite>“divk: cell-face</cite>” (default), <cite>“divk: face</cite>”, <cite>“standard: cell</cite>”,
-<cite>“divk: cell-face-twin</cite>” and <cite>“divk: cell-grad-face-twin</cite>”.  Symmetry
-preserving methods are the divk-family of methods and the classical
-cell-centered method (<cite>“standard: cell</cite>”). The first part of the name
-indicates the base scheme.  The second part (after the semi-column)
-indicates required components of the composite vector that must be provided
-by a physical PK.</p></li>
-<li><p><cite>“discretization secondary</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> specifies the most robust
-discretization method that is used when the primary selection fails to
-satisfy all a priori conditions.  This is typically <cite>“mfd: default</cite>”, and is
-used only when an MFD <cite>“discretization primary</cite>” is used.</p></li>
-<li><p><cite>“schema</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> defines the operator stencil. It is a collection of
-geometric objects.  Typically this is set by the implementation and is not provided.</p></li>
-<li><p><cite>“preconditioner schema</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> <strong>{face,cell}</strong> Defines the
-preconditioner stencil.  It is needed only when the default assembling
-procedure is not desirable. If skipped, the <cite>“schema</cite>” is used instead.
-In addition to the default, <strong>{face}</strong> may be used, which forms the Schur
-complement.</p></li>
-<li><p><cite>“consistent faces</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code> may contain a <cite>“preconditioner</cite>” and
-<cite>“linear operator</cite>” list (see sections <a href="#id5"><span class="problematic" id="id6">Preconditioners_</span></a> and <a href="#id7"><span class="problematic" id="id8">LinearSolvers_</span></a>
-respectively).  If these lists are provided, and the <cite>“discretization
-primary</cite>” is of type <cite>“mfd: *</cite>”, then the diffusion method
-UpdateConsistentFaces() can be used.  This method, given a set of cell
-values, determines the faces constraints that satisfy the constraint
-equation in MFD by assembling and inverting the face-only system.  This is
-not currently used by any Amanzi PKs.</p></li>
-<li><p><cite>“diffusion tensor</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> allows us to solve problems with symmetric and
-non-symmetric (but positive definite) tensors. Available options are <em>symmetric</em>
-(default) and <em>nonsymmetric</em>.</p></li>
-<li><p><cite>“use manifold flux</cite>”  <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Computes the flux using algorithms
-and data structures for manifolds or fracture networks.</p></li>
-</ul>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/operators/PDE_DiffusionMFDwithGravity.hh">src/operators/PDE_DiffusionMFDwithGravity.hh</a></p>
 <p>Additional options for MFD with the gravity term include:</p>
 <ul class="simple">
 <li><p><cite>“gravity term discretization</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> selects a model for discretizing the
@@ -722,6 +694,29 @@ The first option starts with equation for the shifted solution, i.e. the hydraul
 head, and derives gravity discretization by the reserve shifting.
 The second option is based on the divergence formula.</p></li>
 </ul>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/operators/PDE_DiffusionFV.hh">src/operators/PDE_DiffusionFV.hh</a></p>
+<p>Finite volume method for diffusion.</p>
+<p><cite>“discretization primary</cite>” = <cite>“fv: default</cite>”</p>
+<div class="admonition-pde-diffusion-fv-spec admonition" id="pde-diffusion-fv-spec">
+<p class="admonition-title">pde-diffusion-fv-spec</p>
+<ul class="simple">
+<li><p><cite>“exclude primary terms</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Set by PK.  This enables
+the use of Jacobian terms without the primary terms in the preconditioner,
+which is particularly useful for off-diagonal entries in the
+preconditioner where the coefficient is a function of the primary
+variable, but the diffused quantity is not.</p></li>
+<li><p><cite>“surface operator</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Set by MPC.  Enables coupling of
+surface FV diffusion to subsurface MFD diffusion.</p></li>
+<li><p><cite>“nonlinear coefficient</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>upwind: face</strong> specifies a method
+for treating nonlinear diffusion coefficient, if any. Available options
+are <cite>“none</cite>” and <cite>“upwind: face</cite>”</p></li>
+</ul>
+<p>INCLUDES:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[pde-diffusion-spec]</span></code></p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/amanzi/amanzi/blob/master/src/operators/PDE_DiffusionFVwithGravity.hh">src/operators/PDE_DiffusionFVwithGravity.hh</a></p>
 </section>
 </section>
 
@@ -771,8 +766,8 @@ The second option is based on the divergence formula.</p></li>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
-<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+  <script defer src="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -792,7 +787,7 @@ The second option is based on the divergence formula.</p></li>
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.2.1.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
     <br/>
   </p>
 </div>
@@ -805,7 +800,8 @@ The second option is based on the divergence formula.</p></li>
       
         <div class="footer-item">
 <p class="theme-version">
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.3.
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
 </p></div>
       
     </div>
