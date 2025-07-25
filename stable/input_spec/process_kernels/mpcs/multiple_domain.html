@@ -43,7 +43,7 @@
 
     <script src="../../../_static/jquery.js?v=5d32c60e"></script>
     <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../../../_static/documentation_options.js?v=3ce10a4d"></script>
+    <script src="../../../_static/documentation_options.js?v=8e91adea"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -64,7 +64,7 @@
     <link rel="prev" title="Tightly Coupled MPCs" href="tightly_coupled.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="dev" />
+  <meta name="docsearch:version" content="v1.6" />
   </head>
   
   
@@ -265,7 +265,7 @@
   
     <div class="sidebar-primary-items__start sidebar-primary__section">
         <div class="sidebar-primary-item"><!-- This will display the version of the docs -->
-Version dev</div>
+Version v1.6</div>
         <div class="sidebar-primary-item">
 <div class="version-switcher__container dropdown pst-js-only">
   <button id="pst-version-switcher-button-2"
@@ -549,7 +549,7 @@ the subsurface is small.</p>
 <p class="admonition-title">pk-operator-split-coupled-water-spec</p>
 <ul class="simple">
 <li><p><cite>“PKs order</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> Order is {star_system, primary_system}.
-Note that the sub-PKs are likely a <a class="reference internal" href="../physical/flow.html#overland-flow-pk"><span class="std std-ref">Overland Flow PK</span></a> for the “star”
+Note that the sub-PKs are likely a <a class="reference internal" href="../physical/physical.html#overland-flow-pk"><span class="std std-ref">Overland Flow PK</span></a> for the “star”
 system and a <a class="reference internal" href="#integrated-hydrology"><span class="std std-ref">Integrated Hydrology</span></a> MPC for the “primary” system.</p></li>
 <li><p><cite>“domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> The subsurface domain, e.g. <cite>“domain</cite>” (for a
 3D subsurface) or <cite>“column:*</cite>” (for the intermediate scale, columnar model).</p></li>
@@ -560,7 +560,7 @@ or <cite>“hybrid</cite>” (see above).</p></li>
 </ul>
 <p>INCLUDES:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">[mpc-spec]</span></code> <em>Is an</em> <a class="reference internal" href="base.html#mpc"><span class="std std-ref">MPC</span></a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[mpc-spec]</span></code> <em>Is an</em> <a class="reference internal" href="index.html#mpc"><span class="std std-ref">MPC</span></a>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[mpc-subcycled-spec]</span></code> <em>Is a</em> <a class="reference internal" href="base.html#subcycling-mpc"><span class="std std-ref">Subcycling MPC</span></a>.</p></li>
 </ul>
 </div>
@@ -619,7 +619,7 @@ Note that the sub-PKs are likely a <a class="reference internal" href="tightly_c
 the star system and a <a class="reference internal" href="#integrated-thermal-hydrology"><span class="std std-ref">Integrated Thermal Hydrology</span></a> MPC for the
 primary system.  Because the latter does not include lateral fluxes in the
 surface, the sub-PKs of the primary system may be <span class="xref std std-ref">General Surface
-Balance</span> equations rather than <a class="reference internal" href="../physical/flow.html#overland-flow-pk"><span class="std std-ref">Overland Flow PK</span></a> and <a class="reference internal" href="../physical/energy.html#overland-energy-with-ice"><span class="std std-ref">Overland Energy with Ice</span></a> (thereby removing the lateral flow and energy transport
+Balance</span> equations rather than <a class="reference internal" href="../physical/physical.html#overland-flow-pk"><span class="std std-ref">Overland Flow PK</span></a> and <a class="reference internal" href="../physical/physical.html#overland-energy-with-ice"><span class="std std-ref">Overland energy with Ice</span></a> (thereby removing the lateral flow and energy transport
 components).</p></li>
 <li><p><cite>“domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> The subsurface domain, e.g. “domain” (for a
 3D subsurface ) or “column:<a href="#id1"><span class="problematic" id="id2">*</span></a>” (for the intermediate scale model.</p></li>
@@ -631,7 +631,7 @@ pressure field when coupling flow in the operator splitting), <cite>“flux</cit
 the two that seems the most robust.</p></li>
 </ul>
 <p>INCLUDES:
-- <code class="docutils literal notranslate"><span class="pre">[pk-mpc-spec]</span></code> <em>Is an</em> <a class="reference internal" href="base.html#mpc"><span class="std std-ref">MPC</span></a>.
+- <code class="docutils literal notranslate"><span class="pre">[pk-mpc-spec]</span></code> <em>Is an</em> <a class="reference internal" href="index.html#mpc"><span class="std std-ref">MPC</span></a>.
 - <code class="docutils literal notranslate"><span class="pre">[pk-subcycling-mpc-spec]</span></code> <em>Is a</em> <a class="reference internal" href="base.html#subcycling-mpc"><span class="std std-ref">Subcycling MPC</span></a></p>
 </div>
 </section>

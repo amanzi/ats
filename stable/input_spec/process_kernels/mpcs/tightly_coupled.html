@@ -43,7 +43,7 @@
 
     <script src="../../../_static/jquery.js?v=5d32c60e"></script>
     <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../../../_static/documentation_options.js?v=3ce10a4d"></script>
+    <script src="../../../_static/documentation_options.js?v=8e91adea"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -64,7 +64,7 @@
     <link rel="prev" title="Base MPCs" href="base.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="dev" />
+  <meta name="docsearch:version" content="v1.6" />
   </head>
   
   
@@ -265,7 +265,7 @@
   
     <div class="sidebar-primary-items__start sidebar-primary__section">
         <div class="sidebar-primary-item"><!-- This will display the version of the docs -->
-Version dev</div>
+Version v1.6</div>
         <div class="sidebar-primary-item">
 <div class="version-switcher__container dropdown pst-js-only">
   <button id="pst-version-switcher-button-2"
@@ -491,7 +491,7 @@ mesh.  In the temperature/pressure system, these extra blocks correspond to</p>
 <h2>Subsurface Flow &amp; Energy<a class="headerlink" href="#subsurface-flow-energy" title="Link to this heading">#</a></h2>
 <p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/mpc/mpc_subsurface.hh">src/physics/ats/src/pks/mpc/mpc_subsurface.hh</a></p>
 <p>This MPC provides most nearly all terms for an approximate Jacobian for
-coupling three-phase Richards equation (the <a class="reference internal" href="../physical/flow.html#permafrost-flow-pk"><span class="std std-ref">Permafrost Flow PK</span></a>) to the
+coupling three-phase Richards equation (the <a class="reference internal" href="../physical/physical.html#permafrost-flow-pk"><span class="std std-ref">Permafrost Flow PK</span></a>) to the
 three-phase Energy equation (the <a class="reference internal" href="../physical/energy.html#three-phase-energy-pk"><span class="std std-ref">Three-Phase Energy PK</span></a>).</p>
 <p>Many options are provided for turning on and off various aspects of this
 Jacobian, so it is useful to mathematically write out these terms.  The
@@ -597,8 +597,8 @@ using picard or ewc, do not include this block in the preconditioner.</p></li>
 <h2>Surface Flow &amp; Energy<a class="headerlink" href="#surface-flow-energy" title="Link to this heading">#</a></h2>
 <p><a class="reference external" href="https://github.com/amanzi/ats/blob/master/src/pks/mpc/mpc_surface.hh">src/physics/ats/src/pks/mpc/mpc_surface.hh</a></p>
 <p>This MPC provides terms for an approximate Jacobian for coupling the two-phase
-diffusion wave equation (the <a class="reference internal" href="../physical/flow.html#overland-flow-with-ice"><span class="std std-ref">Overland Flow with Ice</span></a>) to the two-phase
-surface energy equation (the <a class="reference internal" href="../physical/energy.html#overland-energy-with-ice"><span class="std std-ref">Overland Energy with Ice</span></a>).</p>
+diffusion wave equation (the <a class="reference internal" href="../physical/physical.html#overland-flow-with-ice"><span class="std std-ref">Overland Flow with Ice</span></a>) to the two-phase
+surface energy equation (the <a class="reference internal" href="../physical/physical.html#overland-energy-with-ice"><span class="std std-ref">Overland energy with Ice</span></a>).</p>
 <p><cite>“PK type</cite>” = <cite>“icy surface</cite>”</p>
 <div class="admonition-pk-icy-surface-spec admonition" id="pk-icy-surface-spec">
 <p class="admonition-title">pk-icy-surface-spec</p>
