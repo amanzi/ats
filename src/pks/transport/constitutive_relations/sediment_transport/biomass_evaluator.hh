@@ -48,7 +48,6 @@ mean sea level, and :math:`h` is a surface elevation.
    - `"mean sea level`" **DOMAIN-mean_sea_level**
    - `"elevation`" **DOMAIN-elevation**
 
-
 */
 
 #ifndef AMANZI_BIOMASS_EVALUATOR
@@ -78,7 +77,9 @@ class BiomassEvaluator : public EvaluatorSecondaryMonotypeCV {
     AMANZI_ASSERT(0);
   }
 
-  virtual void EnsureCompatibility_Structure_(State& S) { EnsureCompatibility_StructureSame_(S); }
+  virtual void EnsureCompatibility_Structure_(State& S) override {
+    EnsureCompatibility_StructureSame_(S);
+  }
 
   void InitializeFromPlist_();
 
