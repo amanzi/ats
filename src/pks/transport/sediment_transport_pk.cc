@@ -90,7 +90,7 @@ SedimentTransport_PK::parseParameterList()
   lwc_key_ = Keys::readKey(*plist_, domain_, "liquid water content", "water_content");
   requireEvaluatorAtCurrent(lwc_key_, tag_current_, *S_, name_);
 
-  water_src_key_ = Keys::readKey(*plist_, domain_, "water source", "water_source");
+  default_water_src_key_ = Keys::readKey(*plist_, domain_, "water source", "water_source");
   cv_key_ = Keys::readKey(*plist_, domain_, "cell volume", "cell_volume");
 
   // workspace, no evaluator
