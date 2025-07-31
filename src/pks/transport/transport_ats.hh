@@ -351,12 +351,15 @@ class Transport_ATS : public PK_Physical_Default {
   double dt_stable_, dt_max_;
 
   // Source terms
-  // srcs should go away, and instead use vectors from State and evaluators --ETC
-  Key water_src_key_;
-  Key geochem_src_factor_key_;
-  bool has_water_src_key_;
-  bool water_src_in_meters_;
+  // -- REMOVE IN 1.7
+  Key default_water_src_key_;
+  bool default_water_src_in_meters_;
+
+  std::map<std::string, Key> water_src_keys_;
+  std::map<std::string, bool> water_src_in_meters_;
+  std::map<std::string, Key> geochem_src_factor_keys_;
   Key molar_dens_key_;
+
   std::vector<Teuchos::RCP<TransportDomainFunction>> srcs_; // Source or sink for components
 
   // operators for advection
