@@ -1711,13 +1711,14 @@ def setup_testlog(txtwrap, silence=False):
     return testlog
 
 
-def find_last_logfile():
+def find_last_logfile(entry=-1):
     """
     Finds the last-in-time logfile from the LOGS directory.
     """
     logfiles = [l for l in os.listdir("LOGS") if l.startswith('ats-tests-') \
                 and l.endswith('.testlog')]
-    return os.path.join('LOGS', max(logfiles))
+    all_files = list(sorted(logfiles))
+    return os.path.join('LOGS', all_files[entry])
 
 
 def find_failed(logfile):

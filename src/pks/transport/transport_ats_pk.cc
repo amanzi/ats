@@ -130,7 +130,10 @@ Transport_ATS::parseParameterList()
   lwc_key_ = Keys::readKey(*plist_, domain_, "liquid water content", "water_content");
   requireEvaluatorAtCurrent(lwc_key_, tag_current_, *S_, name_);
 
-  water_src_key_ = Keys::readKey(*plist_, domain_, "water source", "water_source");
+  // NOTE: these to go away in 1.7
+  default_water_src_key_ = Keys::readKey(*plist_, domain_, "water source", "water_source");
+  default_water_src_in_meters_ = plist_->get<bool>("water source in meters", false);
+
   cv_key_ = Keys::readKey(*plist_, domain_, "cell volume", "cell_volume");
 
   // workspace, no evaluator
@@ -140,9 +143,6 @@ Transport_ATS::parseParameterList()
 
   solid_residue_mass_key_ =
     Keys::readKey(*plist_, domain_, "solid residue", "solid_residue_quantity");
-
-  geochem_src_factor_key_ =
-    Keys::readKey(*plist_, domain_, "geochem source factor", "geochem_src_factor");
 
   if (chem_engine_ != Teuchos::null) {
     // needed by geochemical bcs
@@ -400,34 +400,43 @@ Transport_ATS::SetupTransport_()
       }
     }
 
-    // sources of water that include C at a known concentration
+    // sources of water that include C at a known concentration, done by
+    // geochemical engine
     if (sources_list->isSublist("geochemical")) {
-      // note these are computed at the flow PK's NEXT tag, which assumes all
-      // sources are dealt with implicitly (backward Euler).  This could be relaxed --ETC
-      requireEvaluatorAtNext(water_src_key_, tag_next_, *S_)
-        .SetMesh(mesh_)
-        ->SetGhosted(true)
-        ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-      has_water_src_key_ = true;
+      auto geochem_list = Teuchos::sublist(sources_list, "geochemical");
+      for (const auto& it : *geochem_list) {
+        std::string specname = it.first;
+        Teuchos::ParameterList& spec = geochem_list->sublist(specname);
 
-      // this flag is just for convenience -- some flow PKs accept a water
-      // source in m/s not in mol/m^d/s.
-      water_src_in_meters_ = plist_->get<bool>("water source in meters", false);
+        // source-specific corresponding water source
+        // in 1.7, remove the default
+        water_src_keys_[specname] = Keys::readKey(spec, domain_, "water source",
+                Keys::getVarName(default_water_src_key_));
+        // in 1.7, set default to false
+        water_src_in_meters_[specname] = spec.get<bool>("water source in meters", default_water_src_in_meters_);
 
-      if (water_src_in_meters_) {
-        geochem_src_factor_key_ = water_src_key_;
-      } else {
-        // set the coefficient as water source / water density
-        Teuchos::ParameterList& wc_eval = S_->GetEvaluatorList(geochem_src_factor_key_);
-        wc_eval.set<std::string>("evaluator type", "reciprocal evaluator");
-        std::vector<std::string> dep{ water_src_key_, molar_dens_key_ };
-        wc_eval.set<Teuchos::Array<std::string>>("dependencies", dep);
-        wc_eval.set<std::string>("reciprocal", dep[1]);
+        if (water_src_in_meters_[specname]) {
+          geochem_src_factor_keys_[specname] = water_src_keys_[specname];
+        } else {
+          Key water_src_varname = Keys::getVarName(water_src_keys_[specname]);
+          geochem_src_factor_keys_[specname] = Keys::readKey(spec, domain_, "geochem source factor",
+                  water_src_varname + "_geochem_src_factor");
+
+          // set the coefficient as water source / water density
+          if (!S_->HasEvaluatorList(geochem_src_factor_keys_[specname])) {
+            Teuchos::ParameterList& wc_eval = S_->GetEvaluatorList(geochem_src_factor_keys_[specname]);
+            wc_eval.set<std::string>("evaluator type", "reciprocal evaluator");
+            std::vector<std::string> dep{ water_src_keys_[specname], molar_dens_key_ };
+            wc_eval.set<Teuchos::Array<std::string>>("dependencies", dep);
+            wc_eval.set<std::string>("reciprocal", dep[1]);
+          }
+        }
+
+        requireEvaluatorAtNext(geochem_src_factor_keys_[specname], tag_next_, *S_)
+          .SetMesh(mesh_)
+          ->SetGhosted(true)
+          ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
       }
-      requireEvaluatorAtNext(geochem_src_factor_key_, tag_next_, *S_)
-        .SetMesh(mesh_)
-        ->SetGhosted(true)
-        ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     }
   }
 
@@ -508,6 +517,7 @@ Transport_ATS::SetupTransport_()
     for (const auto& it : *geochem_list) {
       std::string specname = it.first;
       Teuchos::ParameterList& spec = geochem_list->sublist(specname);
+
       Teuchos::RCP<TransportBoundaryFunction_Alquimia_Units> bc = Teuchos::rcp(
         new TransportBoundaryFunction_Alquimia_Units(spec, mesh_, chem_pk_, chem_engine_));
 
@@ -664,15 +674,16 @@ Transport_ATS::Initialize()
       for (const auto& it : *geochem_list) {
         std::string specname = it.first;
         Teuchos::ParameterList& spec = geochem_list->sublist(specname);
+
         Teuchos::RCP<TransportSourceFunction_Alquimia_Units> src = Teuchos::rcp(
           new TransportSourceFunction_Alquimia_Units(spec, mesh_, chem_pk_, chem_engine_));
 
-        if (S_->HasEvaluator(geochem_src_factor_key_, tag_next_)) {
-          S_->GetEvaluator(geochem_src_factor_key_, tag_next_).Update(*S_, name_);
+        if (S_->HasEvaluator(geochem_src_factor_keys_[specname], tag_next_)) {
+          S_->GetEvaluator(geochem_src_factor_keys_[specname], tag_next_).Update(*S_, name_);
         }
 
         auto src_factor =
-          S_->Get<CompositeVector>(geochem_src_factor_key_, tag_next_).ViewComponent("cell", false);
+          S_->Get<CompositeVector>(geochem_src_factor_keys_[specname], tag_next_).ViewComponent("cell", false);
         src->set_conversion(-1000., src_factor, false);
 
         for (const auto& n : src->tcc_names()) {
@@ -879,32 +890,28 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
 
   // update geochemical condition conversions
 #ifdef ALQUIMIA_ENABLED
-  if (plist_->sublist("source terms").isSublist("geochemical")) {
-    for (auto& src : srcs_) {
-      if (src->getType() == DomainFunction_kind::ALQUIMIA) {
-        // src_factor = water_source / molar_density_liquid, both flow
-        // quantities, see note above.
-        S_->GetEvaluator(geochem_src_factor_key_, tag_next_).Update(*S_, name_);
-        auto src_factor =
-          S_->Get<CompositeVector>(geochem_src_factor_key_, tag_next_).ViewComponent("cell", false);
-        Teuchos::RCP<TransportSourceFunction_Alquimia_Units> src_alq =
-          Teuchos::rcp_dynamic_cast<TransportSourceFunction_Alquimia_Units>(src);
-        src_alq->set_conversion(-1000, src_factor, false);
-      }
+  for (auto& src : srcs_) {
+    if (src->getType() == DomainFunction_kind::ALQUIMIA) {
+      Key geochem_src_factor_key = geochem_src_factor_keys_[src->getName()];
+
+      S_->GetEvaluator(geochem_src_factor_key, tag_next_).Update(*S_, name_);
+      auto src_factor =
+        S_->Get<CompositeVector>(geochem_src_factor_key, tag_next_).ViewComponent("cell", false);
+      Teuchos::RCP<TransportSourceFunction_Alquimia_Units> src_alq =
+        Teuchos::rcp_dynamic_cast<TransportSourceFunction_Alquimia_Units>(src);
+      src_alq->set_conversion(-1000, src_factor, false);
     }
   }
 
-  if (plist_->sublist("boundary conditions").isSublist("geochemical")) {
-    for (auto& bc : bcs_) {
-      if (bc->getType() == DomainFunction_kind::ALQUIMIA) {
-        Teuchos::RCP<TransportBoundaryFunction_Alquimia_Units> bc_alq =
-          Teuchos::rcp_dynamic_cast<TransportBoundaryFunction_Alquimia_Units>(bc);
+  for (auto& bc : bcs_) {
+    if (bc->getType() == DomainFunction_kind::ALQUIMIA) {
+      Teuchos::RCP<TransportBoundaryFunction_Alquimia_Units> bc_alq =
+        Teuchos::rcp_dynamic_cast<TransportBoundaryFunction_Alquimia_Units>(bc);
 
-        S_->GetEvaluator(molar_dens_key_, tag_next_).Update(*S_, name_);
-        auto molar_dens =
-          S_->Get<CompositeVector>(molar_dens_key_, tag_next_).ViewComponent("cell", false);
-        bc_alq->set_conversion(1000.0, molar_dens, true);
-      }
+      S_->GetEvaluator(molar_dens_key_, tag_next_).Update(*S_, name_);
+      auto molar_dens =
+        S_->Get<CompositeVector>(molar_dens_key_, tag_next_).ViewComponent("cell", false);
+      bc_alq->set_conversion(1000.0, molar_dens, true);
     }
   }
 #endif
