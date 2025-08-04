@@ -103,7 +103,7 @@ set(amanzi_link_libs
   mesh_mstk
   mesh_logical
   chemistry_pk
-  #mpc_tree
+  mpc_tree
   transport
   shallow_water
   )
