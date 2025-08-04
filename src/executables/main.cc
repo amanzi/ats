@@ -36,6 +36,7 @@
 
 // registration files
 #include "ats_registration_files.hh"
+#include "amanzi_registration_files.hh"
 #include "PK_Factory.hh"
 #include "Evaluator_Factory.hh"
 

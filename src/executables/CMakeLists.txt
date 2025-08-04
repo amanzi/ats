@@ -30,6 +30,12 @@ include_directories(${DBG_SOURCE_DIR})
 include_directories(${TRANSPORT_SOURCE_DIR})
 get_property(CHEM_INCLUDES_DIR GLOBAL PROPERTY CHEM_INCLUDES_DIR)
 include_directories(${CHEM_INCLUDES_DIR})
+include_directories(${EVALUATORS_SOURCE_DIR})
+include_directories(${EOS_SOURCE_DIR})
+#include_directories(${AMANZI_SOURCE_DIR}/src/pks/flow)
+#include_directories(${AMANZI_SOURCE_DIR}/src/pks/energy)
+#include_directories(${AMANZI_SOURCE_DIR}/src/pks/transport)
+include_directories(${AMANZI_SOURCE_DIR}/src/pks/shallow_water)
 
 include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations)
 include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/eos)
@@ -99,6 +105,7 @@ set(amanzi_link_libs
   chemistry_pk
   #mpc_tree
   transport
+  shallow_water
   )
 
 set(ats_link_libs
