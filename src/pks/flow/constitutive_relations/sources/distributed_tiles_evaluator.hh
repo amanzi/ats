@@ -12,6 +12,8 @@
 
 Distributed, subsurface sources due to tile drains.
 
+`"evaluator type"` = `"distributed tiles"`
+
 .. _distributed-tiles-spec:
 .. admonition:: distributed-tiles-spec
 
