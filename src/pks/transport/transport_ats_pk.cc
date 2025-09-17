@@ -286,26 +286,6 @@ Transport_ATS::SetupTransport_()
     S_->RequireEvaluator(dispersion_tensor_key_, tag_next_);
   }
 
-  // operator and boundary conditions for diffusion/dispersion solve
-  if (has_dispersion_ || has_diffusion_) {
-    // default boundary conditions (none inside domain and Neumann on its boundary)
-    diff_bcs_ = Teuchos::rcp(
-      new Operators::BCs(mesh_, AmanziMesh::Entity_kind::FACE, WhetStone::DOF_Type::SCALAR));
-    PopulateBoundaryData_(-1, *diff_bcs_);
-
-    // diffusion operator
-    Operators::PDE_DiffusionFactory opfactory;
-    Teuchos::ParameterList& op_list = plist_->sublist("diffusion");
-    diff_op_ = opfactory.Create(op_list, mesh_, diff_bcs_);
-    diff_global_op_ = diff_op_->global_operator();
-    diff_acc_op_ =
-      Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, diff_global_op_));
-
-    // diffusion workspace
-    const CompositeVectorSpace& cvs = diff_global_op_->DomainMap();
-    diff_sol_ = Teuchos::rcp(new CompositeVector(cvs));
-  }
-
   // source term setup
   // --------------------------------------------------------------------------------
   if (plist_->isSublist("source terms")) {
@@ -449,6 +429,7 @@ Transport_ATS::SetupTransport_()
     auto bcs_list = Teuchos::sublist(plist_, "boundary conditions");
     auto conc_bcs_list = Teuchos::sublist(bcs_list, "mole fraction");
 
+    int m = 0;    
     for (const auto& it : *conc_bcs_list) {
       std::string name = it.first;
       if (conc_bcs_list->isSublist(name)) {
@@ -503,13 +484,40 @@ Transport_ATS::SetupTransport_()
 
           // set the component indicies
           for (const auto& n : bc->tcc_names()) {
-            bc->tcc_index().push_back(FindComponentNumber_(n));
+            std::cout<<"n "<<n<<"\n";
+            bc->tcc_index().push_back(FindComponentNumber_(n));            
           }
           bcs_.push_back(bc);
+          for (auto it = bc->begin(); it != bc->end(); ++it) {
+            std::cout << it->first <<"\n";
+          }
         }
       }
     }
 
+  // operator and boundary conditions for diffusion/dispersion solve
+  if (has_dispersion_ || has_diffusion_) {
+    // default boundary conditions (none inside domain and Neumann on its boundary)
+    diff_bcs_ = Teuchos::rcp(
+      new Operators::BCs(mesh_, AmanziMesh::Entity_kind::FACE, WhetStone::DOF_Type::SCALAR));
+
+    PopulateBoundaryData_(-1, *diff_bcs_);
+
+    // diffusion operator
+    Operators::PDE_DiffusionFactory opfactory;
+    Teuchos::ParameterList& op_list = plist_->sublist("diffusion");
+    diff_op_ = opfactory.Create(op_list, mesh_, diff_bcs_);
+    diff_global_op_ = diff_op_->global_operator();
+    diff_acc_op_ =
+      Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, diff_global_op_));
+
+    // diffusion workspace
+    const CompositeVectorSpace& cvs = diff_global_op_->DomainMap();
+    diff_sol_ = Teuchos::rcp(new CompositeVector(cvs));
+  }
+
+
+    
 #ifdef ALQUIMIA_ENABLED
     // -- try geochemical conditions
     auto geochem_list = Teuchos::sublist(bcs_list, "geochemical");
@@ -950,7 +958,7 @@ Transport_ATS ::AdvanceDispersionDiffusion_(double t_old, double t_new)
 {
   if (!has_diffusion_ && !has_dispersion_) return;
   double dt = t_new - t_old;
-
+  
   Epetra_MultiVector& tcc_new =
     *S_->GetW<CompositeVector>(key_, tag_next_, passwd_).ViewComponent("cell", false);
 
@@ -983,6 +991,9 @@ Transport_ATS ::AdvanceDispersionDiffusion_(double t_old, double t_new)
   double md_old(0.0);
 
   for (int i = 0; i != num_aqueous_; ++i) {
+
+    // Set Dirichlet_BC for 
+    PopulateBoundaryData_(i, *diff_bcs_);
     // add molecular diffusion to the dispersion tensor
     bool changed_tensor(false);
     if (has_diffusion_) {
@@ -1346,8 +1357,7 @@ Transport_ATS::PopulateBoundaryData_(int component, Operators::BCs& bc)
   if (component >= 0) {
     for (int m = 0; m < bcs_.size(); m++) {
       std::vector<int>& tcc_index = bcs_[m]->tcc_index();
-      int ncomp = tcc_index.size();
-
+      int ncomp = tcc_index.size();                                        
       for (auto it = bcs_[m]->begin(); it != bcs_[m]->end(); ++it) {
         int f = it->first;
         std::vector<double>& values = it->second;
