@@ -9,7 +9,7 @@ Gate Structure
 Pump System
 ^^^^^^^^^^^^
 
-{ surface_pump_station }
+{ surface_pump_system_evaluator }
 
 Culverts
 ^^^^^^^^^
@@ -26,6 +26,7 @@ Tile Drains
 
 { distributed_tiles_evaluator }
 
+{ surface_distributed_tiles_evaluator }
 
 
 
