@@ -7,34 +7,37 @@
   Authors: Ethan Coon (coonet@ornl.gov)
 */
 
-//! An evaluator for rerouting precip due to impervious surface.
+//! An evaluator for rerouting precipitation due to impervious surface interception.
 
 /*!
 
 This evaluator reroutes incoming precipitation, taking a portion of it (where
 the portion is determined by the impervious area fraction) and moving it
-(instantly) into the nearby stream network.
+(instantly) into nearby cells specified by the runoff receiver IDs.
 
-Note: this assumes that the runoff reciever is constant in time!
+The evaluator performs the following operations:
+1. Splits incoming water into diverted (to impervious areas) and non-diverted portions.
+2. Applies a maximum specific diversion rate if specified.
+3. Redistributes diverted water to target cells using Epetra_Import.
+4. Ensures mass conservation throughout the process.
 
-`"evaluator type`" = `"impervious surface interception`"
+Note: This assumes that the runoff receiver IDs are constant in time!
+
+`"evaluator type"` = `"impervious surface interception"`
 
 .. _impervious-interception-evaluator-spec:
 .. admonition:: impervious-interception-evaluator-spec
 
-   * `"maximum specific diversion rate [m s^-1]`" ``[double]`` **inf**
+   * `"maximum specific diversion rate [m s^-1]"` ``[double]``
      Maximum rate of water removal through storm drains, etc, in units of m^3
-     water per second per m^2 of _impervious_ area (specific area).
+     water per second per m^2 of impervious area (specific area). If negative,
+     no limit is applied.
 
    KEYS:
-   - `"impervious fraction`" **DOMAIN-impervious_fraction** The fraction of surface area that is impervious, this also defines the fraction of precip
-     that is rerouted.
-   - `"impervious runoff receiver`" **DOMAIN-impervious_runoff_receiver`" The
-     Global ID of the cell that will recieve water from this cell.
-   - `"incoming water source`" **DOMAIN-precipitation_rain** The source of
-     water to be re-reouted -- this is typically rain, but might be
-     canopy-throughfall_drainage_rain, and might be snow-melt, etc.
-   - `"cell volume`" **DOMAIN-cell_volume**
+   - `"impervious fraction"` **DOMAIN-impervious_fraction** The fraction of surface area that is impervious, which also defines the fraction of precipitation that is rerouted.
+   - `"impervious runoff receiver"` **DOMAIN-impervious_runoff_receiver** The Global ID of the cell that will receive water from this cell. If negative, water is not diverted.
+   - `"incoming water source"` **DOMAIN-precipitation_rain** The source of water to be rerouted -- this is typically rain, but might be canopy-throughfall_drainage_rain.
+   - `"cell volume"` **DOMAIN-cell_volume** Cell volumes for proper mass balance calculations.
 
 */
 
