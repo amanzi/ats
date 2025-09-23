@@ -32,6 +32,7 @@
 #include "Teuchos_ParameterList.hpp"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class UnfrozenFractionModel {
@@ -51,6 +52,7 @@ class UnfrozenFractionModel {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

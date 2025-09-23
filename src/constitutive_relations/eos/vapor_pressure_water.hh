@@ -23,6 +23,7 @@
 #include "vapor_pressure_relation.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 class VaporPressureWater : public VaporPressureRelation {
@@ -41,6 +42,7 @@ class VaporPressureWater : public VaporPressureRelation {
 };
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

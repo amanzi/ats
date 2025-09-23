@@ -20,6 +20,7 @@
 
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 EOS_SW::EOS_SW(Teuchos::ParameterList& eos_plist)
@@ -77,4 +78,5 @@ EOS_SW::InitializeFromPlist_()
 };
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi

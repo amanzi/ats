@@ -34,6 +34,7 @@ porous media.
 #include "thermal_conductivity_threephase.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 // Equation of State model
@@ -71,4 +72,5 @@ class ThermalConductivityThreePhaseEvaluator : public EvaluatorSecondaryMonotype
 };
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

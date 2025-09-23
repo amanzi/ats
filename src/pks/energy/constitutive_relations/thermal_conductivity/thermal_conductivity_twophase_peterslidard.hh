@@ -54,6 +54,7 @@ Units: [W m^-1 K^-1]
 #include "thermal_conductivity_twophase.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 class ThermalConductivityTwoPhasePetersLidard : public ThermalConductivityTwoPhase {
@@ -81,6 +82,7 @@ class ThermalConductivityTwoPhasePetersLidard : public ThermalConductivityTwoPha
 };
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

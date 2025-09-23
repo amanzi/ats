@@ -45,6 +45,7 @@ converts the flow law to water flux rather than volumetric flux.
 #include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class ManningConductivityModel;
@@ -82,4 +83,5 @@ class OverlandConductivitySubgridEvaluator : public EvaluatorSecondaryMonotypeCV
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

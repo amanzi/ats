@@ -10,6 +10,7 @@
 #include "liquid_gas_water_content_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 namespace Relations {
 
@@ -18,4 +19,5 @@ Utils::RegisteredFactory<Evaluator, LiquidGasWaterContentEvaluator>
 
 } // namespace Relations
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

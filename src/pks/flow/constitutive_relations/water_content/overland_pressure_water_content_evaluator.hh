@@ -58,6 +58,7 @@ Note this is not valid for concentration-dependent density problems.
 #include "Factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class OverlandPressureWaterContentEvaluator : public EvaluatorSecondaryMonotypeCV {
@@ -92,6 +93,7 @@ class OverlandPressureWaterContentEvaluator : public EvaluatorSecondaryMonotypeC
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

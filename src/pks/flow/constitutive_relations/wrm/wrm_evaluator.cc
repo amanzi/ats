@@ -17,6 +17,7 @@
 #include "wrm_factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 WRMEvaluator::WRMEvaluator(Teuchos::ParameterList& plist)
@@ -215,4 +216,5 @@ WRMEvaluator::EvaluatePartialDerivative_(const State& S,
 
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

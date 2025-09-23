@@ -22,6 +22,7 @@ Interfrost water content portion sl.
 #include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 namespace Relations {
 
@@ -58,6 +59,7 @@ class InterfrostDthetaDpressureEvaluator : public EvaluatorSecondaryMonotypeCV {
 
 } // namespace Relations
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

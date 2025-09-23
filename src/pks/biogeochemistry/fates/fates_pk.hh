@@ -24,6 +24,7 @@
 #include <string.h>
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace BGC {
 
 typedef struct {
@@ -155,6 +156,7 @@ class FATES_PK : public PK_Physical_Default {
 };
 
 } // namespace BGC
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

@@ -16,6 +16,7 @@
 #include "overland_source_from_subsurface_flux_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 OverlandSourceFromSubsurfaceFluxEvaluator::OverlandSourceFromSubsurfaceFluxEvaluator(
@@ -151,4 +152,5 @@ OverlandSourceFromSubsurfaceFluxEvaluator::EvaluatePartialDerivative_(
 }
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi

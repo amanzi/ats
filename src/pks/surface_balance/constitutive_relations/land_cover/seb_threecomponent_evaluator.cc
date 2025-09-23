@@ -29,6 +29,7 @@ respectively.
 #include "seb_physics_funcs.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 namespace Relations {
 
@@ -714,4 +715,5 @@ SEBThreeComponentEvaluator::UpdateFieldDerivative_(const State& S,
 
 } // namespace Relations
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

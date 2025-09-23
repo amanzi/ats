@@ -10,6 +10,7 @@
 #include "rel_perm_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // registry of method
@@ -17,4 +18,5 @@ Utils::RegisteredFactory<Evaluator, RelPermEvaluator> RelPermEvaluator::factory_
   "relative permeability, water retention model");
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

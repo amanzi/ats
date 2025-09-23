@@ -19,6 +19,7 @@
 #include "soil_resistance_sakagucki_zeng_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 SoilResistanceSakaguckiZengEvaluator::SoilResistanceSakaguckiZengEvaluator(
@@ -166,4 +167,5 @@ SoilResistanceSakaguckiZengEvaluator::EnsureCompatibility_ToDeps_(State& S)
 
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

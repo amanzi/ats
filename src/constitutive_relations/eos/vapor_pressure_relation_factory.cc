@@ -18,6 +18,7 @@
 #include "vapor_pressure_relation_factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 // method for instantiating VaporPressure implementations
@@ -29,4 +30,5 @@ VaporPressureRelationFactory::createVaporPressure(Teuchos::ParameterList& plist)
 };
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi

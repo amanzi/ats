@@ -24,6 +24,7 @@ evaluating.
 #include "ewc_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 
 class EWCModelBase : public EWCModel {
  public:
@@ -52,6 +53,7 @@ class EWCModelBase : public EWCModel {
                                                    WhetStone::Tensor& jac);
 };
 
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

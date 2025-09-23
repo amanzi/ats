@@ -175,6 +175,7 @@ namespace Functions {
 class BoundaryFunction;
 }
 
+namespace ATS_Physics {      
 namespace Energy {
 
 class EnergyBase : public PK_PhysicalBDF_Default {
@@ -339,6 +340,7 @@ class EnergyBase : public PK_PhysicalBDF_Default {
 };
 
 } // namespace Energy
+} // namespace ATS_Physics  
 } // namespace Amanzi
 
 #endif

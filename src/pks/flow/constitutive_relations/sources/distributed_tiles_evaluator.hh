@@ -42,6 +42,7 @@ Distributed, subsurface sources due to tile drains.
 #include "EvaluatorSecondary.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 namespace Relations {
 
@@ -91,5 +92,6 @@ class DistributedTilesRateEvaluator : public EvaluatorSecondary {
 
 } // namespace Relations
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 #endif

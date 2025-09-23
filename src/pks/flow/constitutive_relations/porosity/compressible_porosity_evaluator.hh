@@ -45,6 +45,7 @@ converge.
 #include "compressible_porosity_model_partition.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class CompressiblePorosityEvaluator : public EvaluatorSecondaryMonotypeCV {
@@ -74,6 +75,7 @@ class CompressiblePorosityEvaluator : public EvaluatorSecondaryMonotypeCV {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

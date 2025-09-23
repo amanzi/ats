@@ -54,6 +54,7 @@ Components are: 0 = land, 1 = ice/water, 2 = snow.
 #include "LandCover.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 namespace Relations {
 
@@ -104,4 +105,5 @@ class AlbedoThreeComponentEvaluator : public EvaluatorSecondaryMonotypeCV {
 
 } // namespace Relations
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

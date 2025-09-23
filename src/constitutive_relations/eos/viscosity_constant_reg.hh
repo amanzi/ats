@@ -19,6 +19,7 @@
 #include "viscosity_constant.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 // registry of method
@@ -26,4 +27,5 @@ Utils::RegisteredFactory<ViscosityRelation, ViscosityConstant> ViscosityConstant
   "constant");
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi

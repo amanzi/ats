@@ -10,6 +10,7 @@
 #include "elevation_evaluator_column.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // registry of method
@@ -17,4 +18,5 @@ Utils::RegisteredFactory<Evaluator, ColumnElevationEvaluator> ColumnElevationEva
   "column elevation");
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

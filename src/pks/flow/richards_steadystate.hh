@@ -39,6 +39,7 @@ This is the same as Richards equation, but turns off the accumulation term.
 #include "richards.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {    
 namespace Flow {
 
 class RichardsSteadyState : public Richards {
@@ -71,6 +72,7 @@ class RichardsSteadyState : public Richards {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics            
 } // namespace Amanzi
 
 #endif

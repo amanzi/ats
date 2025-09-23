@@ -56,6 +56,7 @@ Components are indexed by: 0 = land/ice/water, 1 = snow.
 #include "LandCover.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 namespace Relations {
 
@@ -104,4 +105,5 @@ class AlbedoTwoComponentEvaluator : public EvaluatorSecondaryMonotypeCV {
 
 } // namespace Relations
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

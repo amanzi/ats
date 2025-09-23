@@ -20,6 +20,7 @@
 #include "PFT.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace BGC {
 
 PFT::PFT(std::string pft_type_, int ncells)
@@ -199,4 +200,5 @@ PFT::InitRoots(const Epetra_SerialDenseVector& SoilTArr,
 }
 
 } // namespace BGC
+} // namespace ATS_Physics
 } // namespace Amanzi

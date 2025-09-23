@@ -24,6 +24,7 @@
 #include "transport_ats.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Transport {
 
 /* *******************************************************************
@@ -224,4 +225,5 @@ CheckTracerBounds(const Epetra_MultiVector& tcc,
 }
 
 } // namespace Transport
+} // namespace ATS_Physics
 } // namespace Amanzi

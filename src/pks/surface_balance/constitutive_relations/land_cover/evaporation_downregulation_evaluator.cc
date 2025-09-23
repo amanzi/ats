@@ -15,6 +15,7 @@
 #include "evaporation_downregulation_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 namespace Relations {
 
@@ -95,4 +96,5 @@ EvaporationDownregulationEvaluator::EvaluatePartialDerivative_(
 
 } // namespace Relations
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

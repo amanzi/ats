@@ -38,6 +38,7 @@ assumption that dz is uniform (e.g. this is an extruded mesh).
 #include "EvaluatorIndependent.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class DepthEvaluator : public EvaluatorIndependentCV {
@@ -59,4 +60,5 @@ class DepthEvaluator : public EvaluatorIndependentCV {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

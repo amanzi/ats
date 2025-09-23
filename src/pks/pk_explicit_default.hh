@@ -24,14 +24,15 @@
 #include "Epetra_Vector.h"
 
 namespace Amanzi {
-
-class TreeVector;
-class PK_Explicit_Default : public PK_Explicit<TreeVector> {
+namespace ATS_Physics {
+  
+//class Amanzi::TreeVector;
+class PK_Explicit_Default : public PK_Explicit<Amanzi::TreeVector> {
  public:
   PK_Explicit_Default(Teuchos::ParameterList& pk_tree,
                       const Teuchos::RCP<Teuchos::ParameterList>& glist,
                       const Teuchos::RCP<State>& S,
-                      const Teuchos::RCP<TreeVector>& solution)
+                      const Teuchos::RCP<Amanzi::TreeVector>& solution)
     : PK(pk_tree, glist, S, solution), PK_Explicit<TreeVector>(pk_tree, glist, S, solution)
   {}
 
@@ -54,15 +55,16 @@ class PK_Explicit_Default : public PK_Explicit<TreeVector> {
 
  protected: //data  timestep control
   double dt_;
-  Teuchos::RCP<Explicit_TI::RK<TreeVector>> time_stepper_;
+  Teuchos::RCP<Amanzi::Explicit_TI::RK<Amanzi::TreeVector>> time_stepper_;
 
   // timing
   Teuchos::RCP<Teuchos::Time> step_walltime_;
 
   // solution at the old timestep
-  Teuchos::RCP<TreeVector> solution_old_;
+  Teuchos::RCP<Amanzi::TreeVector> solution_old_;
 };
 
+} // namespace ATS_Physics  
 } // namespace Amanzi
 
 #endif

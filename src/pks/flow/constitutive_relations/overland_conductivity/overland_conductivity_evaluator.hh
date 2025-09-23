@@ -52,6 +52,7 @@ some extra factors (timestep size) to ensure the correct flow law in that case.
 #include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class ManningConductivityModel;
@@ -89,4 +90,5 @@ class OverlandConductivityEvaluator : public EvaluatorSecondaryMonotypeCV {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

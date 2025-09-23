@@ -21,6 +21,7 @@ it needs a special evaluator.
 #include "interfrost_water_content.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 namespace Relations {
 
@@ -140,4 +141,5 @@ InterfrostWaterContent::EvaluatePartialDerivative_(const State& S,
 
 } // namespace Relations
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

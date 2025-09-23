@@ -19,6 +19,7 @@
 #include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace BGC {
 namespace BGCRelations {
 
@@ -45,6 +46,7 @@ class BioturbationEvaluator : public EvaluatorSecondaryMonotypeCV {
 
 } // namespace BGCRelations
 } // namespace BGC
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

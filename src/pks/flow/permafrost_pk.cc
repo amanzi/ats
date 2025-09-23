@@ -27,6 +27,7 @@
 #include "permafrost.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // -------------------------------------------------------------
@@ -95,4 +96,5 @@ Permafrost::SetupPhysicalEvaluators_()
 }
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

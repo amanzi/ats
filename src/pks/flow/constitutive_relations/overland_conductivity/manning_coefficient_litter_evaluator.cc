@@ -19,6 +19,7 @@
 #include "manning_coefficient_litter_variable_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 namespace Relations {
 
@@ -234,4 +235,5 @@ createManningCoefPartition(Teuchos::ParameterList& plist)
 
 } // namespace Relations
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

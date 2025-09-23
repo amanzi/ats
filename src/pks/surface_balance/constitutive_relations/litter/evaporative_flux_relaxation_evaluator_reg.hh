@@ -10,6 +10,7 @@
 #include "evaporative_flux_relaxation_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 namespace Relations {
 
@@ -18,4 +19,5 @@ Utils::RegisteredFactory<Evaluator, EvaporativeFluxRelaxationEvaluator>
 
 } // namespace Relations
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

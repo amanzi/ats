@@ -15,6 +15,7 @@
 #include "volumetric_darcy_flux_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 Volumetric_FluxEvaluator::Volumetric_FluxEvaluator(Teuchos::ParameterList& plist)
@@ -89,4 +90,5 @@ Volumetric_FluxEvaluator::EvaluatePartialDerivative_(const State& S,
 }
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi

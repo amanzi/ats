@@ -102,6 +102,7 @@ gravity- and wind-driven redistributions, respectively.
 #include "LandCover.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 namespace Relations {
 
@@ -181,4 +182,5 @@ class SEBThreeComponentEvaluator : public EvaluatorSecondaryMonotypeCV {
 
 } // namespace Relations
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

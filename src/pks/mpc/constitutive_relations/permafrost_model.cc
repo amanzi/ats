@@ -41,6 +41,7 @@
 #include "permafrost_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 
 #define DEBUG_FLAG 0
 
@@ -325,4 +326,5 @@ PermafrostModel::EvaluateEnergyAndWaterContent_(double T, double p, AmanziGeomet
   return ierr;
 }
 
+} // namespace ATS_Physics
 } // namespace Amanzi

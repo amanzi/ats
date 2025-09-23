@@ -32,6 +32,7 @@ Manning's coefficient that varies based on litter thickness and ponded depth.
 #include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 namespace Relations {
 
@@ -75,6 +76,7 @@ Teuchos::RCP<ManningCoefPartition> createManningCoefPartition(Teuchos::Parameter
 
 } // namespace Relations
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

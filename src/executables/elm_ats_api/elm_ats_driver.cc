@@ -379,7 +379,7 @@ ELM_ATSDriver::init_pressure_from_wc_(double const* const elm_water_content)
 
   // WRM model
   auto& wrm_eval = S_->GetEvaluator(sat_key_, Amanzi::Tags::NEXT);
-  auto wrm_ptr = dynamic_cast<Amanzi::Flow::WRMEvaluator*>(&wrm_eval);
+  auto wrm_ptr = dynamic_cast<Amanzi::ATS_Physics::Flow::WRMEvaluator*>(&wrm_eval);
   AMANZI_ASSERT(wrm_ptr != nullptr);
   auto wrms_ = wrm_ptr->get_WRMs();
   AMANZI_ASSERT(wrms_->second.size() == 1); // only supports one WRM for now

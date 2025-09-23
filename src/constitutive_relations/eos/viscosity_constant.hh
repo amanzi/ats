@@ -26,6 +26,7 @@
 #include "viscosity_relation.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 // Equation of State model
@@ -47,6 +48,7 @@ class ViscosityConstant : public ViscosityRelation {
 };
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

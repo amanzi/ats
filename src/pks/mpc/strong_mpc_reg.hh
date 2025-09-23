@@ -26,6 +26,6 @@ See additional documentation in the base class src/pks/mpc/MPC.hh
 namespace Amanzi {
 
 template<>
-RegisteredPKFactory<StrongMPC<PK_BDF_Default>> StrongMPC<PK_BDF_Default>::reg_("strong MPC");
+RegisteredPKFactory<StrongMPC<ATS_Physics::PK_BDF_Default>> StrongMPC<ATS_Physics::PK_BDF_Default>::reg_("strong MPC");
 
 } // namespace Amanzi

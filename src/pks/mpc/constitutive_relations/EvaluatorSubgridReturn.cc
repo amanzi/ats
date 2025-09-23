@@ -10,6 +10,7 @@
 #include "EvaluatorSubgridReturn.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 
 EvaluatorSubgridReturn::EvaluatorSubgridReturn(Teuchos::ParameterList& plist)
   : EvaluatorSecondaryMonotypeCV(plist)
@@ -113,4 +114,5 @@ EvaluatorSubgridReturn::EnsureCompatibility_ToDeps_(State& S)
   }
 }
 
+} // namespace ATS_Physics
 } // namespace Amanzi

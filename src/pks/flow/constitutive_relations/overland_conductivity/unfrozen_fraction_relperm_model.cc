@@ -19,6 +19,7 @@
 #include "unfrozen_fraction_relperm_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 UnfrozenFractionRelPermModel::UnfrozenFractionRelPermModel(Teuchos::ParameterList& plist)
@@ -39,4 +40,5 @@ UnfrozenFractionRelPermModel::SurfaceRelPerm(double uf, double h)
 
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

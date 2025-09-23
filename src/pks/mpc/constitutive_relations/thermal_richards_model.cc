@@ -36,6 +36,7 @@
 #include "thermal_richards_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 
 #define DEBUG_FLAG 1
 
@@ -398,4 +399,5 @@ ThermalRichardsModel::EvaluateEnergyAndWaterContentAndJacobian_FD_(double T,
 }
 
 
+} // namespace ATS_Physics
 } // namespace Amanzi

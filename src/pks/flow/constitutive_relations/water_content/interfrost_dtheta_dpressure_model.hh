@@ -19,6 +19,7 @@ Interfrost water content portion sl.
 #define AMANZI_FLOW_INTERFROST_DTHETA_DPRESSURE_MODEL_HH_
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 namespace Relations {
 
@@ -41,6 +42,7 @@ class InterfrostDthetaDpressureModel {
 
 } // namespace Relations
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

@@ -18,6 +18,7 @@
 #define AMANZI_RELATIONS_EOS_VAPOR_PRESSURE_RELATION_HH_
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 class VaporPressureRelation {
@@ -29,6 +30,7 @@ class VaporPressureRelation {
 };
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

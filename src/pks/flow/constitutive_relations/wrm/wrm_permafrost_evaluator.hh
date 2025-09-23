@@ -75,6 +75,7 @@ pairs:
 #include "Factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class WRMPermafrostEvaluator : public EvaluatorSecondaryMonotypeCV {
@@ -117,6 +118,7 @@ class WRMPermafrostEvaluator : public EvaluatorSecondaryMonotypeCV {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

@@ -16,6 +16,7 @@
 #include "ponded_depth_passthrough_conductivity_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 PondedDepthPassthroughConductivityModel::PondedDepthPassthroughConductivityModel(
@@ -39,4 +40,5 @@ PondedDepthPassthroughConductivityModel::DConductivityDDepth(double depth,
 
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

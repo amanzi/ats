@@ -32,6 +32,7 @@ porous media.
 #include "thermal_conductivity_twophase.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 // Equation of State model
@@ -65,6 +66,7 @@ class ThermalConductivityTwoPhaseEvaluator : public EvaluatorSecondaryMonotypeCV
 };
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

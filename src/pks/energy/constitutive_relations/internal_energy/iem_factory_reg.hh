@@ -18,5 +18,5 @@
 
 // explicity instantitate the static data of Factory<IEM>
 template<>
-Amanzi::Utils::Factory<Amanzi::Energy::IEM>::map_type*
-  Amanzi::Utils::Factory<Amanzi::Energy::IEM>::map_;
+Amanzi::Utils::Factory<Amanzi::ATS_Physics::Energy::IEM>::map_type*
+  Amanzi::Utils::Factory<Amanzi::ATS_Physics::Energy::IEM>::map_;

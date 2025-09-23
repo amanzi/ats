@@ -31,6 +31,7 @@ A three-phase flow PK based on the Interfrost code comparison.
 #include "permafrost.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class Interfrost : public Permafrost {
@@ -61,6 +62,7 @@ class Interfrost : public Permafrost {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

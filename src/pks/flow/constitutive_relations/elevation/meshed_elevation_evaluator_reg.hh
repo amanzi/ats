@@ -11,6 +11,7 @@
 #include "standalone_elevation_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // registry of method
@@ -20,4 +21,5 @@ Utils::RegisteredFactory<Evaluator, StandaloneElevationEvaluator>
   StandaloneElevationEvaluator::reg_("standalone elevation");
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

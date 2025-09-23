@@ -47,6 +47,7 @@ In the future, this will not need a different PK.
 #include "richards.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class Permafrost : public Richards {
@@ -75,6 +76,7 @@ class Permafrost : public Richards {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

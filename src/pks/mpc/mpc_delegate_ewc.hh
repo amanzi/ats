@@ -89,12 +89,17 @@ provides the initial guess to the nonlinear solve.
 #include "Tensor.hh"
 #include "State.hh"
 #include "TreeVector.hh"
+#include "ewc_model.hh"
 
 namespace Amanzi {
 
-class EWCModel;
+  namespace ATS_Physics{  
+    class EWCModel;
+  }
 
 class MPCDelegateEWC {
+
+  
  public:
   MPCDelegateEWC(Teuchos::ParameterList& plist, const Teuchos::RCP<State>& S);
   virtual ~MPCDelegateEWC() = default;
@@ -106,7 +111,7 @@ class MPCDelegateEWC {
   virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h);
   virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu);
 
-  void set_model(const Teuchos::RCP<EWCModel>& model) { model_ = model; }
+  void set_model(const Teuchos::RCP<ATS_Physics::EWCModel>& model) { model_ = model; }
   void set_tags(const Tag& tag_current, const Tag& tag_next);
 
  protected:
@@ -127,7 +132,7 @@ class MPCDelegateEWC {
   Tag tag_next_;
 
   // model
-  Teuchos::RCP<EWCModel> model_;
+  Teuchos::RCP<ATS_Physics::EWCModel> model_;
 
   enum PredictorType { PREDICTOR_NONE = 0, PREDICTOR_EWC, PREDICTOR_SMART_EWC };
 

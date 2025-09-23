@@ -20,6 +20,7 @@ Utility functions for Vegetation.
 #include "Epetra_SerialDenseVector.h"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace BGC {
 
 
@@ -43,6 +44,7 @@ int PermafrostDepthIndex(const Epetra_SerialDenseVector& SoilTArr, double freeze
 double TEffectsQ10(double Q10, double T, double refT);
 
 } // namespace BGC
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 

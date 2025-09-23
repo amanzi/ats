@@ -20,6 +20,7 @@ PKPhysicalBase and BDF methods of PK_BDF_Default.
 #include "pk_physical_bdf_default.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {    
 
 void
 PK_PhysicalBDF_Default::parseParameterList()
@@ -237,4 +238,5 @@ PK_PhysicalBDF_Default::ChangedSolution(const Tag& tag)
   solution_evaluator->SetChanged();
 };
 
+} // namespace ATS_Physics      
 } // namespace Amanzi

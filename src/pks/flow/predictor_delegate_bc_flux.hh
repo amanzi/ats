@@ -25,6 +25,7 @@
 #include "wrm_partition.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class PredictorDelegateBCFlux {
@@ -124,6 +125,7 @@ class PredictorDelegateBCFlux {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

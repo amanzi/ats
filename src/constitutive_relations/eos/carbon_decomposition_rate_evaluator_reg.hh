@@ -10,6 +10,7 @@
 #include "carbon_decomposition_rate_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 // registry of method
@@ -17,4 +18,5 @@ Utils::RegisteredFactory<Evaluator, CarbonDecomposeRateEvaluator>
   CarbonDecomposeRateEvaluator::reg_("carbon decomposition rate");
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi

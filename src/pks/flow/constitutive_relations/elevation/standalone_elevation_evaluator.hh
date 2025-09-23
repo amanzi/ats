@@ -20,6 +20,7 @@
 #include "elevation_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class StandaloneElevationEvaluator : public ElevationEvaluator {
@@ -42,6 +43,7 @@ class StandaloneElevationEvaluator : public ElevationEvaluator {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

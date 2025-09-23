@@ -34,6 +34,7 @@ material.
 #include "Factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 class ThermalConductivityThreePhaseFactory : public Utils::Factory<ThermalConductivityThreePhase> {
@@ -43,6 +44,7 @@ class ThermalConductivityThreePhaseFactory : public Utils::Factory<ThermalConduc
 };
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

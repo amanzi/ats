@@ -18,6 +18,7 @@
 #include "soil_resistance_sellers_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 SoilResistanceSellersEvaluator::SoilResistanceSellersEvaluator(Teuchos::ParameterList& plist)
@@ -122,4 +123,5 @@ SoilResistanceSellersEvaluator::EnsureCompatibility_ToDeps_(State& S)
 
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

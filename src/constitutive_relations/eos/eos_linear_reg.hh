@@ -19,10 +19,12 @@
 #include "eos_linear.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 // registry of method
 Utils::RegisteredFactory<EOS, EOSLinear> EOSLinear::factory_("linear");
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi

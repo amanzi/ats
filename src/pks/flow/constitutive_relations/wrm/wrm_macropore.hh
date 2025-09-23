@@ -38,6 +38,7 @@ An exponential model basd on the equations of... (document me!)
 #include "Factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class WRMMacropore : public WRM {
@@ -77,6 +78,7 @@ class WRMMacropore : public WRM {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

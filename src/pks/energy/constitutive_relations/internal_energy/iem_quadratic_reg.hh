@@ -10,9 +10,11 @@
 #include "iem_quadratic.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 Utils::RegisteredFactory<IEM, IEMQuadratic> IEMQuadratic::factory_("quadratic");
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

@@ -17,6 +17,7 @@ Painter's permafrost model with freezing point depression.
 #include "wrm_fpd_permafrost_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 
@@ -25,4 +26,5 @@ Utils::RegisteredFactory<WRMPermafrostModel, WRMFPDPermafrostModel> WRMFPDPermaf
   "fpd permafrost model");
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

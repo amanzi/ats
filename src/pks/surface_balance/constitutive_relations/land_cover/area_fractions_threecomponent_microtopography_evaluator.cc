@@ -12,6 +12,7 @@
 #include "area_fractions_threecomponent_microtopography_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 namespace Relations {
 
@@ -166,4 +167,5 @@ AreaFractionsThreeComponentMicrotopographyEvaluator::EnsureCompatibility_ToDeps_
 
 } // namespace Relations
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

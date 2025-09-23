@@ -17,6 +17,7 @@
 #include "Teuchos_ParameterList.hpp"
 
 namespace Amanzi {
+namespace ATS_Physics {        
 namespace Flow {
 
 class WRM;
@@ -46,6 +47,7 @@ typedef std::pair<std::string, Teuchos::RCP<WRMPermafrostModel>> WRMPermafrostMo
 typedef std::vector<WRMPermafrostModelRegionPair> WRMPermafrostModelRegionPairList;
 
 } // namespace Flow
+}  
 } // namespace Amanzi
 
 #endif

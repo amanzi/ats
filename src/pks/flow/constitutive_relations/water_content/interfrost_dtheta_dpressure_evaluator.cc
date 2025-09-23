@@ -17,6 +17,7 @@ Interfrost water content portion sl.
 #include "interfrost_dtheta_dpressure_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 namespace Relations {
 
@@ -150,4 +151,5 @@ InterfrostDthetaDpressureEvaluator::EvaluatePartialDerivative_(
 
 } // namespace Relations
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

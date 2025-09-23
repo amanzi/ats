@@ -26,6 +26,7 @@ A constant Manning's n
 #include "manning_coefficient_litter_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 namespace Relations {
 
@@ -55,6 +56,7 @@ class ManningCoefficientLitterConstantModel : public ManningCoefficientLitterMod
 
 } // namespace Relations
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

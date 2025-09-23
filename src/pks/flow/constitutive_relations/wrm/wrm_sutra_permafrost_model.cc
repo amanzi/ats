@@ -19,6 +19,7 @@ Sutra model for saturated
 #include "wrm_sutra_permafrost_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // required methods from the base class
@@ -73,4 +74,5 @@ WRMSutraPermafrostModel::dsaturations_dpc_ice(double pc_liq, double temperature,
 
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

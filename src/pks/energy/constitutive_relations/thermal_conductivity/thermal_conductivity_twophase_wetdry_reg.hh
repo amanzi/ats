@@ -23,6 +23,7 @@ See ATS process model documentation's permafrost model for details.
 #include "thermal_conductivity_twophase_wetdry.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 // registry of method
@@ -30,4 +31,5 @@ Utils::RegisteredFactory<ThermalConductivityTwoPhase, ThermalConductivityTwoPhas
   ThermalConductivityTwoPhaseWetDry::factory_("two-phase wet/dry");
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

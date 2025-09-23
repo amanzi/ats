@@ -17,6 +17,7 @@
 #include "wrm_partition.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // registry of method
@@ -24,4 +25,5 @@ Utils::RegisteredFactory<Evaluator, WRMPermafrostEvaluator> WRMPermafrostEvaluat
   "water retention model with ice");
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

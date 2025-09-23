@@ -15,6 +15,7 @@
 #include "one_uf_relperm_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // registry of method
@@ -22,4 +23,5 @@ Utils::RegisteredFactory<SurfaceRelPermModel, OneUFRelPermModel> OneUFRelPermMod
   "unfrozen fraction rel perm, limit one");
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

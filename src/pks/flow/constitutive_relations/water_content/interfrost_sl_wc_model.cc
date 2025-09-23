@@ -20,6 +20,7 @@ Interfrost water content portion sl.
 #include "interfrost_sl_wc_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 namespace Relations {
 
@@ -92,4 +93,5 @@ InterfrostSlWcModel::DWaterContentDCellVolume(double phi,
 
 } // namespace Relations
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

@@ -16,6 +16,7 @@ Steady state solution of Richards equation
 #include "richards_steadystate.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {    
 namespace Flow {
 
 RichardsSteadyState::RichardsSteadyState(Teuchos::ParameterList& pk_tree,
@@ -192,4 +193,5 @@ RichardsSteadyState::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVecto
 
 
 } // namespace Flow
+} // namespace ATS_Physics            
 } // namespace Amanzi

@@ -10,6 +10,7 @@
 #include "soil_resistance_sellers_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // registry of method
@@ -17,4 +18,5 @@ Utils::RegisteredFactory<Evaluator, SoilResistanceSellersEvaluator>
   SoilResistanceSellersEvaluator::fac_("soil resistance, Sellers");
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

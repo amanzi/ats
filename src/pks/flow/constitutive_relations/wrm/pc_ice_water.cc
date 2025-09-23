@@ -12,6 +12,7 @@
 #include "pc_ice_water.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 
@@ -120,4 +121,5 @@ PCIceWater::InitializeFromPlist_()
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

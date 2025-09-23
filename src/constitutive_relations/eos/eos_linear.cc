@@ -19,6 +19,7 @@
 #include "eos_linear.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 EOSLinear::EOSLinear(Teuchos::ParameterList& eos_plist)
@@ -47,4 +48,5 @@ EOSLinear::InitializeFromPlist_()
 };
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi

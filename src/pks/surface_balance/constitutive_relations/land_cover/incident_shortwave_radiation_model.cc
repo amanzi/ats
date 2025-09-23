@@ -16,6 +16,7 @@
 #include "incident_shortwave_radiation_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 namespace Relations {
 
@@ -343,4 +344,5 @@ Radiation(double slope, double aspect, int doy, double hour, double lat, double 
 } //namespace Impl
 } //namespace Relations
 } //namespace SurfaceBalance
+} //namespace ATS_Physics
 } //namespace Amanzi

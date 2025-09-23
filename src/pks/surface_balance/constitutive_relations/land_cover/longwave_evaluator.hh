@@ -28,6 +28,7 @@ Estimates incoming longwave radiation from vapor pressure and air temperature.
 #include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 namespace Relations {
 
@@ -62,6 +63,7 @@ class LongwaveEvaluator : public EvaluatorSecondaryMonotypeCV {
 
 } // namespace Relations
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

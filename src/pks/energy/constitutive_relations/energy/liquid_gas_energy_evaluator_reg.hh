@@ -10,6 +10,7 @@
 #include "liquid_gas_energy_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 namespace Relations {
 
@@ -18,4 +19,5 @@ Utils::RegisteredFactory<Evaluator, LiquidGasEnergyEvaluator> LiquidGasEnergyEva
 
 } // namespace Relations
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

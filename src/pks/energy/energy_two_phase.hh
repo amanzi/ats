@@ -34,6 +34,7 @@ namespace Amanzi {
 class MPCDiagonalFlowEnergy;
 class MPCCoupledFlowEnergy;
 
+namespace ATS_Physics {  
 namespace Energy {
 
 class TwoPhase : public EnergyBase {
@@ -59,7 +60,8 @@ class TwoPhase : public EnergyBase {
   friend class Amanzi::MPCDiagonalFlowEnergy;
 };
 
-} // namespace Energy
+} // namespace Energy  
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

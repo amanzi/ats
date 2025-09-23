@@ -17,6 +17,7 @@
 #define AMANZI_FLOWRELATIONS_OVERLAND_CONDUCTIVITY_MODEL_
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class OverlandConductivityModel {
@@ -48,6 +49,7 @@ class OverlandConductivityModel {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

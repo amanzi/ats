@@ -16,6 +16,7 @@
 #include "pc_liquid_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {    
 namespace Flow {
 
 PCLiquidEvaluator::PCLiquidEvaluator(Teuchos::ParameterList& plist)
@@ -88,4 +89,5 @@ PCLiquidEvaluator::EvaluatePartialDerivative_(const State& S,
 }
 
 } // namespace Flow
+} // namespace ATS_Physics    
 } // namespace Amanzi

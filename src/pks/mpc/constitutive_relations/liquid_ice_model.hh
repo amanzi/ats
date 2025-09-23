@@ -28,6 +28,7 @@
 #include "ewc_model_base.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 
 namespace Flow {
 class PCIceWater;
@@ -90,6 +91,7 @@ class LiquidIceModel : public EWCModelBase {
   bool use_pc_ice_;
 };
 
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 

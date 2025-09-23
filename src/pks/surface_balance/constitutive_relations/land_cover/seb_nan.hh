@@ -13,6 +13,7 @@
 #include "Teuchos_ParameterList.hpp"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 namespace Relations {
 
@@ -25,4 +26,5 @@ static const double NaN = std::numeric_limits<double>::quiet_NaN();
 
 } // namespace Relations
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

@@ -58,6 +58,7 @@ Example:
 #include "thermal_conductivity_threephase.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 class ThermalConductivityThreePhasePetersLidard : public ThermalConductivityThreePhase {
@@ -87,6 +88,7 @@ class ThermalConductivityThreePhasePetersLidard : public ThermalConductivityThre
 };
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

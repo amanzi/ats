@@ -72,7 +72,7 @@ unknowns, e.g. any of the `"mfd: *`" class of methods.
 
 namespace Amanzi {
 
-class MPCCoupledWater : public StrongMPC<PK_PhysicalBDF_Default> {
+class MPCCoupledWater : public StrongMPC<ATS_Physics::PK_PhysicalBDF_Default> {
  public:
   MPCCoupledWater(Teuchos::ParameterList& FElist,
                   const Teuchos::RCP<Teuchos::ParameterList>& plist,
@@ -124,8 +124,8 @@ class MPCCoupledWater : public StrongMPC<PK_PhysicalBDF_Default> {
   Key exfilt_key_;
 
   // sub PKs
-  Teuchos::RCP<PK_PhysicalBDF_Default> domain_flow_pk_;
-  Teuchos::RCP<PK_PhysicalBDF_Default> surf_flow_pk_;
+  Teuchos::RCP<ATS_Physics::PK_PhysicalBDF_Default> domain_flow_pk_;
+  Teuchos::RCP<ATS_Physics::PK_PhysicalBDF_Default> surf_flow_pk_;
 
   // sub meshes
   Teuchos::RCP<const AmanziMesh::Mesh> domain_mesh_;

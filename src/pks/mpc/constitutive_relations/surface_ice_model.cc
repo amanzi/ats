@@ -29,6 +29,7 @@
 #include "surface_ice_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 
 void
 SurfaceIceModel::InitializeModel(const Teuchos::Ptr<State>& S,
@@ -177,4 +178,5 @@ SurfaceIceModel::EvaluateEnergyAndWaterContent_(double T, double p, AmanziGeomet
 }
 
 
+} // namespace ATS_Physics
 } // namespace Amanzi

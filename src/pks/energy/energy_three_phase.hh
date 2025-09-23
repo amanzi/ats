@@ -27,6 +27,7 @@ Modifies the energy equation to provide three-phase energy (water + ice + vapor/
 #include "energy_two_phase.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {    
 namespace Energy {
 
 class ThreePhase : public TwoPhase {
@@ -46,6 +47,7 @@ class ThreePhase : public TwoPhase {
 };
 
 } // namespace Energy
+} // namespace ATS_Physics        
 } // namespace Amanzi
 
 #endif

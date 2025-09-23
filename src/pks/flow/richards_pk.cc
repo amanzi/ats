@@ -34,6 +34,7 @@
 #include "richards.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {    
 namespace Flow {
 
 // -------------------------------------------------------------
@@ -1656,4 +1657,5 @@ Richards::ModifyCorrection(double h,
 }
 
 } // namespace Flow
+} // namespace ATS_Physics            
 } // namespace Amanzi

@@ -10,6 +10,7 @@
 #include "bioturbation_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace BGC {
 namespace BGCRelations {
 
@@ -19,4 +20,5 @@ Utils::RegisteredFactory<Evaluator, BioturbationEvaluator> BioturbationEvaluator
 
 } // namespace BGCRelations
 } // namespace BGC
+} // namespace ATS_Physics
 } // namespace Amanzi

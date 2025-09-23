@@ -24,6 +24,7 @@
 #include "Factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 class ViscosityRelationFactory : public Utils::Factory<ViscosityRelation> {
@@ -32,6 +33,7 @@ class ViscosityRelationFactory : public Utils::Factory<ViscosityRelation> {
 };
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

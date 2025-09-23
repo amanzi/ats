@@ -19,6 +19,7 @@
 #include "viscosity_constant.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 ViscosityConstant::ViscosityConstant(Teuchos::ParameterList& visc_plist)
@@ -35,4 +36,5 @@ ViscosityConstant::InitializeFromPlist_()
 };
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi

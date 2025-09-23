@@ -17,6 +17,7 @@ Linear interpolant of thermal conductivity.
 #include "thermal_conductivity_threephase_sutra_hacked.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 ThermalConductivityThreePhaseSutraHacked::ThermalConductivityThreePhaseSutraHacked(
@@ -50,4 +51,5 @@ ThermalConductivityThreePhaseSutraHacked::InitializeFromPlist_()
 };
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

@@ -87,6 +87,7 @@ defaults for US temperate forests).
 #include "LandCover.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 
 class Function;
 
@@ -138,7 +139,7 @@ class TranspirationDistributionEvaluator : public EvaluatorSecondaryMonotypeCV {
   LandCoverMap land_cover_;
 
   bool limiter_local_;
-  Teuchos::RCP<Function> limiter_;
+  Teuchos::RCP<Amanzi::Function> limiter_;
 
  private:
   static Utils::RegisteredFactory<Evaluator, TranspirationDistributionEvaluator> reg_;
@@ -146,4 +147,5 @@ class TranspirationDistributionEvaluator : public EvaluatorSecondaryMonotypeCV {
 
 } // namespace Relations
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

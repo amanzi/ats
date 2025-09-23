@@ -15,9 +15,11 @@
 #include "sediment_transport_pk.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Transport {
 
 RegisteredPKFactory<SedimentTransport_PK> SedimentTransport_PK::reg_("sediment transport");
 
 } // namespace Transport
+} // namespace ATS_Physics
 } // namespace Amanzi

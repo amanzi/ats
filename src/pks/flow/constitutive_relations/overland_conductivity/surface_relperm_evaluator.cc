@@ -16,6 +16,7 @@
 #include "surface_relperm_model_factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 SurfaceRelPermEvaluator::SurfaceRelPermEvaluator(Teuchos::ParameterList& plist)
@@ -97,4 +98,5 @@ SurfaceRelPermEvaluator::EvaluatePartialDerivative_(const State& S,
 
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

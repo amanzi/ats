@@ -19,6 +19,7 @@ Richards energy: the standard form as a function of liquid saturation and specif
 #define AMANZI_ENERGY_RICHARDS_ENERGY_MODEL_HH_
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 namespace Relations {
 
@@ -108,6 +109,7 @@ class RichardsEnergyModel {
 
 } // namespace Relations
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

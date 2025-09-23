@@ -29,6 +29,7 @@
 #include "Teuchos_ParameterList.hpp"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class ManningConductivityModel {
@@ -45,6 +46,7 @@ class ManningConductivityModel {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

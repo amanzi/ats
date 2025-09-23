@@ -11,6 +11,7 @@
 #include "canopy_radiation_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 namespace Relations {
 
@@ -150,4 +151,5 @@ CanopyRadiationEvaluator::EvaluatePartialDerivative_(const State& S,
 
 } // namespace Relations
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

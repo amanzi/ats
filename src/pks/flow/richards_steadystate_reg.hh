@@ -10,10 +10,12 @@
 #include "richards_steadystate.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 
 RegisteredPKFactory<RichardsSteadyState> RichardsSteadyState::reg_("richards steady state");
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

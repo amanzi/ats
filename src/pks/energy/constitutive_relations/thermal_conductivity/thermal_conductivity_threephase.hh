@@ -21,6 +21,7 @@ UNITS: ????
 #include "dbc.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 class ThermalConductivityThreePhase {
@@ -66,6 +67,7 @@ class ThermalConductivityThreePhase {
 };
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

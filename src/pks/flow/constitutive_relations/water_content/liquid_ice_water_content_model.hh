@@ -19,6 +19,7 @@ Water content for a two-phase, liquid+ice evaluator.
 #define AMANZI_FLOW_LIQUID_ICE_WATER_CONTENT_MODEL_HH_
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 namespace Relations {
 
@@ -65,6 +66,7 @@ class LiquidIceWaterContentModel {
 
 } // namespace Relations
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

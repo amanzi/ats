@@ -18,6 +18,7 @@
 #include "wrm_permafrost_factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // method for instantiating WRM implementations
@@ -32,4 +33,5 @@ WRMPermafrostFactory::createWRMPermafrostModel(Teuchos::ParameterList& plist,
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

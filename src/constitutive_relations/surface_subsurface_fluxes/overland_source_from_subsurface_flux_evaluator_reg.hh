@@ -16,10 +16,12 @@
 #include "overland_source_from_subsurface_flux_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 Utils::RegisteredFactory<Evaluator, OverlandSourceFromSubsurfaceFluxEvaluator>
   OverlandSourceFromSubsurfaceFluxEvaluator::fac_("overland source from subsurface via flux");
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi

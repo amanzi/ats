@@ -51,6 +51,7 @@ Example:
 #include "dbc.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class CompressiblePorosityModel {
@@ -112,6 +113,7 @@ class CompressiblePorosityModel {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

@@ -17,6 +17,7 @@
 #include "energy_base.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {   
 namespace Energy {
 
 #define DEBUG_FLAG 1
@@ -354,4 +355,5 @@ EnergyBase::ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const TreeV
 
 
 } // namespace Energy
+} // namespace ATS_Physics  
 } // namespace Amanzi

@@ -21,6 +21,7 @@ Linear internal energy model -- function of Cv and temperature
 #include "iem_linear.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 IEMLinear::IEMLinear(Teuchos::ParameterList& plist)
@@ -70,4 +71,5 @@ IEMLinear::InitializeFromPlist_()
 };
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

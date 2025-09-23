@@ -11,6 +11,7 @@
 #include <cmath>
 
 namespace Amanzi {
+namespace ATS_Physics {          
 namespace Flow {
 namespace BrooksCoreyFrzCoef {
 
@@ -38,4 +39,5 @@ d_frzcoef_dsg(double sl, double sg, double omega)
 
 } // namespace BrooksCoreyFrzCoef
 } // namespace Flow
+}
 } // namespace Amanzi

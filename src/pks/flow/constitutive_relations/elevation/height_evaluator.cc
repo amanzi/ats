@@ -17,6 +17,7 @@
 
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 
@@ -147,4 +148,5 @@ HeightEvaluator::EvaluatePartialDerivative_(const State& S,
 
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

@@ -11,6 +11,7 @@
 #include "radiation_balance_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 namespace Relations {
 
@@ -189,4 +190,5 @@ RadiationBalanceEvaluator::EvaluatePartialDerivative_(const State& S,
 
 } // namespace Relations
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

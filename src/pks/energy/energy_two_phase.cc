@@ -23,6 +23,7 @@ Process kernel for energy equation for Richard's flow.
 #include "energy_two_phase.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {  
 namespace Energy {
 
 // -------------------------------------------------------------
@@ -56,4 +57,5 @@ TwoPhase::SetupPhysicalEvaluators_()
 }
 
 } // namespace Energy
+} // namespace ATS_Physics      
 } // namespace Amanzi

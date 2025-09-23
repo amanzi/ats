@@ -20,6 +20,7 @@ Explicit.
 #include "pk_explicit_default.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {    
 
 // -----------------------------------------------------------------------------
 // Setup
@@ -43,9 +44,10 @@ PK_Explicit_Default::Initialize()
     // -- instantiate timestepper
     Teuchos::ParameterList& ti_plist = plist_->sublist("time integrator");
     ti_plist.set("initial time", S_->get_time());
-    time_stepper_ = Teuchos::rcp(new Explicit_TI::RK<TreeVector>(*this, ti_plist, *solution_));
 
-    solution_old_ = Teuchos::rcp(new TreeVector(*solution_));
+    time_stepper_ = Teuchos::rcp(new Explicit_TI::RK<Amanzi::TreeVector>(*this, ti_plist, *solution_));
+    solution_old_ = Teuchos::rcp(new Amanzi::TreeVector(*solution_));
+    
   }
 };
 
@@ -73,5 +75,5 @@ PK_Explicit_Default::AdvanceStep(double t_old, double t_new, bool reinit)
   return false;
 };
 
-
+} // namespace ATS_Physics      
 } // namespace Amanzi

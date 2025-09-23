@@ -24,6 +24,7 @@
 #include "Factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class WRMFactory : public Utils::Factory<WRM> {
@@ -32,6 +33,7 @@ class WRMFactory : public Utils::Factory<WRM> {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

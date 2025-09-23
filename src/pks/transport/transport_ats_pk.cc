@@ -49,6 +49,7 @@
 #include "transport_ats.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Transport {
 
 /* ******************************************************************
@@ -161,7 +162,7 @@ Transport_ATS::parseParameterList()
 
   // global transport parameters
   cfl_ = plist_->get<double>("cfl", 1.0);
-  dt_max_ = plist_->get<double>("maximum timestep [s]", TRANSPORT_LARGE_TIME_STEP);
+  dt_max_ = plist_->get<double>("maximum timestep [s]", Amanzi::Transport::TRANSPORT_LARGE_TIME_STEP);
 
   adv_spatial_disc_order_ = plist_->get<int>("advection spatial discretization order", 1);
   if (adv_spatial_disc_order_ < 1 || adv_spatial_disc_order_ > 2) {
@@ -314,7 +315,7 @@ Transport_ATS::SetupTransport_()
     // sources of mass of C
     if (sources_list->isSublist("component mass source")) {
       auto conc_sources_list = Teuchos::sublist(sources_list, "component mass source");
-      PK_DomainFunctionFactory<TransportDomainFunction> factory(mesh_, S_);
+      PK_DomainFunctionFactory<Amanzi::Transport::TransportDomainFunction> factory(mesh_, S_);
 
       for (const auto& it : *conc_sources_list) {
         std::string name = it.first;
@@ -324,7 +325,7 @@ Transport_ATS::SetupTransport_()
           std::string src_type = src_list->get<std::string>("spatial distribution method", "none");
 
           if (src_type == "domain coupling") {
-            Teuchos::RCP<TransportDomainFunction> src = factory.Create(
+            Teuchos::RCP<Amanzi::Transport::TransportDomainFunction> src = factory.Create(
               *src_list, "fields", AmanziMesh::Entity_kind::CELL, Teuchos::null, tag_current_);
 
             // domain couplings functions is special -- always work on all components
@@ -336,7 +337,7 @@ Transport_ATS::SetupTransport_()
             srcs_.push_back(src);
 
           } else if (src_type == "field") {
-            Teuchos::RCP<TransportDomainFunction> src = factory.Create(
+            Teuchos::RCP<Amanzi::Transport::TransportDomainFunction> src = factory.Create(
               *src_list, "field", AmanziMesh::Entity_kind::CELL, Teuchos::null, tag_current_);
 
             for (int i = 0; i < num_components_; i++) {
@@ -381,7 +382,7 @@ Transport_ATS::SetupTransport_()
             }
 
           } else { // all others work on a subset of components
-            Teuchos::RCP<TransportDomainFunction> src =
+            Teuchos::RCP<Amanzi::Transport::TransportDomainFunction> src =
               factory.Create(*src_list,
                              "source function",
                              AmanziMesh::Entity_kind::CELL,
@@ -436,7 +437,7 @@ Transport_ATS::SetupTransport_()
   // --------------------------------------------------------------------------------
   if (plist_->isSublist("boundary conditions")) {
     // -- try tracer-type conditions
-    PK_DomainFunctionFactory<TransportDomainFunction> factory(mesh_, S_);
+    PK_DomainFunctionFactory<Amanzi::Transport::TransportDomainFunction> factory(mesh_, S_);
     auto bcs_list = Teuchos::sublist(plist_, "boundary conditions");
     auto conc_bcs_list = Teuchos::sublist(bcs_list, "mole fraction");
 
@@ -448,7 +449,7 @@ Transport_ATS::SetupTransport_()
 
         if (bc_type == "domain coupling") {
           // domain couplings are special -- they always work on all components
-          Teuchos::RCP<TransportDomainFunction> bc = factory.Create(
+          Teuchos::RCP<Amanzi::Transport::TransportDomainFunction> bc = factory.Create(
             bc_list, "fields", AmanziMesh::Entity_kind::FACE, Teuchos::null, tag_current_);
 
           for (int i = 0; i < num_components_; i++) {
@@ -466,7 +467,7 @@ Transport_ATS::SetupTransport_()
           int gid = std::stoi(domain_.substr(last_of + 1, domain_.size()));
           bc_list.set("entity GID", gid);
 
-          Teuchos::RCP<TransportDomainFunction> bc = factory.Create(bc_list,
+          Teuchos::RCP<Amanzi::Transport::TransportDomainFunction> bc = factory.Create(bc_list,
                                                                     "boundary mole fraction",
                                                                     AmanziMesh::Entity_kind::FACE,
                                                                     Teuchos::null,
@@ -480,7 +481,7 @@ Transport_ATS::SetupTransport_()
           bcs_.push_back(bc);
 
         } else {
-          Teuchos::RCP<TransportDomainFunction> bc =
+          Teuchos::RCP<Amanzi::Transport::TransportDomainFunction> bc =
             factory.Create(bc_list,
                            "boundary mole fraction function",
                            AmanziMesh::Entity_kind::FACE,
@@ -508,8 +509,8 @@ Transport_ATS::SetupTransport_()
     for (const auto& it : *geochem_list) {
       std::string specname = it.first;
       Teuchos::ParameterList& spec = geochem_list->sublist(specname);
-      Teuchos::RCP<TransportBoundaryFunction_Alquimia_Units> bc = Teuchos::rcp(
-        new TransportBoundaryFunction_Alquimia_Units(spec, mesh_, chem_pk_, chem_engine_));
+      Teuchos::RCP<Amanzi::Transport::TransportBoundaryFunction_Alquimia_Units> bc = Teuchos::rcp(
+        new Amanzi::Transport::TransportBoundaryFunction_Alquimia_Units(spec, mesh_, chem_pk_, chem_engine_));
 
       std::vector<int>& tcc_index = bc->tcc_index();
       std::vector<std::string>& tcc_names = bc->tcc_names();
@@ -664,8 +665,8 @@ Transport_ATS::Initialize()
       for (const auto& it : *geochem_list) {
         std::string specname = it.first;
         Teuchos::ParameterList& spec = geochem_list->sublist(specname);
-        Teuchos::RCP<TransportSourceFunction_Alquimia_Units> src = Teuchos::rcp(
-          new TransportSourceFunction_Alquimia_Units(spec, mesh_, chem_pk_, chem_engine_));
+        Teuchos::RCP<Amanzi::Transport::TransportSourceFunction_Alquimia_Units> src = Teuchos::rcp(
+          new Amanzi::Transport::TransportSourceFunction_Alquimia_Units(spec, mesh_, chem_pk_, chem_engine_));
 
         if (S_->HasEvaluator(geochem_src_factor_key_, tag_next_)) {
           S_->GetEvaluator(geochem_src_factor_key_, tag_next_).Update(*S_, name_);
@@ -755,7 +756,7 @@ Transport_ATS::InitializeFields_()
 double
 Transport_ATS::ComputeStableTimeStep_()
 {
-  double dt = TRANSPORT_LARGE_TIME_STEP;
+  double dt = Amanzi::Transport::TRANSPORT_LARGE_TIME_STEP;
 
   // Get flux at faces for time NEXT
   IdentifyUpwindCells_();
@@ -794,7 +795,7 @@ Transport_ATS::ComputeStableTimeStep_()
   for (int c = 0; c != ncells_owned; ++c) {
     double outflux = total_outflux[c];
     double min_lwc = std::min(lwc_old[0][c], lwc_new[0][c]);
-    double dt_cell = TRANSPORT_LARGE_TIME_STEP;
+    double dt_cell = Amanzi::Transport::TRANSPORT_LARGE_TIME_STEP;
 
     if (outflux > 0 && min_lwc > 0) {
       dt_cell = min_lwc / outflux;
@@ -887,8 +888,8 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
         S_->GetEvaluator(geochem_src_factor_key_, tag_next_).Update(*S_, name_);
         auto src_factor =
           S_->Get<CompositeVector>(geochem_src_factor_key_, tag_next_).ViewComponent("cell", false);
-        Teuchos::RCP<TransportSourceFunction_Alquimia_Units> src_alq =
-          Teuchos::rcp_dynamic_cast<TransportSourceFunction_Alquimia_Units>(src);
+        Teuchos::RCP<Amanzi::Transport::TransportSourceFunction_Alquimia_Units> src_alq =
+          Teuchos::rcp_dynamic_cast<Amanzi::Transport::TransportSourceFunction_Alquimia_Units>(src);
         src_alq->set_conversion(-1000, src_factor, false);
       }
     }
@@ -897,8 +898,8 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   if (plist_->sublist("boundary conditions").isSublist("geochemical")) {
     for (auto& bc : bcs_) {
       if (bc->getType() == DomainFunction_kind::ALQUIMIA) {
-        Teuchos::RCP<TransportBoundaryFunction_Alquimia_Units> bc_alq =
-          Teuchos::rcp_dynamic_cast<TransportBoundaryFunction_Alquimia_Units>(bc);
+        Teuchos::RCP<Amanzi::Transport::TransportBoundaryFunction_Alquimia_Units> bc_alq =
+          Teuchos::rcp_dynamic_cast<Amanzi::Transport::TransportBoundaryFunction_Alquimia_Units>(bc);
 
         S_->GetEvaluator(molar_dens_key_, tag_next_).Update(*S_, name_);
         auto molar_dens =
@@ -1399,4 +1400,5 @@ Transport_ATS::IdentifyUpwindCells_()
 
 
 } // namespace Transport
+} // namespace ATS_Physics
 } // namespace Amanzi

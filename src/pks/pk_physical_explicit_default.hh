@@ -24,7 +24,7 @@ domains/meshes of PKPhysicalBase and Explicit methods of PKExplicitBase.
 
 
 namespace Amanzi {
-
+namespace ATS_Physics {  
 
 class PK_Physical_Default_Explicit_Default
   : public PK_Explicit_Default
@@ -67,6 +67,7 @@ class PK_Physical_Default_Explicit_Default
   }
 };
 
+} // namespace ATS_Physics    
 } // namespace Amanzi
 
 #endif

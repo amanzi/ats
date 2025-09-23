@@ -18,6 +18,7 @@
 #include "transport_ats.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Transport {
 
 //
@@ -401,4 +402,5 @@ Transport_ATS::AddSourceTerms_(double t0, double t1, Epetra_MultiVector& conserv
 
 
 } // namespace Transport
+} // namespace ATS_Physics
 } // namespace Amanzi

@@ -27,6 +27,7 @@ Parameters for the Century model for biogeochemistry.
 #include "Epetra_SerialDenseMatrix.h"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace BGC {
 
 class SoilCarbonParameters {
@@ -51,6 +52,7 @@ class SoilCarbonParameters {
 
 
 } // namespace BGC
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

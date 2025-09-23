@@ -16,9 +16,11 @@ Process kernel for energy equation for overland flow.
 #include "energy_surface_ice.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 RegisteredPKFactory<EnergySurfaceIce> EnergySurfaceIce::reg_("surface energy");
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

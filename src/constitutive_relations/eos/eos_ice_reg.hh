@@ -20,10 +20,12 @@
 #include "eos_ice.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 // registry of method
 Utils::RegisteredFactory<EOS, EOSIce> EOSIce::factory_("ice");
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi

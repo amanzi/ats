@@ -11,6 +11,7 @@
 #include "viscosity_water.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 ViscosityWater::ViscosityWater(Teuchos::ParameterList& eos_plist)
@@ -73,4 +74,5 @@ ViscosityWater::DViscosityDT(double T)
 
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi

@@ -27,6 +27,7 @@ Main functions for biogeochemistry on a column.
 #include "SoilCarbon.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace BGC {
 
 void BGCAdvance(double t,
@@ -60,6 +61,7 @@ void Cryoturbate(double dt,
 
 
 } // namespace BGC
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

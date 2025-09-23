@@ -18,6 +18,7 @@
 #include "Teuchos_ParameterList.hpp"
 
 namespace Amanzi {
+namespace ATS_Physics {  
 namespace Flow {
 
 class PCLiqAtm {
@@ -31,6 +32,7 @@ class PCLiqAtm {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics  
 } // namespace Amanzi
 
 #endif

@@ -35,6 +35,7 @@ sinusoidal curve from 0 to 1 over a given transition in temperature.
 #include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class UnfrozenFractionModel;
@@ -64,6 +65,7 @@ class UnfrozenFractionEvaluator : public EvaluatorSecondaryMonotypeCV {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

@@ -31,6 +31,7 @@
 #include "micropore_macropore_flux_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 namespace Relations {
 
@@ -125,4 +126,5 @@ MicroporeMacroporeFluxModel::DMicroporeMacroporeFluxDMicroporeAbsolutePermeabili
 
 } // namespace Relations
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

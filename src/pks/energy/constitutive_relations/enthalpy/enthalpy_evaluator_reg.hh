@@ -10,10 +10,12 @@
 #include "enthalpy_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 // registry of method
 Utils::RegisteredFactory<Evaluator, EnthalpyEvaluator> EnthalpyEvaluator::factory_("enthalpy");
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

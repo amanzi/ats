@@ -11,9 +11,11 @@
 #include "wrm_van_genuchten.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 Utils::RegisteredFactory<WRM, WRMVanGenuchten> WRMVanGenuchten::factory_("van Genuchten");
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

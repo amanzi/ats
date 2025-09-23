@@ -16,6 +16,7 @@
 #include "unfrozen_fraction_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 UnfrozenFractionEvaluator::UnfrozenFractionEvaluator(Teuchos::ParameterList& plist)
@@ -83,4 +84,5 @@ UnfrozenFractionEvaluator::EvaluatePartialDerivative_(const State& S,
 
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

@@ -17,6 +17,7 @@
 
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // registry of method
@@ -24,4 +25,5 @@ Utils::RegisteredFactory<Evaluator, EffectiveHeightEvaluator> EffectiveHeightEva
   "effective height");
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

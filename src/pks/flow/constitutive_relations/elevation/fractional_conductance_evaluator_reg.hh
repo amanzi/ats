@@ -10,6 +10,7 @@
 #include "fractional_conductance_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 namespace FlowRelations {
 
@@ -19,4 +20,5 @@ Utils::RegisteredFactory<Evaluator, FractionalConductanceEvaluator>
 
 } // namespace FlowRelations
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

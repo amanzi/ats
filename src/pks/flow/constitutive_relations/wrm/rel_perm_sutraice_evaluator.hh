@@ -122,6 +122,7 @@ Using the same set of van Genuchten model paramters for WRM and relative permeab
 #include "Factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {            
 namespace Flow {
 
 class RelPermSutraIceEvaluator : public EvaluatorSecondaryMonotypeCV {
@@ -169,6 +170,7 @@ class RelPermSutraIceEvaluator : public EvaluatorSecondaryMonotypeCV {
 };
 
 } // namespace Flow
+}  
 } // namespace Amanzi
 
 #endif

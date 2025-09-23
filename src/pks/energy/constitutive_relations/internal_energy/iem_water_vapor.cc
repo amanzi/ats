@@ -16,6 +16,7 @@ Internal energy model for air and water vapor, relative to water @237.15K
 #include "iem_water_vapor.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 IEMWaterVapor::IEMWaterVapor(Teuchos::ParameterList& plist)
@@ -53,4 +54,5 @@ IEMWaterVapor::InitializeFromPlist_()
 };
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

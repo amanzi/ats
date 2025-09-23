@@ -107,6 +107,7 @@ pointers to the original variables.
 ****************************************************************** */
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Transport {
 
 
@@ -141,6 +142,7 @@ class SedimentTransport_PK : public Transport_ATS {
 };
 
 } // namespace Transport
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

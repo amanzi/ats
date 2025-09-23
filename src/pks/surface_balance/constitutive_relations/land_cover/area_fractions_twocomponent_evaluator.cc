@@ -10,6 +10,7 @@
 #include "area_fractions_twocomponent_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 namespace Relations {
 
@@ -133,4 +134,5 @@ AreaFractionsTwoComponentEvaluator::EnsureCompatibility_ToDeps_(State& S)
 
 } // namespace Relations
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

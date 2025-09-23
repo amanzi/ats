@@ -15,6 +15,7 @@
 #include "unfrozen_effective_depth_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 UnfrozenEffectiveDepthEvaluator::UnfrozenEffectiveDepthEvaluator(Teuchos::ParameterList& plist)
@@ -99,4 +100,5 @@ UnfrozenEffectiveDepthEvaluator::EvaluatePartialDerivative_(
 
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

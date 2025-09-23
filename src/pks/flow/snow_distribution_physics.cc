@@ -10,6 +10,7 @@
 #include "snow_distribution.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // -------------------------------------------------------------
@@ -67,4 +68,5 @@ SnowDistribution::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g)
 }
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

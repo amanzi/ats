@@ -18,6 +18,7 @@
 #include "unfrozen_fraction_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 UnfrozenFractionModel::UnfrozenFractionModel(Teuchos::ParameterList& plist)
@@ -71,4 +72,5 @@ UnfrozenFractionModel::DUnfrozenFractionDT(double temp) const
 }
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

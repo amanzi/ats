@@ -39,6 +39,7 @@ fraction of water vapor in the gaseous phase.
 #include "iem_water_vapor.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 class IEMWaterVaporEvaluator : public EvaluatorSecondaryMonotypeCV {
@@ -71,6 +72,7 @@ class IEMWaterVaporEvaluator : public EvaluatorSecondaryMonotypeCV {
 };
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

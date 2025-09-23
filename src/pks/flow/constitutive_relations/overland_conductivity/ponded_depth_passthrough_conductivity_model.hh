@@ -20,6 +20,7 @@
 #include "overland_conductivity_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class PondedDepthPassthroughConductivityModel : public OverlandConductivityModel {
@@ -35,6 +36,7 @@ class PondedDepthPassthroughConductivityModel : public OverlandConductivityModel
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 

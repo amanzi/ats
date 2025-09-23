@@ -18,6 +18,7 @@
 #include "predictor_delegate_bc_flux.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 #define DEBUG_FLAG 0
@@ -189,4 +190,5 @@ PredictorDelegateBCFlux::CalculateLambda_(int f,
 
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

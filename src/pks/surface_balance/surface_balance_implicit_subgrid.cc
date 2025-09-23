@@ -25,6 +25,7 @@
 #include "surface_balance_implicit_subgrid.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 
 ImplicitSubgrid::ImplicitSubgrid(Teuchos::ParameterList& pk_tree,
@@ -306,4 +307,5 @@ ImplicitSubgrid::FailStep(double t_old, double t_new, const Tag& tag)
 }
 
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

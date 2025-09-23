@@ -20,6 +20,7 @@ evaluating.
 #define DEBUG_FLAG 0
 
 namespace Amanzi {
+namespace ATS_Physics {
 
 // ----------------------------------------------------------------------
 // Lightweight wrapper to forward-evaluate the model.
@@ -417,4 +418,5 @@ EWCModelBase::EvaluateEnergyAndWaterContentAndJacobian_FD_(double T,
 }
 
 
+} // namespace ATS_Physics
 } // namespace Amanzi

@@ -54,6 +54,7 @@ Example:
 #include "Factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class SnowSkinPotentialEvaluator : public EvaluatorSecondaryMonotypeCV {
@@ -82,6 +83,7 @@ class SnowSkinPotentialEvaluator : public EvaluatorSecondaryMonotypeCV {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

@@ -21,6 +21,7 @@ Process kernel for energy equation for Richard's flow.
 #include "PK.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace BGC {
 
 class CarbonSimple : public PK_Physical_Default_Explicit_Default {
@@ -77,6 +78,7 @@ class CarbonSimple : public PK_Physical_Default_Explicit_Default {
 
 
 } // namespace BGC
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 

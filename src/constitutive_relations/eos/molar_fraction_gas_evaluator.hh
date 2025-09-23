@@ -19,6 +19,7 @@
 #include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 // Equation of State model
@@ -47,6 +48,7 @@ class MolarFractionGasEvaluator : public EvaluatorSecondaryMonotypeCV {
 };
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

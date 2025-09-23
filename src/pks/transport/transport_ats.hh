@@ -210,7 +210,7 @@ class PDE_Accumulation;
 class BCs;
 class Operator;
 }
-
+namespace ATS_Physics {
 namespace Transport {
 
 class Transport_ATS : public PK_Physical_Default {
@@ -357,24 +357,24 @@ class Transport_ATS : public PK_Physical_Default {
   bool has_water_src_key_;
   bool water_src_in_meters_;
   Key molar_dens_key_;
-  std::vector<Teuchos::RCP<TransportDomainFunction>> srcs_; // Source or sink for components
+  std::vector<Teuchos::RCP<Amanzi::Transport::TransportDomainFunction>> srcs_; // Source or sink for components
 
   // operators for advection
   int adv_spatial_disc_order_;
   Teuchos::RCP<Epetra_IntVector> upwind_cell_, downwind_cell_;
-  Teuchos::RCP<Operators::ReconstructionCellLinear> lifting_;
-  Teuchos::RCP<Operators::LimiterCell> limiter_;
+  Teuchos::RCP<Amanzi::Operators::ReconstructionCellLinear> lifting_;
+  Teuchos::RCP<Amanzi::Operators::LimiterCell> limiter_;
 
-  Teuchos::RCP<Operators::BCs> adv_bcs_;
-  std::vector<Teuchos::RCP<TransportDomainFunction>> bcs_;
+  Teuchos::RCP<Amanzi::Operators::BCs> adv_bcs_;
+  std::vector<Teuchos::RCP<Amanzi::Transport::TransportDomainFunction>> bcs_;
 
   // operators for dispersion/diffusion
   bool has_diffusion_, has_dispersion_;
   Teuchos::RCP<TensorVector> D_; // workspace, disp + diff
-  Teuchos::RCP<Operators::BCs> diff_bcs_;
-  Teuchos::RCP<Operators::Operator> diff_global_op_;
-  Teuchos::RCP<Operators::PDE_Diffusion> diff_op_;
-  Teuchos::RCP<Operators::PDE_Accumulation> diff_acc_op_;
+  Teuchos::RCP<Amanzi::Operators::BCs> diff_bcs_;
+  Teuchos::RCP<Amanzi::Operators::Operator> diff_global_op_;
+  Teuchos::RCP<Amanzi::Operators::PDE_Diffusion> diff_op_;
+  Teuchos::RCP<Amanzi::Operators::PDE_Accumulation> diff_acc_op_;
   Teuchos::RCP<CompositeVector> diff_sol_; // workspace
 
   // io
@@ -403,6 +403,7 @@ void CheckTracerBounds(const Epetra_MultiVector& tcc,
                        double tol = 0.0);
 
 } // namespace Transport
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

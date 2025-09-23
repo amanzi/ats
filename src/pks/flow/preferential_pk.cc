@@ -36,6 +36,7 @@
 
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // -------------------------------------------------------------
@@ -272,4 +273,5 @@ Preferential::UpdatePermeabilityDerivativeData_(const Tag& tag)
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

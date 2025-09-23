@@ -127,8 +127,9 @@ pressure as a primary variable:
 
 namespace Amanzi {
 
-class MPCSurfaceSubsurfaceDirichletCoupler;
-
+    class MPCSurfaceSubsurfaceDirichletCoupler;
+  
+namespace ATS_Physics {
 namespace Flow {
 
 class OverlandConductivityModel;
@@ -222,7 +223,7 @@ class OverlandPressureFlow : public PK_PhysicalBDF_Default {
   void test_ApplyPreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h);
 
  protected:
-  friend class Amanzi::MPCSurfaceSubsurfaceDirichletCoupler;
+  //friend class Amanzi::MPCSurfaceSubsurfaceDirichletCoupler;
 
   enum FluxUpdateMode {
     UPDATE_FLUX_ITERATION = 0,
@@ -314,6 +315,7 @@ class OverlandPressureFlow : public PK_PhysicalBDF_Default {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

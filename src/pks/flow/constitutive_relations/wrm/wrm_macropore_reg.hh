@@ -11,9 +11,11 @@
 #include "wrm_macropore.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 Utils::RegisteredFactory<WRM, WRMMacropore> WRMMacropore::factory_("macropore");
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

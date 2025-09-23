@@ -30,6 +30,7 @@
 #include <cmath>
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class WRMPlantChristoffersen : public WRM {
@@ -106,6 +107,7 @@ class WRMPlantChristoffersen : public WRM {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

@@ -45,6 +45,7 @@ Note this is mostly for testing.
 #include "Factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class WRMLinearSystem : public WRM {
@@ -74,6 +75,7 @@ class WRMLinearSystem : public WRM {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

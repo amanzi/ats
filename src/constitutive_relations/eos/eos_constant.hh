@@ -51,6 +51,7 @@ Note, users should prefer to use `"independent variable constant`" to this.
 #include "eos_constant_molar_mass.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 // Equation of State model
@@ -80,6 +81,7 @@ class EOSConstant : public EOSConstantMolarMass {
 };
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

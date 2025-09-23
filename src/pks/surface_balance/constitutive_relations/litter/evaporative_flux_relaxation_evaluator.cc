@@ -30,6 +30,7 @@
 #include "evaporative_flux_relaxation_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 namespace Relations {
 
@@ -172,4 +173,5 @@ EvaporativeFluxRelaxationEvaluator::EvaluatePartialDerivative_(
 
 } // namespace Relations
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

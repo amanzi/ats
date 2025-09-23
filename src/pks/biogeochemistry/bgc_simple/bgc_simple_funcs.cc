@@ -26,6 +26,7 @@
 #include "bgc_simple_funcs.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace BGC {
 
 // t and dt [s]
@@ -871,4 +872,5 @@ Cryoturbate(double dt,
 
 
 } // namespace BGC
+} // namespace ATS_Physics
 } // namespace Amanzi

@@ -20,6 +20,7 @@ Richards water content evaluator: the standard form as a function of liquid satu
 #include "richards_water_content_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 namespace Relations {
 
@@ -78,4 +79,5 @@ RichardsWaterContentModel::DWaterContentDCellVolume(double phi,
 
 } // namespace Relations
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

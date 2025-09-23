@@ -19,7 +19,7 @@ MPCCoupledDualMediaWater::MPCCoupledDualMediaWater(
   const Teuchos::RCP<Teuchos::ParameterList>& plist,
   const Teuchos::RCP<State>& S,
   const Teuchos::RCP<TreeVector>& soln)
-  : PK(FElist, plist, S, soln), StrongMPC<PK_BDF_Default>(FElist, plist, S, soln)
+  : PK(FElist, plist, S, soln), StrongMPC<ATS_Physics::PK_BDF_Default>(FElist, plist, S, soln)
 {}
 
 
@@ -28,7 +28,7 @@ MPCCoupledDualMediaWater::parseParameterList()
 {
   pks_list_->sublist(names[1]).set("coupled to subsurface via head", true);
 
-  StrongMPC<PK_BDF_Default>::parseParameterList();
+  StrongMPC<ATS_Physics::PK_BDF_Default>::parseParameterList();
 
   domain_ = plist_->get<std::string>("domain name", "domain");
   domain_macropore_ = Keys::readDomainHint(*plist_, domain_, "domain", "macropore");
@@ -41,10 +41,10 @@ void
 MPCCoupledDualMediaWater::Setup(const Teuchos::Ptr<State>& S)
 {
   // tweak the sub-PK parameter lists
-  StrongMPC<PK_BDF_Default>::Setup(S);
+  StrongMPC<ATS_Physics::PK_BDF_Default>::Setup(S);
 
   // cast the PKs
-  integrated_flow_pk_ = Teuchos::rcp_dynamic_cast<StrongMPC<PK_PhysicalBDF_Default>>(sub_pks_[0]);
+  integrated_flow_pk_ = Teuchos::rcp_dynamic_cast<StrongMPC<ATS_Physics::PK_PhysicalBDF_Default>>(sub_pks_[0]);
   AMANZI_ASSERT(integrated_flow_pk_ != Teuchos::null);
 
   macro_flow_pk_ = sub_pks_[1];
@@ -56,8 +56,8 @@ void
 MPCCoupledDualMediaWater::Initialize(const Teuchos::Ptr<State>& S)
 {
   // Initialize my timestepper.
-  PK_BDF_Default::Initialize(S);
-  StrongMPC<PK_BDF_Default>::Initialize(S);
+  ATS_Physics::PK_BDF_Default::Initialize(S);
+  StrongMPC<ATS_Physics::PK_BDF_Default>::Initialize(S);
 
   Comm_ptr_type comm = solution_->Comm();
   auto tvs = Teuchos::rcp(new TreeVectorSpace(comm));
@@ -127,7 +127,7 @@ MPCCoupledDualMediaWater::set_states(const Teuchos::RCP<State>& S,
                                      const Teuchos::RCP<State>& S_inter,
                                      const Teuchos::RCP<State>& S_next)
 {
-  StrongMPC<PK_BDF_Default>::set_states(S, S_inter, S_next);
+  StrongMPC<ATS_Physics::PK_BDF_Default>::set_states(S, S_inter, S_next);
 }
 
 

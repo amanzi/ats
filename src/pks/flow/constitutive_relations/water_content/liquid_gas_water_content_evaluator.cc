@@ -17,6 +17,7 @@ Water content for a two-phase, liquid+water vapor evaluator.
 #include "liquid_gas_water_content_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 namespace Relations {
 
@@ -267,4 +268,5 @@ LiquidGasWaterContentEvaluator::EvaluatePartialDerivative_(
 
 } // namespace Relations
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

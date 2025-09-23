@@ -38,6 +38,7 @@ using namespace Amanzi;
 using namespace ATS;
 using namespace Amanzi::AmanziMesh;
 using namespace Amanzi::AmanziGeometry;
+using namespace Amanzi::ATS_Physics;
 
 struct CoupledWaterProblem {
  public:

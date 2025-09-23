@@ -53,6 +53,7 @@ There is also some wierd hackiness here about area fractions -- see ATS Issue
 
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 
 class ImplicitSubgrid : public SurfaceBalanceBase {
@@ -110,6 +111,7 @@ class ImplicitSubgrid : public SurfaceBalanceBase {
 };
 
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

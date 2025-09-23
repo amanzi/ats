@@ -23,6 +23,7 @@ Soil carbon data structures class
 #include "SoilCarbonParameters.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace BGC {
 
 class SoilCarbon {
@@ -47,6 +48,7 @@ class SoilCarbon {
 
 
 } // namespace BGC
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

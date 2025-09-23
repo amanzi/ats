@@ -18,6 +18,7 @@ Soil carbon parameters data structures class
 #include "SoilCarbonParameters.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace BGC {
 
 SoilCarbonParameters::SoilCarbonParameters(int nPools_, double percent_sand)
@@ -85,4 +86,5 @@ SoilCarbonParameters::Init_(Teuchos::ParameterList& plist)
 }
 
 } // namespace BGC
+} // namespace ATS_Physics
 } // namespace Amanzi

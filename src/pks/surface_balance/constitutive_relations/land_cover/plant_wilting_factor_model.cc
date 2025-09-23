@@ -13,6 +13,7 @@
 #include "plant_wilting_factor_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 namespace Relations {
 
@@ -45,4 +46,5 @@ PlantWiltingFactorModel::DPlantWiltingFactorDCapillaryPressureGasLiq(double pc) 
 
 } // namespace Relations
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

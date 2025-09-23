@@ -11,6 +11,7 @@
 #include "rel_perm_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {      
 namespace Flow {
 
 RelPermEvaluator::RelPermEvaluator(Teuchos::ParameterList& plist)
@@ -372,4 +373,5 @@ RelPermEvaluator::EvaluatePartialDerivative_(const State& S,
 
 
 } // namespace Flow
+}
 } // namespace Amanzi

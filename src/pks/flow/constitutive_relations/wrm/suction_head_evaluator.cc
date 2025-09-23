@@ -15,6 +15,7 @@
 #include "suction_head_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {            
 namespace Flow {
 
 SuctionHeadEvaluator::SuctionHeadEvaluator(Teuchos::ParameterList& plist)
@@ -111,4 +112,5 @@ SuctionHeadEvaluator::EvaluatePartialDerivative_(const State& S,
 
 
 } // namespace Flow
+}  
 } // namespace Amanzi

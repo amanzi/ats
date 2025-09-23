@@ -17,6 +17,7 @@ Energy evaulator for ice+liquid surface water.
 #include "surface_ice_energy_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 namespace Relations {
 
@@ -264,4 +265,5 @@ SurfaceIceEnergyEvaluator::EvaluatePartialDerivative_(const State& S,
 
 } // namespace Relations
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

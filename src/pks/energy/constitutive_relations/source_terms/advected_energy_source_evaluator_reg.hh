@@ -15,10 +15,12 @@
 #include "advected_energy_source_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 Utils::RegisteredFactory<Evaluator, AdvectedEnergySourceEvaluator>
   AdvectedEnergySourceEvaluator::factory_("advected energy source");
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

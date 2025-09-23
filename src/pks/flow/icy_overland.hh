@@ -31,6 +31,7 @@ freeze-thaw processes.
 #include "overland_pressure.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 
 namespace Operators {
 class Upwinding;
@@ -61,6 +62,7 @@ class IcyOverlandFlow : public OverlandPressureFlow {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

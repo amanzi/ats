@@ -10,9 +10,11 @@
 #include "energy_interfrost.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 RegisteredPKFactory<InterfrostEnergy> InterfrostEnergy::reg_("interfrost energy");
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

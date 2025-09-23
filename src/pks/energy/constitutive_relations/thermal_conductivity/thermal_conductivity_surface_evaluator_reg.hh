@@ -17,6 +17,7 @@
 #include "thermal_conductivity_surface_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 // registry of method
@@ -24,4 +25,5 @@ Utils::RegisteredFactory<Evaluator, ThermalConductivitySurfaceEvaluator>
   ThermalConductivitySurfaceEvaluator::factory_("surface thermal conductivity");
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

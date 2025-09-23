@@ -10,6 +10,7 @@
 #include "overland_conductivity_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // registry of method
@@ -17,4 +18,5 @@ Utils::RegisteredFactory<Evaluator, OverlandConductivityEvaluator>
   OverlandConductivityEvaluator::factory_("overland conductivity");
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

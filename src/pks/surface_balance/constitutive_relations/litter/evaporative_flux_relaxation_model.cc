@@ -31,6 +31,7 @@
 #include "evaporative_flux_relaxation_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 namespace Relations {
 
@@ -83,4 +84,5 @@ EvaporativeFluxRelaxationModel::DEvaporativeFluxDLitterThickness(double wc,
 
 } // namespace Relations
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

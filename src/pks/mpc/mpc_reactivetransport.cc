@@ -79,7 +79,7 @@ void
 MPCReactiveTransport::cast_sub_pks_()
 {
   // cast transport PK
-  transport_pk_ = Teuchos::rcp_dynamic_cast<Transport::Transport_ATS>(sub_pks_[1]);
+  transport_pk_ = Teuchos::rcp_dynamic_cast<ATS_Physics::Transport::Transport_ATS>(sub_pks_[1]);
   AMANZI_ASSERT(transport_pk_ != Teuchos::null);
 
 

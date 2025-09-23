@@ -92,6 +92,7 @@ evaluator," and is therefore mutually exclusive with that model.
 #include "seb_physics_funcs.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 namespace Relations {
 
@@ -146,4 +147,5 @@ class RadiationBalanceEvaluator : public EvaluatorSecondaryMonotypeCV {
 
 } // namespace Relations
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

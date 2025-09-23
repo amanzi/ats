@@ -21,6 +21,7 @@
 #include "surface_relperm_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class ZeroUFRelPermModel : public SurfaceRelPermModel {
@@ -55,6 +56,7 @@ class ZeroUFRelPermModel : public SurfaceRelPermModel {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

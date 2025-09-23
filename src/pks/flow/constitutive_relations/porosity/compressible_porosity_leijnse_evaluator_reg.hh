@@ -15,6 +15,7 @@
 #include "compressible_porosity_leijnse_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // registry of method
@@ -22,4 +23,5 @@ Utils::RegisteredFactory<Evaluator, CompressiblePorosityLeijnseEvaluator>
   CompressiblePorosityLeijnseEvaluator::fac_("compressible porosity, Leijnse");
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

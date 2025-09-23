@@ -17,10 +17,12 @@ Painter's permafrost model.
 #include "wrm_old_permafrost_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 Utils::RegisteredFactory<WRMPermafrostModel, WRMOldPermafrostModel> WRMOldPermafrostModel::factory_(
   "old permafrost model");
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

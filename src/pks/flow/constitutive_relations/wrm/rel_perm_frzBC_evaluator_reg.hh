@@ -10,6 +10,7 @@
 #include "rel_perm_frzBC_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // registry of method
@@ -17,4 +18,5 @@ Utils::RegisteredFactory<Evaluator, RelPermFrzBCEvaluator> RelPermFrzBCEvaluator
   "relative permeability, freezing Brooks-Corey");
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

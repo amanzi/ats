@@ -11,6 +11,7 @@
 #include "subgrid_mobile_depth_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 namespace FlowRelations {
 
@@ -120,4 +121,5 @@ SubgridMobileDepthEvaluator::EnsureCompatibility_ToDeps_(State& S)
 
 } // namespace FlowRelations
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

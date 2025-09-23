@@ -12,6 +12,7 @@
 #include "subgrid_microtopography.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 namespace FlowRelations {
 
@@ -192,4 +193,5 @@ FractionalConductanceEvaluator::EnsureCompatibility_ToDeps_(State& S)
 
 } // namespace FlowRelations
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

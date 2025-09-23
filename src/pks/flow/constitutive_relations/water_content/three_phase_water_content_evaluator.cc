@@ -17,6 +17,7 @@ Water content for a three-phase, gas+liquid+ice evaluator.
 #include "three_phase_water_content_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 namespace Relations {
 
@@ -407,4 +408,5 @@ ThreePhaseWaterContentEvaluator::EvaluatePartialDerivative_(
 
 } // namespace Relations
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

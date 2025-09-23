@@ -17,6 +17,7 @@ Energy for a two-phase, liquid+ice evaluator.
 #include "liquid_ice_energy_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 namespace Relations {
 
@@ -539,4 +540,5 @@ LiquidIceEnergyEvaluator::EvaluatePartialDerivative_(const State& S,
 
 } // namespace Relations
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

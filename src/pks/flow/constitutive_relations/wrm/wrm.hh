@@ -33,6 +33,7 @@ WRMs are available in a collection of types:
 #include "Teuchos_ParameterList.hpp"
 
 namespace Amanzi {
+namespace ATS_Physics {      
 namespace Flow {
 
 const int FLOW_WRM_MUALEM = 1;
@@ -60,6 +61,7 @@ class WRM {
 typedef double (WRM::*KRelFn)(double pc);
 
 } // namespace Flow
+}
 } // namespace Amanzi
 
 #endif

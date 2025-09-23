@@ -23,6 +23,7 @@
 #include "eos.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 class EOSConstantMolarMass : public EOS {
@@ -76,6 +77,7 @@ class EOSConstantMolarMass : public EOS {
 };
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

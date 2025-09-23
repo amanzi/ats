@@ -19,6 +19,7 @@ Manning's coefficient that varies based on litter thickness and ponded depth.
 #define AMANZI_FLOW_MANNING_COEFFICIENT_LITTER_MODEL_HH_
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 namespace Relations {
 
@@ -37,6 +38,7 @@ class ManningCoefficientLitterModel {
 
 } // namespace Relations
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

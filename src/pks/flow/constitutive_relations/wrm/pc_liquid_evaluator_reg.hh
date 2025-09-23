@@ -16,6 +16,7 @@
 #include "pc_liquid_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // registry of method
@@ -23,4 +24,5 @@ Utils::RegisteredFactory<Evaluator, PCLiquidEvaluator> PCLiquidEvaluator::factor
   "capillary pressure, atmospheric gas over liquid");
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

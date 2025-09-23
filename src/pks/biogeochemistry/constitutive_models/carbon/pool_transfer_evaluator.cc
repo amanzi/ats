@@ -19,6 +19,7 @@
 #include "pool_transfer_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace BGC {
 namespace BGCRelations {
 

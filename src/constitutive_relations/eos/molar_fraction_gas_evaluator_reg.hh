@@ -16,6 +16,7 @@
 #include "molar_fraction_gas_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 // registry of method
@@ -23,4 +24,5 @@ Utils::RegisteredFactory<Evaluator, MolarFractionGasEvaluator> MolarFractionGasE
   "molar fraction gas");
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi

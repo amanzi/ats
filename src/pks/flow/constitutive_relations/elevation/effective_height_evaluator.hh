@@ -31,6 +31,7 @@ derivative smooth near 0.  This is pretty much never used anymore.
 #include "Factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class EffectiveHeightModel;
@@ -63,6 +64,7 @@ class EffectiveHeightEvaluator : public EvaluatorSecondaryMonotypeCV {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

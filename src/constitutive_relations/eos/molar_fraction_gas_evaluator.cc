@@ -16,6 +16,7 @@
 #include "molar_fraction_gas_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 MolarFractionGasEvaluator::MolarFractionGasEvaluator(Teuchos::ParameterList& plist)
@@ -88,4 +89,5 @@ MolarFractionGasEvaluator::EvaluatePartialDerivative_(const State& S,
 
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi

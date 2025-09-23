@@ -16,6 +16,7 @@
 #include "carbon_decomposition_rate_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 
@@ -116,4 +117,5 @@ CarbonDecomposeRateEvaluator::Func_TempPres(double temp, double pres) const
 }
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi

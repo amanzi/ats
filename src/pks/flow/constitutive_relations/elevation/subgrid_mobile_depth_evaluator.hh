@@ -29,6 +29,7 @@ faces.
 #include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 namespace FlowRelations {
 
@@ -57,4 +58,5 @@ class SubgridMobileDepthEvaluator : public EvaluatorSecondaryMonotypeCV {
 
 } // namespace FlowRelations
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

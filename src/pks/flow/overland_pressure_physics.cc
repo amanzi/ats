@@ -11,6 +11,7 @@
 #include "overland_pressure.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // -------------------------------------------------------------
@@ -138,4 +139,5 @@ OverlandPressureFlow::AddSourcesToPrecon_(double h)
 
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

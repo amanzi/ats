@@ -22,7 +22,7 @@ BDF.
 #include "pk_bdf_default.hh"
 
 namespace Amanzi {
-
+namespace ATS_Physics {  
 
 // -----------------------------------------------------------------------------
 // Setup
@@ -156,4 +156,5 @@ PK_BDF_Default::UpdateContinuationParameter(double lambda)
   ChangedSolution();
 }
 
+} // namespace ATS_Physics      
 } // namespace Amanzi

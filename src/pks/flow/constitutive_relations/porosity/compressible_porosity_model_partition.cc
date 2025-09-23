@@ -16,6 +16,7 @@
 
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // Non-member factory
@@ -43,4 +44,5 @@ createCompressiblePorosityModelPartition(Teuchos::ParameterList& plist)
 }
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

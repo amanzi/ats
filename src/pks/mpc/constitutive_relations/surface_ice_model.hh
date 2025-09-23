@@ -25,6 +25,7 @@
 #include "ewc_model_base.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 
 namespace Flow {
 class IcyHeightModel;
@@ -76,6 +77,7 @@ class SurfaceIceModel : public EWCModelBase {
 };
 
 
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 

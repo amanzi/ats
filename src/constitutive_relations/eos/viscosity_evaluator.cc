@@ -16,6 +16,7 @@
 #include "viscosity_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 ViscosityEvaluator::ViscosityEvaluator(Teuchos::ParameterList& plist)
@@ -89,4 +90,5 @@ ViscosityEvaluator::EvaluatePartialDerivative_(const State& S,
 }
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi

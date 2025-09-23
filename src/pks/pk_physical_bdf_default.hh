@@ -60,6 +60,7 @@ code, so usually are not supplied by the user.
 #include "Operator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {    
 
 class PK_PhysicalBDF_Default
   : public PK_BDF_Default
@@ -132,7 +133,7 @@ class PK_PhysicalBDF_Default
   double atol_, rtol_, fluxtol_;
 };
 
-
+} // namespace ATS_Physics    
 } // namespace Amanzi
 
 #endif

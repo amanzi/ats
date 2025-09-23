@@ -10,6 +10,7 @@
 #include "pool_decomposition_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace BGC {
 namespace BGCRelations {
 
@@ -17,6 +18,8 @@ namespace BGCRelations {
 Utils::RegisteredFactory<Evaluator, PoolDecompositionEvaluator> PoolDecompositionEvaluator::fac_(
   "pool decomposition evaluator");
 
-} // namespace BGCRelations
 } // namespace BGC
+} // namespace ATS_Physics
+} // namespace BGC
+} // namespace ATS_Physics
 } // namespace Amanzi

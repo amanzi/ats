@@ -111,10 +111,10 @@ class MPCPermafrost : public MPCSubsurface {
 
  protected:
   // sub PKs
-  Teuchos::RCP<PK_PhysicalBDF_Default> domain_flow_pk_;
-  Teuchos::RCP<PK_PhysicalBDF_Default> domain_energy_pk_;
-  Teuchos::RCP<PK_PhysicalBDF_Default> surf_flow_pk_;
-  Teuchos::RCP<PK_PhysicalBDF_Default> surf_energy_pk_;
+  Teuchos::RCP<ATS_Physics::PK_PhysicalBDF_Default> domain_flow_pk_;
+  Teuchos::RCP<ATS_Physics::PK_PhysicalBDF_Default> domain_energy_pk_;
+  Teuchos::RCP<ATS_Physics::PK_PhysicalBDF_Default> surf_flow_pk_;
+  Teuchos::RCP<ATS_Physics::PK_PhysicalBDF_Default> surf_energy_pk_;
 
   // sub meshes
   Key domain_surf_;

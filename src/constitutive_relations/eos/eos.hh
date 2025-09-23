@@ -19,6 +19,7 @@
 #include <vector>
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 class EOS {
@@ -47,6 +48,7 @@ class EOS {
 };
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

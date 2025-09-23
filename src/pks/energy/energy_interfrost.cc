@@ -21,6 +21,7 @@ de/dt + q dot grad h = div Ke grad T + S?
 #include "energy_interfrost.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {      
 namespace Energy {
 
 
@@ -144,4 +145,5 @@ InterfrostEnergy::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> 
 
 
 } // namespace Energy
+} // namespace ATS_Physics          
 } // namespace Amanzi

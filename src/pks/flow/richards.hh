@@ -208,6 +208,7 @@ namespace WhetStone {
 class Tensor;
 }
 
+namespace ATS_Physics {  
 namespace Flow {
 
 class Richards : public PK_PhysicalBDF_Default {
@@ -437,6 +438,7 @@ class Richards : public PK_PhysicalBDF_Default {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics            
 } // namespace Amanzi
 
 #endif

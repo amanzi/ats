@@ -10,6 +10,7 @@
 #include "suction_head_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // registry of method
@@ -17,4 +18,5 @@ Utils::RegisteredFactory<Evaluator, SuctionHeadEvaluator> SuctionHeadEvaluator::
   "WRM suction head");
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

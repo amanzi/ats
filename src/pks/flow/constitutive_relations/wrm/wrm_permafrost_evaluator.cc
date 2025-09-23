@@ -17,6 +17,7 @@
 #include "wrm_partition.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 /* --------------------------------------------------------------------------------
@@ -305,4 +306,5 @@ WRMPermafrostEvaluator::EvaluatePartialDerivative_(const State& S,
 
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

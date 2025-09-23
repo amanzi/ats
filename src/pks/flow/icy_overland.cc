@@ -10,6 +10,7 @@
 #include "icy_overland.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 void
@@ -41,4 +42,5 @@ IcyOverlandFlow::SetupPhysicalEvaluators_()
 }
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

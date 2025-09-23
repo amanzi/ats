@@ -17,6 +17,7 @@
 #include "manning_conductivity_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 OverlandConductivitySubgridEvaluator::OverlandConductivitySubgridEvaluator(
@@ -258,4 +259,5 @@ OverlandConductivitySubgridEvaluator::EnsureCompatibility_ToDeps_(State& S)
 }
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

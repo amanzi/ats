@@ -16,6 +16,7 @@
 #include "compressible_porosity_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 CompressiblePorosityEvaluator::CompressiblePorosityEvaluator(Teuchos::ParameterList& plist)
@@ -136,4 +137,5 @@ CompressiblePorosityEvaluator::EvaluatePartialDerivative_(
 
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

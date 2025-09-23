@@ -19,6 +19,7 @@ UNITS: ????
 #define PK_ENERGY_RELATIONS_TC_TWOPHASE_HH_
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 class ThermalConductivityTwoPhase {
@@ -28,6 +29,7 @@ class ThermalConductivityTwoPhase {
 };
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

@@ -30,6 +30,7 @@
 #define AMANZI_SURFACEBALANCE_EVAPORATIVE_FLUX_RELAXATION_MODEL_HH_
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 namespace Relations {
 
@@ -53,6 +54,7 @@ class EvaporativeFluxRelaxationModel {
 
 } // namespace Relations
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

@@ -21,6 +21,7 @@
 #include "viscosity_water.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 // registry of method
@@ -28,4 +29,5 @@ Utils::RegisteredFactory<ViscosityRelation, ViscosityWater> ViscosityWater::fact
   "liquid water");
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi

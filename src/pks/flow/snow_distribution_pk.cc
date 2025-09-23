@@ -27,6 +27,7 @@
 #include "PK_Helpers.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 #define DEBUG_FLAG 1
@@ -295,4 +296,5 @@ SnowDistribution::UpdateBoundaryConditions_(const Tag& tag)
 }
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

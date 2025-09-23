@@ -12,6 +12,7 @@
 #include "interception_fraction_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 namespace Relations {
 
@@ -157,4 +158,5 @@ InterceptionFractionEvaluator::EvaluatePartialDerivative_(
 
 } // namespace Relations
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

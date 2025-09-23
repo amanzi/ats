@@ -37,6 +37,7 @@ of both pressure and temperature.
 #include "eos_constant_molar_mass.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 // Equation of State model
@@ -71,6 +72,7 @@ class EOSIce : public EOSConstantMolarMass {
 };
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

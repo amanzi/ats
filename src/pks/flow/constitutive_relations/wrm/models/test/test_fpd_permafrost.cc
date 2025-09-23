@@ -17,7 +17,7 @@
 
 TEST(fpdPermafrost_Derivs)
 {
-  using namespace Amanzi::Flow::Flow;
+  using namespace Amanzi::ATS_Physics::Flow;
   double eps = 1.e-4;
 
   double m = 0.8;

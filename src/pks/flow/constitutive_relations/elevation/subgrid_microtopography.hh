@@ -14,6 +14,7 @@
 #include <cmath>
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 namespace Microtopography {
 
@@ -52,4 +53,5 @@ validParameters(double del_max, double del_ex)
 
 } // namespace Microtopography
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

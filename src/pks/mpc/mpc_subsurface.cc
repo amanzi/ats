@@ -41,7 +41,7 @@ MPCSubsurface::MPCSubsurface(Teuchos::ParameterList& pk_tree_list,
                              const Teuchos::RCP<State>& S,
                              const Teuchos::RCP<TreeVector>& soln)
   : PK(pk_tree_list, global_list, S, soln),
-    StrongMPC<PK_PhysicalBDF_Default>(pk_tree_list, global_list, S, soln),
+    StrongMPC<ATS_Physics::PK_PhysicalBDF_Default>(pk_tree_list, global_list, S, soln),
     update_pcs_(0)
 {}
 
@@ -49,7 +49,7 @@ MPCSubsurface::MPCSubsurface(Teuchos::ParameterList& pk_tree_list,
 void
 MPCSubsurface::parseParameterList()
 {
-  StrongMPC<PK_PhysicalBDF_Default>::parseParameterList();
+  StrongMPC<ATS_Physics::PK_PhysicalBDF_Default>::parseParameterList();
 
   // set up keys
   dump_ = plist_->get<bool>("dump preconditioner", false);
@@ -101,7 +101,7 @@ MPCSubsurface::Setup()
   }
 
   // set up the sub-pks
-  StrongMPC<PK_PhysicalBDF_Default>::Setup();
+  StrongMPC<ATS_Physics::PK_PhysicalBDF_Default>::Setup();
   mesh_ = S_->GetMesh(domain_name_);
 
   // set up debugger
@@ -395,11 +395,11 @@ MPCSubsurface::Setup()
     ewc_ = Teuchos::rcp(new MPCDelegateEWCSubsurface(*sub_ewc_list, S_));
     ewc_->set_tags(tag_current_, tag_next_);
 
-    Teuchos::RCP<EWCModelBase> model;
+    Teuchos::RCP<ATS_Physics::EWCModelBase> model;
     if (S_->HasRecordSet("internal_energy_gas")) {
-      model = Teuchos::rcp(new PermafrostModel());
+      model = Teuchos::rcp(new ATS_Physics::PermafrostModel());
     } else {
-      model = Teuchos::rcp(new LiquidIceModel());
+      model = Teuchos::rcp(new ATS_Physics::LiquidIceModel());
     }
     ewc_->set_model(model);
     ewc_->setup();
@@ -410,7 +410,7 @@ MPCSubsurface::Setup()
 void
 MPCSubsurface::Initialize()
 {
-  StrongMPC<PK_PhysicalBDF_Default>::Initialize();
+  StrongMPC<ATS_Physics::PK_PhysicalBDF_Default>::Initialize();
   if (ewc_ != Teuchos::null) ewc_->initialize();
 
   // initialize offdiagonal operators
@@ -424,10 +424,10 @@ MPCSubsurface::Initialize()
         .PutScalar(0.0);
   }
 
-  Teuchos::RCP<Flow::Richards> richards_pk;
+  Teuchos::RCP<ATS_Physics::Flow::Richards> richards_pk;
   if (ddivq_dT_ != Teuchos::null) {
     if (richards_pk == Teuchos::null) {
-      richards_pk = Teuchos::rcp_dynamic_cast<Flow::Richards>(sub_pks_[0]);
+      richards_pk = Teuchos::rcp_dynamic_cast<ATS_Physics::Flow::Richards>(sub_pks_[0]);
       AMANZI_ASSERT(richards_pk != Teuchos::null);
     }
 
@@ -454,7 +454,7 @@ MPCSubsurface::Initialize()
 
   if (ddivhq_dp_ != Teuchos::null) {
     if (richards_pk == Teuchos::null) {
-      richards_pk = Teuchos::rcp_dynamic_cast<Flow::Richards>(sub_pks_[0]);
+      richards_pk = Teuchos::rcp_dynamic_cast<ATS_Physics::Flow::Richards>(sub_pks_[0]);
       AMANZI_ASSERT(richards_pk != Teuchos::null);
     }
 
@@ -487,7 +487,7 @@ MPCSubsurface::Initialize()
 void
 MPCSubsurface::set_tags(const Tag& tag_current, const Tag& tag_next)
 {
-  StrongMPC<PK_PhysicalBDF_Default>::set_tags(tag_current, tag_next);
+  StrongMPC<ATS_Physics::PK_PhysicalBDF_Default>::set_tags(tag_current, tag_next);
   if (ewc_ != Teuchos::null) ewc_->set_tags(tag_current, tag_next);
 }
 
@@ -500,7 +500,7 @@ MPCSubsurface::CommitStep(double t_old, double t_new, const Tag& tag)
   }
 
   update_pcs_ = 0;
-  StrongMPC<PK_PhysicalBDF_Default>::CommitStep(t_old, t_new, tag);
+  StrongMPC<ATS_Physics::PK_PhysicalBDF_Default>::CommitStep(t_old, t_new, tag);
 }
 
 
@@ -517,7 +517,7 @@ MPCSubsurface::ModifyPredictor(double h,
   }
 
   // potentially update faces
-  modified |= StrongMPC<PK_PhysicalBDF_Default>::ModifyPredictor(h, up0, up);
+  modified |= StrongMPC<ATS_Physics::PK_PhysicalBDF_Default>::ModifyPredictor(h, up0, up);
   return modified;
 }
 

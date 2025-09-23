@@ -60,6 +60,7 @@ Example:
 #include "Factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class WRMVanGenuchten : public WRM {
@@ -100,6 +101,7 @@ class WRMVanGenuchten : public WRM {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

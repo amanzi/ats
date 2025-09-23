@@ -19,6 +19,7 @@ McKenzie et al. (2007)'s soil freezing curve
 #include "wrm_mck_permafrost_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // required methods from the base class
@@ -95,4 +96,5 @@ WRMMCKPermafrostModel::dsaturations_dpc_ice(double pc_liq, double temperature, d
 }
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

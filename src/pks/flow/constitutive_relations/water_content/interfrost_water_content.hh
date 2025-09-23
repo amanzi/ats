@@ -28,6 +28,7 @@ it needs a special evaluator.
 #include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 namespace Relations {
 
@@ -55,6 +56,7 @@ class InterfrostWaterContent : public EvaluatorSecondaryMonotypeCV {
 
 } // namespace Relations
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

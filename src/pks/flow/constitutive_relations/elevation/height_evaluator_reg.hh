@@ -10,10 +10,12 @@
 #include "height_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // registry of method
 Utils::RegisteredFactory<Evaluator, HeightEvaluator> HeightEvaluator::factory_("ponded depth");
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

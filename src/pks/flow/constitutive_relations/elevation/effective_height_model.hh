@@ -18,6 +18,7 @@
 #include "Teuchos_ParameterList.hpp"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class EffectiveHeightModel {
@@ -63,6 +64,7 @@ class EffectiveHeightModel {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

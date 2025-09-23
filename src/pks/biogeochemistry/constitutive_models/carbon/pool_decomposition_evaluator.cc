@@ -18,6 +18,7 @@
 #include "pool_decomposition_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace BGC {
 namespace BGCRelations {
 
@@ -74,6 +75,8 @@ PoolDecompositionEvaluator::EvaluateFieldPartialDerivative_(
 }
 
 
-} // namespace BGCRelations
 } // namespace BGC
+} // namespace ATS_Physics
+} // namespace BGC
+} // namespace ATS_Physics
 } // namespace Amanzi

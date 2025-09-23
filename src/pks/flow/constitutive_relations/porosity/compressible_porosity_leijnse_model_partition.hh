@@ -18,6 +18,7 @@
 #include "MeshPartition.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 typedef std::vector<Teuchos::RCP<CompressiblePorosityLeijnseModel>>
@@ -30,6 +31,7 @@ Teuchos::RCP<CompressiblePorosityLeijnseModelPartition>
 createCompressiblePorosityLeijnseModelPartition(Teuchos::ParameterList& plist);
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

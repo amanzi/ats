@@ -17,10 +17,12 @@
 #include "eos_ideal_gas.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 // registry of method
 Utils::RegisteredFactory<EOS, EOSIdealGas> EOSIdealGas::factory_("ideal gas");
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi

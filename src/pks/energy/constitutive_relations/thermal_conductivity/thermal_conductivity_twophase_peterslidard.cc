@@ -17,6 +17,7 @@ Linear interpolant of thermal conductivity.
 #include "thermal_conductivity_twophase_peterslidard.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 ThermalConductivityTwoPhasePetersLidard::ThermalConductivityTwoPhasePetersLidard(
@@ -48,4 +49,5 @@ ThermalConductivityTwoPhasePetersLidard::InitializeFromPlist_()
 };
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

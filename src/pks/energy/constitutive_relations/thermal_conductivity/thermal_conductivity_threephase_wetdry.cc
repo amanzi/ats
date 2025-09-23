@@ -17,6 +17,7 @@ Linear interpolant of thermal conductivity.
 #include "thermal_conductivity_threephase_wetdry.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 ThermalConductivityThreePhaseWetDry::ThermalConductivityThreePhaseWetDry(
@@ -104,4 +105,5 @@ ThermalConductivityThreePhaseWetDry::InitializeFromPlist_()
 };
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

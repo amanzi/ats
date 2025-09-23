@@ -29,6 +29,7 @@
 #include "seb_threecomponent_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 namespace Relations {
 
@@ -94,4 +95,5 @@ Utils::RegisteredFactory<Evaluator, SEBThreeComponentEvaluator> SEBThreeComponen
 
 } // namespace Relations
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

@@ -24,6 +24,7 @@
 #include "Factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 class EOSFactory : public Amanzi::Utils::Factory<EOS> {
@@ -32,6 +33,7 @@ class EOSFactory : public Amanzi::Utils::Factory<EOS> {
 };
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

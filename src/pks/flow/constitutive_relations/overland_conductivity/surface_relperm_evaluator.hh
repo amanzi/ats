@@ -20,6 +20,7 @@
 #include "surface_relperm_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class SurfaceRelPermModel;
@@ -51,6 +52,7 @@ class SurfaceRelPermEvaluator : public EvaluatorSecondaryMonotypeCV {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

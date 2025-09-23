@@ -30,6 +30,7 @@
 #include "EvaluatorSecondary.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 namespace Relations {
 
@@ -64,5 +65,6 @@ class SurfDistributedTilesRateEvaluator : public EvaluatorSecondary {
 
 } // namespace Relations
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 #endif

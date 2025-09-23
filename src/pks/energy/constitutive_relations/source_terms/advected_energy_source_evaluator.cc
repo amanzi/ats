@@ -15,6 +15,7 @@
 #include "advected_energy_source_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 // constructor format for all derived classes
@@ -169,4 +170,5 @@ AdvectedEnergySourceEvaluator::InitializeFromPlist_()
 
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

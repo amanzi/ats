@@ -12,9 +12,11 @@
 #include "richards.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 RegisteredPKFactory<Richards> Richards::reg_("richards flow");
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

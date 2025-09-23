@@ -19,6 +19,7 @@
 #include "one_uf_relperm_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 OneUFRelPermModel::OneUFRelPermModel(Teuchos::ParameterList& plist)
@@ -61,4 +62,5 @@ OneUFRelPermModel::SurfaceRelPerm(double uf, double h)
 
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

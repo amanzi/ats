@@ -19,6 +19,7 @@ Painter's permafrost model with freezing point depression.
 #include "wrm_fpd_permafrost_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // required methods from the base class
@@ -85,4 +86,5 @@ WRMFPDPermafrostModel::dsaturations_dpc_ice(double pc_liq, double pc_ice, double
 
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

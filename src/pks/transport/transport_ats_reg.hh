@@ -15,9 +15,11 @@
 #include "transport_ats.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Transport {
 
 RegisteredPKFactory<Transport_ATS> Transport_ATS::reg_("transport ATS");
 
 } // namespace Transport
+} // namespace ATS_Physics
 } // namespace Amanzi

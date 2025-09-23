@@ -16,6 +16,7 @@
 #include "eos_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 void
@@ -350,4 +351,5 @@ EOSEvaluator::EvaluatePartialDerivative_(const State& S,
 
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi

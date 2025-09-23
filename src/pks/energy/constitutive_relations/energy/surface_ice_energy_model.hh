@@ -19,6 +19,7 @@ Energy evaulator for ice+liquid surface water.
 #define AMANZI_ENERGY_SURFACE_ICE_ENERGY_MODEL_HH_
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 namespace Relations {
 
@@ -86,6 +87,7 @@ class SurfaceIceEnergyModel {
 
 } // namespace Relations
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

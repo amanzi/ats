@@ -23,6 +23,7 @@
 #include "dbc.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class SoilResistanceSakaguckiZengModel {
@@ -97,6 +98,7 @@ class SoilResistanceSakaguckiZengModel {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

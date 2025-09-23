@@ -10,9 +10,11 @@
 #include "permafrost.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 RegisteredPKFactory<Permafrost> Permafrost::reg_("permafrost flow");
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

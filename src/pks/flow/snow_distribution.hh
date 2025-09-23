@@ -59,6 +59,7 @@ interval.
 #include "pk_physical_bdf_default.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class SnowDistribution : public PK_PhysicalBDF_Default {
@@ -152,29 +153,30 @@ class SnowDistribution : public PK_PhysicalBDF_Default {
   Key flux_dir_key_;
   Key potential_key_;
   // control switches
-  Operators::UpwindMethod upwind_method_;
+  Amanzi::Operators::UpwindMethod upwind_method_;
 
   double dt_factor_;
   double my_next_time_;
 
   // function for precip
-  Teuchos::RCP<Function> precip_func_;
+  Teuchos::RCP<Amanzi::Function> precip_func_;
 
   // work data space
-  Teuchos::RCP<Operators::Upwinding> upwinding_;
+  Teuchos::RCP<Amanzi::Operators::Upwinding> upwinding_;
 
   // mathematical operators
-  Teuchos::RCP<Operators::Operator> matrix_; // pc in PKPhysicalBDFBase
-  Teuchos::RCP<Operators::PDE_Diffusion> matrix_diff_;
-  Teuchos::RCP<Operators::PDE_Diffusion> face_matrix_diff_;
-  Teuchos::RCP<Operators::PDE_Diffusion> preconditioner_diff_;
-  Teuchos::RCP<Operators::PDE_Accumulation> preconditioner_acc_;
+  Teuchos::RCP<Amanzi::Operators::Operator> matrix_; // pc in PKPhysicalBDFBase
+  Teuchos::RCP<Amanzi::Operators::PDE_Diffusion> matrix_diff_;
+  Teuchos::RCP<Amanzi::Operators::PDE_Diffusion> face_matrix_diff_;
+  Teuchos::RCP<Amanzi::Operators::PDE_Diffusion> preconditioner_diff_;
+  Teuchos::RCP<Amanzi::Operators::PDE_Accumulation> preconditioner_acc_;
 
   // factory registration
   static RegisteredPKFactory<SnowDistribution> reg_;
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

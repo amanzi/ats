@@ -20,6 +20,7 @@
 #include "wrm_factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // method for instantiating WRM implementations
@@ -49,4 +50,5 @@ WRMFactory::createWRM(Teuchos::ParameterList& plist)
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

@@ -21,6 +21,7 @@
 #include "Factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class OneSurfaceRelPermModel : public SurfaceRelPermModel {
@@ -40,6 +41,7 @@ class OneSurfaceRelPermModel : public SurfaceRelPermModel {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

@@ -18,6 +18,7 @@
 #include "thermal_conductivity_threephase_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 ThermalConductivityThreePhaseEvaluator::ThermalConductivityThreePhaseEvaluator(
@@ -238,4 +239,5 @@ ThermalConductivityThreePhaseEvaluator::EvaluatePartialDerivative_(
 }
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

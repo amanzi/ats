@@ -50,7 +50,7 @@ namespace Amanzi {
 
 // forward declarations
 class Function;
-
+namespace ATS_Physics {
 namespace Energy {
 
 class EnergySurfaceIce : public EnergyBase {
@@ -95,6 +95,7 @@ class EnergySurfaceIce : public EnergyBase {
 };
 
 } // namespace Energy
+} // namespace ATS_Physics  
 } // namespace Amanzi
 
 #endif

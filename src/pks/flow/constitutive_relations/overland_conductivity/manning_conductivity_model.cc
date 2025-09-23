@@ -15,6 +15,7 @@
 #include "manning_conductivity_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 ManningConductivityModel::ManningConductivityModel(Teuchos::ParameterList& plist)
@@ -45,4 +46,5 @@ ManningConductivityModel::DConductivityDDepth(double depth, double slope, double
 }
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

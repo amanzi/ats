@@ -26,6 +26,7 @@
 #include "Factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class VolumetricPondedDepthEvaluator : public EvaluatorSecondaryMonotypeCV {
@@ -57,4 +58,5 @@ class VolumetricPondedDepthEvaluator : public EvaluatorSecondaryMonotypeCV {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

@@ -10,10 +10,12 @@
 #include "wrm_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // registry of method
 Utils::RegisteredFactory<Evaluator, WRMEvaluator> WRMEvaluator::reg_("water retention model");
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

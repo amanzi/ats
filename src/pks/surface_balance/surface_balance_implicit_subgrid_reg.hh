@@ -10,9 +10,11 @@
 #include "surface_balance_implicit_subgrid.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 
 RegisteredPKFactory<ImplicitSubgrid> ImplicitSubgrid::reg_("surface balance implicit subgrid");
 
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

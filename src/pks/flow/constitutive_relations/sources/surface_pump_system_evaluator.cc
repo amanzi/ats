@@ -24,6 +24,7 @@ Based on pump on-off conditions and pump-operation curve, water is moved from pu
 
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 namespace Relations {
 
@@ -246,4 +247,5 @@ SurfPumpEvaluator::Evaluate_(const State& S,
 
 } // namespace Relations
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

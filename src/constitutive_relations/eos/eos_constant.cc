@@ -19,6 +19,7 @@
 #include "eos_constant.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 EOSConstant::EOSConstant(Teuchos::ParameterList& eos_plist)
@@ -45,4 +46,5 @@ EOSConstant::InitializeFromPlist_()
 };
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi

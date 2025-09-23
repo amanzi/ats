@@ -32,6 +32,7 @@ Painter's original, implicitly defined permafrost model.
 #include "wrm_permafrost_factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class WRM;
@@ -118,6 +119,7 @@ class WRMImplicitPermafrostModel : public WRMPermafrostModel {
 
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

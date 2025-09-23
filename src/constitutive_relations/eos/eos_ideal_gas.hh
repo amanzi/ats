@@ -40,6 +40,7 @@ Default properties are that of air.
 #include "eos_constant_molar_mass.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 // Equation of State model
@@ -67,6 +68,7 @@ class EOSIdealGas : public EOSConstantMolarMass {
 };
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

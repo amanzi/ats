@@ -10,6 +10,7 @@
 #include "icy_height_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // registry of method
@@ -17,4 +18,5 @@ Utils::RegisteredFactory<Evaluator, IcyHeightEvaluator> IcyHeightEvaluator::fact
   "icy ponded depth");
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

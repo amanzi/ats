@@ -16,6 +16,7 @@ Linear interpolant of thermal conductivity.
 #include "thermal_conductivity_threephase_peterslidard.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 // registry of method
@@ -24,4 +25,5 @@ Utils::RegisteredFactory<ThermalConductivityThreePhase, ThermalConductivityThree
 
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

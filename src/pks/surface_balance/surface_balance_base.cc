@@ -12,6 +12,7 @@
 #include "surface_balance_base.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 
 
@@ -310,4 +311,5 @@ SurfaceBalanceBase::ModifyPredictor(double h,
 }
 
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

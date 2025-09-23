@@ -14,6 +14,7 @@
 
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 namespace Relations {
 
@@ -47,4 +48,5 @@ LongwaveEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>
 
 } // namespace Relations
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

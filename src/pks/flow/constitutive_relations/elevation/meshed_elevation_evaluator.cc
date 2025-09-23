@@ -20,6 +20,7 @@
 #include "meshed_elevation_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 namespace Impl {
@@ -208,4 +209,5 @@ MeshedElevationEvaluator::EvaluateElevationAndSlope_(const State& S,
 }
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

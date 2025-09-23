@@ -19,6 +19,7 @@
 #include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 class AdvectedEnergySourceEvaluator : public EvaluatorSecondaryMonotypeCV {
@@ -62,6 +63,7 @@ class AdvectedEnergySourceEvaluator : public EvaluatorSecondaryMonotypeCV {
 };
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

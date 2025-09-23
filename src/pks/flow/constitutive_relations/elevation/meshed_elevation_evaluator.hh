@@ -42,6 +42,7 @@ Evaluates the z-coordinate and the magnitude of the slope :math:``|\nambla_h z|`
 #include "elevation_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 namespace Impl {
@@ -63,6 +64,7 @@ class MeshedElevationEvaluator : public ElevationEvaluator {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

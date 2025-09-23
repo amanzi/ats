@@ -10,6 +10,7 @@
 #include "eos_water.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 EOSWater::EOSWater(Teuchos::ParameterList& eos_plist)
@@ -71,4 +72,5 @@ EOSWater::DMassDensityDp(std::vector<double>& params)
 };
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi

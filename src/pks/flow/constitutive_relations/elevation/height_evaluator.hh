@@ -35,6 +35,7 @@ where :math:`H` is the Heaviside function.
 #include "Factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class HeightModel;
@@ -76,6 +77,7 @@ class HeightEvaluator : public EvaluatorSecondaryMonotypeCV {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

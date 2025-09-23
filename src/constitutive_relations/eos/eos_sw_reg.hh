@@ -18,9 +18,11 @@
 #include "eos_sw.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 Utils::RegisteredFactory<EOS, EOS_SW> EOS_SW::factory_("salt water");
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi

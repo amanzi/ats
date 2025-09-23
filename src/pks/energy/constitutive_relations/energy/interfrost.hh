@@ -23,6 +23,7 @@ Inherits TwoPhase instead of EnergyBase to pick up the enthalpy from TwoPhase.
 #include "three_phase.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 class Interfrost : public ThreePhase {
@@ -53,6 +54,7 @@ class Interfrost : public ThreePhase {
 };
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

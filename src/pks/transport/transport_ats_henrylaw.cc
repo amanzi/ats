@@ -17,6 +17,7 @@
 #include "transport_ats.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {  
 namespace Transport {
 
 /* *******************************************************************
@@ -78,4 +79,5 @@ Transport_ATS::MakeAirWaterPartitioning_()
 }
 
 } // namespace Transport
+} // namespace ATS_Physics
 } // namespace Amanzi

@@ -18,5 +18,5 @@
 
 // explicity instantitate the static data of Factory<WRM>
 template<>
-Amanzi::Utils::Factory<Amanzi::Flow::WRMPermafrostModel>::map_type*
-  Amanzi::Utils::Factory<Amanzi::Flow::WRMPermafrostModel>::map_;
+Amanzi::Utils::Factory<Amanzi::ATS_Physics::Flow::WRMPermafrostModel>::map_type*
+Amanzi::Utils::Factory<Amanzi::ATS_Physics::Flow::WRMPermafrostModel>::map_;

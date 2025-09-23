@@ -42,6 +42,7 @@ latent heat chosen below.
 #include "Teuchos_ParameterList.hpp"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class PCIceWater {
@@ -69,6 +70,7 @@ class PCIceWater {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

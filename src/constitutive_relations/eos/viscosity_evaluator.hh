@@ -33,6 +33,7 @@ temperatures from well below freezing to ~100C.
 #include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 class ViscosityEvaluator : public EvaluatorSecondaryMonotypeCV {
@@ -63,6 +64,7 @@ class ViscosityEvaluator : public EvaluatorSecondaryMonotypeCV {
 };
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

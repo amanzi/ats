@@ -19,6 +19,7 @@ Interfrost model for saturated
 #include "wrm_interfrost_permafrost_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // required methods from the base class
@@ -66,4 +67,5 @@ WRMInterfrostPermafrostModel::dsaturations_dpc_ice(double pc_liq,
 
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

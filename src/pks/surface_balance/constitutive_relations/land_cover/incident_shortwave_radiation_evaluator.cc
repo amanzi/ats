@@ -42,6 +42,7 @@ https://github.com/landlab/landlab/blob/master/landlab/components/radiation/radi
 #include "incident_shortwave_radiation_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 namespace Relations {
 
@@ -180,4 +181,5 @@ IncidentShortwaveRadiationEvaluator::EvaluatePartialDerivative_(
 
 } // namespace Relations
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

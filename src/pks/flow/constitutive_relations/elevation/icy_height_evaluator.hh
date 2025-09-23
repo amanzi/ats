@@ -37,6 +37,7 @@ Computes ponded depth from surface water pressure and an unfrozen fraction.
 #include "Factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class IcyHeightModel;
@@ -70,6 +71,7 @@ class IcyHeightEvaluator : public HeightEvaluator {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

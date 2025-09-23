@@ -36,6 +36,7 @@ converge.  After Leijnse thesis, 1992.
 #include "compressible_porosity_leijnse_model_partition.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class CompressiblePorosityLeijnseEvaluator : public EvaluatorSecondaryMonotypeCV {
@@ -64,6 +65,7 @@ class CompressiblePorosityLeijnseEvaluator : public EvaluatorSecondaryMonotypeCV
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

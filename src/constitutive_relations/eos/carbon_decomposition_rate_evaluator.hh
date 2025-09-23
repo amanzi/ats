@@ -21,6 +21,7 @@
 #include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 class CarbonDecomposeRateEvaluator : public EvaluatorSecondaryMonotypeCV {
@@ -63,6 +64,7 @@ class CarbonDecomposeRateEvaluator : public EvaluatorSecondaryMonotypeCV {
 };
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

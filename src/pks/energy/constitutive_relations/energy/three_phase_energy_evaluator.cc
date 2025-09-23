@@ -17,6 +17,7 @@ Energy for a three-phase, gas+liquid+ice evaluator.
 #include "three_phase_energy_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 namespace Relations {
 
@@ -725,4 +726,5 @@ ThreePhaseEnergyEvaluator::EvaluatePartialDerivative_(const State& S,
 
 } // namespace Relations
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

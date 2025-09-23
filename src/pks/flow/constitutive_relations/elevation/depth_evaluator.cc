@@ -11,6 +11,7 @@
 #include "depth_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 
@@ -60,4 +61,5 @@ DepthEvaluator::Update_(State& S)
 }
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

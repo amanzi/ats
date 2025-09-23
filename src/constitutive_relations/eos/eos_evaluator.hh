@@ -40,6 +40,7 @@ ratio/concentration.
 #include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 class EOSEvaluator : public EvaluatorSecondaryMonotypeCV {
@@ -87,6 +88,7 @@ class EOSEvaluator : public EvaluatorSecondaryMonotypeCV {
 };
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

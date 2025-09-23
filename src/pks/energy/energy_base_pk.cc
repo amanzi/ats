@@ -32,6 +32,7 @@
 
 
 namespace Amanzi {
+namespace ATS_Physics {  
 namespace Energy {
 
 
@@ -880,4 +881,5 @@ EnergyBase::ModifyCorrection(double h,
 }
 
 } // namespace Energy
+} // namespace ATS_Physics  
 } // namespace Amanzi

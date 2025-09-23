@@ -26,6 +26,7 @@ Painter's permafrost model with freezing point depression.
 #include "wrm_permafrost_factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class WRM;
@@ -57,6 +58,7 @@ class WRMFPDPermafrostModel : public WRMPermafrostModel {
 
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

@@ -15,6 +15,7 @@
 #include "depth_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 void
@@ -64,4 +65,5 @@ computeDepth_CellCentroid(const AmanziMesh::Mesh& mesh, Epetra_MultiVector& dept
 }
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

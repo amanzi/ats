@@ -234,6 +234,7 @@ Solves Preferential Flow equation:
 #include "pk_physical_bdf_default.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 
 // forward declarations
 class MPCSubsurface;
@@ -278,6 +279,7 @@ class Preferential : public Richards {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

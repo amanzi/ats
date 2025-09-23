@@ -25,6 +25,7 @@
 #include "ewc_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 
 namespace Flow {
 namespace Flow {

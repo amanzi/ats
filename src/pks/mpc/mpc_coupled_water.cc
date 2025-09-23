@@ -22,7 +22,7 @@ MPCCoupledWater::MPCCoupledWater(Teuchos::ParameterList& pk_tree,
                                  const Teuchos::RCP<State>& S,
                                  const Teuchos::RCP<TreeVector>& soln)
   : PK(pk_tree, global_plist, S, soln),
-    StrongMPC<PK_PhysicalBDF_Default>(pk_tree, global_plist, S, soln)
+    StrongMPC<ATS_Physics::PK_PhysicalBDF_Default>(pk_tree, global_plist, S, soln)
 {}
 
 void
@@ -45,7 +45,7 @@ MPCCoupledWater::parseParameterList()
   exfilt_key_ =
     Keys::readKey(*plist_, domain_surf_, "exfiltration flux", "surface_subsurface_flux");
 
-  StrongMPC<PK_PhysicalBDF_Default>::parseParameterList();
+  StrongMPC<ATS_Physics::PK_PhysicalBDF_Default>::parseParameterList();
 }
 
 
@@ -61,7 +61,7 @@ MPCCoupledWater::Setup()
   surf_flow_pk_ = sub_pks_[1];
 
   // call the MPC's setup, which calls the sub-pk's setups
-  StrongMPC<PK_PhysicalBDF_Default>::Setup();
+  StrongMPC<ATS_Physics::PK_PhysicalBDF_Default>::Setup();
 
   // require the coupling fields, claim ownership
   requireEvaluatorAtNext(exfilt_key_, tag_next_, *S_, name_)
@@ -133,7 +133,7 @@ MPCCoupledWater::Initialize()
   changedEvaluatorPrimary(exfilt_key_, tag_next_, *S_);
 
   // Initialize all sub PKs.
-  MPC<PK_PhysicalBDF_Default>::Initialize();
+  MPC<ATS_Physics::PK_PhysicalBDF_Default>::Initialize();
 
   // ensure continuity of ICs... subsurface takes precedence.
   CopySubsurfaceToSurface(S_->Get<CompositeVector>(Keys::getKey(domain_ss_, "pressure"), tag_next_),
@@ -142,7 +142,7 @@ MPCCoupledWater::Initialize()
                                                     sub_pks_[1]->name()));
 
   // Initialize my timestepper.
-  PK_BDF_Default::Initialize();
+  ATS_Physics::PK_BDF_Default::Initialize();
 }
 
 
@@ -294,7 +294,7 @@ MPCCoupledWater::ModifyCorrection(double h,
 
   // modify correction using sub-pk approaches
   AmanziSolvers::FnBaseDefs::ModifyCorrectionResult modified_res =
-    StrongMPC<PK_PhysicalBDF_Default>::ModifyCorrection(h, res, u, du);
+    StrongMPC<ATS_Physics::PK_PhysicalBDF_Default>::ModifyCorrection(h, res, u, du);
 
   // modify correction using water approaches
   int n_modified = 0;
@@ -390,7 +390,7 @@ MPCCoupledWater::ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const 
       res_face[0][f] = 0.;
     }
   }
-  return StrongMPC<PK_PhysicalBDF_Default>::ErrorNorm(u, res2);
+  return StrongMPC<ATS_Physics::PK_PhysicalBDF_Default>::ErrorNorm(u, res2);
 }
 
 

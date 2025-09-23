@@ -51,6 +51,7 @@ Note the challenges of using this model with arbitrary van Genuchten WRMs.  See
 #include "LandCover.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 namespace Relations {
 
@@ -86,4 +87,5 @@ class PlantWiltingFactorEvaluator : public EvaluatorSecondaryMonotypeCV {
 
 } // namespace Relations
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

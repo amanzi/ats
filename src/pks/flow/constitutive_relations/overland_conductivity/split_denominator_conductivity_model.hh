@@ -20,6 +20,7 @@
 #include "overland_conductivity_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class SplitDenominatorConductivityModel : public OverlandConductivityModel {
@@ -37,6 +38,7 @@ class SplitDenominatorConductivityModel : public OverlandConductivityModel {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

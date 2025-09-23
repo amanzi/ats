@@ -100,6 +100,7 @@ the maximal flow rate, e.g. no regulation by the plant is assumed.
 #include "LandCover.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 
 namespace SurfaceBalance {
 namespace Relations {
@@ -207,4 +208,5 @@ class TranspirationDistributionRelPermEvaluator : public EvaluatorSecondaryMonot
 
 } // namespace Relations
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

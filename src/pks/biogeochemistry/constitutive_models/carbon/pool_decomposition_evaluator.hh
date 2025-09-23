@@ -19,6 +19,7 @@
 #include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace BGC {
 namespace BGCRelations {
 
@@ -43,8 +44,10 @@ class PoolDecompositionEvaluator : public EvaluatorSecondaryMonotypeCV {
   static Utils::RegisteredFactory<Evaluator, PoolDecompositionEvaluator> fac_;
 };
 
-} // namespace BGCRelations
 } // namespace BGC
+} // namespace ATS_Physics
+} // namespace BGC
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

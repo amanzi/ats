@@ -152,6 +152,7 @@ Brooks-Corey parameters.
 #include "Factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {        
 namespace Flow {
 
 class RelPermFrzBCEvaluator : public EvaluatorSecondaryMonotypeCV {
@@ -198,4 +199,5 @@ class RelPermFrzBCEvaluator : public EvaluatorSecondaryMonotypeCV {
 };
 
 } // namespace Flow
+}
 } // namespace Amanzi

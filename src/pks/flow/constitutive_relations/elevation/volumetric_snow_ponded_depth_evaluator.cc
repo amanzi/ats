@@ -27,6 +27,7 @@
 #include "subgrid_microtopography.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 
@@ -208,4 +209,5 @@ VolumetricSnowPondedDepthEvaluator::EnsureCompatibility_ToDeps_(State& S)
 
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

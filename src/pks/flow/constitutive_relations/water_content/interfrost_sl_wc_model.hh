@@ -19,6 +19,7 @@ Interfrost water content portion sl.
 #define AMANZI_FLOW_INTERFROST_SL_WC_MODEL_HH_
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 namespace Relations {
 
@@ -54,6 +55,7 @@ class InterfrostSlWcModel {
 
 } // namespace Relations
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

@@ -39,6 +39,7 @@ to the roughness lengths (in parameters).
 #include "seb_physics_defs.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 namespace Relations {
 
@@ -255,4 +256,5 @@ class SnowTemperatureFunctor_ {
 
 } // namespace Relations
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

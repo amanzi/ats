@@ -21,6 +21,7 @@
 #pragma once
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 namespace Relations {
 
@@ -66,4 +67,5 @@ class MicroporeMacroporeFluxModel {
 
 } // namespace Relations
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

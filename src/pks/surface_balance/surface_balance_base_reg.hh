@@ -10,9 +10,11 @@
 #include "surface_balance_base.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 
 RegisteredPKFactory<SurfaceBalanceBase> SurfaceBalanceBase::reg_("general surface balance");
 
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

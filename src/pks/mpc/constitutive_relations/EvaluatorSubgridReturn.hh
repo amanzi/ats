@@ -39,6 +39,7 @@ number of grid cells.
 #include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 
 class EvaluatorSubgridReturn : public EvaluatorSecondaryMonotypeCV {
  public:
@@ -78,4 +79,5 @@ class EvaluatorSubgridReturn : public EvaluatorSecondaryMonotypeCV {
   static Utils::RegisteredFactory<Evaluator, EvaluatorSubgridReturn> fac_;
 };
 
+} // namespace ATS_Physics
 } // namespace Amanzi

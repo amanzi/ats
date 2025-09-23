@@ -18,6 +18,7 @@
 #include "Factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class OverlandPressureMulticomponentWaterContentEvaluator : public EvaluatorSecondaryMonotypeCV {
@@ -54,4 +55,5 @@ class OverlandPressureMulticomponentWaterContentEvaluator : public EvaluatorSeco
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

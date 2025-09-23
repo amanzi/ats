@@ -47,6 +47,7 @@ Computes water table by looping through cells in the column until saturation of 
 #include "Factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class HeightModel;
@@ -89,6 +90,7 @@ class WaterLevelEvaluator : public EvaluatorSecondaryMonotypeCV {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

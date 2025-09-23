@@ -23,6 +23,7 @@ de/dt + q dot grad h = div Ke grad T + S?
 #include "MeshAlgorithms.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {     
 namespace Energy {
 
 // -------------------------------------------------------------
@@ -242,4 +243,5 @@ EnergyBase::ApplyDirichletBCsToEnthalpy_(const Tag& tag)
 
 
 } //namespace Energy
+} //namespace ATS_Physics
 } //namespace Amanzi

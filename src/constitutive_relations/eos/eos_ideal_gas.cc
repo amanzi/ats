@@ -17,6 +17,7 @@
 #include "eos_ideal_gas.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 EOSIdealGas::EOSIdealGas(Teuchos::ParameterList& eos_plist)
@@ -64,4 +65,5 @@ EOSIdealGas::InitializeFromPlist_()
 };
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi

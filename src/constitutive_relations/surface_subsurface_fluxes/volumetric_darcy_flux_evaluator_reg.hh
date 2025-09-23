@@ -16,10 +16,12 @@
 #include "volumetric_darcy_flux_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 Utils::RegisteredFactory<Evaluator, Volumetric_FluxEvaluator> Volumetric_FluxEvaluator::fac_(
   "volumetric darcy flux");
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi

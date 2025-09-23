@@ -178,6 +178,7 @@ parameters to Brooks-Corey parameters.
 #include "Factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {      
 namespace Flow {
 
 enum class BoundaryRelPerm {
@@ -229,6 +230,7 @@ class RelPermEvaluator : public EvaluatorSecondaryMonotypeCV {
 };
 
 } // namespace Flow
+}  
 } // namespace Amanzi
 
 #endif

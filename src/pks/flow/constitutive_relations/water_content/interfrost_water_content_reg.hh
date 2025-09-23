@@ -10,6 +10,7 @@
 #include "interfrost_water_content.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 namespace Relations {
 
@@ -18,4 +19,5 @@ Utils::RegisteredFactory<Evaluator, InterfrostWaterContent> InterfrostWaterConte
 
 } // namespace Relations
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

@@ -17,6 +17,7 @@
 #include "bioturbation_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace BGC {
 namespace BGCRelations {
 
@@ -112,4 +113,5 @@ BioturbationEvaluator::EvaluatePartialDerivative_(const State& S,
 
 } // namespace BGCRelations
 } // namespace BGC
+} // namespace ATS_Physics
 } // namespace Amanzi

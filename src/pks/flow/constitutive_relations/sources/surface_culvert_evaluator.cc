@@ -17,6 +17,7 @@
 #include <iostream>
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 namespace Relations {
 
@@ -193,4 +194,5 @@ SurfCulvertEvaluator::Evaluate_(const State& S, const std::vector<CompositeVecto
 
 } // namespace Relations
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

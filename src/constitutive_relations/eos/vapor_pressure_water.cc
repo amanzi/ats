@@ -19,6 +19,7 @@
 #include "vapor_pressure_water.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 VaporPressureWater::VaporPressureWater(Teuchos::ParameterList& plist)
@@ -53,4 +54,5 @@ VaporPressureWater::DSaturatedVaporPressureDT(double T)
 
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi

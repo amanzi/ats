@@ -19,6 +19,7 @@ Energy for a three-phase, gas+liquid+ice evaluator.
 #define AMANZI_ENERGY_THREE_PHASE_ENERGY_MODEL_HH_
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 namespace Relations {
 
@@ -246,6 +247,7 @@ class ThreePhaseEnergyModel {
 
 } // namespace Relations
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

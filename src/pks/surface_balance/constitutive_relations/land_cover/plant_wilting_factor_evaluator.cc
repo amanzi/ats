@@ -13,6 +13,7 @@
 #include "LandCover.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 namespace Relations {
 
@@ -111,4 +112,5 @@ PlantWiltingFactorEvaluator::EnsureCompatibility_ToDeps_(State& S)
 
 } // namespace Relations
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

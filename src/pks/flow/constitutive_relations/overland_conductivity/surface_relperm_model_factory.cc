@@ -19,10 +19,11 @@
 
 // explicity instantitate the static data of Factory<SurfaceRelPermModel>
 template<>
-Amanzi::Utils::Factory<Amanzi::Flow::SurfaceRelPermModel>::map_type*
-  Amanzi::Utils::Factory<Amanzi::Flow::SurfaceRelPermModel>::map_;
+Amanzi::Utils::Factory<Amanzi::ATS_Physics::Flow::SurfaceRelPermModel>::map_type*
+Amanzi::Utils::Factory<Amanzi::ATS_Physics::Flow::SurfaceRelPermModel>::map_;
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // method for instantiating SurfaceRelPermModel implementations
@@ -34,4 +35,5 @@ SurfaceRelPermModelFactory::createModel(Teuchos::ParameterList& plist)
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

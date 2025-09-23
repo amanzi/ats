@@ -25,6 +25,7 @@
 #include "sediment_transport_pk.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Transport {
 
 /* ******************************************************************
@@ -107,7 +108,7 @@ SedimentTransport_PK::parseParameterList()
 
   // global transport parameters
   cfl_ = plist_->get<double>("cfl", 1.0);
-  dt_max_ = plist_->get<double>("maximum timestep [s]", TRANSPORT_LARGE_TIME_STEP);
+  dt_max_ = plist_->get<double>("maximum timestep [s]", Amanzi::Transport::TRANSPORT_LARGE_TIME_STEP);
 
 
   // dispersion coefficient tensor
@@ -268,4 +269,5 @@ SedimentTransport_PK::AddSourceTerms_(double t0, double t1, Epetra_MultiVector& 
 }
 
 } // namespace Transport
+} // namespace ATS_Physics
 } // namespace Amanzi

@@ -23,6 +23,7 @@
 #include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class ElevationEvaluator : public EvaluatorSecondaryMonotypeCV {
@@ -63,6 +64,7 @@ class ElevationEvaluator : public EvaluatorSecondaryMonotypeCV {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

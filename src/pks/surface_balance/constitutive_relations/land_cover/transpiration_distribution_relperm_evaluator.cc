@@ -12,6 +12,7 @@
 #include "transpiration_distribution_relperm_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 namespace Relations {
 
@@ -365,4 +366,5 @@ TranspirationDistributionRelPermEvaluator::EnsureCompatibility_Structure_(State&
 
 } // namespace Relations
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

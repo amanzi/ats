@@ -41,6 +41,7 @@ Example:
 #include "Factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class WRMConstant : public WRM {
@@ -68,6 +69,7 @@ class WRMConstant : public WRM {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

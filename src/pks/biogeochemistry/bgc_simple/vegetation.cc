@@ -20,6 +20,7 @@ Functor for evaluating QSat
 #include "vegetation.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace BGC {
 
 QSat::QSat()
@@ -517,4 +518,5 @@ Quadratic(double a, double b, double c, double* r1, double* r2)
 }
 
 } // namespace BGC
+} // namespace ATS_Physics
 } // namespace Amanzi

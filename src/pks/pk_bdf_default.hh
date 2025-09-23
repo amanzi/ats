@@ -51,6 +51,7 @@ operator split method).
 
 
 namespace Amanzi {
+namespace ATS_Physics {  
 
 class PK_BDF_Default : public PK_BDF {
  public:
@@ -124,6 +125,7 @@ class PK_BDF_Default : public PK_BDF {
   Teuchos::RCP<Teuchos::Time> step_walltime_;
 };
 
+} // namespace ATS_Physics    
 } // namespace Amanzi
 
 #endif

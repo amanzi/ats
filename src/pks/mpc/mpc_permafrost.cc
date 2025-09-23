@@ -320,7 +320,7 @@ MPCPermafrost::Setup()
   //   surf_ewc_list->set("domain name", domain_surf_);
   //   surf_ewc_ = Teuchos::rcp(new MPCDelegateEWCSurface(*surf_ewc_list));
 
-  //   Teuchos::RCP<EWCModelBase> model = Teuchos::rcp(new SurfaceIceModel());
+  //   Teuchos::RCP<EWCModelBase> model = Teuchos::rcp(new ATS_Physics::SurfaceIceModel());
   //   surf_ewc_->set_model(model);
   //   surf_ewc_->setup(S);
   // }
@@ -333,7 +333,7 @@ MPCPermafrost::Setup()
     surf_ewc_list->set("domain name", domain_surf_);
     surf_ewc_ = Teuchos::rcp(new MPCDelegateEWCSurface(*surf_ewc_list, S_));
     surf_ewc_->set_tags(tag_current_, tag_next_);
-    Teuchos::RCP<EWCModelBase> model = Teuchos::rcp(new SurfaceIceModel());
+    Teuchos::RCP<ATS_Physics::EWCModelBase> model = Teuchos::rcp(new ATS_Physics::SurfaceIceModel());
     surf_ewc_->set_model(model);
     surf_ewc_->setup();
   }
@@ -768,7 +768,7 @@ MPCPermafrost::ModifyCorrection(double h,
 
   // apply PK modifications
   AmanziSolvers::FnBaseDefs::ModifyCorrectionResult pk_modified =
-    StrongMPC<PK_PhysicalBDF_Default>::ModifyCorrection(h, r, u, du);
+    StrongMPC<ATS_Physics::PK_PhysicalBDF_Default>::ModifyCorrection(h, r, u, du);
   if (pk_modified) {
     CopySurfaceToSubsurface(*du->SubVector(2)->Data(), *du->SubVector(0)->Data());
     CopySurfaceToSubsurface(*du->SubVector(3)->Data(), *du->SubVector(1)->Data());

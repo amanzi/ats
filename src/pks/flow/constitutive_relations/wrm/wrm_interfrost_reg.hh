@@ -11,9 +11,11 @@
 #include "wrm_interfrost.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 Utils::RegisteredFactory<WRM, WRMInterfrost> WRMInterfrost::factory_("interfrost wrm");
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

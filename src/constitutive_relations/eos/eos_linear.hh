@@ -54,6 +54,7 @@ A molar and mass density of water that are linear in pressure.
 #include "eos_constant_molar_mass.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 // Equation of State model
@@ -87,6 +88,7 @@ class EOSLinear : public EOSConstantMolarMass {
 };
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

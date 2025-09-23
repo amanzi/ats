@@ -15,6 +15,7 @@
 #include "iem_water_vapor_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 IEMWaterVaporEvaluator::IEMWaterVaporEvaluator(Teuchos::ParameterList& plist)
@@ -120,4 +121,5 @@ IEMWaterVaporEvaluator::EvaluatePartialDerivative_(const State& S,
 
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

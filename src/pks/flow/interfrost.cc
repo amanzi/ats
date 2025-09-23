@@ -12,6 +12,7 @@
 #include "interfrost.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // -- accumulation term
@@ -168,4 +169,5 @@ Interfrost::SetupPhysicalEvaluators_()
 
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

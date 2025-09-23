@@ -15,6 +15,7 @@
 #include "unfrozen_fraction_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // registry of method
@@ -22,4 +23,5 @@ Utils::RegisteredFactory<Evaluator, UnfrozenFractionEvaluator> UnfrozenFractionE
   "unfrozen fraction");
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

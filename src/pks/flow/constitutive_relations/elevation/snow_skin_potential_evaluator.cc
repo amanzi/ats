@@ -15,6 +15,7 @@
 #include "snow_skin_potential_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 SnowSkinPotentialEvaluator::SnowSkinPotentialEvaluator(Teuchos::ParameterList& plist)
@@ -81,4 +82,5 @@ SnowSkinPotentialEvaluator::EvaluatePartialDerivative_(const State& S,
 }
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

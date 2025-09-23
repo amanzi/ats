@@ -17,6 +17,7 @@ Energy for a two-phase, liquid+water vapor evaluator.
 #include "liquid_gas_energy_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 namespace Relations {
 
@@ -521,4 +522,5 @@ LiquidGasEnergyEvaluator::EvaluatePartialDerivative_(const State& S,
 
 } // namespace Relations
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

@@ -55,7 +55,7 @@ class MPCCoupledTransport : public WeakMPC {
   void SetupCouplingConditions_();
 
  protected:
-  Teuchos::RCP<Transport::Transport_ATS> pk_ss_, pk_surf_;
+  Teuchos::RCP<ATS_Physics::Transport::Transport_ATS> pk_ss_, pk_surf_;
   Key name_ss_, name_surf_;
 
   // factory registration

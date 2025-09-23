@@ -14,7 +14,7 @@
 
 TEST(vanGenuchten)
 {
-  using namespace Amanzi::Flow;
+  using namespace Amanzi::ATS_Physics::Flow;
 
   double m = 0.5;
   double alpha = 0.1;

@@ -26,6 +26,7 @@
 #include "carbon_decomposition_rate_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 Utils::RegisteredFactory<Evaluator, EOSEvaluator> EOSEvaluator::fac_("eos");
@@ -53,4 +54,5 @@ Utils::RegisteredFactory<Evaluator, CarbonDecomposeRateEvaluator>
   CarbonDecomposeRateEvaluator::reg_("carbon decomposition rate");
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi

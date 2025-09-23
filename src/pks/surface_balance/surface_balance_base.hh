@@ -72,6 +72,7 @@ sinks.
 #include "pk_physical_bdf_default.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 
 class SurfaceBalanceBase : public PK_PhysicalBDF_Default {
@@ -121,7 +122,7 @@ class SurfaceBalanceBase : public PK_PhysicalBDF_Default {
 
   bool modify_predictor_positivity_preserving_;
 
-  Teuchos::RCP<Operators::PDE_Accumulation> preconditioner_acc_;
+  Teuchos::RCP<Amanzi::Operators::PDE_Accumulation> preconditioner_acc_;
 
  private:
   // factory registration
@@ -129,6 +130,7 @@ class SurfaceBalanceBase : public PK_PhysicalBDF_Default {
 };
 
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

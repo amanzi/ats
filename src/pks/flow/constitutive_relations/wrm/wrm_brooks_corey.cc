@@ -16,6 +16,7 @@
 #include "wrm_brooks_corey.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {            
 namespace Flow {
 
 /* ******************************************************************
@@ -134,4 +135,5 @@ WRMBrooksCorey::d_capillaryPressure(double s)
 }
 
 } // namespace Flow
+}  
 } // namespace Amanzi

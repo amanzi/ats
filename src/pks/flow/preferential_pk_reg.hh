@@ -11,9 +11,11 @@
 #include "preferential.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 RegisteredPKFactory<Preferential> Preferential::reg_("preferential flow");
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

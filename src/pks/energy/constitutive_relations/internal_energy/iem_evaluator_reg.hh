@@ -15,10 +15,12 @@
 #include "iem_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 Utils::RegisteredFactory<Evaluator, IEMEvaluator> IEMEvaluator::factory_("iem");
 
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

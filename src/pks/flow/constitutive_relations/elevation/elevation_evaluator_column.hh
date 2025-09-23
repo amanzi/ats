@@ -62,6 +62,7 @@ Example:
 #include "elevation_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class ColumnElevationEvaluator : public ElevationEvaluator {
@@ -90,6 +91,7 @@ class ColumnElevationEvaluator : public ElevationEvaluator {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

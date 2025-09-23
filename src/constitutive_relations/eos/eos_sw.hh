@@ -21,6 +21,7 @@
 #include "dbc.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 class EOS_SW : public EOS {
@@ -63,6 +64,7 @@ class EOS_SW : public EOS {
 };
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

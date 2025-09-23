@@ -20,10 +20,12 @@
 #include "eos_water.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 // registry of method
 Utils::RegisteredFactory<EOS, EOSWater> EOSWater::factory_("liquid water");
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi

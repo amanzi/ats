@@ -16,10 +16,12 @@
 #include "viscosity_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 // registry of method
 Utils::RegisteredFactory<Evaluator, ViscosityEvaluator> ViscosityEvaluator::factory_("viscosity");
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi

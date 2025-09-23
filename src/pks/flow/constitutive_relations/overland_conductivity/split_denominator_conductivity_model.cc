@@ -16,6 +16,7 @@
 #include "split_denominator_conductivity_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 SplitDenominatorConductivityModel::SplitDenominatorConductivityModel(Teuchos::ParameterList& plist)
@@ -42,4 +43,5 @@ SplitDenominatorConductivityModel::DConductivityDDepth(double depth, double slop
 
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

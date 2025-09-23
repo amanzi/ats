@@ -36,8 +36,8 @@ main(int argc, char* argv[])
   std::cout << "reading file: " << xmlFileName << std::endl;
   updateParametersFromXmlFile(xmlFileName, &plist);
 
-  Amanzi::Flow::WRMFactory wrmfactory;
-  Teuchos::RCP<Amanzi::Flow::WRM> wrm = wrmfactory.createWRM(plist);
+  Amanzi::ATS_Physics::Flow::WRMFactory wrmfactory;
+  Teuchos::RCP<Amanzi::ATS_Physics::Flow::WRM> wrm = wrmfactory.createWRM(plist);
 
   // number of fillins between
   int count = 100;

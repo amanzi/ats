@@ -18,6 +18,7 @@ Utility functions for Vegetation.
 #define ATS_BGC_VEG_HH_
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace BGC {
 
 // Functor for calculating QSat.
@@ -83,6 +84,7 @@ void Photosynthesis0(double PARi,
 
 
 } // namespace BGC
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

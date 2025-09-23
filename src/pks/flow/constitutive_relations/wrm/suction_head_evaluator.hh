@@ -21,6 +21,7 @@
 #include "Factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {            
 namespace Flow {
 
 class SuctionHeadEvaluator : public EvaluatorSecondaryMonotypeCV {
@@ -53,6 +54,7 @@ class SuctionHeadEvaluator : public EvaluatorSecondaryMonotypeCV {
 };
 
 } // namespace Flow
+}  
 } // namespace Amanzi
 
 #endif

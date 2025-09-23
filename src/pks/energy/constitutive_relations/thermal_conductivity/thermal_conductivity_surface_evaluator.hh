@@ -44,6 +44,7 @@ Thermal conductivity of surface water that can be either frozen or liquid phase.
 #include "Factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 class ThermalConductivitySurfaceEvaluator : public EvaluatorSecondaryMonotypeCV {
@@ -76,6 +77,7 @@ class ThermalConductivitySurfaceEvaluator : public EvaluatorSecondaryMonotypeCV 
 };
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

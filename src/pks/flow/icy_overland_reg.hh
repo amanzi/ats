@@ -10,9 +10,11 @@
 #include "icy_overland.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 RegisteredPKFactory<IcyOverlandFlow> IcyOverlandFlow::reg_("overland flow with ice");
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

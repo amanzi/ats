@@ -16,6 +16,7 @@
 #include "compressible_porosity_leijnse_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 CompressiblePorosityLeijnseEvaluator::CompressiblePorosityLeijnseEvaluator(
@@ -138,4 +139,5 @@ CompressiblePorosityLeijnseEvaluator::EvaluatePartialDerivative_(
 
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

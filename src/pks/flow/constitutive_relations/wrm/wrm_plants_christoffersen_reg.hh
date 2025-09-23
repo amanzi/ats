@@ -11,10 +11,12 @@
 #include "wrm_plants_christoffersen.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 Utils::RegisteredFactory<WRM, WRMPlantChristoffersen> WRMPlantChristoffersen::factory_(
   "plant Christoffersen");
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

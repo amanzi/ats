@@ -129,6 +129,7 @@ same region-based partitioning.
 #include "Teuchos_ParameterList.hpp"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 
 //
@@ -194,4 +195,5 @@ LandCoverMap getLandCover(Teuchos::ParameterList& plist);
 
 
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

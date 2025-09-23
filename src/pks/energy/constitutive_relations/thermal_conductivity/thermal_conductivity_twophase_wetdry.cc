@@ -23,6 +23,7 @@ See ATS process model documentation's permafrost model for details.
 #include "thermal_conductivity_twophase_wetdry.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 // constructor
@@ -51,4 +52,5 @@ ThermalConductivityTwoPhaseWetDry::InitializeFromPlist_()
 };
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

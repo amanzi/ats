@@ -10,6 +10,7 @@
 #include "snow_skin_potential_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // registry of method
@@ -17,4 +18,5 @@ Utils::RegisteredFactory<Evaluator, SnowSkinPotentialEvaluator>
   SnowSkinPotentialEvaluator::factory_("snow skin potential");
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

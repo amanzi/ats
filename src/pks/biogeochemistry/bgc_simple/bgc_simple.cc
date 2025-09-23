@@ -26,6 +26,7 @@
 #include "bgc_simple.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace BGC {
 
 
@@ -603,4 +604,5 @@ BGCSimple::ColDepthDz_(AmanziMesh::Entity_ID col,
 
 
 } // namespace BGC
+} // namespace ATS_Physics
 } // namespace Amanzi

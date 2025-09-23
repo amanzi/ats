@@ -16,6 +16,7 @@
 #define AMANZI_RELATIONS_VISCOSITY_MODEL_HH_
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 // Equation of State model
@@ -29,6 +30,7 @@ class ViscosityRelation {
 };
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

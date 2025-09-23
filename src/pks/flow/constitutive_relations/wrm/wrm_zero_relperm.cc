@@ -16,6 +16,7 @@
 #include "wrm_zero_relperm.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 WRMZeroRelPerm::WRMZeroRelPerm(Teuchos::ParameterList& plist)
@@ -37,4 +38,5 @@ WRMZeroRelPerm::InitializeFromPlist_()
 
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

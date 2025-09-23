@@ -39,6 +39,7 @@
 #include "liquid_ice_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 
 #define DEBUG_FLAG 0
 
@@ -304,4 +305,5 @@ LiquidIceModel::EvaluateEnergyAndWaterContent_(double T, double p, AmanziGeometr
   return ierr;
 }
 
+} // namespace ATS_Physics
 } // namespace Amanzi

@@ -20,6 +20,7 @@ McKenzie et al. (2007)'s soil freezing curve
 #include "wrm_permafrost_factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class WRM;
@@ -53,6 +54,7 @@ class WRMMCKPermafrostModel : public WRMPermafrostModel {
 
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

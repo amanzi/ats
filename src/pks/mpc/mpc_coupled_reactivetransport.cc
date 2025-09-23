@@ -123,10 +123,10 @@ MPCCoupledReactiveTransport::cast_sub_pks_()
   AMANZI_ASSERT(coupled_chemistry_pk_ != Teuchos::null);
 
   transport_pk_ =
-    Teuchos::rcp_dynamic_cast<Transport::Transport_ATS>(coupled_transport_pk_->get_subpk(0));
+    Teuchos::rcp_dynamic_cast<ATS_Physics::Transport::Transport_ATS>(coupled_transport_pk_->get_subpk(0));
   AMANZI_ASSERT(transport_pk_ != Teuchos::null);
   transport_pk_surf_ =
-    Teuchos::rcp_dynamic_cast<Transport::Transport_ATS>(coupled_transport_pk_->get_subpk(1));
+    Teuchos::rcp_dynamic_cast<ATS_Physics::Transport::Transport_ATS>(coupled_transport_pk_->get_subpk(1));
   AMANZI_ASSERT(transport_pk_surf_ != Teuchos::null);
 
   chemistry_pk_ =

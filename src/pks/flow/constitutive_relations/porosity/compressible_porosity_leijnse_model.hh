@@ -46,6 +46,7 @@ Globalization Delegate`_ to turn Leijnse model ON in the EWC calculations.
 #include "dbc.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class CompressiblePorosityLeijnseModel {
@@ -111,6 +112,7 @@ class CompressiblePorosityLeijnseModel {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

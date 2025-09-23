@@ -36,6 +36,7 @@ from Jan et al WRR 2018.
 #include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 namespace FlowRelations {
 
@@ -67,6 +68,7 @@ class FractionalConductanceEvaluator : public EvaluatorSecondaryMonotypeCV {
 
 } // namespace FlowRelations
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

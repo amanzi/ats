@@ -99,6 +99,7 @@ that build_columns in the subsurface :ref:`Mesh` spec has been supplied.
 #include "SoilCarbon.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace BGC {
 
 class BGCSimple : public PK_Physical_Default {
@@ -176,6 +177,7 @@ class BGCSimple : public PK_Physical_Default {
 };
 
 } // namespace BGC
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 

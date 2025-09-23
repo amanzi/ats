@@ -10,10 +10,12 @@
 #include "interfrost_energy_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 Utils::RegisteredFactory<Evaluator, InterfrostEnergyEvaluator> InterfrostEnergyEvaluator::reg_(
   "interfrost energy");
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

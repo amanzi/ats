@@ -18,9 +18,11 @@
 #include "eos_vapor_in_gas.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 Utils::RegisteredFactory<EOS, EOSVaporInGas> EOSVaporInGas::factory_("vapor in gas");
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi

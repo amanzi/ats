@@ -31,6 +31,7 @@ Computes (specific) internal energy of as a function of temperature.
 #include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 class IEMEvaluator : public EvaluatorSecondaryMonotypeCV {
@@ -62,6 +63,7 @@ class IEMEvaluator : public EvaluatorSecondaryMonotypeCV {
 };
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

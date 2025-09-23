@@ -19,6 +19,7 @@ Water content for a three-phase, gas+liquid+ice evaluator.
 #define AMANZI_FLOW_THREE_PHASE_WATER_CONTENT_MODEL_HH_
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 namespace Relations {
 
@@ -126,6 +127,7 @@ class ThreePhaseWaterContentModel {
 
 } // namespace Relations
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

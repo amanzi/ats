@@ -31,6 +31,7 @@ uses through the whole input file.
 #include "MeshPartition.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 typedef std::vector<Teuchos::RCP<SoilResistanceSakaguckiZengModel>>
@@ -43,6 +44,7 @@ Teuchos::RCP<SoilResistanceModelPartition> createSoilResistanceModelPartition(
   Teuchos::ParameterList& plist);
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

@@ -111,6 +111,7 @@ Example:
 #include "bc_factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {        
 namespace Energy {
 
 class EnergyBCFactory : public Amanzi::BCFactory {
@@ -136,6 +137,7 @@ class EnergyBCFactory : public Amanzi::BCFactory {
 };
 
 } // namespace Energy
+} // namespace ATS_Physics    
 } // namespace Amanzi
 
 #endif

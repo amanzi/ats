@@ -17,6 +17,7 @@ Evaluator for enthalpy.
 #include "enthalpy_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 EnthalpyEvaluator::EnthalpyEvaluator(Teuchos::ParameterList& plist)
@@ -125,4 +126,5 @@ EnthalpyEvaluator::EvaluatePartialDerivative_(const State& S,
 };
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

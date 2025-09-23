@@ -12,6 +12,7 @@
 
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 
@@ -181,4 +182,5 @@ IcyHeightEvaluator::EvaluatePartialDerivative_(const State& S,
 
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

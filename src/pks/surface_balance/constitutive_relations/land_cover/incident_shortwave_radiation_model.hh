@@ -30,6 +30,7 @@
 #define AMANZI_SURFACEBALANCE_INCIDENT_SHORTWAVE_RADIATION_MODEL_HH_
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 namespace Relations {
 
@@ -79,6 +80,7 @@ class IncidentShortwaveRadiationModel {
 
 } // namespace Relations
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

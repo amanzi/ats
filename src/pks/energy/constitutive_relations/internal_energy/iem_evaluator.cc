@@ -16,6 +16,7 @@
 #include "iem_factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 
@@ -99,4 +100,5 @@ IEMEvaluator::EvaluatePartialDerivative_(const State& S,
 
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

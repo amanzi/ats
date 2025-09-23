@@ -62,6 +62,7 @@ Example:
 #include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class SoilResistanceSellersModel;
@@ -90,4 +91,5 @@ class SoilResistanceSellersEvaluator : public EvaluatorSecondaryMonotypeCV {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

@@ -11,6 +11,7 @@
 #include "rooting_depth_fraction_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 namespace Relations {
 
@@ -161,4 +162,5 @@ RootingDepthFractionEvaluator::EnsureCompatibility_ToDeps_(State& S)
 
 } // namespace Relations
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

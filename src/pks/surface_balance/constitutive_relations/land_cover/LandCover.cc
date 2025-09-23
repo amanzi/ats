@@ -15,6 +15,7 @@
 #include "seb_nan.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 
 double
@@ -192,4 +193,5 @@ checkValid(const std::string& region, const LandCover& lc, const std::string& pa
 
 } // namespace Impl
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

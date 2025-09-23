@@ -12,6 +12,7 @@
 #include "impervious_interception_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 namespace Relations {
 
@@ -103,4 +104,5 @@ ImperviousInterceptionEvaluator::Evaluate_(const State& S,
 
 } // namespace Relations
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

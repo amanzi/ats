@@ -11,9 +11,11 @@
 #include "wrm_brooks_corey.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 Utils::RegisteredFactory<WRM, WRMBrooksCorey> WRMBrooksCorey::factory_("Brooks-Corey");
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

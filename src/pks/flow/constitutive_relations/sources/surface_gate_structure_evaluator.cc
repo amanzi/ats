@@ -21,6 +21,7 @@ Gate structure can be used to move water between two canals, two storage areas o
 
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 namespace Relations {
 
@@ -156,4 +157,5 @@ SurfGateEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>
 
 } // namespace Relations
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

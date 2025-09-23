@@ -42,6 +42,7 @@ slower nonlinear transition.
 #include "Factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class PCIceWater;
@@ -78,6 +79,7 @@ class PCIceEvaluator : public EvaluatorSecondaryMonotypeCV {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

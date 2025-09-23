@@ -74,6 +74,7 @@ Example:
 #include "soil_resistance_model_partition.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class SoilResistanceSakaguckiZengEvaluator : public EvaluatorSecondaryMonotypeCV {
@@ -105,4 +106,5 @@ class SoilResistanceSakaguckiZengEvaluator : public EvaluatorSecondaryMonotypeCV
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

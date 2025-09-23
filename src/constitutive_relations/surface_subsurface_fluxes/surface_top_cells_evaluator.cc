@@ -16,6 +16,7 @@
 #include "surface_top_cells_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 
@@ -76,4 +77,5 @@ SurfaceTopCellsEvaluator::EnsureCompatibility_ToDeps_(State& S)
 
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi

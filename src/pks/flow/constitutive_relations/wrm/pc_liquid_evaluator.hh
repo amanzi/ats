@@ -35,6 +35,7 @@ Capillary pressure for gas on a liquid.
 #include "Factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {  
 namespace Flow {
 
 class PCLiqAtm;
@@ -70,6 +71,7 @@ class PCLiquidEvaluator : public EvaluatorSecondaryMonotypeCV {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics  
 } // namespace Amanzi
 
 #endif

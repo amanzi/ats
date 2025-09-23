@@ -17,6 +17,7 @@ Water content for a two-phase, liquid+ice evaluator.
 #include "liquid_ice_water_content_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 namespace Relations {
 
@@ -235,4 +236,5 @@ LiquidIceWaterContentEvaluator::EvaluatePartialDerivative_(
 
 } // namespace Relations
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

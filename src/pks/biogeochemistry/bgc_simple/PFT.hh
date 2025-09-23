@@ -43,6 +43,7 @@ Paramters for a plant functional type.
 #include "dbc.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace BGC {
 
 class PFT {
@@ -141,6 +142,7 @@ class PFT {
 
 
 } // namespace BGC
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

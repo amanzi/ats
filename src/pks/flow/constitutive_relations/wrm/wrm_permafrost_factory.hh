@@ -24,6 +24,7 @@
 #include "Factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class WRMPermafrostFactory : public Utils::Factory<WRMPermafrostModel> {
@@ -33,6 +34,7 @@ class WRMPermafrostFactory : public Utils::Factory<WRMPermafrostModel> {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

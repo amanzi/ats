@@ -18,6 +18,7 @@
 #include "thermal_conductivity_twophase_factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 // method for instantiating implementations
@@ -29,4 +30,5 @@ ThermalConductivityTwoPhaseFactory::createThermalConductivityModel(Teuchos::Para
 };
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

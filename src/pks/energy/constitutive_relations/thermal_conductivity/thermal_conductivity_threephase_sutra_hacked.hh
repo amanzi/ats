@@ -37,6 +37,7 @@ Units: [W m^-1 K^-1]
 #include "thermal_conductivity_threephase.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 class ThermalConductivityThreePhaseSutraHacked : public ThermalConductivityThreePhase {
@@ -62,6 +63,7 @@ class ThermalConductivityThreePhaseSutraHacked : public ThermalConductivityThree
 };
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

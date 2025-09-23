@@ -15,6 +15,7 @@
 #include "overland_pressure_multicomponent_water_content_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 
@@ -143,4 +144,5 @@ OverlandPressureMulticomponentWaterContentEvaluator::EvaluatePartialDerivative_(
 
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

@@ -13,6 +13,7 @@
 #include "Teuchos_ParameterList.hpp"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class HeightModel {
@@ -41,6 +42,7 @@ class HeightModel {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

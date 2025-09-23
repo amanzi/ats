@@ -65,10 +65,10 @@ class MPCCoupledDualMediaWater : public StrongMPC<PK_BDF_Default> {
   Teuchos::RCP<TreeVector> op_tree_rhs_;
 
   // sub PKs
-  Teuchos::RCP<PK_BDF_Default> surf_flow_pk_;
-  Teuchos::RCP<PK_BDF_Default> macro_flow_pk_;
-  Teuchos::RCP<StrongMPC<PK_PhysicalBDF_Default>> integrated_flow_pk_;
-  Teuchos::RCP<PK_BDF_Default> matrix_flow_pk_;
+  Teuchos::RCP<ATS_Physics::PK_BDF_Default> surf_flow_pk_;
+  Teuchos::RCP<ATS_Physics::PK_BDF_Default> macro_flow_pk_;
+  Teuchos::RCP<StrongMPC<ATS_Physics::PK_PhysicalBDF_Default>> integrated_flow_pk_;
+  Teuchos::RCP<ATS_Physics::PK_BDF_Default> matrix_flow_pk_;
 
 
   Key domain_;

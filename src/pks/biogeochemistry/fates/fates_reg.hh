@@ -10,10 +10,12 @@
 #include "fates_pk.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace BGC {
 
 RegisteredPKFactory<FATES_PK> FATES_PK::reg_("FATES");
 
 
 } // namespace BGC
+} // namespace ATS_Physics
 } // namespace Amanzi

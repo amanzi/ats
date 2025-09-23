@@ -15,6 +15,7 @@
 #define DEBUG_FLAG 1
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // Overland is a BDFFnBase
@@ -320,4 +321,5 @@ SnowDistribution::AdvanceStep(double t_old, double t_new, bool reinit)
 
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

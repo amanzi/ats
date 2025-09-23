@@ -21,6 +21,7 @@
 #include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 class SurfaceTopCellsEvaluator : public EvaluatorSecondaryMonotypeCV {
@@ -50,6 +51,7 @@ class SurfaceTopCellsEvaluator : public EvaluatorSecondaryMonotypeCV {
 };
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

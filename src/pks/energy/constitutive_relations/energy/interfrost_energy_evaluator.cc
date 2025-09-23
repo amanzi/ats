@@ -24,6 +24,7 @@ This is simply the conserved quantity in Richards equation.
 #include "interfrost_energy_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 InterfrostEnergyEvaluator::InterfrostEnergyEvaluator(Teuchos::ParameterList& plist)
@@ -202,4 +203,5 @@ InterfrostEnergyEvaluator::EvaluatePartialDerivative_(const State& S,
 
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

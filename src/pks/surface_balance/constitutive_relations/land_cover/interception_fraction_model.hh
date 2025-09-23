@@ -28,6 +28,7 @@ The interception fraction is everything here after the precip.
 #pragma once
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 namespace Relations {
 
@@ -48,4 +49,5 @@ class InterceptionFractionModel {
 
 } // namespace Relations
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

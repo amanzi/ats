@@ -18,6 +18,7 @@
 #include "richards.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {      
 namespace Flow {
 
 // -------------------------------------------------------------
@@ -314,4 +315,5 @@ Richards::UpdateVelocity_(const Tag& tag)
 // }
 
 } // namespace Flow
+} // namespace ATS_Physics          
 } // namespace Amanzi

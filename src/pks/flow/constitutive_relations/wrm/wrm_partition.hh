@@ -15,6 +15,7 @@
 #include "MeshPartition.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {      
 namespace Flow {
 
 typedef std::vector<Teuchos::RCP<WRM>> WRMList;
@@ -32,6 +33,7 @@ Teuchos::RCP<WRMPermafrostModelPartition> createWRMPermafrostModelPartition(
   Teuchos::RCP<WRMPartition>& wrms);
 
 } // namespace Flow
+}
 } // namespace Amanzi
 
 #endif

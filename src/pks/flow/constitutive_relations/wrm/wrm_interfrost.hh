@@ -22,6 +22,7 @@ most ATS runs.
 #include "Factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class WRMInterfrost : public WRM {
@@ -54,6 +55,7 @@ class WRMInterfrost : public WRM {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

@@ -100,8 +100,8 @@ void
 MPCCoupledTransport::Setup()
 {
   // see bug amanzi/ats#125 this is probably backwards
-  pk_ss_ = Teuchos::rcp_dynamic_cast<Transport::Transport_ATS>(sub_pks_[0]);
-  pk_surf_ = Teuchos::rcp_dynamic_cast<Transport::Transport_ATS>(sub_pks_[1]);
+  pk_ss_ = Teuchos::rcp_dynamic_cast<ATS_Physics::Transport::Transport_ATS>(sub_pks_[0]);
+  pk_surf_ = Teuchos::rcp_dynamic_cast<ATS_Physics::Transport::Transport_ATS>(sub_pks_[1]);
 
   if (pk_ss_ == Teuchos::null || pk_surf_ == Teuchos::null) {
     Errors::Message msg("MPCCoupledTransport expects to only couple PKs of type \"transport ATS\"");

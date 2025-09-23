@@ -11,6 +11,7 @@
 #include "eos_vapor_in_gas.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 EOSVaporInGas::EOSVaporInGas(Teuchos::ParameterList& eos_plist)
@@ -47,4 +48,5 @@ EOSVaporInGas::InitializeFromPlist_()
 };
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi

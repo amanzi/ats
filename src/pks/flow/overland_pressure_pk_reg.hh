@@ -10,6 +10,7 @@
 #include "overland_pressure.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 RegisteredPKFactory<OverlandPressureFlow> OverlandPressureFlow::reg_(
@@ -17,4 +18,5 @@ RegisteredPKFactory<OverlandPressureFlow> OverlandPressureFlow::reg_(
 
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

@@ -10,9 +10,11 @@
 #include "wrm_constant.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 Utils::RegisteredFactory<WRM, WRMConstant> WRMConstant::factory_("constant");
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

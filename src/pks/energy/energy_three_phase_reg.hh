@@ -10,9 +10,11 @@
 #include "energy_three_phase.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 RegisteredPKFactory<ThreePhase> ThreePhase::reg_("three-phase energy");
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

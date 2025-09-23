@@ -10,9 +10,11 @@
 #include "snow_distribution.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 RegisteredPKFactory<SnowDistribution> SnowDistribution::reg_("snow distribution");
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

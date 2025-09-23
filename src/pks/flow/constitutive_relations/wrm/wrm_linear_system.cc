@@ -24,6 +24,7 @@
 #include "wrm_linear_system.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 /* ******************************************************************
@@ -48,4 +49,5 @@ WRMLinearSystem::InitializeFromPlist_()
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

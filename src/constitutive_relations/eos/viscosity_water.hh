@@ -31,6 +31,7 @@ in K, given as an empirical series expansion fit to data.
 #include "viscosity_relation.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 // Equation of State model
@@ -57,6 +58,7 @@ class ViscosityWater : public ViscosityRelation {
 };
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

@@ -10,6 +10,7 @@
 #include "subgrid_mobile_depth_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 namespace FlowRelations {
 
@@ -19,4 +20,5 @@ Utils::RegisteredFactory<Evaluator, SubgridMobileDepthEvaluator>
 
 } // namespace FlowRelations
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

@@ -29,6 +29,7 @@ documented in papers by Voss & Walvoord.
 #include "wrm_permafrost_factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class WRM;
@@ -66,6 +67,7 @@ class WRMSutraPermafrostModel : public WRMPermafrostModel {
 
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

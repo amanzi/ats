@@ -24,6 +24,7 @@
 #include "Factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class SurfaceRelPermModelFactory : public Utils::Factory<SurfaceRelPermModel> {
@@ -32,6 +33,7 @@ class SurfaceRelPermModelFactory : public Utils::Factory<SurfaceRelPermModel> {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

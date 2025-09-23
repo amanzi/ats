@@ -9,8 +9,10 @@
 
 #include "overland_pressure_water_content_evaluator.hh"
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 Utils::RegisteredFactory<Evaluator, OverlandPressureWaterContentEvaluator>
   OverlandPressureWaterContentEvaluator::reg_("overland pressure water content");
 }
+} // namespace ATS_Physics
 } // namespace Amanzi

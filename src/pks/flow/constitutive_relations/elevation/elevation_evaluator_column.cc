@@ -17,6 +17,7 @@
 #include "elevation_evaluator_column.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 ColumnElevationEvaluator::ColumnElevationEvaluator(Teuchos::ParameterList& plist)
@@ -154,4 +155,5 @@ ColumnElevationEvaluator::EvaluateElevationAndSlope_(const State& S,
 
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

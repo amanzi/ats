@@ -38,6 +38,7 @@ Computes enthalpy `[MJ mol^-1]` of as a function of internal energy, pressure, a
 #include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 class EnthalpyEvaluator : public EvaluatorSecondaryMonotypeCV {
@@ -66,6 +67,7 @@ class EnthalpyEvaluator : public EvaluatorSecondaryMonotypeCV {
 };
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

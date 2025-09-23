@@ -14,7 +14,7 @@
 
 TEST(plantChristoffersen)
 {
-  using namespace Amanzi::Flow;
+  using namespace Amanzi::ATS_Physics::Flow;
 
   double sr = 0.46567;
   double stlp = 0.8975;

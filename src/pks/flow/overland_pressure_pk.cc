@@ -31,6 +31,7 @@
 #include "overland_pressure.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 OverlandPressureFlow::OverlandPressureFlow(Teuchos::ParameterList& pk_tree,
@@ -1391,4 +1392,5 @@ OverlandPressureFlow::ModifyCorrection(double h,
 }
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

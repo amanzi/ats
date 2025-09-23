@@ -13,6 +13,7 @@
 #include "transpiration_distribution_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 namespace Relations {
 
@@ -223,4 +224,5 @@ TranspirationDistributionEvaluator::TranspirationPeriod_(double time,
 
 } // namespace Relations
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

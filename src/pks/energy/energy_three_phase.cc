@@ -13,6 +13,7 @@
 #include "energy_three_phase.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {    
 namespace Energy {
 
 // -------------------------------------------------------------
@@ -75,4 +76,5 @@ ThreePhase::Initialize()
 
 
 } // namespace Energy
+} // namespace ATS_Physics        
 } // namespace Amanzi

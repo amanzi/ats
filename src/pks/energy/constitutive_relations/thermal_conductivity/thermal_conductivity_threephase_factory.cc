@@ -18,6 +18,7 @@
 #include "thermal_conductivity_threephase_factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 // method for instantiating implementations
@@ -29,4 +30,5 @@ ThermalConductivityThreePhaseFactory::createThermalConductivityModel(Teuchos::Pa
 };
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

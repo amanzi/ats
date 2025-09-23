@@ -21,6 +21,7 @@
 #include "wrm_factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class WRMLinearRelPerm : public WRM {
@@ -45,6 +46,7 @@ class WRMLinearRelPerm : public WRM {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

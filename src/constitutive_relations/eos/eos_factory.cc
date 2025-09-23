@@ -18,6 +18,7 @@
 #include "eos_factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 // method for instantiating EOS implementations
@@ -30,4 +31,5 @@ EOSFactory::createEOS(Teuchos::ParameterList& plist)
 
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi

@@ -27,6 +27,7 @@ Process kernel for energy equation for overland flow.
 #include "energy_surface_ice.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {  
 namespace Energy {
 
 #define DEBUG_FLAG 1
@@ -318,4 +319,5 @@ EnergySurfaceIce::AddSourcesToPrecon_(double h)
 
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

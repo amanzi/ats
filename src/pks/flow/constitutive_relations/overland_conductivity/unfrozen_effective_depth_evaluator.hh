@@ -39,6 +39,7 @@ which we call the ice retardation exponent.
 #include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 class UnfrozenEffectiveDepthModel;
@@ -66,4 +67,5 @@ class UnfrozenEffectiveDepthEvaluator : public EvaluatorSecondaryMonotypeCV {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

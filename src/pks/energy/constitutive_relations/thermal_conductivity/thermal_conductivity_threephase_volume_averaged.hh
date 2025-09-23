@@ -39,6 +39,7 @@ See Atchley et al GMD 2015 Supplementary Material for equations.
 #include "thermal_conductivity_threephase.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 class ThermalConductivityThreePhaseVolumeAveraged : public ThermalConductivityThreePhase {
@@ -64,4 +65,5 @@ class ThermalConductivityThreePhaseVolumeAveraged : public ThermalConductivityTh
 };
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

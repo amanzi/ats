@@ -47,6 +47,7 @@ Note: this assumes that the runoff reciever is constant in time!
 class Epetra_Import;
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 namespace Relations {
 
@@ -92,4 +93,5 @@ class ImperviousInterceptionEvaluator : public EvaluatorSecondaryMonotypeCV {
 
 } // namespace Relations
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

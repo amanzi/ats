@@ -10,6 +10,7 @@
 #include "surface_pump_system_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 namespace Relations {
 
@@ -17,4 +18,5 @@ Utils::RegisteredFactory<Evaluator, SurfPumpEvaluator> SurfPumpEvaluator::reg_("
 
 } // namespace Relations
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

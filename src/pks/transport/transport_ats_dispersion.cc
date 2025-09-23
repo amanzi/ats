@@ -26,6 +26,7 @@
 #include "transport_ats.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Transport {
 
 /* *******************************************************************
@@ -149,4 +150,5 @@ Transport_ATS::CalculateAxiSymmetryDirection_()
 }
 
 } // namespace Transport
+} // namespace ATS_Physics
 } // namespace Amanzi

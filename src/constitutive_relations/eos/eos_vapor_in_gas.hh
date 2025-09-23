@@ -29,6 +29,7 @@ valid for this use case.  Typically this wraps the ideal gas law EOS.
 #include "dbc.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 // Equation of State model
@@ -84,6 +85,7 @@ class EOSVaporInGas : public EOS {
 };
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

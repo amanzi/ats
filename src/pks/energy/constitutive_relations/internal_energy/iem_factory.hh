@@ -24,6 +24,7 @@
 #include "Factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 class IEMFactory : public Utils::Factory<IEM> {
@@ -32,6 +33,7 @@ class IEMFactory : public Utils::Factory<IEM> {
 };
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

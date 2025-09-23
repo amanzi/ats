@@ -46,6 +46,7 @@ Linear internal energy model -- function of Cv and temperature
 #include "Factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 class IEMLinear : public IEM {
@@ -73,6 +74,7 @@ class IEMLinear : public IEM {
 };
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

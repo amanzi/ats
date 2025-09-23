@@ -32,6 +32,7 @@ This is simply the conserved quantity in the energy equation.
 #include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 class InterfrostEnergyEvaluator : public EvaluatorSecondaryMonotypeCV {
@@ -56,6 +57,7 @@ class InterfrostEnergyEvaluator : public EvaluatorSecondaryMonotypeCV {
 };
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

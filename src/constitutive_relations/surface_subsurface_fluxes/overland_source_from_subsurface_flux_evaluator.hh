@@ -20,6 +20,7 @@
 #include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 class OverlandSourceFromSubsurfaceFluxEvaluator : public EvaluatorSecondaryMonotypeCV {
@@ -57,6 +58,7 @@ class OverlandSourceFromSubsurfaceFluxEvaluator : public EvaluatorSecondaryMonot
 };
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

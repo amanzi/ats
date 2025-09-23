@@ -10,6 +10,7 @@
 #include "surface_gate_structure_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 namespace Relations {
 
@@ -17,4 +18,5 @@ Utils::RegisteredFactory<Evaluator, SurfGateEvaluator> SurfGateEvaluator::reg_("
 
 } // namespace Relations
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

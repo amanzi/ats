@@ -10,10 +10,12 @@
 #include "bgc_simple.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace BGC {
 
 RegisteredPKFactory<BGCSimple> BGCSimple::reg_("BGC simple");
 
 
 } // namespace BGC
+} // namespace ATS_Physics
 } // namespace Amanzi

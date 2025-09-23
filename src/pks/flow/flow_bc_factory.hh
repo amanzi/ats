@@ -344,6 +344,7 @@ The type of boundary conditions maybe changed in time depending on the switch fu
 
 
 namespace Amanzi {
+namespace ATS_Physics {    
 namespace Flow {
 
 class FlowBCFactory : public Amanzi::BCFactory {
@@ -423,6 +424,7 @@ class FlowBCFactory : public Amanzi::BCFactory {
 };
 
 } // namespace Flow
+} // namespace ATS_Physics              
 } // namespace Amanzi
 
 #endif // AMANZI_FLOW_BC_FACTORY_HH_

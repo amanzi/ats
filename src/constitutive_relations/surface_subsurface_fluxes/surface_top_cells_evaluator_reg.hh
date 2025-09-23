@@ -16,6 +16,7 @@
 #include "surface_top_cells_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 // registry of method
@@ -23,4 +24,5 @@ Utils::RegisteredFactory<Evaluator, SurfaceTopCellsEvaluator> SurfaceTopCellsEva
   "surface from top cell evaluator");
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi

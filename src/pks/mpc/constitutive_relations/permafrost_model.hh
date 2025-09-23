@@ -28,6 +28,7 @@
 #include "ewc_model_base.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 
 namespace Flow {
 class PCIceWater;
@@ -94,6 +95,7 @@ class PermafrostModel : public EWCModelBase {
 };
 
 
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 

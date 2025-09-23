@@ -18,6 +18,7 @@
 
 
 namespace Amanzi {
+namespace ATS_Physics {    
 namespace Flow {
 
 // Non-member factory
@@ -62,4 +63,5 @@ createWRMPermafrostModelPartition(Teuchos::ParameterList& plist, Teuchos::RCP<WR
 }
 
 } // namespace Flow
+}
 } // namespace Amanzi

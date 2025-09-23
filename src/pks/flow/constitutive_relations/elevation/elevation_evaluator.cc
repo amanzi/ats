@@ -15,6 +15,7 @@
 #include "elevation_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 ElevationEvaluator::ElevationEvaluator(Teuchos::ParameterList& plist)
@@ -95,4 +96,5 @@ ElevationEvaluator::Update(State& S, const Key& request)
 }
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

@@ -19,10 +19,12 @@
 #include "eos_constant.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 // registry of method
 Utils::RegisteredFactory<EOS, EOSConstant> EOSConstant::factory_("constant");
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi

@@ -18,6 +18,7 @@
 #include "wrm_plants_christoffersen.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 const double FLOW_WRM_TOLERANCE = 1e-10;
@@ -347,4 +348,5 @@ WRMPlantChristoffersen::InitializeFromPlist_()
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

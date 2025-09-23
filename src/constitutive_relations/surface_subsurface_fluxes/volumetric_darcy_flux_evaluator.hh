@@ -18,6 +18,7 @@
 #include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 class Volumetric_FluxEvaluator : public EvaluatorSecondaryMonotypeCV {
@@ -48,6 +49,7 @@ class Volumetric_FluxEvaluator : public EvaluatorSecondaryMonotypeCV {
 
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

@@ -16,6 +16,7 @@
 #include "pc_ice_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // registry of method
@@ -23,4 +24,5 @@ Utils::RegisteredFactory<Evaluator, PCIceEvaluator> PCIceEvaluator::factory_(
   "capillary pressure, water over ice");
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

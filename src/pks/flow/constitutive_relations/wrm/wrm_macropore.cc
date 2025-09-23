@@ -15,6 +15,7 @@
 #include "wrm_macropore.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 const double FLOW_WRM_TOLERANCE = 1e-10;
@@ -119,4 +120,5 @@ WRMMacropore::InitializeFromPlist_()
 
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

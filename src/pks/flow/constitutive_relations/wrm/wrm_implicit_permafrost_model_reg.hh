@@ -12,6 +12,7 @@
 
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // registry of method
@@ -19,4 +20,5 @@ Utils::RegisteredFactory<WRMPermafrostModel, WRMImplicitPermafrostModel>
   WRMImplicitPermafrostModel::factory_("permafrost model");
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

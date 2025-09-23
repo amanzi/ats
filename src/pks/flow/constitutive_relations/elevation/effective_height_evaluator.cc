@@ -17,6 +17,7 @@
 
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 EffectiveHeightEvaluator::EffectiveHeightEvaluator(Teuchos::ParameterList& plist)
@@ -86,4 +87,5 @@ EffectiveHeightEvaluator::EvaluatePartialDerivative_(const State& S,
 
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

@@ -17,6 +17,7 @@ Painter's permafrost model.
 #include "wrm_old_permafrost_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // sats[0] = s_g, sats[1] = s_l, sats[2] = s_i
@@ -80,4 +81,5 @@ WRMOldPermafrostModel::dsaturations_dpc_ice(double pc_liq, double pc_ice, double
 
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

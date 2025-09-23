@@ -17,6 +17,7 @@
 #include "seb_physics_defs.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 namespace Relations {
 
@@ -55,4 +56,5 @@ Partitioner::CalcPartition(double ht_snow, double ht_pond, double unfrozen_fract
 
 } // namespace Relations
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

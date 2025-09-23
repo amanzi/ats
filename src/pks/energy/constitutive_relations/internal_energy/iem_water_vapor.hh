@@ -31,6 +31,7 @@ Internal energy model for air and water vapor.
 #include "Teuchos_ParameterList.hpp"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 class IEMWaterVapor {
@@ -53,6 +54,7 @@ class IEMWaterVapor {
 };
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

@@ -11,6 +11,7 @@
 #include "Op.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 #define DEBUG_RES_FLAG 0
@@ -260,4 +261,5 @@ OverlandPressureFlow::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVect
 };
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

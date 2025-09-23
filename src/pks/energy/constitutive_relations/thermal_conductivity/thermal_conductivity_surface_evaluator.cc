@@ -15,6 +15,7 @@
 #include "thermal_conductivity_surface_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 ThermalConductivitySurfaceEvaluator::ThermalConductivitySurfaceEvaluator(
@@ -81,4 +82,5 @@ ThermalConductivitySurfaceEvaluator::EvaluatePartialDerivative_(
 }
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

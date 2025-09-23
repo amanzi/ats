@@ -51,6 +51,7 @@ changed on the input line.
 #include "micropore_macropore_flux_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 namespace Relations {
 
@@ -268,4 +269,5 @@ MicroporeMacroporeFluxEvaluator::EvaluatePartialDerivative_(
 
 } // namespace Relations
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

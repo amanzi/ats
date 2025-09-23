@@ -11,6 +11,7 @@
 #include <cmath>
 
 namespace Amanzi {
+namespace ATS_Physics {            
 namespace Flow {
 namespace SutraIceTerm {
 
@@ -58,4 +59,5 @@ d_dragcoef_dsg(double sl, double sg, double sr, double omega)
 
 } // namespace SutraIceTerm
 } // namespace Flow
+}
 } // namespace Amanzi

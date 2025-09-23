@@ -23,6 +23,7 @@
 
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // Constructor
@@ -456,4 +457,5 @@ WRMImplicitPermafrostModel::dsaturations_dpc_ice(double pc_liq, double pc_ice, d
 
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

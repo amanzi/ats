@@ -18,5 +18,5 @@
 
 // explicity instantitate the static data of Factory<EOS>
 template<>
-Amanzi::Utils::Factory<Amanzi::Energy::ThermalConductivityTwoPhase>::map_type*
-  Amanzi::Utils::Factory<Amanzi::Energy::ThermalConductivityTwoPhase>::map_;
+Amanzi::Utils::Factory<Amanzi::ATS_Physics::Energy::ThermalConductivityTwoPhase>::map_type*
+  Amanzi::Utils::Factory<Amanzi::ATS_Physics::Energy::ThermalConductivityTwoPhase>::map_;

@@ -13,6 +13,7 @@
 #include "rel_perm_frzBC_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {        
 namespace Flow {
 
 // Constructor from ParameterList
@@ -446,4 +447,5 @@ RelPermFrzBCEvaluator::EvaluatePartialDerivative_(const State& S,
 }
 
 } // namespace Flow
+}
 } // namespace Amanzi

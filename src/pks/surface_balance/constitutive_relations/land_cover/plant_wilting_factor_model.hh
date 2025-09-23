@@ -28,6 +28,7 @@ All parameters are in units of [Pa], and are positive (water potential).
 #include "LandCover.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 namespace Relations {
 
@@ -45,4 +46,5 @@ class PlantWiltingFactorModel {
 
 } // namespace Relations
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

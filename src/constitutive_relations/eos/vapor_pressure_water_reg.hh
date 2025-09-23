@@ -19,6 +19,7 @@
 #include "vapor_pressure_water.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 // registry of method
@@ -26,4 +27,5 @@ Utils::RegisteredFactory<VaporPressureRelation, VaporPressureWater> VaporPressur
   "water vapor over water/ice");
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi

@@ -21,6 +21,7 @@ UNITS: J/{mol/kg}
 #include "Teuchos_ParameterList.hpp"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 class IEM {
@@ -34,6 +35,7 @@ class IEM {
 };
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

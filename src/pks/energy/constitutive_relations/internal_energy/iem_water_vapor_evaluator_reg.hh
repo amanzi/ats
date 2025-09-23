@@ -15,10 +15,12 @@
 #include "iem_water_vapor_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 Utils::RegisteredFactory<Evaluator, IEMWaterVaporEvaluator> IEMWaterVaporEvaluator::factory_(
   "iem water vapor");
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

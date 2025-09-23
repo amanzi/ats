@@ -18,6 +18,7 @@
 #include "iem_factory.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 // method for instantiating IEM implementations
@@ -29,4 +30,5 @@ IEMFactory::createIEM(Teuchos::ParameterList& plist)
 };
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

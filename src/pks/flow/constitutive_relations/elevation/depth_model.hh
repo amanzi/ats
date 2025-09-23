@@ -20,6 +20,7 @@
 #include "Mesh.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 void computeDepth_MeanFaceCentroid(const AmanziMesh::Mesh& mesh, Epetra_MultiVector& depth);
@@ -27,6 +28,7 @@ void computeDepth_MeanFaceCentroid(const AmanziMesh::Mesh& mesh, Epetra_MultiVec
 void computeDepth_CellCentroid(const AmanziMesh::Mesh& mesh, Epetra_MultiVector& depth);
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

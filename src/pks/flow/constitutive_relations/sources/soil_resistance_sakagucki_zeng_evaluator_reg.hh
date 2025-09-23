@@ -8,6 +8,7 @@
 #include "soil_resistance_sakagucki_zeng_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // registry of method
@@ -15,4 +16,5 @@ Utils::RegisteredFactory<Evaluator, SoilResistanceSakaguckiZengEvaluator>
   SoilResistanceSakaguckiZengEvaluator::fac_("soil resistance, Sakagucki-Zeng");
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

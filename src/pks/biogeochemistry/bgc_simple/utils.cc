@@ -18,6 +18,7 @@ Functor for evaluating QSat
 #include "utils.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace BGC {
 
 // returns the depth of the face whose cell above is thawed but cell
@@ -56,4 +57,5 @@ TEffectsQ10(double Q10, double T, double refT)
 }
 
 } // namespace BGC
+} // namespace ATS_Physics
 } // namespace Amanzi

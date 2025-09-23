@@ -17,6 +17,7 @@
 #include "eos_ice.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Relations {
 
 EOSIce::EOSIce(Teuchos::ParameterList& eos_plist)
@@ -84,4 +85,5 @@ EOSIce::InitializeFromPlist_()
 };
 
 } // namespace Relations
+} // namespace ATS_Physics
 } // namespace Amanzi

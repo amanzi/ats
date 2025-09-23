@@ -10,9 +10,11 @@
 #include "CarbonSimple.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace BGC {
 
 Amanzi::RegisteredPKFactory<CarbonSimple> CarbonSimple::reg_("simple Carbon");
 
 } // namespace BGC
+} // namespace ATS_Physics
 } // namespace Amanzi

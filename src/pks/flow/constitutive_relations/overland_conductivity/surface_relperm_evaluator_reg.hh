@@ -15,6 +15,7 @@
 #include "surface_relperm_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // registry of method
@@ -22,4 +23,5 @@ Utils::RegisteredFactory<Evaluator, SurfaceRelPermEvaluator> SurfaceRelPermEvalu
   "surface rel perm");
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

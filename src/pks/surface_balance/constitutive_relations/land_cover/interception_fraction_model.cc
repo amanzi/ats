@@ -14,6 +14,7 @@
 #include "interception_fraction_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace SurfaceBalance {
 namespace Relations {
 
@@ -54,4 +55,5 @@ InterceptionFractionModel::DInterceptionFractionDAreaIndex(double ai) const
 
 } // namespace Relations
 } // namespace SurfaceBalance
+} // namespace ATS_Physics
 } // namespace Amanzi

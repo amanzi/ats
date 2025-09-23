@@ -12,6 +12,7 @@
 #include "richards.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {      
 namespace Flow {
 
 // Richards is a BDFFnBase
@@ -220,4 +221,5 @@ Richards::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, doub
 
 
 } // namespace Flow
+} // namespace ATSPhysics
 } // namespace Amanzi

@@ -15,9 +15,11 @@
 #include "wrm_zero_relperm.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 Utils::RegisteredFactory<WRM, WRMZeroRelPerm> WRMZeroRelPerm::factory_("zero rel perm");
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

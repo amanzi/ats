@@ -12,6 +12,7 @@
 #include "rel_perm_sutraice_drag_term.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {            
 namespace Flow {
 
 // Constructor from ParameterList
@@ -443,4 +444,5 @@ RelPermSutraIceEvaluator::EvaluatePartialDerivative_(const State& S,
 }
 
 } // namespace Flow
+}
 } // namespace Amanzi

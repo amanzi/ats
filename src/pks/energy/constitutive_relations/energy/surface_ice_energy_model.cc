@@ -20,6 +20,7 @@ Energy evaulator for ice+liquid surface water.
 #include "surface_ice_energy_model.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 namespace Relations {
 
@@ -135,4 +136,5 @@ SurfaceIceEnergyModel::DEnergyDCellVolume(double h,
 
 } // namespace Relations
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

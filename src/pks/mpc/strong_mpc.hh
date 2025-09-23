@@ -41,7 +41,7 @@ namespace Amanzi {
 template<class PK_t>
 class StrongMPC
   : public MPC<PK_t>
-  , public PK_BDF_Default {
+  , public ATS_Physics::PK_BDF_Default {
  public:
   StrongMPC(Teuchos::ParameterList& pk_list,
             const Teuchos::RCP<Teuchos::ParameterList>& global_plist,
@@ -135,7 +135,7 @@ StrongMPC<PK_t>::StrongMPC(Teuchos::ParameterList& pk_tree,
                            const Teuchos::RCP<TreeVector>& soln)
   : PK(pk_tree, global_list, S, soln),
     MPC<PK_t>(pk_tree, global_list, S, soln),
-    PK_BDF_Default(pk_tree, global_list, S, soln)
+    ATS_Physics::PK_BDF_Default(pk_tree, global_list, S, soln)
 {
   MPC<PK_t>::init_(soln->Comm());
 }
@@ -171,7 +171,7 @@ StrongMPC<PK_t>::Setup()
   }
 
   MPC<PK_t>::Setup();
-  PK_BDF_Default::Setup();
+  ATS_Physics::PK_BDF_Default::Setup();
 };
 
 
@@ -192,7 +192,7 @@ StrongMPC<PK_t>::Initialize()
   MPC<PK_t>::Initialize();
 
   // Initialize my timestepper.
-  PK_BDF_Default::Initialize();
+  ATS_Physics::PK_BDF_Default::Initialize();
 };
 
 
@@ -204,7 +204,7 @@ void
 StrongMPC<PK_t>::CommitStep(double t_old, double t_new, const Tag& tag)
 {
   MPC<PK_t>::CommitStep(t_old, t_new, tag);
-  PK_BDF_Default::CommitStep(t_old, t_new, tag);
+  ATS_Physics::PK_BDF_Default::CommitStep(t_old, t_new, tag);
 }
 
 template<class PK_t>

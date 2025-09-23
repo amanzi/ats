@@ -10,9 +10,11 @@
 #include "iem_linear.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 
 Utils::RegisteredFactory<IEM, IEMLinear> IEMLinear::factory_("linear");
 
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi

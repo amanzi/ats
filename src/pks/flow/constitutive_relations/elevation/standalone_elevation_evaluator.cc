@@ -16,6 +16,7 @@
 #include "standalone_elevation_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 StandaloneElevationEvaluator::StandaloneElevationEvaluator(Teuchos::ParameterList& plist)
@@ -71,4 +72,5 @@ StandaloneElevationEvaluator::EvaluateElevationAndSlope_(
 
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

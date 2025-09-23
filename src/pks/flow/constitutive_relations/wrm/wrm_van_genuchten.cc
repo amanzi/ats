@@ -16,6 +16,7 @@
 #include "wrm_van_genuchten.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 const double FLOW_WRM_TOLERANCE = 1e-10;
@@ -267,4 +268,5 @@ WRMVanGenuchten::d_suction_head(double s)
 }
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi

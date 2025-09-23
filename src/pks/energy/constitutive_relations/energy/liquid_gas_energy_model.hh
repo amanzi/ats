@@ -19,6 +19,7 @@ Energy for a two-phase, liquid+water vapor evaluator.
 #define AMANZI_ENERGY_LIQUID_GAS_ENERGY_MODEL_HH_
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Energy {
 namespace Relations {
 
@@ -168,6 +169,7 @@ class LiquidGasEnergyModel {
 
 } // namespace Relations
 } // namespace Energy
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

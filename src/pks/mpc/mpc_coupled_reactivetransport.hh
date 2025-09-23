@@ -82,9 +82,9 @@ class MPCCoupledReactiveTransport : public WeakMPC {
   Teuchos::RCP<MPCCoupledTransport> coupled_transport_pk_;
   Teuchos::RCP<WeakMPC> coupled_chemistry_pk_;
 
-  Teuchos::RCP<Transport::Transport_ATS> transport_pk_;
+  Teuchos::RCP<ATS_Physics::Transport::Transport_ATS> transport_pk_;
   Teuchos::RCP<AmanziChemistry::Chemistry_PK> chemistry_pk_;
-  Teuchos::RCP<Transport::Transport_ATS> transport_pk_surf_;
+  Teuchos::RCP<ATS_Physics::Transport::Transport_ATS> transport_pk_surf_;
   Teuchos::RCP<AmanziChemistry::Chemistry_PK> chemistry_pk_surf_;
 
   // factory registration

@@ -23,6 +23,7 @@
 #include "vegetation.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace BGC {
 
 
@@ -669,4 +670,5 @@ FATES_PK::ColDepthDz_(AmanziMesh::Entity_ID col,
 
 
 } // namespace BGC
+} // namespace ATS_Physics
 } // namespace Amanzi

@@ -19,6 +19,7 @@ Richards water content evaluator: the standard form as a function of liquid satu
 #define AMANZI_FLOW_RICHARDS_WATER_CONTENT_MODEL_HH_
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 namespace Relations {
 
@@ -41,6 +42,7 @@ class RichardsWaterContentModel {
 
 } // namespace Relations
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
 
 #endif

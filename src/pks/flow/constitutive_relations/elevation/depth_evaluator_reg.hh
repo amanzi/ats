@@ -10,10 +10,12 @@
 #include "depth_evaluator.hh"
 
 namespace Amanzi {
+namespace ATS_Physics {
 namespace Flow {
 
 // registry of method
 Utils::RegisteredFactory<Evaluator, DepthEvaluator> DepthEvaluator::reg_("depth");
 
 } // namespace Flow
+} // namespace ATS_Physics
 } // namespace Amanzi
