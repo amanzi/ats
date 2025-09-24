@@ -27,7 +27,8 @@ extern "C"
   void ats_delete(ELM_ATSDriver_ptr ats)
   {
     auto ats_ptr = reinterpret_cast<ATS::ELM_ATSDriver*>(ats);
-    ats_ptr->finalize();
+    Kokkos::finalize();
+    //ats_ptr->finalize();
     delete ats_ptr;
   }
 
