@@ -29,7 +29,6 @@ namespace ATS {
 ELM_ATSDriver*
 createELM_ATSDriver(MPI_Fint* f_comm, const char* infile, int npfts)
 {
-  if (!Kokkos::is_initialized()) Kokkos::initialize(); // or ScopeGuard?
   // -- create communicator & get process rank
   //auto comm = getDefaultComm();
   auto c_comm = MPI_Comm_f2c(*f_comm);

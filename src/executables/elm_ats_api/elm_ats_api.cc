@@ -13,6 +13,12 @@
 #include "elm_ats_api.h"
 
 #ifdef __cplusplus
+
+namespace {
+  // did ATS initialize kokkos?
+  ats_kokkos_init = false;
+}
+
 extern "C"
 {
 #endif
@@ -20,6 +26,11 @@ extern "C"
   // allocate, call constructor and cast ptr to opaque ELM_ATSDriver_ptr
   ELM_ATSDriver_ptr ats_create(MPI_Fint* f_comm, const char* input_filename)
   {
+    // Initialize Kokkos if ELM hasn't already (for near future, it won't)
+    if (!Kokkos::is_initialized()) {
+      Kokkos::initialize();
+      ats_kokkos_init = true;
+    }
     return reinterpret_cast<ELM_ATSDriver_ptr>(ATS::createELM_ATSDriver(f_comm, input_filename));
   }
 
@@ -27,9 +38,14 @@ extern "C"
   void ats_delete(ELM_ATSDriver_ptr ats)
   {
     auto ats_ptr = reinterpret_cast<ATS::ELM_ATSDriver*>(ats);
-    Kokkos::finalize();
-    //ats_ptr->finalize();
+    ats_ptr->finalize();
     delete ats_ptr;
+
+    // If ATS initialized Kokkos, then finalize it here
+    if (ats_kokkos_init && Kokkos::is_initialized()) {
+      Kokkos::finalize();
+      ats_kokkos_init = false;
+    }
   }
 
   // call driver advance()
