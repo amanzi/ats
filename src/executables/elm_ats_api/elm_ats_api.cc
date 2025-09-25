@@ -16,7 +16,7 @@
 
 namespace {
   // did ATS initialize kokkos?
-  ats_kokkos_init = false;
+  bool ats_kokkos_init = false;
 }
 
 extern "C"
@@ -30,7 +30,7 @@ extern "C"
     if (!Kokkos::is_initialized()) {
       Kokkos::initialize();
       ats_kokkos_init = true;
-      std::cout << "Initializing Kokkos in ELM-ATS driver wrapper"
+      std::cout << "Initializing Kokkos in ELM-ATS driver wrapper";
     }
     return reinterpret_cast<ELM_ATSDriver_ptr>(ATS::createELM_ATSDriver(f_comm, input_filename));
   }
