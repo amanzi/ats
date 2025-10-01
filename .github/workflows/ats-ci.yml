@@ -53,7 +53,7 @@ jobs:
       id: version
       working-directory: Docker
       run: |
-        echo "AMANZI_TPLS_VER=$(./get_tpls_version.sh)" >> $GITHUB_ENV
+        echo "AMANZI_TPLS_VER=0.98.13" >> $GITHUB_ENV
     - name: Print out environment
       run: |
         echo "Amanzi branch = ${{env.AMANZI_BRANCH}}";
