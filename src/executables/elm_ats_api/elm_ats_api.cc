@@ -107,15 +107,15 @@ void ats_advance_test(ELM_ATSDriver_ptr ats)
 //
 // Memory movement/data passing
 // -----------------------------------------------------------------------------
-double ats_get_scalar(ELM_ATSDriver_ptr ats, int scalar_id)
-{
-  return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->getScalar(reinterpret_cast<ATS::ELM::ScalarID>(scalar_id));
-}
+// double ats_get_scalar(ELM_ATSDriver_ptr ats, int scalar_id)
+// {
+//   return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->getScalar(reinterpret_cast<ATS::ELM::ScalarID>(scalar_id));
+// }
 
-void ats_set_scalar(ELM_ATSDriver_ptr ats, int scalar_id, double in)
-{
-  reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->setScalar(reinterpret_cast<ATS::ELM::ScalarID>(scalar_id), in);
-}
+// void ats_set_scalar(ELM_ATSDriver_ptr ats, int scalar_id, double in)
+// {
+//   reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->setScalar(reinterpret_cast<ATS::ELM::ScalarID>(scalar_id), in);
+// }
 
 void ats_get_field(ELM_ATSDriver_ptr ats, int var_id, double * const in)
 {
