@@ -64,7 +64,6 @@ class ELM_ATSDriver : public Coordinator {
   void copyFromSurf_(double * const out, const Key& key) const;
   void copyFromSub_(double * const out, const Key& key) const;
 
-  void initPressureFromWC_(double const * const elm_water_content);
   void initZero_(const Key& key);
 
  private:
@@ -80,35 +79,23 @@ class ELM_ATSDriver : public Coordinator {
   Teuchos::RCP<const AmanziMesh::Mesh> mesh_subsurf_;
   Teuchos::RCP<const AmanziMesh::Mesh> mesh_surf_;
 
-  Key lat_key_;
-  Key lon_key_;
-  Key elev_key_;
-  Key base_poro_key_;
-  Key perm_key_;
-  Key ch_b_key_;
-  Key ch_smpsat_key_;
-  Key ch_sr_key_;
-  Key poro_key_;
-  Key root_frac_key_;
+  Key gross_water_source_key_;
   Key pot_evap_key_;
   Key pot_trans_key_;
-  Key pot_infilt_key_;
-  Key pd_key_;
-  Key wtd_key_;
-  Key pres_key_;
+
   Key wc_key_;
-  Key pc_key_;
-  Key sat_key_;
-  //Key sat_gas_key_;
-  //Key sat_ice_key_;
-  Key infilt_key_;
-  Key trans_key_;
+  Key surf_wc_key_;
+
   Key evap_key_;
-  Key total_trans_key_;
+  Key col_trans_key_;
+  Key col_baseflow_key_;
+  Key col_runoff_key_;
+
   Key surf_mol_dens_key_;
   Key surf_mass_dens_key_;
   Key subsurf_mol_dens_key_;
   Key subsurf_mass_dens_key_;
+
   Key surf_cv_key_;
   Key cv_key_;
 
