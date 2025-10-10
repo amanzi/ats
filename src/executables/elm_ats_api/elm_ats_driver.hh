@@ -5,30 +5,6 @@
 
   Authors: Joe Beisman
 */
-//! Simulation control from ELM.
-
-/*!
-
-The expected order of evaluation is:
-
-..code::
-
-   ELM_ATSDriver ats;
-   ats.setup();
-   ats.get_mesh_info();
-   ats.set_soil_parameters();
-   ats.set_veg_parameters();
-   ats.initialize();
-
-   for (step) {
-     ats.set_soil_properties();
-     ats.set_veg_properties();
-     ats.advance();
-     ats.get_water_state();
-     ats.get_water_fluxes();
-   }
-
-*/
 
 #pragma once
 
@@ -45,66 +21,51 @@ namespace ATS {
 using namespace Amanzi;
 
 class ELM_ATSDriver : public Coordinator {
+
  public:
+
+  struct MeshInfo {
+    int ncols_local;
+    int ncols_global;
+    int nlevgrnd;
+  };
+
   ELM_ATSDriver(const Teuchos::RCP<Teuchos::ParameterList>& plist,
                 const Teuchos::RCP<Teuchos::Time>& wallclock_timer,
                 const Teuchos::RCP<const Teuchos::Comm<int>>& teuchos_comm,
                 const Amanzi::Comm_ptr_type& comm,
                 int npfts = 17);
 
-  void finalize();
-  void advance(double dt, bool checkpoint, bool vis);
-  void advance_test();
-
-  void get_mesh_info(int& ncols_local,
-                     int& ncols_global,
-                     double* const lat,
-                     double* const lon,
-                     double* const elev,
-                     double* const surf_area,
-                     int* const pft,
-                     int& nlevgrnd,
-                     double* const depth);
-
+  MeshInfo getMeshInfo();
   void setup();
+  void initialize();
+  void advance(double dt, bool checkpoint, bool vis);
+  void advanceTest();
+  void finalize();
 
-  void initialize(double t, double const* const p_atm, double const* const pressure);
+  void setScalar(const ScalarID& scalar_id, double in);
+  double getScalar(const ScalarID& scalar_id);
 
-  void set_soil_hydrologic_parameters(double const* const base_porosity,
-                                      double const* const hydraulic_conductivity,
-                                      double const* const clapp_horn_b,
-                                      double const* const clapp_horn_smpsat,
-                                      double const* const clapp_horn_sr);
-  void set_veg_parameters(double const* const mafic_potential_full_turgor,
-                          double const* const mafic_potential_wilt_point);
-  void set_soil_hydrologic_properties(double const* const effective_porosity);
-  void set_veg_properties(double const* const rooting_fraction);
-  void set_potential_sources(double const* const elm_surface_input,
-                             double const* const elm_evaporation,
-                             double const* const elm_transpiration);
-
-  void get_waterstate(double* const surface_ponded_depth,
-                      double* const water_table_depth,
-                      double* const soil_pressure,
-                      double* const soil_psi,
-                      double* const sat_liq,
-                      double* const sat_ice);
-
-  void get_water_fluxes(double* const soil_infiltration,
-                        double* const evaporation,
-                        double* const transpiration,
-                        double* const net_subsurface_fluxes,
-                        double* const net_runon);
+  void setField(const VarID& var_id, double const * const in);
+  void getField(const VarID& var_id, double * const out);
+  double const * getFieldPtr(const VarID& var_id);
+  double * getFieldPtrW(const VarID& var_id);
 
  private:
-  void init_pressure_from_wc_(double const* const elm_water_content);
+  template<VarID var_id>
+  void setField_(double const * const in);
 
-  void copyToSurf_(double const* const in, const Key& key, Key owner = "");
-  void copyToSub_(double const* const in, const Key& key, Key owner = "");
-  void copyFromSurf_(double* const out, const Key& key) const;
-  void copyFromSub_(double* const out, const Key& key) const;
+
+  template<VarID var_id>
+  void getField_(double * const out);
+
+  void copyToSurf_(double const * const in, const Key& key);
+  void copyToSub_(double const * const in, const Key& key);
+  void copyFromSurf_(double * const out, const Key& key) const;
+  void copyFromSub_(double * const out, const Key& key) const;
+
+  void initPressureFromWC_(double const * const elm_water_content);
   void initZero_(const Key& key);
-
 
  private:
   Teuchos::RCP<Teuchos::ParameterList> elm_list_;
@@ -150,12 +111,18 @@ class ELM_ATSDriver : public Coordinator {
   Key subsurf_mass_dens_key_;
   Key surf_cv_key_;
   Key cv_key_;
+
 };
 
 
 //
 // Nonmember constructor/factory reads file, converts comm to the right type.
 //
-ELM_ATSDriver* createELM_ATSDriver(MPI_Fint* f_comm, const char* infile, int npfts = 17);
+ELM_ATSDriver*
+createELM_ATSDriver(MPI_Fint *f_comm, const char *infile, int npfts=17);
 
 } // namespace ATS
+
+
+
+
