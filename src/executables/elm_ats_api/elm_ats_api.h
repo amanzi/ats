@@ -19,7 +19,7 @@ for use with LSMs.
 extern "C" {
 
 // opaque pointer
-// external caller only sees *ELM_ATSDriver_ptr - similar to void*, but better type safety 
+// external caller only sees *ELM_ATSDriver_ptr - similar to void*, but better type safety
 // ATS resolves ELM_ATSDriver_ptr as real ELM_ATSDriver during linking
 class ELM_ATSDriver;
 typedef ELM_ATSDriver *ELM_ATSDriver_ptr;
@@ -75,8 +75,8 @@ void ats_advance_test(ELM_ATSDriver_ptr ats);
 //
 // Memory movement/data passing
 // -----------------------------------------------------------------------------
-double ats_get_scalar(ELM_ATSDriver_ptr ats, int scalar_id);
-void ats_set_scalar(ELM_ATSDriver_ptr ats, int scalar_id, double in);
+// double ats_get_scalar(ELM_ATSDriver_ptr ats, int scalar_id);
+// void ats_set_scalar(ELM_ATSDriver_ptr ats, int scalar_id, double in);
 
 void ats_get_field(ELM_ATSDriver_ptr ats, int var_id, double * const in);
 double const * ats_get_field_ptr(ELM_ATSDriver_ptr ats, int var_id);
