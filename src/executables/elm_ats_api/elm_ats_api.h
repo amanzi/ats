@@ -49,7 +49,7 @@ void ats_get_mesh_info(ELM_ATSDriver_ptr ats,
                        int * const ncols_local,
                        int * const ncols_global,
                        int * const nlevgrnd,
-                       double * const depth);
+                       double * const dzs);
 
 //
 // simulation setup
@@ -78,7 +78,7 @@ void ats_advance_test(ELM_ATSDriver_ptr ats);
 // double ats_get_scalar(ELM_ATSDriver_ptr ats, int scalar_id);
 // void ats_set_scalar(ELM_ATSDriver_ptr ats, int scalar_id, double in);
 
-void ats_get_field(ELM_ATSDriver_ptr ats, int var_id, double * const in);
+void ats_get_field(ELM_ATSDriver_ptr ats, int var_id, double * const out);
 double const * ats_get_field_ptr(ELM_ATSDriver_ptr ats, int var_id);
 double * ats_get_field_ptr_w(ELM_ATSDriver_ptr ats, int var_id);
 void ats_set_field(ELM_ATSDriver_ptr ats, int var_id, double const * const in);
