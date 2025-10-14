@@ -313,6 +313,19 @@ void ELM_ATSDriver::copyFromSub_(double * const out, const Key& key) const
 }
 
 
+void ELM_ATSDriver::setScalar(const ELM::VarID& scalar_id, double in)
+{
+  Key scalar_key = key_map_[scalar_id];
+  S_->GetW<double>(scalar_key, Tags::DEFAULT, scalar_key) = in;
+}
+
+double ELM_ATSDriver::getScalar(const ELM::VarID& scalar_id)
+{
+  Key scalar_key = key_map_[scalar_id];
+  return S_->Get<double>(scalar_key, Tags::DEFAULT);
+}
+
+
 void ELM_ATSDriver::getField(const ELM::VarID& var_id, double * const out)
 {
   switch(var_id) {
@@ -346,6 +359,23 @@ void ELM_ATSDriver::setField(const ELM::VarID& var_id, double const * const out)
     default: throw std::runtime_error("Unsettable variable");
   }
 }
+
+
+double const *
+ELM_ATSDriver::getFieldPtr(const ELM::VarID& var_id)
+{
+  Key var_key = key_map_[var_id];
+  return &(*S_->Get<CompositeVector>(var_key, Tags::NEXT).ViewComponent("cell", false))[0][0];
+}
+
+double *
+ELM_ATSDriver::getFieldPtrW(const ELM::VarID& var_id)
+{
+  Key var_key = key_map_[var_id];
+  Key owner = S_->GetRecord(var_key, Amanzi::Tags::NEXT).owner();
+  return &(*S_->GetW<CompositeVector>(var_key, Tags::NEXT, owner).ViewComponent("cell", false))[0][0];
+}
+
 
 
 template<ELM::VarID var_id>
