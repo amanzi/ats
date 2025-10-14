@@ -21,7 +21,7 @@
 #include "CompositeVector.hh"
 #include "IO.hh"
 #include "UnstructuredObservations.hh"
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 #include "elm_ats_driver.hh"
 
 namespace ATS {
@@ -80,27 +80,27 @@ ELM_ATSDriver::ELM_ATSDriver(const Teuchos::RCP<Teuchos::ParameterList>& plist,
 
   // potential sources
   gross_water_source_key_ = Keys::readKey(*plist_, domain_surf_, "gross water source", "gross_water_source");
-  key_map_[ELM::SURFACE_WATER_SOURCE] = gross_water_source_key_;
+  key_map_[ELM::VarID::GROSS_SURFACE_WATER_SOURCE] = gross_water_source_key_;
   pot_evap_key_ = Keys::readKey(*plist_, domain_surf_, "potential evaporation mps", "potential_evaporation_mps");
-  key_map_[ELM::POTENTIAL_EVAPORATION] = pot_evap_key_;
+  key_map_[ELM::VarID::POTENTIAL_EVAPORATION] = pot_evap_key_;
   pot_trans_key_ = Keys::readKey(*plist_, domain_surf_, "potential transpiration mps", "potential_transpiration_mps");
-  key_map_[ELM::POTENTIAL_TRANSPIRATION] = pot_trans_key_;
+  key_map_[ELM::VarID::POTENTIAL_TRANSPIRATION] = pot_trans_key_;
 
   // water state
   surf_wc_key_ = Keys::readKey(*plist_, domain_surf_, "water content", "water_content");
-  key_map_[ELM::SURFACE_WATER_CONTENT] = surface_wc_key_;
+  key_map_[ELM::VarID::SURFACE_WATER_CONTENT] = surf_wc_key_;
   wc_key_ = Keys::readKey(*plist_, domain_subsurf_, "water content", "water_content");
-  key_map_[ELM::WATER_CONTENT] = wc_key_;
+  key_map_[ELM::VarID::WATER_CONTENT] = wc_key_;
 
   // actual water fluxes
   evap_key_ = Keys::readKey(*plist_, domain_surf_, "evaporation", "evaporation");
-  key_map_[ELM::EVAPORATION] = evap_key_;
+  key_map_[ELM::VarID::EVAPORATION] = evap_key_;
   col_trans_key_ = Keys::readKey(*plist_, domain_surf_, "total transpiration", "total_transpiration");
-  key_map_[ELM::TRANSPIRATION] = col_trans_key_;
+  key_map_[ELM::VarID::TRANSPIRATION] = col_trans_key_;
   col_baseflow_key_ = Keys::readKey(*plist_, domain_surf_, "column total baseflow", "baseflow");
-  key_map_[ELM::BASEFLOW] = col_baseflow_key_;
+  key_map_[ELM::VarID::BASEFLOW] = col_baseflow_key_;
   col_runoff_key_ = Keys::readKey(*plist_, domain_surf_, "runoff generation", "runoff_generation");
-  key_map_[ELM::RUNOFF] = col_runoff_key_;
+  key_map_[ELM::VarID::RUNOFF] = col_runoff_key_;
 
   // keys for fields used to convert ELM units to ATS units
   surf_mol_dens_key_ = Keys::readKey(*plist_, domain_surf_, "surface molar density", "molar_density_liquid");
@@ -123,51 +123,49 @@ void
 ELM_ATSDriver::setup()
 {
   // potential fluxes (ELM -> ATS)
-  requireAtNext(gross_water_source_key_, Amanzi::Tags::NEXT, *S_, gross_water_source_key_)
+  ATS::requireEvaluatorAtNext(gross_water_source_key_, Amanzi::Tags::NEXT, *S_, gross_water_source_key_)
     .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  requireAtNext(pot_evap_key_, Amanzi::Tags::NEXT, *S_, pot_evap_key_)
+  ATS::requireEvaluatorAtNext(pot_evap_key_, Amanzi::Tags::NEXT, *S_, pot_evap_key_)
     .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  requireAtNext(pot_trans_key_, Amanzi::Tags::NEXT, *S_, pot_trans_key_)
+  ATS::requireEvaluatorAtNext(pot_trans_key_, Amanzi::Tags::NEXT, *S_, pot_trans_key_)
     .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  requireAtNext(surf_cv_key_, Amanzi::Tags::NEXT, *S_)
+  ATS::requireEvaluatorAtNext(surf_cv_key_, Amanzi::Tags::NEXT, *S_)
     .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  requireAtNext(cv_key_, Amanzi::Tags::NEXT, *S_)
+  ATS::requireEvaluatorAtNext(cv_key_, Amanzi::Tags::NEXT, *S_)
     .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  requireAtNext(surf_mol_dens_key_, Amanzi::Tags::NEXT, *S_)
+  ATS::requireEvaluatorAtNext(surf_mol_dens_key_, Amanzi::Tags::NEXT, *S_)
     .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  requireAtNext(surf_mass_dens_key_, Amanzi::Tags::NEXT, *S_)
+  ATS::requireEvaluatorAtNext(surf_mass_dens_key_, Amanzi::Tags::NEXT, *S_)
     .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  requireAtNext(subsurf_mol_dens_key_, Amanzi::Tags::NEXT, *S_)
+  ATS::requireEvaluatorAtNext(subsurf_mol_dens_key_, Amanzi::Tags::NEXT, *S_)
     .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  requireAtNext(subsurf_mass_dens_key_, Amanzi::Tags::NEXT, *S_)
+  ATS::requireEvaluatorAtNext(subsurf_mass_dens_key_, Amanzi::Tags::NEXT, *S_)
     .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  requireAtNext(evap_key_, Amanzi::Tags::NEXT, *S_)
+  ATS::requireEvaluatorAtNext(evap_key_, Amanzi::Tags::NEXT, *S_)
    .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  requireAtNext(col_trans_key_, Amanzi::Tags::NEXT, *S_)
+  ATS::requireEvaluatorAtNext(col_trans_key_, Amanzi::Tags::NEXT, *S_)
     .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  requireAtNext(col_baseflow_key_, Amanzi::Tags::NEXT, *S_, col_baseflow_key_)
+  ATS::requireEvaluatorAtNext(col_baseflow_key_, Amanzi::Tags::NEXT, *S_, col_baseflow_key_)
     .SetMesh(mesh_surf_)->SetComponent("cell", AmanziMesh::CELL, 1);
-  requireAtNext(col_runoff_key_, Amanzi::Tags::NEXT, *S_, col_runoff_key_)
+  ATS::requireEvaluatorAtNext(col_runoff_key_, Amanzi::Tags::NEXT, *S_, col_runoff_key_)
     .SetMesh(mesh_surf_)->SetComponent("cell", AmanziMesh::CELL, 1);
 
   Coordinator::setup();
 
-  requireAtNext(pres_key_, Amanzi::Tags::NEXT, *S_)
+  ATS::requireEvaluatorAtNext(pres_key_, Amanzi::Tags::NEXT, *S_)
     .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  requireAtNext(surf_pres_key_, Amanzi::Tags::NEXT, *S_)
-    .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 }
 
 
 //
 // dz & depth are currently ignored -- presumed identical between ATS & ELM
 //
-MeshInfo ELM_ATSDriver::getMeshInfo()
+ELM_ATSDriver::MeshInfo ELM_ATSDriver::getMeshInfo()
 {
-  MeshInfo info;
+  ELM_ATSDriver::MeshInfo info;
   info.ncols_local = ncolumns_;
   info.ncols_global = mesh_surf_->getMap(AmanziMesh::Entity_kind::CELL, false).NumGlobalElements();
   info.nlevgrnd = ncells_per_col_;
@@ -175,12 +173,10 @@ MeshInfo ELM_ATSDriver::getMeshInfo()
 }
 
 
-void ELM_ATSDriver::initialize(double t,
-        double const * const elm_water_content,
-        double const * const elm_surf_water_content)
+void ELM_ATSDriver::initialize()
 {
   // Assign start time to ATS
-  t0_ = t;
+  t0_ = S_->get_time();
 
   // initialize ATS data, commit initial conditions
   Coordinator::initialize();
@@ -191,8 +187,8 @@ void ELM_ATSDriver::initialize(double t,
   initZero_(pot_evap_key_);
 
   // no current evaluators for these, treat as primary
-  initZero_(baseflow_key_);
-  initZero_(runoff_key_);
+  initZero_(col_baseflow_key_);
+  initZero_(col_runoff_key_);
 
   // visualization at IC -- TODO remove this or place behind flag
   visualize();
@@ -223,7 +219,7 @@ void ELM_ATSDriver::advance(double dt, bool do_chkp, bool do_vis)
 
 
 // simulates external timeloop with dt coming from calling model
-void ELM_ATSDriver::advance_test()
+void ELM_ATSDriver::advanceTest()
 {
   while (S_->get_time() < t1_) {
     // use dt from ATS for testing
@@ -252,9 +248,10 @@ void ELM_ATSDriver::initZero_(const Key& key)
 
 
 
-void ELM_ATSDriver::copyToSurf_(double const * const in, const Key& key, Key owner)
+void ELM_ATSDriver::copyToSurf_(double const * const in, const Key& key)
 {
-  if (owner.empty()) owner = key;
+  Key owner = S_->GetRecord(key, Amanzi::Tags::NEXT).owner();
+
   // surf maps directly into columns
   auto& vec = *S_->GetW<CompositeVector>(key, Amanzi::Tags::NEXT, owner)
     .ViewComponent("cell", false);
@@ -270,9 +267,9 @@ void ELM_ATSDriver::copyToSurf_(double const * const in, const Key& key, Key own
 // ELM data is defined as var(col,lev), meaning that, due to Fortran ordering,
 // the column is fasted varying, not the grid cell.
 //
-void ELM_ATSDriver::copyToSub_(double const * const in, const Key& key, Key owner)
+void ELM_ATSDriver::copyToSub_(double const * const in, const Key& key)
 {
-  if (owner.empty()) owner = key;
+  Key owner = S_->GetRecord(key, Amanzi::Tags::NEXT).owner();
   auto& vec = *S_->GetW<CompositeVector>(key, Amanzi::Tags::NEXT, owner)
     .ViewComponent("cell", false);
 
@@ -316,7 +313,7 @@ void ELM_ATSDriver::copyFromSub_(double * const out, const Key& key) const
 }
 
 
-void ELM_ATSDriver::getField(const VarID& var_id, double * const out)
+void ELM_ATSDriver::getField(const ELM::VarID& var_id, double * const out)
 {
   switch(var_id) {
     case ELM::VarID::SURFACE_WATER_CONTENT: getField_<ELM::VarID::SURFACE_WATER_CONTENT>(out); break;
@@ -326,11 +323,12 @@ void ELM_ATSDriver::getField(const VarID& var_id, double * const out)
     case ELM::VarID::RUNOFF: getField_<ELM::VarID::RUNOFF>(out); break;
     case ELM::VarID::BASEFLOW: getField_<ELM::VarID::BASEFLOW>(out); break;
     default: throw std::runtime_error("Ungettable variable");
+  }
 }
 
 
 
-void ELM_ATSDriver::setField(const VarID& var_id, double const * const out)
+void ELM_ATSDriver::setField(const ELM::VarID& var_id, double const * const out)
 {
   switch(var_id) {
     case ELM::VarID::BASE_POROSITY: setField_<ELM::VarID::BASE_POROSITY>(out); break;
@@ -342,17 +340,18 @@ void ELM_ATSDriver::setField(const VarID& var_id, double const * const out)
     case ELM::VarID::ROOT_FRACTION: setField_<ELM::VarID::ROOT_FRACTION>(out); break;
     case ELM::VarID::SURFACE_WATER_CONTENT: setField_<ELM::VarID::SURFACE_WATER_CONTENT>(out); break;
     case ELM::VarID::WATER_CONTENT: setField_<ELM::VarID::WATER_CONTENT>(out); break;
-    case ELM::VarID::SURFACE_WATER_SOURCE: setField_<ELM::VarID::SURFACE_WATER_SOURCE>(out); break;
+    case ELM::VarID::GROSS_SURFACE_WATER_SOURCE: setField_<ELM::VarID::GROSS_SURFACE_WATER_SOURCE>(out); break;
     case ELM::VarID::POTENTIAL_EVAPORATION: setField_<ELM::VarID::POTENTIAL_EVAPORATION>(out); break;
     case ELM::VarID::POTENTIAL_TRANSPIRATION: setField_<ELM::VarID::POTENTIAL_TRANSPIRATION>(out); break;
     default: throw std::runtime_error("Unsettable variable");
+  }
 }
 
 
 template<ELM::VarID var_id>
 void ELM_ATSDriver::getField_(double * const out)
 {
-  Key field_key = keys_[var_id];
+  Key field_key = key_map_[var_id];
   if (Keys::getDomain(field_key) == domain_subsurf_) {
     copyFromSub_(out, field_key);
   } else {
@@ -364,7 +363,7 @@ void ELM_ATSDriver::getField_(double * const out)
 template<ELM::VarID var_id>
 void ELM_ATSDriver::setField_(double const * const out)
 {
-  Key field_key = keys_[var_id];
+  Key field_key = key_map_[var_id];
   if (Keys::getDomain(field_key) == domain_subsurf_) {
     copyToSub_(out, field_key);
   } else {
