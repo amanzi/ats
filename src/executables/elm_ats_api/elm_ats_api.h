@@ -75,8 +75,8 @@ void ats_advance_test(ELM_ATSDriver_ptr ats);
 //
 // Memory movement/data passing
 // -----------------------------------------------------------------------------
-// double ats_get_scalar(ELM_ATSDriver_ptr ats, int scalar_id);
-// void ats_set_scalar(ELM_ATSDriver_ptr ats, int scalar_id, double in);
+double ats_get_scalar(ELM_ATSDriver_ptr ats, int var_id);
+void ats_set_scalar(ELM_ATSDriver_ptr ats, int var_id, double in);
 
 void ats_get_field(ELM_ATSDriver_ptr ats, int var_id, double * const out);
 double const * ats_get_field_ptr(ELM_ATSDriver_ptr ats, int var_id);
