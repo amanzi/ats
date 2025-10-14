@@ -16,6 +16,8 @@
 #include "Key.hh"
 #include "coordinator.hh"
 
+#include "ats_variables.hh"
+
 namespace ATS {
 
 using namespace Amanzi;
@@ -43,20 +45,20 @@ class ELM_ATSDriver : public Coordinator {
   void advanceTest();
   void finalize();
 
-  void setScalar(const ScalarID& scalar_id, double in);
-  double getScalar(const ScalarID& scalar_id);
+  void setScalar(const ELM::VarID& scalar_id, double in);
+  double getScalar(const ELM::VarID& scalar_id);
 
-  void setField(const VarID& var_id, double const * const in);
-  void getField(const VarID& var_id, double * const out);
-  double const * getFieldPtr(const VarID& var_id);
-  double * getFieldPtrW(const VarID& var_id);
+  void setField(const ELM::VarID& var_id, double const * const in);
+  void getField(const ELM::VarID& var_id, double * const out);
+  double const * getFieldPtr(const ELM::VarID& var_id);
+  double * getFieldPtrW(const ELM::VarID& var_id);
 
  private:
-  template<VarID var_id>
+  template<ELM::VarID var_id>
   void setField_(double const * const in);
 
 
-  template<VarID var_id>
+  template<ELM::VarID var_id>
   void getField_(double * const out);
 
   void copyToSurf_(double const * const in, const Key& key);
@@ -83,6 +85,7 @@ class ELM_ATSDriver : public Coordinator {
   Key pot_evap_key_;
   Key pot_trans_key_;
 
+  Key pres_key_;
   Key wc_key_;
   Key surf_wc_key_;
 
@@ -98,6 +101,8 @@ class ELM_ATSDriver : public Coordinator {
 
   Key surf_cv_key_;
   Key cv_key_;
+
+  std::map<ELM::VarID, Key> key_map_;
 
 };
 
