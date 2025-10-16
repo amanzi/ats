@@ -177,15 +177,6 @@ RadiationBalanceEvaluator::Evaluate_(const State& S, const std::vector<Composite
   }
 }
 
-void
-RadiationBalanceEvaluator::EvaluatePartialDerivative_(const State& S,
-                                                      const Key& wrt_key,
-                                                      const Tag& wrt_tag,
-                                                      const std::vector<CompositeVector*>& results)
-{
-  for (const auto& res : results) res->PutScalar(0.);
-}
-
 
 } // namespace Relations
 } // namespace SurfaceBalance

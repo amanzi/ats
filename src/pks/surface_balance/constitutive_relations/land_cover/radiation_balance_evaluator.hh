@@ -104,6 +104,12 @@ class RadiationBalanceEvaluator : public EvaluatorSecondaryMonotypeCV {
     return Teuchos::rcp(new RadiationBalanceEvaluator(*this));
   }
 
+  bool IsDifferentiableWRT(const State& S,
+                           const Key& wrt_key,
+                           const Tag& wrt_tag) const override {
+    return false;
+  }
+
  protected:
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
   virtual void EnsureCompatibility_Structure_(State& S) override
@@ -115,9 +121,9 @@ class RadiationBalanceEvaluator : public EvaluatorSecondaryMonotypeCV {
   virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& results) override;
 
   virtual void EvaluatePartialDerivative_(const State& S,
-                                          const Key& wrt_key,
-                                          const Tag& wrt_tag,
-                                          const std::vector<CompositeVector*>& results) override;
+          const Key& wrt_key,
+          const Tag& wrt_tag,
+          const std::vector<CompositeVector*>& results) override {}
 
  protected:
   Key domain_surf_;
