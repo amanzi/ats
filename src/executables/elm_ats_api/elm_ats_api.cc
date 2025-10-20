@@ -51,6 +51,13 @@ void ats_delete(ELM_ATSDriver_ptr ats)
 }
 
 
+// call driver setup()
+void ats_parse_parameter_list(ELM_ATSDriver_ptr ats)
+{
+  reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->parseParameterList();
+}
+
+
 void ats_get_mesh_info(ELM_ATSDriver_ptr ats,
                        int * const ncols_local,
                        int * const ncols_global,
