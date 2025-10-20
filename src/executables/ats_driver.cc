@@ -69,6 +69,7 @@ ATSDriver::cycle_driver()
                << "Beginning setup stage..." << std::endl
                << std::flush;
   }
+  parseParameterList();
   setup();
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
     *vo_->os() << "  ... completed: ";

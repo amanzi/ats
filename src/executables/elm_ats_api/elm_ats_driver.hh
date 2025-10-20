@@ -39,6 +39,7 @@ class ELM_ATSDriver : public Coordinator {
                 int npfts = 17);
 
   MeshInfo getMeshInfo();
+  void parseParameterList();
   void setup();
   void initialize();
   void advance(double dt, bool checkpoint, bool vis);
