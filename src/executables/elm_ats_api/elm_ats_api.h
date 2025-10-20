@@ -43,6 +43,12 @@ void ats_delete(ELM_ATSDriver_ptr ats);
 // -----------------------------------------------------------------------------
 
 //
+// simulation setup
+//
+void ats_parse_parameter_list(ELM_ATSDriver_ptr ats);
+
+
+//
 // These quantities should be compared against ELM to ensure consistent setup
 //
 void ats_get_mesh_info(ELM_ATSDriver_ptr ats,
