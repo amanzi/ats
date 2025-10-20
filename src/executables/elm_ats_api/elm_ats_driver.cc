@@ -69,7 +69,13 @@ ELM_ATSDriver::ELM_ATSDriver(const Teuchos::RCP<Teuchos::ParameterList>& plist,
   // -- set default verbosity level to no output
   // -- TODO make the verbosity level an input argument
   VerboseObject::global_default_level = Teuchos::VERB_NONE;
+}
 
+
+void
+ELM_ATSDriver::parseParameterList()
+{
+  // parse my parameter list
   // domain names
   domain_subsurf_ = Keys::readDomain(*plist_, "domain", "domain");
   domain_surf_ = Keys::readDomainHint(*plist_, domain_subsurf_, "subsurface", "surface");
@@ -116,20 +122,24 @@ ELM_ATSDriver::ELM_ATSDriver(const Teuchos::RCP<Teuchos::ParameterList>& plist,
   ncolumns_ = mesh_surf_->getNumEntities(AmanziMesh::CELL, AmanziMesh::Parallel_kind::OWNED);
   auto col_zero = mesh_subsurf_->columns.getCells(0);
   ncells_per_col_ = col_zero.size();
+
+  // require my primaries
+  // potential fluxes (ELM -> ATS)
+  ATS::requireEvaluatorAtNext(gross_water_source_key_, Amanzi::Tags::NEXT, *S_, gross_water_source_key_)
+    .SetMesh(mesh_surf_)->SetComponent("cell", AmanziMesh::CELL, 1);
+  ATS::requireEvaluatorAtNext(pot_evap_key_, Amanzi::Tags::NEXT, *S_, pot_evap_key_)
+    .SetMesh(mesh_surf_)->SetComponent("cell", AmanziMesh::CELL, 1);
+  ATS::requireEvaluatorAtNext(pot_trans_key_, Amanzi::Tags::NEXT, *S_, pot_trans_key_)
+    .SetMesh(mesh_surf_)->SetComponent("cell", AmanziMesh::CELL, 1);
+
+  Coordinator::parseParameterList();
 }
 
 
 void
 ELM_ATSDriver::setup()
 {
-  // potential fluxes (ELM -> ATS)
-  ATS::requireEvaluatorAtNext(gross_water_source_key_, Amanzi::Tags::NEXT, *S_, gross_water_source_key_)
-    .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  ATS::requireEvaluatorAtNext(pot_evap_key_, Amanzi::Tags::NEXT, *S_, pot_evap_key_)
-    .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  ATS::requireEvaluatorAtNext(pot_trans_key_, Amanzi::Tags::NEXT, *S_, pot_trans_key_)
-    .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-
+  // and now require our output variables
   ATS::requireEvaluatorAtNext(surf_cv_key_, Amanzi::Tags::NEXT, *S_)
     .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
   ATS::requireEvaluatorAtNext(cv_key_, Amanzi::Tags::NEXT, *S_)
@@ -153,10 +163,12 @@ ELM_ATSDriver::setup()
   ATS::requireEvaluatorAtNext(col_runoff_key_, Amanzi::Tags::NEXT, *S_, col_runoff_key_)
     .SetMesh(mesh_surf_)->SetComponent("cell", AmanziMesh::CELL, 1);
 
-  Coordinator::setup();
+  // ATS::requireEvaluatorAtNext(pres_key_, Amanzi::Tags::NEXT, *S_)
+  //   .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  ATS::requireEvaluatorAtNext(pres_key_, Amanzi::Tags::NEXT, *S_)
-    .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
+  // This must be last always -- it allocates memory calling State::setup, so
+  // all other setup must be done.
+  Coordinator::setup();
 }
 
 
