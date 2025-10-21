@@ -68,13 +68,19 @@ ELM_ATSDriver::ELM_ATSDriver(const Teuchos::RCP<Teuchos::ParameterList>& plist,
 {
   // -- set default verbosity level to no output
   // -- TODO make the verbosity level an input argument
-  VerboseObject::global_default_level = Teuchos::VERB_NONE;
+  VerboseObject::global_default_level = Teuchos::VERB_HIGH;
 }
 
 
 void
 ELM_ATSDriver::parseParameterList()
 {
+  if (vo_->os_OK(Teuchos::VERB_LOW)) {
+    *vo_->os() << "================================================================================"
+               << std::endl
+               << "Beginning parseParameterList stage..." << std::endl
+               << std::flush;
+  }
   // parse my parameter list
   // domain names
   domain_subsurf_ = Keys::readDomain(*plist_, "domain", "domain");
@@ -83,6 +89,8 @@ ELM_ATSDriver::parseParameterList()
    // meshes
   mesh_subsurf_ = S_->GetMesh(domain_subsurf_);
   mesh_surf_ = S_->GetMesh(domain_surf_);
+
+  key_map_[ELM::VarID::TIME] = "time";
 
   // potential sources
   gross_water_source_key_ = Keys::readKey(*plist_, domain_surf_, "gross water source", "gross_water_source");
@@ -133,12 +141,23 @@ ELM_ATSDriver::parseParameterList()
     .SetMesh(mesh_surf_)->SetComponent("cell", AmanziMesh::CELL, 1);
 
   Coordinator::parseParameterList();
+  if (vo_->os_OK(Teuchos::VERB_LOW)) {
+    *vo_->os() << "  ... completed: ";
+    reportOneTimer_("2a: parseParameterList");
+  }
 }
 
 
 void
 ELM_ATSDriver::setup()
 {
+  if (vo_->os_OK(Teuchos::VERB_LOW)) {
+    *vo_->os() << "================================================================================"
+               << std::endl
+               << "Beginning setup stage..." << std::endl
+               << std::flush;
+  }
+
   // and now require our output variables
   ATS::requireEvaluatorAtNext(surf_cv_key_, Amanzi::Tags::NEXT, *S_)
     .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
@@ -169,6 +188,10 @@ ELM_ATSDriver::setup()
   // This must be last always -- it allocates memory calling State::setup, so
   // all other setup must be done.
   Coordinator::setup();
+  if (vo_->os_OK(Teuchos::VERB_LOW)) {
+    *vo_->os() << "  ... completed: ";
+    reportOneTimer_("2b: setup");
+  }
 }
 
 
@@ -187,8 +210,12 @@ ELM_ATSDriver::MeshInfo ELM_ATSDriver::getMeshInfo()
 
 void ELM_ATSDriver::initialize()
 {
-  // Assign start time to ATS
-  t0_ = S_->get_time();
+  if (vo_->os_OK(Teuchos::VERB_LOW)) {
+    *vo_->os() << "================================================================================"
+               << std::endl
+               << "Beginning initialize stage..." << std::endl
+               << std::flush;
+  }
 
   // initialize ATS data, commit initial conditions
   Coordinator::initialize();
@@ -205,28 +232,56 @@ void ELM_ATSDriver::initialize()
   // visualization at IC -- TODO remove this or place behind flag
   visualize();
   checkpoint();
+
+  if (vo_->os_OK(Teuchos::VERB_LOW)) {
+    *vo_->os() << "  ... completed: ";
+    reportOneTimer_("3: initialize");
+  }
 }
 
 
 
 void ELM_ATSDriver::advance(double dt, bool do_chkp, bool do_vis)
 {
-  S_->Assign<double>("dt", Amanzi::Tags::DEFAULT, "dt", dt);
-  S_->advance_time(Amanzi::Tags::NEXT, dt);
+  {
+    Teuchos::TimeMonitor timer(*timers_.at("4: solve"));
 
-  // solve model for a single timestep
-  bool fail = Coordinator::advance();
-  if (fail) {
-    Errors::Message msg("ELM_ATSDriver: advance(dt) failed.  Make ATS subcycle for proper ELM use.");
-    Exceptions::amanzi_throw(msg);
+    AMANZI_ASSERT(std::abs(S_->get_time(Amanzi::Tags::NEXT) - S_->get_time(Amanzi::Tags::CURRENT)) <
+                  1.e-4);
+
+    if (vo_->os_OK(Teuchos::VERB_LOW)) {
+      *vo_->os()
+        << "================================================================================"
+        << std::endl
+        << std::endl
+        << "Cycle = " << S_->get_cycle() << ",  Time [days] = " << std::setprecision(16)
+        << S_->get_time() / (60 * 60 * 24) << ",  dt [days] = " << std::setprecision(16)
+        << dt / (60 * 60 * 24) << std::endl
+        << "--------------------------------------------------------------------------------"
+        << std::endl;
+    }
+    S_->Assign<double>("dt", Amanzi::Tags::DEFAULT, "dt", dt);
+    S_->advance_time(Amanzi::Tags::NEXT, dt);
+
+    // solve model for a single timestep
+    bool fail = Coordinator::advance();
+    if (fail) {
+      Errors::Message msg("ELM_ATSDriver: advance(dt) failed.  Make ATS subcycle for proper ELM use.");
+      Exceptions::amanzi_throw(msg);
+    }
+
+    S_->set_time(Amanzi::Tags::CURRENT, S_->get_time(Amanzi::Tags::NEXT));
+    S_->advance_cycle();
+
+    // vis/checkpoint if EITHER ATS or ELM request it
+    if (do_vis && !visualize()) visualize(true);
+    if (do_chkp && !checkpoint()) checkpoint(true);
+    observe();
   }
-
-  // make observations, vis, and checkpoints
-  for (const auto& obs : observations_) obs->MakeObservations(S_.ptr());
-
-  // vis/checkpoint if EITHER ATS or ELM request it
-  if (do_vis && !visualize()) visualize(true);
-  if (do_chkp && !checkpoint()) checkpoint(true);
+  if (vo_->os_OK(Teuchos::VERB_LOW)) {
+    *vo_->os() << "  ... completed: ";
+    reportOneTimer_("4: solve");
+  }
 }
 
 
@@ -243,10 +298,17 @@ void ELM_ATSDriver::advanceTest()
 
 void ELM_ATSDriver::finalize()
 {
-  WriteStateStatistics(*S_, *vo_);
-  report_memory();
-  Teuchos::TimeMonitor::summarize(*vo_->os());
+  if (vo_->os_OK(Teuchos::VERB_LOW)) {
+    *vo_->os() << "================================================================================"
+               << std::endl
+               << "Beginning finalize stage..." << std::endl
+               << std::flush;
+  }
   Coordinator::finalize();
+  if (vo_->os_OK(Teuchos::VERB_LOW)) {
+    *vo_->os() << "  ... completed: ";
+    reportOneTimer_("5: finalize");
+  }
 }
 
 
@@ -327,13 +389,13 @@ void ELM_ATSDriver::copyFromSub_(double * const out, const Key& key) const
 
 void ELM_ATSDriver::setScalar(const ELM::VarID& scalar_id, double in)
 {
-  Key scalar_key = key_map_[scalar_id];
+  Key scalar_key = key_map_.at(scalar_id);
   S_->GetW<double>(scalar_key, Tags::DEFAULT, scalar_key) = in;
 }
 
 double ELM_ATSDriver::getScalar(const ELM::VarID& scalar_id)
 {
-  Key scalar_key = key_map_[scalar_id];
+  Key scalar_key = key_map_.at(scalar_id);
   return S_->Get<double>(scalar_key, Tags::DEFAULT);
 }
 
@@ -376,14 +438,14 @@ void ELM_ATSDriver::setField(const ELM::VarID& var_id, double const * const out)
 double const *
 ELM_ATSDriver::getFieldPtr(const ELM::VarID& var_id)
 {
-  Key var_key = key_map_[var_id];
+  Key var_key = key_map_.at(var_id);
   return &(*S_->Get<CompositeVector>(var_key, Tags::NEXT).ViewComponent("cell", false))[0][0];
 }
 
 double *
 ELM_ATSDriver::getFieldPtrW(const ELM::VarID& var_id)
 {
-  Key var_key = key_map_[var_id];
+  Key var_key = key_map_.at(var_id);
   Key owner = S_->GetRecord(var_key, Amanzi::Tags::NEXT).owner();
   return &(*S_->GetW<CompositeVector>(var_key, Tags::NEXT, owner).ViewComponent("cell", false))[0][0];
 }
@@ -393,7 +455,7 @@ ELM_ATSDriver::getFieldPtrW(const ELM::VarID& var_id)
 template<ELM::VarID var_id>
 void ELM_ATSDriver::getField_(double * const out)
 {
-  Key field_key = key_map_[var_id];
+  Key field_key = key_map_.at(var_id);
   if (Keys::getDomain(field_key) == domain_subsurf_) {
     copyFromSub_(out, field_key);
   } else {
@@ -405,7 +467,7 @@ void ELM_ATSDriver::getField_(double * const out)
 template<ELM::VarID var_id>
 void ELM_ATSDriver::setField_(double const * const out)
 {
-  Key field_key = key_map_[var_id];
+  Key field_key = key_map_.at(var_id);
   if (Keys::getDomain(field_key) == domain_subsurf_) {
     copyToSub_(out, field_key);
   } else {
