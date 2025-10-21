@@ -183,7 +183,6 @@ ATSDriver::cycle_driver()
     reportOneTimer_("4: solve");
   }
 
-
   // finalizing simulation
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
     *vo_->os() << "================================================================================"
