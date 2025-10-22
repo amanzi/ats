@@ -32,7 +32,7 @@ typedef struct ELM_ATSDriver_ptr *ELM_ATSDriver_ptr;
 #endif
 
 // allocate, call constructor and cast ptr to opaque ELM_ATSDriver_ptr
-ELM_ATSDriver_ptr ats_create(MPI_Fint *f_comm, const char *input_filename);
+ELM_ATSDriver_ptr ats_create(MPI_Fint *f_comm, const char *input_filename, const char *logfile_filename);
 
 // reinterpret as elm_ats_driver and delete (calls destructor)
 void ats_delete(ELM_ATSDriver_ptr ats);
@@ -55,7 +55,8 @@ void ats_get_mesh_info(ELM_ATSDriver_ptr ats,
                        int * const ncols_local,
                        int * const ncols_global,
                        int * const nlevgrnd,
-                       double * const dzs);
+                       double * const dzs,
+                       double * const areas);
 
 //
 // simulation setup
