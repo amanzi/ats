@@ -21,7 +21,10 @@ enum class VarID : int {
   RUNOFF = 16,
   BASEFLOW = 17,
   ELEVATION = 18,
-  TIME = 19
+  TIME = 19,
+  INITIAL_WATER_CONTENT = 20,
+  SATURATION_LIQUID = 21,
+  PONDED_DEPTH = 22
 };
 
 } // namespace ELM

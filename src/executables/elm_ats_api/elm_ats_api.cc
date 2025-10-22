@@ -25,14 +25,16 @@ extern "C"
 #endif
 
 // allocate, call constructor and cast ptr to opaque ELM_ATSDriver_ptr
-ELM_ATSDriver_ptr ats_create(MPI_Fint* f_comm, const char* input_filename)
+ELM_ATSDriver_ptr ats_create(MPI_Fint* f_comm,
+                             const char* input_filename,
+                             const char* logfile_filename)
 {
   // Initialize Kokkos if ELM hasn't already (for near future, it won't)
   if (!Kokkos::is_initialized()) {
     Kokkos::initialize();
     ats_kokkos_init = true;
   }
-  return reinterpret_cast<ELM_ATSDriver_ptr>(ATS::createELM_ATSDriver(f_comm, input_filename));
+  return reinterpret_cast<ELM_ATSDriver_ptr>(ATS::createELM_ATSDriver(f_comm, input_filename, logfile_filename));
 }
 
 
@@ -62,12 +64,19 @@ void ats_get_mesh_info(ELM_ATSDriver_ptr ats,
                        int * const ncols_local,
                        int * const ncols_global,
                        int * const nlevgrnd,
-                       double * const dzs)
+                       double * const dzs,
+                       double * const areas)
 {
   ATS::ELM_ATSDriver::MeshInfo info = reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->getMeshInfo();
   *ncols_local = info.ncols_local;
   *ncols_global = info.ncols_global;
   *nlevgrnd = info.nlevgrnd;
+  for (int i = 0; i != info.nlevgrnd; ++i) {
+    dzs[i] = info.dzs[i];
+  }
+  for (int i = 0; i != info.ncols_local; ++i) {
+    areas[i] = info.areas[i];
+  }
 }
 
 
@@ -112,11 +121,6 @@ void ats_set_scalar(ELM_ATSDriver_ptr ats, int var_id, double in)
   reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->setScalar(static_cast<ATS::ELM::VarID>(var_id), in);
 }
 
-void ats_get_field(ELM_ATSDriver_ptr ats, int var_id, double * const in)
-{
-  reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->getField(static_cast<ATS::ELM::VarID>(var_id), in);
-}
-
 double const * ats_get_field_ptr(ELM_ATSDriver_ptr ats, int var_id)
 {
   return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->getFieldPtr(static_cast<ATS::ELM::VarID>(var_id));
@@ -126,11 +130,6 @@ double const * ats_get_field_ptr(ELM_ATSDriver_ptr ats, int var_id)
 double * ats_get_field_ptr_w(ELM_ATSDriver_ptr ats, int var_id)
 {
   return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->getFieldPtrW(static_cast<ATS::ELM::VarID>(var_id));
-}
-
-void ats_set_field(ELM_ATSDriver_ptr ats, int var_id, double const * const in)
-{
-  reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->setField(static_cast<ATS::ELM::VarID>(var_id), in);
 }
 
 

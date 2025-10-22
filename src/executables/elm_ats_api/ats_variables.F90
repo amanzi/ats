@@ -23,6 +23,9 @@ module ats_variables
      integer(c_int), parameter :: BASEFLOW = 17
      integer(c_int), parameter :: ELEVATION = 18
      integer(c_int), parameter :: TIME = 19
+     integer(c_int), parameter :: INITIAL_WATER_CONTENT = 20
+     integer(c_int), parameter :: SATURATION_LIQUID = 21
+     integer(c_int), parameter :: PONDED_DEPTH = 22
   end type ats_var_id_type
 
   type(ats_var_id_type), parameter :: ats_var_id = ats_var_id_type()

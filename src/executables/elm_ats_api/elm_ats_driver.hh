@@ -30,12 +30,15 @@ class ELM_ATSDriver : public Coordinator {
     int ncols_local;
     int ncols_global;
     int nlevgrnd;
+    std::vector<double> dzs;
+    std::vector<double> areas;
   };
 
   ELM_ATSDriver(const Teuchos::RCP<Teuchos::ParameterList>& plist,
                 const Teuchos::RCP<Teuchos::Time>& wallclock_timer,
                 const Teuchos::RCP<const Teuchos::Comm<int>>& teuchos_comm,
                 const Amanzi::Comm_ptr_type& comm,
+                const std::string& logfile,
                 int npfts = 17);
 
   MeshInfo getMeshInfo();
@@ -49,25 +52,11 @@ class ELM_ATSDriver : public Coordinator {
   void setScalar(const ELM::VarID& scalar_id, double in);
   double getScalar(const ELM::VarID& scalar_id);
 
-  void setField(const ELM::VarID& var_id, double const * const in);
-  void getField(const ELM::VarID& var_id, double * const out);
   double const * getFieldPtr(const ELM::VarID& var_id);
   double * getFieldPtrW(const ELM::VarID& var_id);
 
  private:
-  template<ELM::VarID var_id>
-  void setField_(double const * const in);
-
-
-  template<ELM::VarID var_id>
-  void getField_(double * const out);
-
-  void copyToSurf_(double const * const in, const Key& key);
-  void copyToSub_(double const * const in, const Key& key);
-  void copyFromSurf_(double * const out, const Key& key) const;
-  void copyFromSub_(double * const out, const Key& key) const;
-
-  void initZero_(const Key& key);
+  void initValue_(const Key& key, double value = 0.);
 
  private:
   Teuchos::RCP<Teuchos::ParameterList> elm_list_;
@@ -82,28 +71,30 @@ class ELM_ATSDriver : public Coordinator {
   Teuchos::RCP<const AmanziMesh::Mesh> mesh_subsurf_;
   Teuchos::RCP<const AmanziMesh::Mesh> mesh_surf_;
 
+  Key poro_key_;
+
   Key gross_water_source_key_;
   Key pot_evap_key_;
   Key pot_trans_key_;
 
   Key pres_key_;
-  Key wc_key_;
-  Key surf_wc_key_;
+  Key sat_key_;
+  Key pd_key_;
 
   Key evap_key_;
   Key col_trans_key_;
   Key col_baseflow_key_;
   Key col_runoff_key_;
 
-  Key surf_mol_dens_key_;
-  Key surf_mass_dens_key_;
-  Key subsurf_mol_dens_key_;
-  Key subsurf_mass_dens_key_;
+  // Key surf_mol_dens_key_;
+  // Key surf_mass_dens_key_;
+  // Key subsurf_mol_dens_key_;
+  // Key subsurf_mass_dens_key_;
 
-  Key surf_cv_key_;
-  Key cv_key_;
+  // Key surf_cv_key_;
+  // Key cv_key_;
 
-  std::map<ELM::VarID, Key> key_map_;
+  std::map<ELM::VarID, KeyTag> key_map_;
 
 };
 
