@@ -103,7 +103,7 @@ class ELM_ATSDriver : public Coordinator {
 // Nonmember constructor/factory reads file, converts comm to the right type.
 //
 ELM_ATSDriver*
-createELM_ATSDriver(MPI_Fint *f_comm, const char *infile, int npfts=17);
+createELM_ATSDriver(MPI_Fint *f_comm, const char *infile, const char *logfile, int npfts=17);
 
 } // namespace ATS
 
