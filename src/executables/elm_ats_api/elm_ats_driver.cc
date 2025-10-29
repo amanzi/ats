@@ -120,9 +120,9 @@ ELM_ATSDriver::parseParameterList()
   key_map_[ELM::VarID::EVAPORATION] = { evap_key_, Tags::NEXT };
   col_trans_key_ = Keys::readKey(*plist_, domain_surf_, "total transpiration", "total_transpiration");
   key_map_[ELM::VarID::TRANSPIRATION] = { col_trans_key_, Tags::NEXT };
-  col_baseflow_key_ = Keys::readKey(*plist_, domain_surf_, "column total baseflow", "baseflow");
+  col_baseflow_key_ = Keys::readKey(*plist_, domain_surf_, "baseflow generation", "baseflow_mps");
   key_map_[ELM::VarID::BASEFLOW] = { col_baseflow_key_, Tags::NEXT };
-  col_runoff_key_ = Keys::readKey(*plist_, domain_surf_, "runoff generation", "runoff_generation");
+  col_runoff_key_ = Keys::readKey(*plist_, domain_surf_, "runoff generation", "runoff_generation_mps");
   key_map_[ELM::VarID::RUNOFF] = { col_runoff_key_, Tags::NEXT };
 
   // // keys for fields used to convert ELM units to ATS units
@@ -198,10 +198,10 @@ ELM_ATSDriver::setup()
    .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
   ATS::requireEvaluatorAtNext(col_trans_key_, Amanzi::Tags::NEXT, *S_)
     .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  ATS::requireEvaluatorAtNext(col_baseflow_key_, Amanzi::Tags::NEXT, *S_, col_baseflow_key_)
-    .SetMesh(mesh_surf_)->SetComponent("cell", AmanziMesh::CELL, 1);
-  ATS::requireEvaluatorAtNext(col_runoff_key_, Amanzi::Tags::NEXT, *S_, col_runoff_key_)
-    .SetMesh(mesh_surf_)->SetComponent("cell", AmanziMesh::CELL, 1);
+  ATS::requireEvaluatorAtNext(col_baseflow_key_, Amanzi::Tags::NEXT, *S_)
+    .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
+  ATS::requireEvaluatorAtNext(col_runoff_key_, Amanzi::Tags::NEXT, *S_)
+    .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
 
   // This must be last always -- it allocates memory calling State::setup, so
@@ -373,6 +373,10 @@ double const *
 ELM_ATSDriver::getFieldPtr(const ELM::VarID& var_id)
 {
   Amanzi::KeyTag var_key = key_map_.at(var_id);
+  if (S_->HasEvaluator(var_key.first, var_key.second)) {
+    S_->GetEvaluator(var_key.first, var_key.second).Update(*S_, std::string("elm_ats_driver_on_"+domain_subsurf_));
+  }
+
   return &(*S_->Get<CompositeVector>(var_key.first, var_key.second).ViewComponent("cell", false))[0][0];
 }
 
