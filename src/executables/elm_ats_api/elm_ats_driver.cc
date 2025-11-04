@@ -66,7 +66,8 @@ ELM_ATSDriver::ELM_ATSDriver(const Teuchos::RCP<Teuchos::ParameterList>& plist,
   : Coordinator(plist, wallclock_timer, teuchos_comm, comm),
     npfts_(npfts),
     ncolumns_(-1),
-    ncells_per_col_(-1)
+    ncells_per_col_(-1),
+    elm_plist_(Teuchos::sublist(Teuchos::sublist(plist, "cycle driver"), "ELM driver"))
 {
   // -- set default verbosity level to no output
   // -- TODO make the verbosity level an input argument
@@ -86,8 +87,8 @@ ELM_ATSDriver::parseParameterList()
   }
   // parse my parameter list
   // domain names
-  domain_subsurf_ = Keys::readDomain(*plist_, "domain", "domain");
-  domain_surf_ = Keys::readDomainHint(*plist_, domain_subsurf_, "subsurface", "surface");
+  domain_subsurf_ = Keys::readDomain(*elm_plist_, "domain", "domain");
+  domain_surf_ = Keys::readDomainHint(*elm_plist_, domain_subsurf_, "subsurface", "surface");
 
    // meshes
   mesh_subsurf_ = S_->GetMesh(domain_subsurf_);
@@ -96,40 +97,42 @@ ELM_ATSDriver::parseParameterList()
   key_map_[ELM::VarID::TIME] = {"time", Tags::NEXT};
 
   // parameters
-  poro_key_ = Keys::readKey(*plist_, domain_subsurf_, "porosity", "porosity");
+  poro_key_ = Keys::readKey(*elm_plist_, domain_subsurf_, "porosity", "porosity");
   key_map_[ELM::VarID::EFFECTIVE_POROSITY] = { poro_key_, Tags::NEXT };
 
   // potential sources
-  gross_water_source_key_ = Keys::readKey(*plist_, domain_surf_, "gross water source", "gross_water_source");
+  gross_water_source_key_ = Keys::readKey(*elm_plist_, domain_surf_, "gross water source", "gross_water_source");
   key_map_[ELM::VarID::GROSS_SURFACE_WATER_SOURCE] = { gross_water_source_key_, Tags::NEXT };
-  pot_evap_key_ = Keys::readKey(*plist_, domain_surf_, "potential evaporation mps", "potential_evaporation_mps");
+  pot_evap_key_ = Keys::readKey(*elm_plist_, domain_surf_, "potential evaporation", "potential_evaporation");
   key_map_[ELM::VarID::POTENTIAL_EVAPORATION] = { pot_evap_key_, Tags::NEXT };
-  pot_trans_key_ = Keys::readKey(*plist_, domain_surf_, "potential transpiration mps", "potential_transpiration_mps");
+  pot_trans_key_ = Keys::readKey(*elm_plist_, domain_surf_, "potential transpiration mps", "potential_transpiration_mps");
   key_map_[ELM::VarID::POTENTIAL_TRANSPIRATION] = { pot_trans_key_, Tags::NEXT };
 
   // water state
-  pres_key_ = Keys::readKey(*plist_, domain_subsurf_, "pressure", "pressure");
+  pres_key_ = Keys::readKey(*elm_plist_, domain_subsurf_, "pressure", "pressure");
   key_map_[ELM::VarID::PRESSURE] = { pres_key_, Tags::NEXT };
-  sat_key_ = Keys::readKey(*plist_, domain_subsurf_, "saturation liquid", "saturation_liquid");
+  sat_key_ = Keys::readKey(*elm_plist_, domain_subsurf_, "saturation liquid", "saturation_liquid");
   key_map_[ELM::VarID::SATURATION_LIQUID] = { sat_key_, Tags::NEXT };
-  pd_key_ = Keys::readKey(*plist_, domain_surf_, "ponded depth", "ponded_depth");
+  zwt_key_ = Keys::readKey(*elm_plist_, domain_surf_, "water table depth", "water_table_depth");
+  key_map_[ELM::VarID::DEPTH_TO_WATER_TABLE] = { zwt_key_, Tags::NEXT };
+  pd_key_ = Keys::readKey(*elm_plist_, domain_surf_, "ponded depth", "ponded_depth");
   key_map_[ELM::VarID::PONDED_DEPTH] = { pd_key_, Tags::NEXT };
 
   // actual water fluxes
-  evap_key_ = Keys::readKey(*plist_, domain_surf_, "evaporation", "evaporation");
+  evap_key_ = Keys::readKey(*elm_plist_, domain_surf_, "evaporation", "evaporation");
   key_map_[ELM::VarID::EVAPORATION] = { evap_key_, Tags::NEXT };
-  col_trans_key_ = Keys::readKey(*plist_, domain_surf_, "total transpiration", "total_transpiration");
+  col_trans_key_ = Keys::readKey(*elm_plist_, domain_surf_, "total transpiration", "total_transpiration");
   key_map_[ELM::VarID::TRANSPIRATION] = { col_trans_key_, Tags::NEXT };
-  col_baseflow_key_ = Keys::readKey(*plist_, domain_surf_, "baseflow generation", "baseflow_mps");
+  col_baseflow_key_ = Keys::readKey(*elm_plist_, domain_surf_, "baseflow generation", "baseflow_mps");
   key_map_[ELM::VarID::BASEFLOW] = { col_baseflow_key_, Tags::NEXT };
-  col_runoff_key_ = Keys::readKey(*plist_, domain_surf_, "runoff generation", "runoff_generation_mps");
+  col_runoff_key_ = Keys::readKey(*elm_plist_, domain_surf_, "runoff generation", "runoff_generation_mps");
   key_map_[ELM::VarID::RUNOFF] = { col_runoff_key_, Tags::NEXT };
 
   // // keys for fields used to convert ELM units to ATS units
-  // surf_mol_dens_key_ = Keys::readKey(*plist_, domain_surf_, "surface molar density", "molar_density_liquid");
-  // surf_mass_dens_key_ = Keys::readKey(*plist_, domain_surf_, "surface mass density", "mass_density_liquid");
-  // subsurf_mol_dens_key_ = Keys::readKey(*plist_, domain_subsurf_, "molar density", "molar_density_liquid");
-  // subsurf_mass_dens_key_ = Keys::readKey(*plist_, domain_subsurf_, "mass density", "mass_density_liquid");
+  // surf_mol_dens_key_ = Keys::readKey(*elm_plist_, domain_surf_, "surface molar density", "molar_density_liquid");
+  // surf_mass_dens_key_ = Keys::readKey(*elm_plist_, domain_surf_, "surface mass density", "mass_density_liquid");
+  // subsurf_mol_dens_key_ = Keys::readKey(*elm_plist_, domain_subsurf_, "molar density", "molar_density_liquid");
+  // subsurf_mass_dens_key_ = Keys::readKey(*elm_plist_, domain_subsurf_, "mass density", "mass_density_liquid");
 
   // cell vol keys
   // surf_cv_key_ = Keys::getKey(domain_surf_, "cell_volume");
@@ -188,6 +191,8 @@ ELM_ATSDriver::setup()
 
   // output variables
   ATS::requireEvaluatorAtNext(pd_key_, Amanzi::Tags::NEXT, *S_)
+   .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
+  ATS::requireEvaluatorAtNext(zwt_key_, Amanzi::Tags::NEXT, *S_)
    .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
   ATS::requireEvaluatorAtNext(sat_key_, Amanzi::Tags::NEXT, *S_)
    .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
@@ -277,7 +282,7 @@ void ELM_ATSDriver::initialize()
 
 
 
-void ELM_ATSDriver::advance(double dt, bool do_chkp, bool do_vis)
+void ELM_ATSDriver::advance(double dt, bool force_chkp, bool force_vis)
 {
   {
     Teuchos::TimeMonitor timer(*timers_.at("4: solve"));
@@ -309,9 +314,8 @@ void ELM_ATSDriver::advance(double dt, bool do_chkp, bool do_vis)
     S_->set_time(Amanzi::Tags::CURRENT, S_->get_time(Amanzi::Tags::NEXT));
     S_->advance_cycle();
 
-    // vis/checkpoint if EITHER ATS or ELM request it
-    if (do_vis && !visualize()) visualize(true);
-    if (do_chkp && !checkpoint()) checkpoint(true);
+    visualize(force_vis);
+    checkpoint(force_chkp);
     observe();
   }
   if (vo_->os_OK(Teuchos::VERB_LOW)) {

@@ -124,6 +124,7 @@ OverlandPressureFlow::parseParameterList()
 
   // require a few primary variable keys now to set the leaf node in the dep graph
   requireEvaluatorAtCurrent(pd_key_, tag_current_, *S_, name_);
+  requireEvaluatorAtNext(flux_key_, tag_next_, *S_, name_);
 }
 
 
