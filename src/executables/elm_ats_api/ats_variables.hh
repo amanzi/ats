@@ -24,7 +24,8 @@ enum class VarID : int {
   TIME = 19,
   INITIAL_WATER_CONTENT = 20,
   SATURATION_LIQUID = 21,
-  PONDED_DEPTH = 22
+  PONDED_DEPTH = 22,
+  DEPTH_TO_WATER_TABLE = 23
 };
 
 } // namespace ELM

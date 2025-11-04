@@ -59,7 +59,7 @@ class ELM_ATSDriver : public Coordinator {
   void initValue_(const Key& key, double value = 0.);
 
  private:
-  Teuchos::RCP<Teuchos::ParameterList> elm_list_;
+  Teuchos::RCP<Teuchos::ParameterList> elm_plist_;
 
   int ncolumns_;
   int ncells_per_col_;
@@ -80,6 +80,7 @@ class ELM_ATSDriver : public Coordinator {
   Key pres_key_;
   Key sat_key_;
   Key pd_key_;
+  Key zwt_key_;
 
   Key evap_key_;
   Key col_trans_key_;
