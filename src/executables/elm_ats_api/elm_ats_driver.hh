@@ -77,6 +77,9 @@ class ELM_ATSDriver : public Coordinator {
   Key pot_evap_key_;
   Key pot_trans_key_;
 
+  Key wc_key_;
+  Key surf_wc_key_;
+
   Key pres_key_;
   Key sat_key_;
   Key pd_key_;
@@ -87,13 +90,13 @@ class ELM_ATSDriver : public Coordinator {
   Key col_baseflow_key_;
   Key col_runoff_key_;
 
-  // Key surf_mol_dens_key_;
+  Key surf_mol_dens_key_;
+  Key mol_dens_key_;
   // Key surf_mass_dens_key_;
-  // Key subsurf_mol_dens_key_;
   // Key subsurf_mass_dens_key_;
 
-  // Key surf_cv_key_;
-  // Key cv_key_;
+  Key surf_cv_key_;
+  Key cv_key_;
 
   std::map<ELM::VarID, KeyTag> key_map_;
 

@@ -118,6 +118,11 @@ ELM_ATSDriver::parseParameterList()
   pd_key_ = Keys::readKey(*elm_plist_, domain_surf_, "ponded depth", "ponded_depth");
   key_map_[ELM::VarID::PONDED_DEPTH] = { pd_key_, Tags::NEXT };
 
+  surf_wc_key_ = Keys::readKey(*elm_plist_, domain_surf_, "surface water content", "water_content");
+  key_map_[ELM::VarID::SURFACE_WATER_CONTENT_OLD] = { surf_wc_key_, Tags::CURRENT };
+  wc_key_ = Keys::readKey(*elm_plist_, domain_subsurf_, "water content", "water_content");
+  key_map_[ELM::VarID::WATER_CONTENT_OLD] = { wc_key_, Tags::CURRENT };
+
   // actual water fluxes
   evap_key_ = Keys::readKey(*elm_plist_, domain_surf_, "evaporation", "evaporation");
   key_map_[ELM::VarID::EVAPORATION] = { evap_key_, Tags::NEXT };
@@ -128,33 +133,29 @@ ELM_ATSDriver::parseParameterList()
   col_runoff_key_ = Keys::readKey(*elm_plist_, domain_surf_, "runoff generation", "runoff_generation_mps");
   key_map_[ELM::VarID::RUNOFF] = { col_runoff_key_, Tags::NEXT };
 
-  // // keys for fields used to convert ELM units to ATS units
-  // surf_mol_dens_key_ = Keys::readKey(*elm_plist_, domain_surf_, "surface molar density", "molar_density_liquid");
+  // keys for fields used to convert ELM units to ATS units
+  surf_mol_dens_key_ = Keys::readKey(*elm_plist_, domain_surf_, "surface molar density", "molar_density_liquid");
+  mol_dens_key_ = Keys::readKey(*elm_plist_, domain_subsurf_, "molar density", "molar_density_liquid");
   // surf_mass_dens_key_ = Keys::readKey(*elm_plist_, domain_surf_, "surface mass density", "mass_density_liquid");
-  // subsurf_mol_dens_key_ = Keys::readKey(*elm_plist_, domain_subsurf_, "molar density", "molar_density_liquid");
   // subsurf_mass_dens_key_ = Keys::readKey(*elm_plist_, domain_subsurf_, "mass density", "mass_density_liquid");
 
   // cell vol keys
-  // surf_cv_key_ = Keys::getKey(domain_surf_, "cell_volume");
-  // cv_key_ = Keys::getKey(domain_subsurf_, "cell_volume");
+  surf_cv_key_ = Keys::getKey(domain_surf_, "cell_volume");
+  cv_key_ = Keys::getKey(domain_subsurf_, "cell_volume");
 
   // -- mesh info
   ncolumns_ = mesh_surf_->getNumEntities(AmanziMesh::CELL, AmanziMesh::Parallel_kind::OWNED);
   auto col_zero = mesh_subsurf_->columns.getCells(0);
   ncells_per_col_ = col_zero.size();
 
-  // require my primaries
+  // require my primary variables
   // parameters set by ELM
-  ATS::requireEvaluatorAtNext(poro_key_, Amanzi::Tags::NEXT, *S_, poro_key_)
-    .SetMesh(mesh_subsurf_)->SetComponent("cell", AmanziMesh::CELL, 1);
+  requireEvaluatorAtNext(poro_key_, Amanzi::Tags::NEXT, *S_, poro_key_);
 
   // potential fluxes (ELM -> ATS)
-  ATS::requireEvaluatorAtNext(gross_water_source_key_, Amanzi::Tags::NEXT, *S_, gross_water_source_key_)
-    .SetMesh(mesh_surf_)->SetComponent("cell", AmanziMesh::CELL, 1);
-  ATS::requireEvaluatorAtNext(pot_evap_key_, Amanzi::Tags::NEXT, *S_, pot_evap_key_)
-    .SetMesh(mesh_surf_)->SetComponent("cell", AmanziMesh::CELL, 1);
-  ATS::requireEvaluatorAtNext(pot_trans_key_, Amanzi::Tags::NEXT, *S_, pot_trans_key_)
-    .SetMesh(mesh_surf_)->SetComponent("cell", AmanziMesh::CELL, 1);
+  requireEvaluatorAtNext(gross_water_source_key_, Amanzi::Tags::NEXT, *S_, gross_water_source_key_);
+  requireEvaluatorAtNext(pot_evap_key_, Amanzi::Tags::NEXT, *S_, pot_evap_key_);
+  requireEvaluatorAtNext(pot_trans_key_, Amanzi::Tags::NEXT, *S_, pot_trans_key_);
 
   Coordinator::parseParameterList();
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
@@ -174,38 +175,54 @@ ELM_ATSDriver::setup()
                << std::flush;
   }
 
-  // and now require our output variables
-  // ATS::requireEvaluatorAtNext(surf_cv_key_, Amanzi::Tags::NEXT, *S_)
-  //   .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  // ATS::requireEvaluatorAtNext(cv_key_, Amanzi::Tags::NEXT, *S_)
-  //   .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-
-  // ATS::requireEvaluatorAtNext(surf_mol_dens_key_, Amanzi::Tags::NEXT, *S_)
-  //   .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  // ATS::requireEvaluatorAtNext(surf_mass_dens_key_, Amanzi::Tags::NEXT, *S_)
-  //   .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  // ATS::requireEvaluatorAtNext(subsurf_mol_dens_key_, Amanzi::Tags::NEXT, *S_)
-  //   .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  // ATS::requireEvaluatorAtNext(subsurf_mass_dens_key_, Amanzi::Tags::NEXT, *S_)
-  //   .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-
-  // output variables
-  ATS::requireEvaluatorAtNext(pd_key_, Amanzi::Tags::NEXT, *S_)
-   .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  ATS::requireEvaluatorAtNext(zwt_key_, Amanzi::Tags::NEXT, *S_)
-   .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  ATS::requireEvaluatorAtNext(sat_key_, Amanzi::Tags::NEXT, *S_)
-   .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  ATS::requireEvaluatorAtNext(pres_key_, Amanzi::Tags::NEXT, *S_)
+  // variables needed for unit changes
+  requireEvaluatorAtNext(surf_cv_key_, Amanzi::Tags::NEXT, *S_)
+    .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
+  requireEvaluatorAtNext(cv_key_, Amanzi::Tags::NEXT, *S_)
     .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  ATS::requireEvaluatorAtNext(evap_key_, Amanzi::Tags::NEXT, *S_)
+  requireEvaluatorAtNext(surf_mol_dens_key_, Amanzi::Tags::NEXT, *S_)
+    .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
+  requireEvaluatorAtNext(mol_dens_key_, Amanzi::Tags::NEXT, *S_)
+    .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
+
+  // ELM --> ATS variables
+  // -- parameters set by ELM
+  requireEvaluatorAtNext(poro_key_, Amanzi::Tags::NEXT, *S_, poro_key_)
+    .SetMesh(mesh_subsurf_)->SetComponent("cell", AmanziMesh::CELL, 1);
+
+  // -- potential fluxes
+  requireEvaluatorAtNext(gross_water_source_key_, Amanzi::Tags::NEXT, *S_, gross_water_source_key_)
+    .SetMesh(mesh_surf_)->SetComponent("cell", AmanziMesh::CELL, 1);
+  requireEvaluatorAtNext(pot_evap_key_, Amanzi::Tags::NEXT, *S_, pot_evap_key_)
+    .SetMesh(mesh_surf_)->SetComponent("cell", AmanziMesh::CELL, 1);
+  requireEvaluatorAtNext(pot_trans_key_, Amanzi::Tags::NEXT, *S_, pot_trans_key_)
+    .SetMesh(mesh_surf_)->SetComponent("cell", AmanziMesh::CELL, 1);
+
+  // -- water contents at the OLD time -- note, these are already primary and
+  // -- owned by overland flow.
+  requireEvaluatorAtCurrent(wc_key_, Amanzi::Tags::CURRENT, *S_)
+    .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
+  requireEvaluatorAtCurrent(surf_wc_key_, Amanzi::Tags::CURRENT, *S_)
+    .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
+
+  // ATS --> ELM variables
+  requireEvaluatorAtNext(pd_key_, Amanzi::Tags::NEXT, *S_)
    .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  ATS::requireEvaluatorAtNext(col_trans_key_, Amanzi::Tags::NEXT, *S_)
+  requireEvaluatorAtNext(zwt_key_, Amanzi::Tags::NEXT, *S_)
+   .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
+  requireEvaluatorAtNext(sat_key_, Amanzi::Tags::NEXT, *S_)
+   .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
+  requireEvaluatorAtNext(pres_key_, Amanzi::Tags::NEXT, *S_)
+    .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
+
+  requireEvaluatorAtNext(evap_key_, Amanzi::Tags::NEXT, *S_)
+   .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
+  requireEvaluatorAtNext(col_trans_key_, Amanzi::Tags::NEXT, *S_)
     .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  ATS::requireEvaluatorAtNext(col_baseflow_key_, Amanzi::Tags::NEXT, *S_)
+  requireEvaluatorAtNext(col_baseflow_key_, Amanzi::Tags::NEXT, *S_)
     .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  ATS::requireEvaluatorAtNext(col_runoff_key_, Amanzi::Tags::NEXT, *S_)
+  requireEvaluatorAtNext(col_runoff_key_, Amanzi::Tags::NEXT, *S_)
     .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
 
@@ -303,6 +320,36 @@ void ELM_ATSDriver::advance(double dt, bool force_chkp, bool force_vis)
     }
     S_->Assign<double>("dt", Amanzi::Tags::DEFAULT, "dt", dt);
     S_->advance_time(Amanzi::Tags::NEXT, dt);
+
+    // old water_contents are set by ELM, using ELM units.  Change them to ATS units
+    //
+    // NOTE: the change in units is done here, and not in evaluators like
+    // inputs (e.g. transpiration_mps), because WC evaluators are expected to be
+    // primary by flow PKs, and then get overwritten here.
+    //
+    // NOTE: these were just marked as changed in a call to getFieldPtrW so no
+    // need to mark them as changed again.
+    // -- subsurface wc in volumetric water content --> mols
+    {
+      auto& wc = *S_->GetW<CompositeVector>(wc_key_, Tags::CURRENT,
+              S_->GetRecord(wc_key_, Tags::CURRENT).owner()).ViewComponent("cell", false);
+      const auto& cv = *S_->Get<CompositeVector>(cv_key_, Tags::NEXT).ViewComponent("cell", false);
+      const auto& n_liq = *S_->Get<CompositeVector>(mol_dens_key_, Tags::NEXT).ViewComponent("cell", false);
+      for (int c = 0; c != wc.MyLength(); ++c) {
+        wc[0][c] = wc[0][c] * cv[0][c] * n_liq[0][c];
+      }
+    }
+
+    // -- surface wc in m ponded depth --> mols
+    {
+      auto& surf_wc = *S_->GetW<CompositeVector>(surf_wc_key_, Tags::CURRENT,
+              S_->GetRecord(surf_wc_key_, Tags::CURRENT).owner()).ViewComponent("cell", false);
+      const auto& surf_cv = *S_->Get<CompositeVector>(surf_cv_key_, Tags::NEXT).ViewComponent("cell", false);
+      const auto& surf_n_liq = *S_->Get<CompositeVector>(surf_mol_dens_key_, Tags::NEXT).ViewComponent("cell", false);
+      for (int c = 0; c != surf_wc.MyLength(); ++c) {
+        surf_wc[0][c] = surf_wc[0][c] * surf_cv[0][c] * surf_n_liq[0][c];
+      }
+    }
 
     // solve model for a single timestep
     bool fail = Coordinator::advance();
