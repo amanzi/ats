@@ -118,7 +118,7 @@ ELM_ATSDriver::parseParameterList()
   pd_key_ = Keys::readKey(*elm_plist_, domain_surf_, "ponded depth", "ponded_depth");
   key_map_[ELM::VarID::PONDED_DEPTH] = { pd_key_, Tags::NEXT };
 
-  surf_wc_key_ = Keys::readKey(*elm_plist_, domain_surf_, "water content", "water_content");
+  surf_wc_key_ = Keys::readKey(*elm_plist_, domain_surf_, "surface water content", "water_content");
   key_map_[ELM::VarID::SURFACE_WATER_CONTENT_OLD] = { surf_wc_key_, Tags::CURRENT };
   wc_key_ = Keys::readKey(*elm_plist_, domain_subsurf_, "water content", "water_content");
   key_map_[ELM::VarID::WATER_CONTENT_OLD] = { wc_key_, Tags::CURRENT };
@@ -199,11 +199,12 @@ ELM_ATSDriver::setup()
   requireEvaluatorAtNext(pot_trans_key_, Amanzi::Tags::NEXT, *S_, pot_trans_key_)
     .SetMesh(mesh_surf_)->SetComponent("cell", AmanziMesh::CELL, 1);
 
-  // -- water contents at the OLD time
-  requireEvaluatorAtNext(wc_key_, Amanzi::Tags::CURRENT, *S_, wc_key_)
-    .SetMesh(mesh_subsurf_)->SetComponent("cell", AmanziMesh::CELL, 1);
-  requireEvaluatorAtNext(surf_wc_key_, Amanzi::Tags::CURRENT, *S_, surf_wc_key_)
-    .SetMesh(mesh_surf_)->SetComponent("cell", AmanziMesh::CELL, 1);
+  // -- water contents at the OLD time -- note, these are already primary and
+  // -- owned by overland flow.
+  requireEvaluatorAtCurrent(wc_key_, Amanzi::Tags::CURRENT, *S_)
+    .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
+  requireEvaluatorAtCurrent(surf_wc_key_, Amanzi::Tags::CURRENT, *S_)
+    .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
   // ATS --> ELM variables
   requireEvaluatorAtNext(pd_key_, Amanzi::Tags::NEXT, *S_)
@@ -330,9 +331,10 @@ void ELM_ATSDriver::advance(double dt, bool force_chkp, bool force_vis)
     // need to mark them as changed again.
     // -- subsurface wc in volumetric water content --> mols
     {
-      auto& wc = *S_->GetW<CompositeVector>(wc_key_, Tag::CURRENT, wc_key_).ViewComponent("cell", false);
-      const auto& cv = *S_->Get<CompositeVector>(cv_key_, Tag::NEXT).ViewComponent("cell", false);
-      const auto& n_liq = *S_->Get<CompositeVector>(molar_dens_key_, Tag::NEXT).ViewComponent("cell", false);
+      auto& wc = *S_->GetW<CompositeVector>(wc_key_, Tags::CURRENT,
+              S_->GetRecord(wc_key_, Tags::CURRENT).owner()).ViewComponent("cell", false);
+      const auto& cv = *S_->Get<CompositeVector>(cv_key_, Tags::NEXT).ViewComponent("cell", false);
+      const auto& n_liq = *S_->Get<CompositeVector>(mol_dens_key_, Tags::NEXT).ViewComponent("cell", false);
       for (int c = 0; c != wc.MyLength(); ++c) {
         wc[0][c] = wc[0][c] * cv[0][c] * n_liq[0][c];
       }
@@ -340,9 +342,10 @@ void ELM_ATSDriver::advance(double dt, bool force_chkp, bool force_vis)
 
     // -- surface wc in m ponded depth --> mols
     {
-      auto& surf_wc = *S_->GetW<CompositeVector>(surf_wc_key_, Tag::CURRENT, wc_key_).ViewComponent("cell", false);
-      const auto& surf_cv = *S_->Get<CompositeVector>(surf_cv_key_, Tag::NEXT).ViewComponent("cell", false);
-      const auto& surf_n_liq = *S_->Get<CompositeVector>(surf_molar_dens_key_, Tag::NEXT).ViewComponent("cell", false);
+      auto& surf_wc = *S_->GetW<CompositeVector>(surf_wc_key_, Tags::CURRENT,
+              S_->GetRecord(surf_wc_key_, Tags::CURRENT).owner()).ViewComponent("cell", false);
+      const auto& surf_cv = *S_->Get<CompositeVector>(surf_cv_key_, Tags::NEXT).ViewComponent("cell", false);
+      const auto& surf_n_liq = *S_->Get<CompositeVector>(surf_mol_dens_key_, Tags::NEXT).ViewComponent("cell", false);
       for (int c = 0; c != surf_wc.MyLength(); ++c) {
         surf_wc[0][c] = surf_wc[0][c] * surf_cv[0][c] * surf_n_liq[0][c];
       }
