@@ -43,19 +43,25 @@ class CarbonDecomposeRateEvaluator : public EvaluatorSecondaryMonotypeCV {
                                           const std::vector<CompositeVector*>& result) override
   {}
 
-  double Func_TempPres(double temp, double pres) const;
+  double Func_Pres(double pres) const;
   double Func_Temp(double temp, double q10) const;
   double Func_Depth(double depth) const;
+  double Func_Satliq(double sat) const;
+  double Func_Satgas(double sat) const;
 
  protected:
   Key temp_key_;
   Key pres_key_;
-  Key sat_key_;
+  Key sat_liq_key_;
+  Key sat_gas_key_;
   Key por_key_;
   Key depth_key_;
-  Key cv_key_;
+  Key domain_;
+  Key domain_surf_;
 
   double q10_;
+  bool is_func_temp_, is_func_depth_, is_func_liq_, is_func_gas_;
+  bool is_func_pres_, is_scaling_down_, is_threshold_temp_;
 
  private:
   static Utils::RegisteredFactory<Evaluator, CarbonDecomposeRateEvaluator> reg_;
