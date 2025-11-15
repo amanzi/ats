@@ -5,6 +5,7 @@
   provided in the top-level COPYRIGHT file.
 
   Authors: Ahmad Jan (jana@ornl.gov)
+           Bo Gao (gaob@ornl.gov)
 */
 
 /*
@@ -42,6 +43,8 @@ class CarbonDecomposeRateEvaluator : public EvaluatorSecondaryMonotypeCV {
                                           const Tag& wrt_tag,
                                           const std::vector<CompositeVector*>& result) override
   {}
+  
+  virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
   double Func_Pres(double pres) const;
   double Func_Temp(double temp, double q10) const;
@@ -56,6 +59,7 @@ class CarbonDecomposeRateEvaluator : public EvaluatorSecondaryMonotypeCV {
   Key sat_gas_key_;
   Key por_key_;
   Key depth_key_;
+  Key subsidence_key_;
   Key domain_;
   Key domain_surf_;
 

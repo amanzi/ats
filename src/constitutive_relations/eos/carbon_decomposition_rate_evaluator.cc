@@ -5,6 +5,7 @@
   provided in the top-level COPYRIGHT file.
 
   Authors: Ahmad Jan (jana@ornl.gov)
+           Bo Gao (gaob@ornl.gov)
 */
 
 /*
@@ -17,7 +18,6 @@
 
 namespace Amanzi {
 namespace Relations {
-
 
 CarbonDecomposeRateEvaluator::CarbonDecomposeRateEvaluator(Teuchos::ParameterList& plist)
   : EvaluatorSecondaryMonotypeCV(plist)
@@ -43,6 +43,9 @@ CarbonDecomposeRateEvaluator::CarbonDecomposeRateEvaluator(Teuchos::ParameterLis
 
   depth_key_ = Keys::readKey(plist, domain_, "depth", "depth");
   dependencies_.insert(KeyTag{ depth_key_, tag });
+
+  subsidence_key_ = Keys::readKey(plist, domain_surf_, "subsidence", "subsidence");
+  dependencies_.insert(KeyTag{ subsidence_key_, tag });
 
   q10_ = plist_.get<double>("Q10 [-]", 2.0);
 
@@ -75,6 +78,7 @@ CarbonDecomposeRateEvaluator::Evaluate_(const State& S, const std::vector<Compos
   const auto& depth_c = *S.Get<CompositeVector>(depth_key_, tag).ViewComponent("cell", false);
   const auto& sat_liq_c = *S.Get<CompositeVector>(sat_liq_key_, tag).ViewComponent("cell", false);
   const auto& sat_gas_c = *S.Get<CompositeVector>(sat_gas_key_, tag).ViewComponent("cell", false);
+  const auto& subsidence_c = *S.Get<CompositeVector>(subsidence_key_, tag).ViewComponent("cell", false);
 
   const auto& mesh = *S.GetMesh(domain_);
   const auto& mesh_surf = *S.GetMesh(domain_surf_);
@@ -86,13 +90,33 @@ CarbonDecomposeRateEvaluator::Evaluate_(const State& S, const std::vector<Compos
       if (temp_c[0][col_cells[c]] >= threshold_temp) {
         double dz = mesh.getCellVolume(col_cells[c]) / mesh_surf.getCellVolume(col);
         double f_temp = is_func_temp_ ? Func_Temp(temp_c[0][col_cells[c]], q10_) : 1.;
-        double f_depth = is_func_depth_ ? Func_Depth(depth_c[0][col_cells[c]]) : 1.;
+        double f_depth = is_func_depth_ ? Func_Depth(depth_c[0][col_cells[c]] + subsidence_c[0][col]) : 1.;
         double f_pres = is_func_pres_ ? Func_Pres(pres_c[0][col_cells[c]]) : 1.;
         double f_liq = is_func_liq_ ? Func_Satliq(sat_liq_c[0][col_cells[c]]) : 1.;
         double f_gas = is_func_gas_ ? Func_Satgas(sat_gas_c[0][col_cells[c]]) : 1.;
         res_c[0][col_cells[c]] = (f_temp * f_depth * f_pres * f_liq * f_gas * dz) * (1 - por_c[0][col_cells[c]]);
       } else {
         res_c[0][col_cells[c]] = 0.;
+      }
+    }
+  }
+}
+
+
+void
+CarbonDecomposeRateEvaluator::EnsureCompatibility_ToDeps_(State& S)
+{
+  const auto& fac = S.Require<CompositeVector, CompositeVectorSpace>(my_keys_.front().first,
+                                                                     my_keys_.front().second);
+  if (fac.Mesh() != Teuchos::null) {
+    for (const auto& dep : dependencies_) {
+      if (Keys::getDomain(dep.first) == Keys::getDomain(my_keys_.front().first)) {
+        S.Require<CompositeVector, CompositeVectorSpace>(dep.first, dep.second).Update(fac);
+      } else {
+        CompositeVectorSpace dep_fac;
+        dep_fac.SetMesh(S.GetMesh(Keys::getDomain(dep.first)))
+          ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+        S.Require<CompositeVector, CompositeVectorSpace>(dep.first, dep.second).Update(dep_fac);
       }
     }
   }
