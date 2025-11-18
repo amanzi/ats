@@ -14,7 +14,7 @@ on:
       - master
 
 jobs:
-  build:
+  build: 
     strategy:
       matrix:
         os: [ ubuntu-latest, ubuntu-24.04-arm ]
@@ -31,7 +31,7 @@ jobs:
       id: branch
       working-directory: Docker
       run: |
-        echo "ATS_BRANCH=$GITHUB_REF_NAME" >> $GITHUB_ENV
+        echo "ATS_BRANCH=${{ github.event.pull_request.head.ref }}" >> $GITHUB_ENV
     - name: Does Amanzi branch of the same name exist?
       id: amanzi_branch
       run: |
