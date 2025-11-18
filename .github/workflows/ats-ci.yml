@@ -106,7 +106,7 @@ jobs:
       id: branch
       working-directory: Docker
       run: |
-        echo "ATS_BRANCH=$GITHUB_REF_NAME" >> $GITHUB_ENV
+        echo "ATS_BRANCH=${{ github.event.pull_request.head.ref }}" >> $GITHUB_ENV
     - name: Filter the branch name to generate a tag for Docker
       id: tag
       run: |
@@ -141,7 +141,7 @@ jobs:
       id: branch
       working-directory: Docker
       run: |
-        echo "ATS_BRANCH=$GITHUB_REF_NAME" >> $GITHUB_ENV
+        echo "ATS_BRANCH=${{ github.event.pull_request.head.ref }}" >> $GITHUB_ENV
     - name: Filter the branch name to generate a tag for Docker
       id: tag
       run: |
