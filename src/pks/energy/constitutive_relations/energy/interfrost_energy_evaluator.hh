@@ -7,20 +7,42 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-/* -----------------------------------------------------------------------------
-ATS
+//! Energy content evaluator for a liquid, ice system including the surrounding soil considering liquid compressibility.
+/*!
 
-Evaluator for internal energy.
+Calculates energy, in [KJ], via the equation:
 
-Wrapping this conserved quantity as a field evaluator makes it easier to take
-derivatives, keep updated, and the like.  The equation for this is simply:
+.. math::
+  E = V * ( \phi (u_l s_l n_l (1 + \beta (pressure - 101325) ) + u_i s_i n_i)  + (1-\phi_0) u_r \rho_r )
 
-IE = phi * (s_liquid * n_liquid * u_liquid + s_gas * n_gas * u_gas
-                + s_ice * n_ice * u_ice)
-  + (1 - phi) * rho_rock * u_rock
+`"evaluator type`" = `"interfrost energy`"
 
-This is simply the conserved quantity in the energy equation.
------------------------------------------------------------------------------ */
+Note this equation assumes that porosity is compressible, but is based on the
+uncompressed rock grain density (not bulk density).  This means that porosity
+is the base, uncompressible value when used with the energy in the grain, but
+the larger, compressible value when used with the energy in the water.
+
+.. _evaluator-interfrost-energy-spec:
+.. admonition:: evaluator-interfrost-energy-spec
+
+   DEPENDENCIES:
+
+   - `"porosity`" The porosity, including any compressibility. [-]
+   - `"base porosity`" The uncompressed porosity (note this may be the same as
+     porosity for incompressible cases) [-]
+   - `"molar density liquid`" [mol m^-3]
+   - `"saturation liquid`" [-]
+   - `"internal energy liquid`" [KJ mol^-1]
+   - `"molar density ice`" [mol m^-3]
+   - `"saturation ice`" [-]
+   - `"internal energy ice`" [KJ mol^-1]
+   - `"density rock`" Units may be either [kg m^-3] or [mol m^-3]
+   - `"internal energy rock`" Units may be either [KJ kg^-1] or [KJ mol^-1],
+     but must be consistent with the above density.
+   - `"cell volume`" [m^3]
+   - `"pressure`" [Pa]
+
+*/
 
 
 #ifndef AMANZI_INTERFROST_ENERGY_EVALUATOR_HH_
@@ -33,6 +55,7 @@ This is simply the conserved quantity in the energy equation.
 
 namespace Amanzi {
 namespace Energy {
+namespace Relations {
 
 class InterfrostEnergyEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
@@ -49,12 +72,26 @@ class InterfrostEnergyEvaluator : public EvaluatorSecondaryMonotypeCV {
                                           const std::vector<CompositeVector*>& result) override;
 
  protected:
+  Key phi_key_;
+  Key phi0_key_;
+  Key sl_key_;
+  Key nl_key_;
+  Key ul_key_;
+  Key si_key_;
+  Key ni_key_;
+  Key ui_key_;
+  Key rho_r_key_;
+  Key ur_key_;
+  Key cv_key_;
+  Key pres_key_;
+
   double beta_;
 
  private:
   static Utils::RegisteredFactory<Evaluator, InterfrostEnergyEvaluator> reg_;
 };
 
+} // namespace Relations
 } // namespace Energy
 } // namespace Amanzi
 
