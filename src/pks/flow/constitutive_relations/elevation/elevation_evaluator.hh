@@ -54,7 +54,7 @@ class ElevationEvaluator : public EvaluatorSecondaryMonotypeCV {
   }
 
   // there are no requirements on the structure of the indicater dependency
-  virtual void EnsureCompatibility_ToDeps_(State& S) override {}
+  virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
  protected:
   bool updated_once_;

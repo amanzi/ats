@@ -24,6 +24,7 @@
 #include "viscosity_water.hh"
 
 #include "carbon_decomposition_rate_evaluator.hh"
+#include "transport_decay_rate_evaluator.hh"
 
 namespace Amanzi {
 namespace Relations {
@@ -51,6 +52,8 @@ Utils::RegisteredFactory<ViscosityRelation, ViscosityWater> ViscosityWater::fact
 
 Utils::RegisteredFactory<Evaluator, CarbonDecomposeRateEvaluator>
   CarbonDecomposeRateEvaluator::reg_("carbon decomposition rate");
+Utils::RegisteredFactory<Evaluator, TransportDecayRateEvaluator>
+  TransportDecayRateEvaluator::reg_("transport decay rate");
 
 } // namespace Relations
 } // namespace Amanzi

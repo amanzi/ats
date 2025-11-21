@@ -94,5 +94,27 @@ ElevationEvaluator::Update(State& S, const Key& request)
   return changed;
 }
 
+void
+ElevationEvaluator::EnsureCompatibility_ToDeps_(State& S)
+{
+  const auto& fac = S.Require<CompositeVector, CompositeVectorSpace>(my_keys_.front().first,
+                                                                     my_keys_.front().second);
+  if (fac.Mesh() != Teuchos::null) {
+    for (const auto& dep : dependencies_) {
+      if (Keys::getDomain(dep.first) == Keys::getDomain(my_keys_.front().first)) {
+        S.Require<CompositeVector, CompositeVectorSpace>(dep.first, dep.second).Update(fac);
+      } else {
+        CompositeVectorSpace dep_fac;
+        dep_fac.SetMesh(S.GetMesh(Keys::getDomain(dep.first)))
+          ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+        S.Require<CompositeVector, CompositeVectorSpace>(dep.first, dep.second).Update(dep_fac);
+      }
+    }
+  }
+}
+
+
+
+
 } // namespace Flow
 } // namespace Amanzi
