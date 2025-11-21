@@ -61,7 +61,11 @@ TransportDecayRateEvaluator::Evaluate_(const State& S, const std::vector<Composi
 double
 TransportDecayRateEvaluator::Func_Temp(double temp, double temp_ref, double q10) const
 {
-  return std::pow(q10, (temp - temp_ref) / 10.0);
+  if (temp < 273.15) {
+    return 0.;
+  } else {
+    return std::pow(q10, (temp - temp_ref) / 10.0);
+  }
 }
 
 } // namespace Relations
