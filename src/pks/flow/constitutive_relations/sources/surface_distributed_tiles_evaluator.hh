@@ -10,6 +10,8 @@
 //! Evaluates water/solute source which represent effect of distributed subsurface tiles on overland flow
 /*!
 
+`"evaluator type"` = `"surface distributed tiles"`
+
 .. _surface-distributed-tiles-spec:
 .. admonition:: surface-distributed-tiles-spec
 

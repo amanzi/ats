@@ -127,7 +127,6 @@ class SurfPumpEvaluator : public EvaluatorSecondaryMonotypeCV {
   double max_elev_pumpline_;
   double stage_on_;
   double stage_off_;
-  int pump_on;
 
   Teuchos::RCP<Function> Q_pump_;
 

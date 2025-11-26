@@ -112,6 +112,11 @@ SurfPumpEvaluator::Update_(State& S)
   }
   // call the evaluate method
   int& pump_on = S.GetW<int>(pump_on_key_, my_keys_.front().second, my_keys_.front().first);
+  if (!S.GetRecord(pump_on_key_, my_keys_.front().second).initialized()) {
+    // first call -- set the pump to default to off
+    pump_on = 0;
+    S.GetRecordW(pump_on_key_, my_keys_.front().second, my_keys_.front().first).set_initialized();
+  }
   Evaluate_(S, results, pump_on);
 }
 
@@ -191,12 +196,10 @@ SurfPumpEvaluator::Evaluate_(const State& S,
   }
 
   // Calculate pumpflow rate and distribute sources and sinks
-  double Q_max;
-  double Q;
+  double Q = 0.;
   if (pump_on) {
     double head_diff = std::max(max_elev_pumpline_, avg_pe_outlet) - avg_pe_inlet;
-    Q_max = (*Q_pump_)(std::vector<double>{ head_diff }); // m^3/s
-    Q = Q_max;
+    Q = (*Q_pump_)(std::vector<double>{ head_diff }); // m^3/s
 
     // sink distribution proportional to available water
     double sum_wc_l = 0;
