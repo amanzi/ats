@@ -484,13 +484,9 @@ Transport_ATS::SetupTransport_()
 
           // set the component indicies
           for (const auto& n : bc->tcc_names()) {
-            std::cout<<"n "<<n<<"\n";
             bc->tcc_index().push_back(FindComponentNumber_(n));            
           }
           bcs_.push_back(bc);
-          for (auto it = bc->begin(); it != bc->end(); ++it) {
-            std::cout << it->first <<"\n";
-          }
         }
       }
     }
