@@ -44,9 +44,6 @@ CarbonDecomposeRateEvaluator::CarbonDecomposeRateEvaluator(Teuchos::ParameterLis
   depth_key_ = Keys::readKey(plist, domain_, "depth", "depth");
   dependencies_.insert(KeyTag{ depth_key_, tag });
 
-  subsidence_key_ = Keys::readKey(plist, domain_surf_, "subsidence", "subsidence");
-  dependencies_.insert(KeyTag{ subsidence_key_, tag });
-
   q10_ = plist_.get<double>("Q10 [-]", 2.0);
 
   is_func_temp_ = plist_.get<bool>("use temperature dependent coefficient", true);
@@ -56,6 +53,11 @@ CarbonDecomposeRateEvaluator::CarbonDecomposeRateEvaluator(Teuchos::ParameterLis
   is_func_gas_ = plist_.get<bool>("use gas saturation dependent coefficient", true);
   is_scaling_down_ = plist_.get<bool>("scale down with increase of moisture", false);
   is_threshold_temp_ = plist_.get<bool>("count above freezing", true);
+  is_subsidence_ = plist_.get<bool>("use subsidence to depth", false);
+  if (is_subsidence_) {
+    subsidence_key_ = Keys::readKey(plist, domain_surf_, "subsidence", "subsidence");
+    dependencies_.insert(KeyTag{ subsidence_key_, tag });
+  }
 }
 
 
@@ -78,8 +80,10 @@ CarbonDecomposeRateEvaluator::Evaluate_(const State& S, const std::vector<Compos
   const auto& depth_c = *S.Get<CompositeVector>(depth_key_, tag).ViewComponent("cell", false);
   const auto& sat_liq_c = *S.Get<CompositeVector>(sat_liq_key_, tag).ViewComponent("cell", false);
   const auto& sat_gas_c = *S.Get<CompositeVector>(sat_gas_key_, tag).ViewComponent("cell", false);
-  const auto& subsidence_c = *S.Get<CompositeVector>(subsidence_key_, tag).ViewComponent("cell", false);
-
+  const Epetra_MultiVector* subsidence_c = nullptr;
+  if (is_subsidence_) {
+    subsidence_c = &(*S.Get<CompositeVector>(subsidence_key_, tag).ViewComponent("cell", false));
+  }
   const auto& mesh = *S.GetMesh(domain_);
   const auto& mesh_surf = *S.GetMesh(domain_surf_);
 
@@ -90,7 +94,8 @@ CarbonDecomposeRateEvaluator::Evaluate_(const State& S, const std::vector<Compos
       if (temp_c[0][col_cells[c]] >= threshold_temp) {
         double dz = mesh.getCellVolume(col_cells[c]) / mesh_surf.getCellVolume(col);
         double f_temp = is_func_temp_ ? Func_Temp(temp_c[0][col_cells[c]], q10_) : 1.;
-        double f_depth = is_func_depth_ ? Func_Depth(depth_c[0][col_cells[c]] + subsidence_c[0][col]) : 1.;
+        double depth_arg = is_subsidence_ ? depth_c[0][col_cells[c]] + (*subsidence_c)[0][col] : depth_c[0][col_cells[c]];
+        double f_depth = is_func_depth_ ? Func_Depth(depth_arg) : 1.;
         double f_pres = is_func_pres_ ? Func_Pres(pres_c[0][col_cells[c]]) : 1.;
         double f_liq = is_func_liq_ ? Func_Satliq(sat_liq_c[0][col_cells[c]]) : 1.;
         double f_gas = is_func_gas_ ? Func_Satgas(sat_gas_c[0][col_cells[c]]) : 1.;
