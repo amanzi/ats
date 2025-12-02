@@ -65,7 +65,7 @@ class CarbonDecomposeRateEvaluator : public EvaluatorSecondaryMonotypeCV {
 
   double q10_;
   bool is_func_temp_, is_func_depth_, is_func_liq_, is_func_gas_;
-  bool is_func_pres_, is_scaling_down_, is_threshold_temp_;
+  bool is_func_pres_, is_scaling_down_, is_threshold_temp_, is_subsidence_;
 
  private:
   static Utils::RegisteredFactory<Evaluator, CarbonDecomposeRateEvaluator> reg_;
