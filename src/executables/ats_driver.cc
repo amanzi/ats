@@ -70,10 +70,15 @@ ATSDriver::cycle_driver()
                << std::flush;
   }
   parseParameterList();
+  if (vo_->os_OK(Teuchos::VERB_LOW)) {
+    *vo_->os() << "  ... completed: ";
+    reportOneTimer_("2a: parseParameterList");
+  }
+
   setup();
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
     *vo_->os() << "  ... completed: ";
-    reportOneTimer_("2: setup");
+    reportOneTimer_("2b: setup");
   }
 
   //
