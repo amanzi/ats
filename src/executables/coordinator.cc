@@ -277,6 +277,11 @@ void
 Coordinator::parseParameterList()
 {
   Teuchos::TimeMonitor monitor(*timers_.at("2a: parseParameterList"));
+
+  // require needed times -- these may be targets as dependencies
+  S_->require_time(Amanzi::Tags::CURRENT);
+  S_->require_time(Amanzi::Tags::NEXT);
+
   pk_->set_tags(Amanzi::Tags::CURRENT, Amanzi::Tags::NEXT);
   pk_->parseParameterList();
 }
@@ -289,10 +294,6 @@ Coordinator::setup()
   // common constants
   S_->Require<double>("atmospheric_pressure", Amanzi::Tags::DEFAULT, "coordinator");
   S_->Require<Amanzi::AmanziGeometry::Point>("gravity", Amanzi::Tags::DEFAULT, "coordinator");
-
-  // needed other times
-  S_->require_time(Amanzi::Tags::CURRENT);
-  S_->require_time(Amanzi::Tags::NEXT);
 
   // order matters here -- PK::Setup() set the leaves, then observations can
   // use those if provided, and State::Setup finally deals with all secondaries
