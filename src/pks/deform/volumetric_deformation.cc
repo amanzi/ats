@@ -430,14 +430,14 @@ VolumetricDeformation::AdvanceStep(double t_old, double t_new, bool reinit)
 
     double time_factor = dt > time_scale_ ? 1 : dt / time_scale_;
     for (auto c : cells) {
-      double fs = 1 - poro[0][c];
-      double fi = poro[0][c] * s_ice[0][c];
+      double fs = 1 - base_poro[0][c];
+      double fi = base_poro[0][c] * s_ice[0][c];
 
       double frac = 0.;
       if (fs + fi < structural_vol_frac_ && // sub-structural... start subsiding
           (poro[0][c] - base_poro[0][c]) / base_poro[0][c] < overpressured_limit_) {
         // perform deformation if we are not too overpressured
-        frac = (structural_vol_frac_ - (fs + fi)) * time_factor;
+        frac = (structural_vol_frac_ - (fs + fi)) * poro[0][c] / base_poro[0][c] * time_factor;
       }
 
       dcell_vol_c[0][c] = -frac * cv[0][c];
