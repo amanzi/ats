@@ -56,7 +56,9 @@ void ats_get_mesh_info(ELM_ATSDriver_ptr ats,
                        int * const ncols_global,
                        int * const nlevgrnd,
                        double * const dzs,
-                       double * const areas);
+                       double * const areas,
+                       double * const lat,
+                       double * const lon);
 
 //
 // simulation setup

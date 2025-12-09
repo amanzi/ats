@@ -32,6 +32,8 @@ class ELM_ATSDriver : public Coordinator {
     int nlevgrnd;
     std::vector<double> dzs;
     std::vector<double> areas;
+    std::vector<double> latitudes;
+    std::vector<double> longitudes;
   };
 
   ELM_ATSDriver(const Teuchos::RCP<Teuchos::ParameterList>& plist,
@@ -97,6 +99,8 @@ class ELM_ATSDriver : public Coordinator {
 
   Key surf_cv_key_;
   Key cv_key_;
+  Key lat_key_;
+  Key lon_key_;
 
   std::map<ELM::VarID, KeyTag> key_map_;
 
