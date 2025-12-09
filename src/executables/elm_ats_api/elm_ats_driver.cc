@@ -123,6 +123,9 @@ ELM_ATSDriver::parseParameterList()
   wc_key_ = Keys::readKey(*elm_plist_, domain_subsurf_, "water content", "water_content");
   key_map_[ELM::VarID::WATER_CONTENT_OLD] = { wc_key_, Tags::CURRENT };
 
+  lat_key_ = Keys::readKey(*elm_plist_, domain_surf_, "latitude", "latitude");
+  lon_key_ = Keys::readKey(*elm_plist_, domain_surf_, "longitude", "longitude");
+
   // actual water fluxes
   evap_key_ = Keys::readKey(*elm_plist_, domain_surf_, "evaporation", "evaporation");
   key_map_[ELM::VarID::EVAPORATION] = { evap_key_, Tags::NEXT };
@@ -225,6 +228,13 @@ ELM_ATSDriver::setup()
   requireEvaluatorAtNext(col_runoff_key_, Amanzi::Tags::NEXT, *S_)
     .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
+  // mesh info -- optional!
+  if (S_->HasEvaluatorList(lat_key_)) {
+    requireEvaluatorAtNext(lat_key_, Amanzi::Tags::NEXT, *S_)
+      .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
+    requireEvaluatorAtNext(lon_key_, Amanzi::Tags::NEXT, *S_)
+      .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
+  }
 
   // This must be last always -- it allocates memory calling State::setup, so
   // all other setup must be done.
@@ -258,6 +268,24 @@ ELM_ATSDriver::MeshInfo ELM_ATSDriver::getMeshInfo()
   info.areas.resize(ncolumns_);
   for (int i = 0; i != ncolumns_; ++i) {
     info.areas[i] = mesh_surf_->getCellVolume(i);
+  }
+
+  // lat/lon - optional
+  info.latitudes.resize(ncolumns_, -1.);
+  info.longitudes.resize(ncolumns_, -1.);
+
+  if (S_->HasEvaluator(lat_key_, Tags::NEXT)) {
+    S_->GetEvaluator(lat_key_, Tags::NEXT).Update(*S_, "ELM ATS driver");
+    S_->GetEvaluator(lon_key_, Tags::NEXT).Update(*S_, "ELM ATS driver");
+    const Epetra_MultiVector& lat = *S_->Get<CompositeVector>(lat_key_, Tags::NEXT)
+      .ViewComponent("cell", false);
+    const Epetra_MultiVector& lon = *S_->Get<CompositeVector>(lon_key_, Tags::NEXT)
+      .ViewComponent("cell", false);
+
+    for (int i = 0; i != ncolumns_; ++i) {
+      info.latitudes[i] = lat[0][i];
+      info.longitudes[i] = lon[0][i];
+    }
   }
   return info;
 }
