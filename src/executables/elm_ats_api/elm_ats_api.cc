@@ -65,7 +65,9 @@ void ats_get_mesh_info(ELM_ATSDriver_ptr ats,
                        int * const ncols_global,
                        int * const nlevgrnd,
                        double * const dzs,
-                       double * const areas)
+                       double * const areas,
+                       double * const lat,
+                       double * const lon)
 {
   ATS::ELM_ATSDriver::MeshInfo info = reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->getMeshInfo();
   *ncols_local = info.ncols_local;
@@ -76,6 +78,8 @@ void ats_get_mesh_info(ELM_ATSDriver_ptr ats,
   }
   for (int i = 0; i != info.ncols_local; ++i) {
     areas[i] = info.areas[i];
+    lat[i] = info.latitudes[i];
+    lon[i] = info.longitudes[i];
   }
 }
 
