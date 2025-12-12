@@ -65,7 +65,7 @@ ELM_ATSDriver::ELM_ATSDriver(const Teuchos::RCP<Teuchos::ParameterList>& plist,
                              int npfts)
   : Coordinator(plist, wallclock_timer, teuchos_comm, comm),
     npfts_(npfts),
-    ncolumns_(-1),
+    ncolumns(-1),
     ncells_per_col_(-1),
     elm_plist_(Teuchos::sublist(Teuchos::sublist(plist, "cycle driver"), "ELM driver"))
 {
@@ -147,7 +147,7 @@ ELM_ATSDriver::parseParameterList()
   cv_key_ = Keys::getKey(domain_subsurf_, "cell_volume");
 
   // -- mesh info
-  ncolumns_ = mesh_surf_->getNumEntities(AmanziMesh::CELL, AmanziMesh::Parallel_kind::OWNED);
+  ncolumns = mesh_surf_->getNumEntities(AmanziMesh::CELL, AmanziMesh::Parallel_kind::OWNED);
   auto col_zero = mesh_subsurf_->columns.getCells(0);
   ncells_per_col_ = col_zero.size();
 
@@ -252,7 +252,7 @@ ELM_ATSDriver::setup()
 ELM_ATSDriver::MeshInfo ELM_ATSDriver::getMeshInfo()
 {
   ELM_ATSDriver::MeshInfo info;
-  info.ncols_local = ncolumns_;
+  info.ncols_local = ncolumns;
   info.ncols_global = mesh_surf_->getMap(AmanziMesh::Entity_kind::CELL, false).NumGlobalElements();
   info.nlevgrnd = ncells_per_col_;
 
@@ -265,14 +265,14 @@ ELM_ATSDriver::MeshInfo ELM_ATSDriver::getMeshInfo()
   }
 
   // surface area
-  info.areas.resize(ncolumns_);
-  for (int i = 0; i != ncolumns_; ++i) {
+  info.areas.resize(ncolumns);
+  for (int i = 0; i != ncolumns; ++i) {
     info.areas[i] = mesh_surf_->getCellVolume(i);
   }
 
   // lat/lon - optional
-  info.latitudes.resize(ncolumns_, -1.);
-  info.longitudes.resize(ncolumns_, -1.);
+  info.latitudes.resize(ncolumns, -1.);
+  info.longitudes.resize(ncolumns, -1.);
 
   if (S_->HasEvaluator(lat_key_, Tags::NEXT)) {
     S_->GetEvaluator(lat_key_, Tags::NEXT).Update(*S_, "ELM ATS driver");
@@ -282,7 +282,7 @@ ELM_ATSDriver::MeshInfo ELM_ATSDriver::getMeshInfo()
     const Epetra_MultiVector& lon = *S_->Get<CompositeVector>(lon_key_, Tags::NEXT)
       .ViewComponent("cell", false);
 
-    for (int i = 0; i != ncolumns_; ++i) {
+    for (int i = 0; i != ncolumns; ++i) {
       info.latitudes[i] = lat[0][i];
       info.longitudes[i] = lon[0][i];
     }
