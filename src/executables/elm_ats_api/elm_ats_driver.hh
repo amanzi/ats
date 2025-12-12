@@ -57,13 +57,14 @@ class ELM_ATSDriver : public Coordinator {
   double const * getFieldPtr(const ELM::VarID& var_id);
   double * getFieldPtrW(const ELM::VarID& var_id);
 
+  int ncolumns;
+
  private:
   void initValue_(const Key& key, double value = 0.);
 
  private:
   Teuchos::RCP<Teuchos::ParameterList> elm_plist_;
 
-  int ncolumns_;
   int ncells_per_col_;
   int npfts_;
 

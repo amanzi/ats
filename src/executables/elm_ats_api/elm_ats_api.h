@@ -49,9 +49,15 @@ void ats_parse_parameter_list(ELM_ATSDriver_ptr ats);
 
 
 //
-// These quantities should be compared against ELM to ensure consistent setup
+// This sets the decomposition
 //
 void ats_get_mesh_info(ELM_ATSDriver_ptr ats,
+                        int * const ncols_local);
+
+//
+// These quantities should be compared against ELM to ensure consistent setup
+//
+void ats_get_mesh_info2(ELM_ATSDriver_ptr ats,
                        int * const ncols_local,
                        int * const ncols_global,
                        int * const nlevgrnd,
