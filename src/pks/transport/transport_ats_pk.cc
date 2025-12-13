@@ -63,7 +63,8 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
     dt_stable_(-1.0),
     dt_max_(-1.0),
     has_diffusion_(false),
-    has_dispersion_(false)
+    has_dispersion_(false),
+    enforce_bc_(false)
 {
   // initialize io
   units_.Init(global_plist->sublist("units"));
@@ -502,6 +503,7 @@ Transport_ATS::SetupTransport_()
     // diffusion operator
     Operators::PDE_DiffusionFactory opfactory;
     Teuchos::ParameterList& op_list = plist_->sublist("diffusion");
+    enforce_bc_ = op_list.get("enforce boundary conditions", false);
     diff_op_ = opfactory.Create(op_list, mesh_, diff_bcs_);
     diff_global_op_ = diff_op_->global_operator();
     diff_acc_op_ =
@@ -989,7 +991,7 @@ Transport_ATS ::AdvanceDispersionDiffusion_(double t_old, double t_new)
   for (int i = 0; i != num_aqueous_; ++i) {
 
     // Set Dirichlet_BC for 
-    PopulateBoundaryData_(i, *diff_bcs_);
+    if (enforce_bc_) PopulateBoundaryData_(i, *diff_bcs_);
     // add molecular diffusion to the dispersion tensor
     bool changed_tensor(false);
     if (has_diffusion_) {

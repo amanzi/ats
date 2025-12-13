@@ -372,7 +372,7 @@ class Transport_ATS : public PK_Physical_Default {
   std::vector<Teuchos::RCP<TransportDomainFunction>> bcs_;
 
   // operators for dispersion/diffusion
-  bool has_diffusion_, has_dispersion_;
+  bool has_diffusion_, has_dispersion_, enforce_bc_;
   Teuchos::RCP<TensorVector> D_; // workspace, disp + diff
   Teuchos::RCP<Operators::BCs> diff_bcs_;
   Teuchos::RCP<Operators::Operator> diff_global_op_;
