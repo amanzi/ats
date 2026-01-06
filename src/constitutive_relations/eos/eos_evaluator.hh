@@ -61,6 +61,8 @@ class EOSEvaluator : public EvaluatorSecondaryMonotypeCV {
   }
 
 
+   virtual void EnsureCompatibility_ToDeps_(State& S) override; 
+  
   // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& results) override;
   virtual void EvaluatePartialDerivative_(const State& S,
