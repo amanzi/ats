@@ -10,14 +10,8 @@
 /* -----------------------------------------------------------------------------
 ATS
 
-Evaluator for water content.
+Energy content evaluator for a liquid, ice system including the surrounding soil considering liquid compressibility.
 
-Wrapping this conserved quantity as a field evaluator makes it easier to take
-derivatives, keep updated, and the like.  The equation for this is simply:
-
-WC = phi * (s_liquid * n_liquid + omega_gas * s_gas * n_gas)
-
-This is simply the conserved quantity in Richards equation.
 ----------------------------------------------------------------------------- */
 
 
@@ -25,6 +19,7 @@ This is simply the conserved quantity in Richards equation.
 
 namespace Amanzi {
 namespace Energy {
+namespace Relations {
 
 InterfrostEnergyEvaluator::InterfrostEnergyEvaluator(Teuchos::ParameterList& plist)
   : EvaluatorSecondaryMonotypeCV(plist)
@@ -32,23 +27,54 @@ InterfrostEnergyEvaluator::InterfrostEnergyEvaluator(Teuchos::ParameterList& pli
   Key domain_name = Keys::getDomain(my_keys_.front().first);
   auto tag = my_keys_.front().second;
 
-  dependencies_.insert(KeyTag{ std::string("porosity"), tag });
-  dependencies_.insert(KeyTag{ std::string("base_porosity"), tag });
+  // - pull Keys from plist
+  // dependency: porosity
+  phi_key_ = Keys::readKey(plist_, domain_name, "porosity", "porosity");
+  dependencies_.insert(KeyTag{ phi_key_, tag });
 
-  dependencies_.insert(KeyTag{ std::string("saturation_liquid"), tag });
-  dependencies_.insert(KeyTag{ std::string("molar_density_liquid"), tag });
-  dependencies_.insert(KeyTag{ std::string("internal_energy_liquid"), tag });
-  dependencies_.insert(KeyTag{ std::string("pressure"), tag });
+  // dependency: base_porosity
+  phi0_key_ = Keys::readKey(plist_, domain_name, "base porosity", "base_porosity");
+  dependencies_.insert(KeyTag{ phi0_key_, tag });
 
-  dependencies_.insert(KeyTag{ std::string("saturation_ice"), tag });
-  dependencies_.insert(KeyTag{ std::string("molar_density_ice"), tag });
-  dependencies_.insert(KeyTag{ std::string("internal_energy_ice"), tag });
+  // dependency: saturation_liquid
+  sl_key_ = Keys::readKey(plist_, domain_name, "saturation liquid", "saturation_liquid");
+  dependencies_.insert(KeyTag{ sl_key_, tag });
 
-  dependencies_.insert(KeyTag{ std::string("density_rock"), tag });
-  dependencies_.insert(KeyTag{ std::string("internal_energy_rock"), tag });
-  //  dependencies_.insert(std::string("cell_volume"));
+  // dependency: molar_density_liquid
+  nl_key_ = Keys::readKey(plist_, domain_name, "molar density liquid", "molar_density_liquid");
+  dependencies_.insert(KeyTag{ nl_key_, tag });
 
-  //  check_derivative_ = true;
+  // dependency: internal_energy_liquid
+  ul_key_ = Keys::readKey(plist_, domain_name, "internal energy liquid", "internal_energy_liquid");
+  dependencies_.insert(KeyTag{ ul_key_, tag });
+
+  // dependency: saturation_ice
+  si_key_ = Keys::readKey(plist_, domain_name, "saturation ice", "saturation_ice");
+  dependencies_.insert(KeyTag{ si_key_, tag });
+
+  // dependency: molar_density_ice
+  ni_key_ = Keys::readKey(plist_, domain_name, "molar density ice", "molar_density_ice");
+  dependencies_.insert(KeyTag{ ni_key_, tag });
+
+  // dependency: internal_energy_ice
+  ui_key_ = Keys::readKey(plist_, domain_name, "internal energy ice", "internal_energy_ice");
+  dependencies_.insert(KeyTag{ ui_key_, tag });
+
+  // dependency: density_rock
+  rho_r_key_ = Keys::readKey(plist_, domain_name, "density rock", "density_rock");
+  dependencies_.insert(KeyTag{ rho_r_key_, tag });
+
+  // dependency: internal_energy_rock
+  ur_key_ = Keys::readKey(plist_, domain_name, "internal energy rock", "internal_energy_rock");
+  dependencies_.insert(KeyTag{ ur_key_, tag });
+
+  // dependency: cell_volume
+  cv_key_ = Keys::readKey(plist_, domain_name, "cell volume", "cell_volume");
+  dependencies_.insert(KeyTag{ cv_key_, tag });
+  
+  // dependency: pressure
+  pres_key_ = Keys::readKey(plist_, domain_name, "pressure", "pressure");
+  dependencies_.insert(KeyTag{ pres_key_, tag });
 
   beta_ = plist.get<double>("compressibility [1/Pa]");
 };
@@ -63,44 +89,45 @@ InterfrostEnergyEvaluator::Clone() const
 void
 InterfrostEnergyEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& result)
 {
-  auto tag = my_keys_.front().second;
-  const Epetra_MultiVector& s_l =
-    *S.Get<CompositeVector>("saturation_liquid", tag).ViewComponent("cell", false);
-  const Epetra_MultiVector& n_l =
-    *S.Get<CompositeVector>("molar_density_liquid", tag).ViewComponent("cell", false);
-  const Epetra_MultiVector& u_l =
-    *S.Get<CompositeVector>("internal_energy_liquid", tag).ViewComponent("cell", false);
-  const Epetra_MultiVector& pres =
-    *S.Get<CompositeVector>("pressure", tag).ViewComponent("cell", false);
+  Tag tag = my_keys_.front().second;
+  Teuchos::RCP<const CompositeVector> phi = S.GetPtr<CompositeVector>(phi_key_, tag);
+  Teuchos::RCP<const CompositeVector> phi0 = S.GetPtr<CompositeVector>(phi0_key_, tag);
+  Teuchos::RCP<const CompositeVector> sl = S.GetPtr<CompositeVector>(sl_key_, tag);
+  Teuchos::RCP<const CompositeVector> nl = S.GetPtr<CompositeVector>(nl_key_, tag);
+  Teuchos::RCP<const CompositeVector> ul = S.GetPtr<CompositeVector>(ul_key_, tag);
+  Teuchos::RCP<const CompositeVector> si = S.GetPtr<CompositeVector>(si_key_, tag);
+  Teuchos::RCP<const CompositeVector> ni = S.GetPtr<CompositeVector>(ni_key_, tag);
+  Teuchos::RCP<const CompositeVector> ui = S.GetPtr<CompositeVector>(ui_key_, tag);
+  Teuchos::RCP<const CompositeVector> rho_r = S.GetPtr<CompositeVector>(rho_r_key_, tag);
+  Teuchos::RCP<const CompositeVector> ur = S.GetPtr<CompositeVector>(ur_key_, tag);
+  Teuchos::RCP<const CompositeVector> cv = S.GetPtr<CompositeVector>(cv_key_, tag);
+  Teuchos::RCP<const CompositeVector> pres = S.GetPtr<CompositeVector>(pres_key_, tag);
 
-  const Epetra_MultiVector& s_i =
-    *S.Get<CompositeVector>("saturation_ice", tag).ViewComponent("cell", false);
-  const Epetra_MultiVector& n_i =
-    *S.Get<CompositeVector>("molar_density_ice", tag).ViewComponent("cell", false);
-  const Epetra_MultiVector& u_i =
-    *S.Get<CompositeVector>("internal_energy_ice", tag).ViewComponent("cell", false);
+  for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end(); ++comp) {
+    const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
+    const Epetra_MultiVector& phi0_v = *phi0->ViewComponent(*comp, false);
+    const Epetra_MultiVector& sl_v = *sl->ViewComponent(*comp, false);
+    const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
+    const Epetra_MultiVector& ul_v = *ul->ViewComponent(*comp, false);
+    const Epetra_MultiVector& si_v = *si->ViewComponent(*comp, false);
+    const Epetra_MultiVector& ni_v = *ni->ViewComponent(*comp, false);
+    const Epetra_MultiVector& ui_v = *ui->ViewComponent(*comp, false);
+    const Epetra_MultiVector& rho_r_v = *rho_r->ViewComponent(*comp, false);
+    const Epetra_MultiVector& ur_v = *ur->ViewComponent(*comp, false);
+    const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
+    const Epetra_MultiVector& pres_v = *pres->ViewComponent(*comp, false);
+    Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
 
-  const Epetra_MultiVector& phi =
-    *S.Get<CompositeVector>("porosity", tag).ViewComponent("cell", false);
-  const Epetra_MultiVector& phib =
-    *S.Get<CompositeVector>("base_porosity", tag).ViewComponent("cell", false);
-  const Epetra_MultiVector& u_rock =
-    *S.Get<CompositeVector>("internal_energy_rock", tag).ViewComponent("cell", false);
-  const Epetra_MultiVector& rho_rock =
-    *S.Get<CompositeVector>("density_rock", tag).ViewComponent("cell", false);
-  const Epetra_MultiVector& cell_volume =
-    *S.Get<CompositeVector>("cell_volume", tag).ViewComponent("cell", false);
-  Epetra_MultiVector& result_v = *result[0]->ViewComponent("cell", false);
-
-  int ncells = result[0]->size("cell", false);
-  for (int c = 0; c != ncells; ++c) {
-    double pc = std::max(pres[0][c] - 101325., 0.);
-    result_v[0][c] = phi[0][c] * (s_l[0][c] * n_l[0][c] * u_l[0][c] * (1 + beta_ * pc) +
-                                  s_i[0][c] * n_i[0][c] * u_i[0][c]) +
-                     (1.0 - phib[0][c]) * u_rock[0][c] * rho_rock[0][c];
-    result_v[0][c] *= cell_volume[0][c];
+    int ncomp = result[0]->size(*comp, false);
+    for (int i = 0; i != ncomp; ++i) {
+      double pc = std::max(pres_v[0][i] - 101325., 0.);
+      result_v[0][i] = phi_v[0][i] * (sl_v[0][i] * nl_v[0][i] * ul_v[0][i] * (1 + beta_ * pc) +
+                                      si_v[0][i] * ni_v[0][i] * ui_v[0][i]) +
+                       (1.0 - phi0_v[0][i]) * ur_v[0][i] * rho_r_v[0][i];
+      result_v[0][i] *= cv_v[0][i];
+    }
   }
-};
+}
 
 
 void
@@ -110,96 +137,298 @@ InterfrostEnergyEvaluator::EvaluatePartialDerivative_(const State& S,
                                                       const std::vector<CompositeVector*>& result)
 {
   auto tag = my_keys_.front().second;
-  const Epetra_MultiVector& s_l =
-    *S.Get<CompositeVector>("saturation_liquid", tag).ViewComponent("cell", false);
-  const Epetra_MultiVector& n_l =
-    *S.Get<CompositeVector>("molar_density_liquid", tag).ViewComponent("cell", false);
-  const Epetra_MultiVector& u_l =
-    *S.Get<CompositeVector>("internal_energy_liquid", tag).ViewComponent("cell", false);
-  const Epetra_MultiVector& pres =
-    *S.Get<CompositeVector>("pressure", tag).ViewComponent("cell", false);
+  Teuchos::RCP<const CompositeVector> phi = S.GetPtr<CompositeVector>(phi_key_, tag);
+  Teuchos::RCP<const CompositeVector> phi0 = S.GetPtr<CompositeVector>(phi0_key_, tag);
+  Teuchos::RCP<const CompositeVector> sl = S.GetPtr<CompositeVector>(sl_key_, tag);
+  Teuchos::RCP<const CompositeVector> nl = S.GetPtr<CompositeVector>(nl_key_, tag);
+  Teuchos::RCP<const CompositeVector> ul = S.GetPtr<CompositeVector>(ul_key_, tag);
+  Teuchos::RCP<const CompositeVector> si = S.GetPtr<CompositeVector>(si_key_, tag);
+  Teuchos::RCP<const CompositeVector> ni = S.GetPtr<CompositeVector>(ni_key_, tag);
+  Teuchos::RCP<const CompositeVector> ui = S.GetPtr<CompositeVector>(ui_key_, tag);
+  Teuchos::RCP<const CompositeVector> rho_r = S.GetPtr<CompositeVector>(rho_r_key_, tag);
+  Teuchos::RCP<const CompositeVector> ur = S.GetPtr<CompositeVector>(ur_key_, tag);
+  Teuchos::RCP<const CompositeVector> cv = S.GetPtr<CompositeVector>(cv_key_, tag);
+  Teuchos::RCP<const CompositeVector> pres = S.GetPtr<CompositeVector>(pres_key_, tag);
 
-  const Epetra_MultiVector& s_i =
-    *S.Get<CompositeVector>("saturation_ice", tag).ViewComponent("cell", false);
-  const Epetra_MultiVector& n_i =
-    *S.Get<CompositeVector>("molar_density_ice", tag).ViewComponent("cell", false);
-  const Epetra_MultiVector& u_i =
-    *S.Get<CompositeVector>("internal_energy_ice", tag).ViewComponent("cell", false);
+  if (wrt_key == phi_key_) {
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
+         ++comp) {
+      const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
+      const Epetra_MultiVector& phi0_v = *phi0->ViewComponent(*comp, false);
+      const Epetra_MultiVector& sl_v = *sl->ViewComponent(*comp, false);
+      const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ul_v = *ul->ViewComponent(*comp, false);
+      const Epetra_MultiVector& si_v = *si->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ni_v = *ni->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ui_v = *ui->ViewComponent(*comp, false);
+      const Epetra_MultiVector& rho_r_v = *rho_r->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ur_v = *ur->ViewComponent(*comp, false);
+      const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
+      const Epetra_MultiVector& pres_v = *pres->ViewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
 
-  const Epetra_MultiVector& phi =
-    *S.Get<CompositeVector>("porosity", tag).ViewComponent("cell", false);
-  const Epetra_MultiVector& phib =
-    *S.Get<CompositeVector>("base_porosity", tag).ViewComponent("cell", false);
-  const Epetra_MultiVector& u_rock =
-    *S.Get<CompositeVector>("internal_energy_rock", tag).ViewComponent("cell", false);
-  const Epetra_MultiVector& rho_rock =
-    *S.Get<CompositeVector>("density_rock", tag).ViewComponent("cell", false);
-  const Epetra_MultiVector& cell_volume =
-    *S.Get<CompositeVector>("cell_volume", tag).ViewComponent("cell", false);
-  Epetra_MultiVector& result_v = *result[0]->ViewComponent("cell", false);
+      int ncomp = result[0]->size(*comp, false);
+      for (int i = 0; i != ncomp; ++i) {
+        double pc = std::max(pres_v[0][i] - 101325., 0.);
+      result_v[0][i] =
+        sl_v[0][i] * nl_v[0][i] * ul_v[0][i] * (1 + beta_ * pc) + si_v[0][i] * ni_v[0][i] * ui_v[0][i];
+      result_v[0][i] *= cv_v[0][i];
+      }
+    }
+  } else if (wrt_key == phi0_key_) {
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
+          ++comp) {
+      const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
+      const Epetra_MultiVector& phi0_v = *phi0->ViewComponent(*comp, false);
+      const Epetra_MultiVector& sl_v = *sl->ViewComponent(*comp, false);
+      const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ul_v = *ul->ViewComponent(*comp, false);
+      const Epetra_MultiVector& si_v = *si->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ni_v = *ni->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ui_v = *ui->ViewComponent(*comp, false);
+      const Epetra_MultiVector& rho_r_v = *rho_r->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ur_v = *ur->ViewComponent(*comp, false);
+      const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
+      const Epetra_MultiVector& pres_v = *pres->ViewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
 
-  if (wrt_key == "porosity") {
-    for (unsigned int c = 0; c != result[0]->size("cell"); ++c) {
-      double pc = std::max(pres[0][c] - 101325., 0.);
-      result_v[0][c] =
-        s_l[0][c] * n_l[0][c] * u_l[0][c] * (1 + beta_ * pc) + s_i[0][c] * n_i[0][c] * u_i[0][c];
+      int ncomp = result[0]->size(*comp, false);
+      for (int i = 0; i != ncomp; ++i) {
+        result_v[0][i] = -rho_r_v[0][i] * ur_v[0][i] * cv_v[0][i];
+      }
     }
-  } else if (wrt_key == "base_porosity") {
-    for (unsigned int c = 0; c != result[0]->size("cell"); ++c) {
-      result_v[0][c] = -rho_rock[0][c] * u_rock[0][c];
-    }
+  } else if (wrt_key == sl_key_) {
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
+        ++comp) {
+      const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
+      const Epetra_MultiVector& phi0_v = *phi0->ViewComponent(*comp, false);
+      const Epetra_MultiVector& sl_v = *sl->ViewComponent(*comp, false);
+      const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ul_v = *ul->ViewComponent(*comp, false);
+      const Epetra_MultiVector& si_v = *si->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ni_v = *ni->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ui_v = *ui->ViewComponent(*comp, false);
+      const Epetra_MultiVector& rho_r_v = *rho_r->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ur_v = *ur->ViewComponent(*comp, false);
+      const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
+      const Epetra_MultiVector& pres_v = *pres->ViewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
 
-  } else if (wrt_key == "saturation_liquid") {
-    for (unsigned int c = 0; c != result[0]->size("cell"); ++c) {
-      double pc = std::max(pres[0][c] - 101325., 0.);
-      result_v[0][c] = phi[0][c] * n_l[0][c] * u_l[0][c] * (1 + beta_ * pc);
+      int ncomp = result[0]->size(*comp, false);
+      for (int i = 0; i != ncomp; ++i) {
+        double pc = std::max(pres_v[0][i] - 101325., 0.);
+        result_v[0][i] = phi_v[0][i] * nl_v[0][i] * ul_v[0][i] * (1 + beta_ * pc) * cv_v[0][i];
+      }
     }
-  } else if (wrt_key == "molar_density_liquid") {
-    for (unsigned int c = 0; c != result[0]->size("cell"); ++c) {
-      double pc = std::max(pres[0][c] - 101325., 0.);
-      result_v[0][c] = phi[0][c] * s_l[0][c] * u_l[0][c] * (1 + beta_ * pc);
-    }
-  } else if (wrt_key == "internal_energy_liquid") {
-    for (unsigned int c = 0; c != result[0]->size("cell"); ++c) {
-      double pc = std::max(pres[0][c] - 101325., 0.);
-      result_v[0][c] = phi[0][c] * s_l[0][c] * n_l[0][c] * (1 + beta_ * pc);
-    }
-  } else if (wrt_key == "pressure") {
-    for (unsigned int c = 0; c != result[0]->size("cell"); ++c) {
-      double pc = std::max(pres[0][c] - 101325., 0.);
-      result_v[0][c] = phi[0][c] * s_l[0][c] * n_l[0][c] * u_l[0][c] * beta_;
-    }
+  } else if (wrt_key == nl_key_) {
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
+         ++comp) {
+      const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
+      const Epetra_MultiVector& phi0_v = *phi0->ViewComponent(*comp, false);
+      const Epetra_MultiVector& sl_v = *sl->ViewComponent(*comp, false);
+      const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ul_v = *ul->ViewComponent(*comp, false);
+      const Epetra_MultiVector& si_v = *si->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ni_v = *ni->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ui_v = *ui->ViewComponent(*comp, false);
+      const Epetra_MultiVector& rho_r_v = *rho_r->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ur_v = *ur->ViewComponent(*comp, false);
+      const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
+      const Epetra_MultiVector& pres_v = *pres->ViewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
 
-  } else if (wrt_key == "saturation_ice") {
-    for (unsigned int c = 0; c != result[0]->size("cell"); ++c) {
-      result_v[0][c] = phi[0][c] * n_i[0][c] * u_i[0][c];
+      int ncomp = result[0]->size(*comp, false);
+      for (int i = 0; i != ncomp; ++i) {
+        double pc = std::max(pres_v[0][i] - 101325., 0.);
+        result_v[0][i] = phi_v[0][i] * sl_v[0][i] * ul_v[0][i] * (1 + beta_ * pc) * cv_v[0][i];
+      }
     }
-  } else if (wrt_key == "molar_density_ice") {
-    for (unsigned int c = 0; c != result[0]->size("cell"); ++c) {
-      result_v[0][c] = phi[0][c] * s_i[0][c] * u_i[0][c];
-    }
-  } else if (wrt_key == "internal_energy_ice") {
-    for (unsigned int c = 0; c != result[0]->size("cell"); ++c) {
-      result_v[0][c] = phi[0][c] * s_i[0][c] * n_i[0][c];
-    }
+  } else if (wrt_key == ul_key_) {
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
+         ++comp) {
+      const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
+      const Epetra_MultiVector& phi0_v = *phi0->ViewComponent(*comp, false);
+      const Epetra_MultiVector& sl_v = *sl->ViewComponent(*comp, false);
+      const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ul_v = *ul->ViewComponent(*comp, false);
+      const Epetra_MultiVector& si_v = *si->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ni_v = *ni->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ui_v = *ui->ViewComponent(*comp, false);
+      const Epetra_MultiVector& rho_r_v = *rho_r->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ur_v = *ur->ViewComponent(*comp, false);
+      const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
+      const Epetra_MultiVector& pres_v = *pres->ViewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
 
-  } else if (wrt_key == "internal_energy_rock") {
-    for (unsigned int c = 0; c != result[0]->size("cell"); ++c) {
-      result_v[0][c] = (1.0 - phib[0][c]) * rho_rock[0][c];
+      int ncomp = result[0]->size(*comp, false);
+      for (int i = 0; i != ncomp; ++i) {
+        double pc = std::max(pres_v[0][i] - 101325., 0.);
+        result_v[0][i] = phi_v[0][i] * sl_v[0][i] * nl_v[0][i] * (1 + beta_ * pc) * cv_v[0][i];
+      }
     }
-  } else if (wrt_key == "density_rock") {
-    for (unsigned int c = 0; c != result[0]->size("cell"); ++c) {
-      result_v[0][c] = (1.0 - phib[0][c]) * u_rock[0][c];
+  } else if (wrt_key == pres_key_) {
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
+         ++comp) {
+      const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
+      const Epetra_MultiVector& phi0_v = *phi0->ViewComponent(*comp, false);
+      const Epetra_MultiVector& sl_v = *sl->ViewComponent(*comp, false);
+      const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ul_v = *ul->ViewComponent(*comp, false);
+      const Epetra_MultiVector& si_v = *si->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ni_v = *ni->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ui_v = *ui->ViewComponent(*comp, false);
+      const Epetra_MultiVector& rho_r_v = *rho_r->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ur_v = *ur->ViewComponent(*comp, false);
+      const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
+      const Epetra_MultiVector& pres_v = *pres->ViewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+
+      int ncomp = result[0]->size(*comp, false);
+      for (int i = 0; i != ncomp; ++i) {
+        double pc = std::max(pres_v[0][i] - 101325., 0.);
+        result_v[0][i] = phi_v[0][i] * sl_v[0][i] * nl_v[0][i] * ul_v[0][i] * beta_ * cv_v[0][i];
+      }
+    }
+  } else if (wrt_key == si_key_) {
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
+         ++comp) {
+      const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
+      const Epetra_MultiVector& phi0_v = *phi0->ViewComponent(*comp, false);
+      const Epetra_MultiVector& sl_v = *sl->ViewComponent(*comp, false);
+      const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ul_v = *ul->ViewComponent(*comp, false);
+      const Epetra_MultiVector& si_v = *si->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ni_v = *ni->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ui_v = *ui->ViewComponent(*comp, false);
+      const Epetra_MultiVector& rho_r_v = *rho_r->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ur_v = *ur->ViewComponent(*comp, false);
+      const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
+      const Epetra_MultiVector& pres_v = *pres->ViewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+
+      int ncomp = result[0]->size(*comp, false);
+      for (int i = 0; i != ncomp; ++i) {
+        result_v[0][i] = phi_v[0][i] * ni_v[0][i] * ui_v[0][i] * cv_v[0][i];
+      }
+    }
+  } else if (wrt_key == ni_key_) {
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
+         ++comp) {
+      const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
+      const Epetra_MultiVector& phi0_v = *phi0->ViewComponent(*comp, false);
+      const Epetra_MultiVector& sl_v = *sl->ViewComponent(*comp, false);
+      const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ul_v = *ul->ViewComponent(*comp, false);
+      const Epetra_MultiVector& si_v = *si->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ni_v = *ni->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ui_v = *ui->ViewComponent(*comp, false);
+      const Epetra_MultiVector& rho_r_v = *rho_r->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ur_v = *ur->ViewComponent(*comp, false);
+      const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
+      const Epetra_MultiVector& pres_v = *pres->ViewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+
+      int ncomp = result[0]->size(*comp, false);
+      for (int i = 0; i != ncomp; ++i) {
+        result_v[0][i] = phi_v[0][i] * si_v[0][i] * ui_v[0][i] * cv_v[0][i];
+      }
+    }
+  } else if (wrt_key == ui_key_) {
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
+         ++comp) {
+      const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
+      const Epetra_MultiVector& phi0_v = *phi0->ViewComponent(*comp, false);
+      const Epetra_MultiVector& sl_v = *sl->ViewComponent(*comp, false);
+      const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ul_v = *ul->ViewComponent(*comp, false);
+      const Epetra_MultiVector& si_v = *si->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ni_v = *ni->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ui_v = *ui->ViewComponent(*comp, false);
+      const Epetra_MultiVector& rho_r_v = *rho_r->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ur_v = *ur->ViewComponent(*comp, false);
+      const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
+      const Epetra_MultiVector& pres_v = *pres->ViewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+
+      int ncomp = result[0]->size(*comp, false);
+      for (int i = 0; i != ncomp; ++i) {
+        result_v[0][i] = phi_v[0][i] * si_v[0][i] * ni_v[0][i] * cv_v[0][i];
+      }
+    }
+  } else if (wrt_key == rho_r_key_) {
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
+         ++comp) {
+      const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
+      const Epetra_MultiVector& phi0_v = *phi0->ViewComponent(*comp, false);
+      const Epetra_MultiVector& sl_v = *sl->ViewComponent(*comp, false);
+      const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ul_v = *ul->ViewComponent(*comp, false);
+      const Epetra_MultiVector& si_v = *si->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ni_v = *ni->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ui_v = *ui->ViewComponent(*comp, false);
+      const Epetra_MultiVector& rho_r_v = *rho_r->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ur_v = *ur->ViewComponent(*comp, false);
+      const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
+      const Epetra_MultiVector& pres_v = *pres->ViewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+
+      int ncomp = result[0]->size(*comp, false);
+      for (int i = 0; i != ncomp; ++i) {
+        result_v[0][i] = (1. - phi0_v[0][i]) * ur_v[0][i] * cv_v[0][i];
+      }
+    }
+  } else if (wrt_key == ur_key_) {
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
+         ++comp) {
+      const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
+      const Epetra_MultiVector& phi0_v = *phi0->ViewComponent(*comp, false);
+      const Epetra_MultiVector& sl_v = *sl->ViewComponent(*comp, false);
+      const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ul_v = *ul->ViewComponent(*comp, false);
+      const Epetra_MultiVector& si_v = *si->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ni_v = *ni->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ui_v = *ui->ViewComponent(*comp, false);
+      const Epetra_MultiVector& rho_r_v = *rho_r->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ur_v = *ur->ViewComponent(*comp, false);
+      const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
+      const Epetra_MultiVector& pres_v = *pres->ViewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+
+      int ncomp = result[0]->size(*comp, false);
+      for (int i = 0; i != ncomp; ++i) {
+        result_v[0][i] = (1. - phi0_v[0][i]) * rho_r_v[0][i] * cv_v[0][i];
+      }
+    }
+  } else if (wrt_key == cv_key_) {
+    for (CompositeVector::name_iterator comp = result[0]->begin() ; comp != result[0]->end();
+         ++comp) {
+      const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
+      const Epetra_MultiVector& phi0_v = *phi0->ViewComponent(*comp, false);
+      const Epetra_MultiVector& sl_v = *sl->ViewComponent(*comp, false);
+      const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ul_v = *ul->ViewComponent(*comp, false);
+      const Epetra_MultiVector& si_v = *si->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ni_v = *ni->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ui_v = *ui->ViewComponent(*comp, false);
+      const Epetra_MultiVector& rho_r_v = *rho_r->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ur_v = *ur->ViewComponent(*comp, false);
+      const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
+      const Epetra_MultiVector& pres_v = *pres->ViewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+
+      int ncomp = result[0]->size(*comp, false);
+      for (int i = 0; i != ncomp; ++i) {
+        double pc = std::max(pres_v[0][i] - 101325., 0.);
+        result_v[0][i] = phi_v[0][i] * (sl_v[0][i] * nl_v[0][i] * ul_v[0][i] * (1 + beta_ * pc) +
+                                        si_v[0][i] * ni_v[0][i] * ui_v[0][i]) +
+                         (1.0 - phi0_v[0][i]) * ur_v[0][i] * rho_r_v[0][i];
+      }
     }
   } else {
     AMANZI_ASSERT(0);
   }
-
-  for (unsigned int c = 0; c != result[0]->size("cell"); ++c) {
-    result_v[0][c] *= cell_volume[0][c];
-  }
 };
 
-
+} // namespace Relations
 } // namespace Energy
 } // namespace Amanzi

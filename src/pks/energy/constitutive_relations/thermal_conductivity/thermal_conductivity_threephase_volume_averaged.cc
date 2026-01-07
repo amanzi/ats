@@ -47,5 +47,42 @@ ThermalConductivityThreePhaseVolumeAveraged::InitializeFromPlist_()
   k_gas_ = plist_.get<double>("thermal conductivity of gas [W m^-1 K^-1]");
 };
 
+double
+ThermalConductivityThreePhaseVolumeAveraged::DThermalConductivity_DPorosity(double poro,
+                                                                            double sat_liq,
+                                                                            double sat_ice,
+                                                                            double temp)
+{
+  return -k_soil_ + sat_liq * k_liquid_ + sat_ice * k_ice_ + (1 - sat_liq - sat_ice) * k_gas_;  
+}
+
+double
+ThermalConductivityThreePhaseVolumeAveraged::DThermalConductivity_DSaturationLiquid(double poro,
+                                                                                    double sat_liq,
+                                                                                    double sat_ice,
+                                                                                    double temp)
+{
+  return poro * k_liquid_ - poro * k_gas_;
+}
+
+double
+ThermalConductivityThreePhaseVolumeAveraged::DThermalConductivity_DSaturationIce(double poro,
+                                                                                 double sat_liq,
+                                                                                 double sat_ice,
+                                                                                 double temp)
+
+{
+  return poro * k_ice_ - poro * k_gas_;
+}
+
+double
+ThermalConductivityThreePhaseVolumeAveraged::DThermalConductivity_DTemperature(double poro,
+                                                                               double sat_liq,
+                                                                               double sat_ice,
+                                                                               double temp)
+{
+  return 0.;
+}
+
 } // namespace Energy
 } // namespace Amanzi
