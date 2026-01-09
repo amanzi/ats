@@ -357,7 +357,7 @@ EOSEvaluator::EnsureCompatibility_ToDeps_(State& S){
 
   for (const auto& dep : dependencies_) {
     auto& dep_fac = S.Require<CompositeVector, CompositeVectorSpace>(dep.first, dep.second);
-    dep_fac.UpdateComponentsSameNumDofs(fac);
+    dep_fac.UpdateSameNumDofs(fac);
   }
 
 }
