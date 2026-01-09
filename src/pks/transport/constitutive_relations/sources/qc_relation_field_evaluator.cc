@@ -63,11 +63,15 @@ QCRelationFieldEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
   for (AmanziMesh::Entity_ID c = 0; c != ncells; ++c) {
     if (extensive_) {
       // convert extensive quantity in mol/s to m3/s
+      // convert extensive quantity in mol/s to m3/s
       field_flow = water_from_field[0][c] / molar_den[0][c];
     } else {
       // convert intensive quantity from mol/m2/s to m3/s
+      // convert intensive quantity from mol/m2/s to m3/s
       field_flow = water_from_field[0][c] * cv[0][c] / molar_den[0][c];
     }
+    // current concentration
+    tcc_current = tcc[0][c];
     // current concentration
     tcc_current = tcc[0][c];
 
