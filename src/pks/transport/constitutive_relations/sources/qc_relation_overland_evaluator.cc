@@ -61,6 +61,7 @@ QCRelationOverlandEvaluator::Evaluate_(const State& S, const std::vector<Composi
   // mesh.getFaceCells(f).size() == 2: Internal face connecting two river cells (ignore)
   for (AmanziMesh::Entity_ID c = 0; c != ncells; ++c) {
     AmanziGeometry::Point centroid = mesh.getCellCentroid(c);
+    AmanziGeometry::Point centroid = mesh.getCellCentroid(c);
     double total_external_flux = 0;
     const auto& [faces, dirs] = mesh.getCellFacesAndDirections(c);
     int nfaces = faces.size();
@@ -72,7 +73,7 @@ QCRelationOverlandEvaluator::Evaluate_(const State& S, const std::vector<Composi
         // External faces are adjacent to only one cell (size() == 1).
         // Flux through these faces represents sources or sinks to/from the overland flow.
         total_external_flux += water_from_field[0][f] * (-dir);
-      }
+      }  
     }
     // current concentration
     double tcc_current = tcc[0][c];
@@ -90,6 +91,7 @@ QCRelationOverlandEvaluator::Evaluate_(const State& S, const std::vector<Composi
       surf_src[0][c] = source_transport * total_flux_meter * 1.0;
     } else {
       // negative flux means sink, concentration is the same as the current concentration
+      surf_src[0][c] = tcc_current * total_flux_meter * 1.0;
       surf_src[0][c] = tcc_current * total_flux_meter * 1.0;
     }
   }
