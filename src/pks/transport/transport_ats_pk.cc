@@ -284,6 +284,7 @@ Transport_ATS::SetupTransport_()
     S_->Require<TensorVector, TensorVector_Factory>(dispersion_tensor_key_, tag_next_)
       .set_map(disp_space);
     S_->RequireEvaluator(dispersion_tensor_key_, tag_next_);
+    S_->RequireEvaluator(dispersion_tensor_key_, Amanzi::Tags::NEXT);
   }
 
   // operator and boundary conditions for diffusion/dispersion solve
@@ -330,7 +331,7 @@ Transport_ATS::SetupTransport_()
             // domain couplings functions is special -- always work on all components
             for (int i = 0; i < num_components_; i++) {
               src->tcc_names().push_back(component_names_[i]);
-              src->tcc_mol_masses().push_back(mol_masses_[i]);              
+              // src->tcc_mol_masses().push_back(molar_masses_[i]);              
               src->tcc_index().push_back(i);
             }
             src->set_state(S_);
@@ -342,7 +343,7 @@ Transport_ATS::SetupTransport_()
 
             for (int i = 0; i < num_components_; i++) {
               src->tcc_names().push_back(component_names_[i]);
-              src->tcc_mol_masses().push_back(mol_masses_[i]);
+              // src->tcc_mol_masses().push_back(molar_masses_[i]);
               src->tcc_index().push_back(i);
             }
             src->set_state(S_);
@@ -564,6 +565,10 @@ Transport_ATS::SetupPhysicalEvaluators_()
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+  requireEvaluatorAtNext(lwc_key_, Amanzi::Tags::NEXT, *S_)
+    .SetMesh(mesh_)
+    ->SetGhosted(true)
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);    
   requireEvaluatorAtCurrent(lwc_key_, tag_current_, *S_, name_);
 
   if (!molar_dens_key_.empty()) {
@@ -578,6 +583,9 @@ Transport_ATS::SetupPhysicalEvaluators_()
   requireEvaluatorAtNext(cv_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+  requireEvaluatorAtNext(cv_key_, Amanzi::Tags::NEXT, *S_)
+    .SetMesh(mesh_)
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);    
 
   // Need to figure out primary vs secondary -- are both in component names? --ETC
   std::vector<std::string> subfield_names(num_aqueous_);
