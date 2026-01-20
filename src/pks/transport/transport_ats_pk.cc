@@ -287,6 +287,29 @@ Transport_ATS::SetupTransport_()
     S_->RequireEvaluator(dispersion_tensor_key_, tag_next_);
   }
 
+  // operator and boundary conditions for diffusion/dispersion solve
+  if (has_dispersion_ || has_diffusion_) {
+    // default boundary conditions (none inside domain and Neumann on its boundary)
+    diff_bcs_ = Teuchos::rcp(
+                             new Operators::BCs(mesh_, AmanziMesh::Entity_kind::FACE, WhetStone::DOF_Type::SCALAR));
+
+    PopulateBoundaryData_(-1, *diff_bcs_);
+
+    // diffusion operator
+    Operators::PDE_DiffusionFactory opfactory;
+    Teuchos::ParameterList& op_list = plist_->sublist("diffusion");
+    enforce_bc_ = op_list.get("enforce boundary conditions", false);
+    diff_op_ = opfactory.Create(op_list, mesh_, diff_bcs_);
+    diff_global_op_ = diff_op_->global_operator();
+    diff_acc_op_ =
+      Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, diff_global_op_));
+
+    // diffusion workspace
+    const CompositeVectorSpace& cvs = diff_global_op_->DomainMap();
+    diff_sol_ = Teuchos::rcp(new CompositeVector(cvs));
+  }
+
+  
   // source term setup
   // --------------------------------------------------------------------------------
   if (plist_->isSublist("source terms")) {
@@ -491,30 +514,6 @@ Transport_ATS::SetupTransport_()
         }
       }
     }
-
-  // operator and boundary conditions for diffusion/dispersion solve
-  if (has_dispersion_ || has_diffusion_) {
-    // default boundary conditions (none inside domain and Neumann on its boundary)
-    diff_bcs_ = Teuchos::rcp(
-      new Operators::BCs(mesh_, AmanziMesh::Entity_kind::FACE, WhetStone::DOF_Type::SCALAR));
-
-    PopulateBoundaryData_(-1, *diff_bcs_);
-
-    // diffusion operator
-    Operators::PDE_DiffusionFactory opfactory;
-    Teuchos::ParameterList& op_list = plist_->sublist("diffusion");
-    enforce_bc_ = op_list.get("enforce boundary conditions", false);
-    diff_op_ = opfactory.Create(op_list, mesh_, diff_bcs_);
-    diff_global_op_ = diff_op_->global_operator();
-    diff_acc_op_ =
-      Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, diff_global_op_));
-
-    // diffusion workspace
-    const CompositeVectorSpace& cvs = diff_global_op_->DomainMap();
-    diff_sol_ = Teuchos::rcp(new CompositeVector(cvs));
-  }
-
-
     
 #ifdef ALQUIMIA_ENABLED
     // -- try geochemical conditions
