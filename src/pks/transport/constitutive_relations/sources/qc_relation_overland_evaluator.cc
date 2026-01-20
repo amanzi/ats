@@ -91,7 +91,6 @@ QCRelationOverlandEvaluator::Evaluate_(const State& S, const std::vector<Composi
     } else {
       // negative flux means sink, concentration is the same as the current concentration
       surf_src[0][c] = tcc_current * total_flux_meter * 1.0;
-      surf_src[0][c] = tcc_current * total_flux_meter * 1.0;
     }
   }
 }
