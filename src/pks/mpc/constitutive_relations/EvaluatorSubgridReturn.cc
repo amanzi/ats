@@ -30,9 +30,12 @@ EvaluatorSubgridReturn::EvaluatorSubgridReturn(Teuchos::ParameterList& plist)
   lwc_key_ = Keys::readKey(plist, domain_, "liquid water content", "water_content");
   dependencies_.insert({ lwc_key_, tag });
 
-  alpha_key_ = Keys::readKey(plist, domain_, "exchange coefficient", "exchange_coefficient_0");
-  dependencies_.insert({ alpha_key_, Amanzi::Tags::NEXT });
+  alpha_key_ = Keys::readKey(plist, domain_, "exchange coefficient", "exchange_coefficient_0");  
   dependencies_.insert({ alpha_key_, tag });
+  if (tag != Amanzi::Tags::NEXT) {
+    dependencies_.insert({ alpha_key_, Amanzi::Tags::NEXT });
+  }
+  num_deps_ = dependencies_.size();
 
   // now add the domain-set dependencies
   mf_suffix_ = plist.get<std::string>("subgrid field suffix", "mole_fraction");
@@ -58,7 +61,7 @@ EvaluatorSubgridReturn::Evaluate_(const State& S, const std::vector<CompositeVec
   Epetra_MultiVector& res = *results[0]->ViewComponent("cell", false);
 
   // this should be n subdomains + lwc, cv, and alpha?
-  AMANZI_ASSERT(res.MyLength() + 4 == dependencies_.size());
+  AMANZI_ASSERT(res.MyLength() + num_deps_ == dependencies_.size());
   auto ds = S.GetDomainSet(domain_set_);
   int c = 0;
   for (const auto& subdomain : *ds) {
@@ -81,7 +84,7 @@ void
 EvaluatorSubgridReturn::EnsureCompatibility_ToDeps_(State& S)
 {
   auto akeytag = my_keys_.front();
-  if (dependencies_.size() == 4) {
+  if (dependencies_.size() == num_deps_) {
     auto ds = S.GetDomainSet(domain_set_);
     for (const auto& subdomain : *ds) {
       Key dep = Keys::getKey(subdomain, mf_suffix_);
