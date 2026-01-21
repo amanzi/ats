@@ -83,9 +83,6 @@ class StreamlightEvaluator : public EvaluatorSecondaryMonotypeCV {
   Key qSWin_key_;
   Key lai_key_;
   Key ponded_depth_key_;
-  std::string stream_region_;
-  std::string ats_crs_;
-  std::string latlon_crs_;
   std::string start_date_;
   int days_offset_;
 
