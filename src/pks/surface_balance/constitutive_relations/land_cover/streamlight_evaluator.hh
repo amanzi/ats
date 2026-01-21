@@ -1,0 +1,100 @@
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+
+/*!
+
+Evaluates the radiation incident on a non-flat surface.
+
+Aspect modified shortwave radiation is determined by a factor which is
+multiplied by the 'incoming radiation incident on a flat surface' to determine
+the 'incoming radiation incident on a sloping surface of a given aspect' as a
+function of slope and aspect, Julian day of the year, and time of day.  The
+latitude and Julian day of the year are used to modify this with both time of
+day and seasonal changes of the planet.
+
+Note that some careful checking and experimentation has found that, in
+general, the daily average incoming radiation times the 12-noon aspect
+modifier correlates reasonably well with the daily average of the
+product of the hourly incoming radiation and the hourly aspect
+modifier.  It is notably better than the daily average radiation times
+the daily average aspect modifier.
+
+This implementation is derived from `LandLab code
+<https://github.com/landlab/landlab/blob/master/landlab/components/radiation/radiation.py>`_,
+which is released under the MIT license.
+
+`"evaluator type`" = `"incident shortwave radiation`"
+
+.. _evaluator-incident_shortwave_radiation-spec:
+.. admonition:: evaluator-incident_shortwave_radiation-spec
+
+    * `"incident shortwave radiation parameters`" ``[incident-shortwave-radiation-model-spec]``
+
+    DEPENDENCIES:
+
+    - `"slope`"
+    - `"aspect`"
+    - `"incoming shortwave radiation`"
+
+*/
+
+#pragma once
+
+#include "Factory.hh"
+#include "EvaluatorSecondaryMonotype.hh"
+
+namespace Amanzi {
+namespace SurfaceBalance {
+namespace Relations {
+
+class StreamlightModel;
+
+class StreamlightEvaluator : public EvaluatorSecondaryMonotypeCV {
+ public:
+  explicit StreamlightEvaluator(Teuchos::ParameterList& plist);
+  StreamlightEvaluator(const StreamlightEvaluator& other) = default;
+  virtual Teuchos::RCP<Evaluator> Clone() const override;
+
+  Teuchos::RCP<StreamlightModel> get_model() { return model_; }
+
+  bool IsDifferentiableWRT(const State& S,
+                           const Key& wrt_key,
+                           const Tag& wrt_tag) const override {
+    return false;
+  }
+
+ protected:
+  void InitializeFromPlist_();
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& results) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& results) override
+  {}
+
+ protected:
+  Key domain_;
+  Key qSWin_key_;
+  Key lai_key_;
+  Key ponded_depth_key_;
+  std::string stream_region_;
+  std::string ats_crs_;
+  std::string latlon_crs_;
+  std::string start_date_;
+  int days_offset_;
+
+  Teuchos::RCP<StreamlightModel> model_;
+
+ private:
+  static Utils::RegisteredFactory<Evaluator, StreamlightEvaluator> reg_;
+};
+
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi
