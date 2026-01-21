@@ -67,6 +67,7 @@ class EvaluatorSubgridReturn : public EvaluatorSecondaryMonotypeCV {
 
  private:
   int n_dofs_;
+  int num_deps_;
   Key alpha_key_;
   Key mf_suffix_;
   Key lwc_key_;
