@@ -27,6 +27,7 @@
 #include "canopy_radiation_evaluator.hh"
 #include "seb_twocomponent_evaluator.hh"
 #include "seb_threecomponent_evaluator.hh"
+#include "streamlight_evaluator.hh"
 
 namespace Amanzi {
 namespace SurfaceBalance {
@@ -91,6 +92,9 @@ Utils::RegisteredFactory<Evaluator, SEBTwoComponentEvaluator> SEBTwoComponentEva
 
 Utils::RegisteredFactory<Evaluator, SEBThreeComponentEvaluator> SEBThreeComponentEvaluator::reg_(
   "surface energy balance, three components");
+
+Utils::RegisteredFactory<Evaluator, StreamlightEvaluator> StreamlightEvaluator::reg_(
+  "streamlight");
 
 } // namespace Relations
 } // namespace SurfaceBalance
