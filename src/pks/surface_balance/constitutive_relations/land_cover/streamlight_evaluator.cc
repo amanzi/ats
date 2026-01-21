@@ -54,10 +54,10 @@ StreamlightEvaluator::InitializeFromPlist_()
   dependencies_.insert(KeyTag{ ponded_depth_key_, tag });
 
   lat_key_ = Keys::readKey(plist_, domain_, "latitude", "latitude");
-  dependencies_.insert(KeyTag{ latitude_key_, tag });
+  dependencies_.insert(KeyTag{ lat_key_, tag });
 
   lon_key_ = Keys::readKey(plist_, domain_, "longitude", "longitude");
-  dependencies_.insert(KeyTag{ longitude_key_, tag });
+  dependencies_.insert(KeyTag{ lon_key_, tag });
 
   stream_region_ = plist_.get<std::string>("stream region");
   start_date_ = plist_.get<std::string>("start date of forcings [MM-DD]", "01-01");
