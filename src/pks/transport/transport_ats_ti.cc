@@ -14,6 +14,7 @@
 
 #include <algorithm>
 
+#include "PK_Helpers.hh"
 #include "OperatorDefs.hh"
 #include "transport_ats.hh"
 
@@ -387,6 +388,16 @@ Transport_ATS::AddSourceTerms_(double t0, double t1, Epetra_MultiVector& conserv
         if (srcs_[m]->getType() == DomainFunction_kind::COUPLING) {
           AMANZI_ASSERT(values.size() == num_aqueous_ + 1);
           conserve_qty[num_aqueous_][c] += values[num_aqueous_];
+        }
+
+        if (convert_to_field_[srcs_[m]->getName()]) {
+          std::string name = srcs_[m]->getName();
+          name = Keys::cleanName(name);
+          if (Keys::getDomain(name)!=domain_){
+            name = Keys::getKey(domain_, name);
+          }
+          copyToCompositeVector(*srcs_[m], S_->GetW<CompositeVector>(name, Tags::NEXT, name));
+          changedEvaluatorPrimary(name, Tags::NEXT, *S_);
         }
 
         for (int k = 0; k < tcc_index.size(); ++k) {
