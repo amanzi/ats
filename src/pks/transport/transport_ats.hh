@@ -324,6 +324,8 @@ class Transport_ATS : public PK_Physical_Default {
   Key mass_flux_diffusion_key_;
   Key dispersion_tensor_key_;
 
+  std::unordered_map<std::string, bool> convert_to_field_;
+
   // component information
   std::vector<std::string> component_names_; // details of components
   int num_components_, num_aqueous_;

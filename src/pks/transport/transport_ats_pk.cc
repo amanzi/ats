@@ -322,6 +322,7 @@ Transport_ATS::SetupTransport_()
         if (conc_sources_list->isSublist(name)) {
           auto src_list = Teuchos::sublist(conc_sources_list, name);
 
+          convert_to_field_[name] = src_list->get<bool>("convert to field", false);
           std::string src_type = src_list->get<std::string>("spatial distribution method", "none");
 
           if (src_type == "domain coupling") {
@@ -399,6 +400,16 @@ Transport_ATS::SetupTransport_()
             src->set_state(S_);
             srcs_.push_back(src);
           }
+
+          if (convert_to_field_[name]) {
+            name = Keys::cleanName(name);
+            if (Keys::getDomain(name)!=domain_){
+              name = Keys::getKey(domain_, name);
+            }
+            requireEvaluatorAtNext(name, Amanzi::Tags::NEXT, *S_, name)
+            .SetMesh(mesh_)
+            ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_components_);
+          }          
         }
       }
     }
