@@ -332,7 +332,7 @@ Transport_ATS::SetupTransport_()
             // domain couplings functions is special -- always work on all components
             for (int i = 0; i < num_components_; i++) {
               src->tcc_names().push_back(component_names_[i]);
-              // src->tcc_mol_masses().push_back(molar_masses_[i]);              
+              src->tcc_mol_masses().push_back(molar_masses_[component_names_[i]]);              
               src->tcc_index().push_back(i);
             }
             src->set_state(S_);
@@ -344,7 +344,7 @@ Transport_ATS::SetupTransport_()
 
             for (int i = 0; i < num_components_; i++) {
               src->tcc_names().push_back(component_names_[i]);
-              // src->tcc_mol_masses().push_back(molar_masses_[i]);
+              src->tcc_mol_masses().push_back(molar_masses_[component_names_[i]]);
               src->tcc_index().push_back(i);
             }
             src->set_state(S_);
