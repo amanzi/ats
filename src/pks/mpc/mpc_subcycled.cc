@@ -14,6 +14,7 @@
 #include "TimeStepManager.hh"
 #include "mpc_subcycled.hh"
 #include "PK_Helpers.hh"
+#include "State.hh"
 
 namespace Amanzi {
 
@@ -99,7 +100,11 @@ MPCSubcycled::Initialize()
 {
   int i = 0;
   for (const auto& tag : tags_) {
-    if (subcycling_[i]) S_->GetRecordW("dt", tag.first, name()).set_initialized();
+    if (subcycling_[i]) {
+      S_->GetRecordW("dt", tag.first, name()).set_initialized();
+      S_->set_time(tag.first, S_->get_time(Amanzi::Tags::CURRENT));
+      S_->set_time(tag.second, S_->get_time(Amanzi::Tags::NEXT));
+    }
     ++i;
   }
   MPC<PK>::Initialize();
