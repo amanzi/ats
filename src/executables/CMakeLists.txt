@@ -133,7 +133,8 @@ if (ENABLE_ECOSIM)
   list(APPEND ats_link_libs
     ats_ecosim
     ats_ecosim_data
-    ats_ecosim_relations)  
+ #   ats_ecosim_relations
+  )
 endif()
 
 #In theory covered by ECOSIM_LIBRARIES:

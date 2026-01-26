@@ -106,6 +106,7 @@ extern const int kBGCMaxWordLength;
     BGCMatrixDouble liquid_density;
     BGCMatrixDouble gas_density;
     BGCMatrixDouble ice_density;
+    BGCMatrixDouble rock_density;
     BGCMatrixDouble porosity;
     BGCMatrixDouble water_content;
     BGCMatrixDouble matric_pressure;

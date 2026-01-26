@@ -32,27 +32,27 @@ HydraulicConductivityModel::InitializeFromPlist_(Teuchos::ParameterList& plist)
 
 // main method
 double
-HydraulicConductivityModel::HydraulicConductivity(double k, double rho, double mu) const
+HydraulicConductivityModel::HydraulicConductivity(double k, double rho, double mu, double gz) const
 {
-  return k*rho;
+  return k*rho*gz/mu;
 }
 
 double
-HydraulicConductivityModel::DHydraulicConductivityDPermeability(double k, double rho, double mu) const
+HydraulicConductivityModel::DHydraulicConductivityDPermeability(double k, double rho, double mu, double gz) const
 {
-  return rho;
+  return rho*gz/mu;
 }
 
 double
-HydraulicConductivityModel::DHydraulicConductivityDMassDensityLiquid(double k, double rho, double mu) const
+HydraulicConductivityModel::DHydraulicConductivityDMassDensityLiquid(double k, double rho, double mu, double gz) const
 {
-  return k;
+  return k*gz/mu;
 }
 
 double
-HydraulicConductivityModel::DHydraulicConductivityDViscosityLiquid(double k, double rho, double mu) const
+HydraulicConductivityModel::DHydraulicConductivityDViscosityLiquid(double k, double rho, double mu, double gz) const
 {
-  return 0;
+  return -1.0*k*rho*gz/pow(mu,2);
 }
 
 } //namespace

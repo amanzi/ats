@@ -315,6 +315,7 @@ void AllocateBGCState(const BGCSizes* const sizes,
    AllocateBGCMatrixDouble(sizes->ncells_per_col_, sizes->num_columns, &(state->liquid_density));
    AllocateBGCMatrixDouble(sizes->ncells_per_col_, sizes->num_columns, &(state->gas_density));
    AllocateBGCMatrixDouble(sizes->ncells_per_col_, sizes->num_columns, &(state->ice_density));
+   AllocateBGCMatrixDouble(sizes->ncells_per_col_, sizes->num_columns, &(state->rock_density));
    AllocateBGCMatrixDouble(sizes->ncells_per_col_, sizes->num_columns, &(state->porosity));
    AllocateBGCMatrixDouble(sizes->ncells_per_col_, sizes->num_columns, &(state->water_content));
    AllocateBGCMatrixDouble(sizes->ncells_per_col_, sizes->num_columns, &(state->matric_pressure));
@@ -346,6 +347,7 @@ void AllocateBGCState(const BGCSizes* const sizes,
      FreeBGCMatrixDouble(&(state->liquid_density));
      FreeBGCMatrixDouble(&(state->gas_density));
      FreeBGCMatrixDouble(&(state->ice_density));
+     FreeBGCMatrixDouble(&(state->rock_density));
      FreeBGCMatrixDouble(&(state->porosity));
      FreeBGCMatrixDouble(&(state->water_content));
      FreeBGCMatrixDouble(&(state->matric_pressure));

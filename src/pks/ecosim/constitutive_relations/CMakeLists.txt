@@ -9,21 +9,21 @@
 
 # collect all sources
 set(ats_ecosim_relations_src_files
-  bulk_density/bulk_density_evaluator.cc
-  bulk_density/bulk_density_model.cc
+#  bulk_density/bulk_density_evaluator.cc
+#  bulk_density/bulk_density_model.cc
   hydraulic_conductivity/hydraulic_conductivity_evaluator.cc
   hydraulic_conductivity/hydraulic_conductivity_model.cc
-  matric_pressure/matric_pressure_evaluator.cc
-  matric_pressure/matric_pressure_model.cc  
+#  matric_pressure/matric_pressure_evaluator.cc
+#  matric_pressure/matric_pressure_model.cc
 )
 
 set(ats_ecosim_relations_inc_files
-  bulk_density/bulk_density_evaluator.hh
-  bulk_density/bulk_density_model.hh
+#  bulk_density/bulk_density_evaluator.hh
+#  bulk_density/bulk_density_model.hh
   hydraulic_conductivity/hydraulic_conductivity_evaluator.hh
   hydraulic_conductivity/hydraulic_conductivity_model.hh
-  matric_pressure/matric_pressure_evaluator.hh
-  matric_pressure/matric_pressure_model.hh
+#  matric_pressure/matric_pressure_evaluator.hh
+#  matric_pressure/matric_pressure_model.hh
 )
 
 set(ats_ecosim_relations_link_libs
@@ -51,20 +51,20 @@ add_amanzi_library(ats_ecosim_relations
                    HEADERS ${ats_ecosim_relations_inc_files}
 		   LINK_LIBS ${ats_ecosim_relations_link_libs})
 
-register_evaluator_with_factory(
-  HEADERFILE bulk_density/bulk_density_evaluator_reg.hh
-  LISTNAME ATS_ECOSIM_RELATIONS_REG
-)
+#register_evaluator_with_factory(
+#  HEADERFILE bulk_density/bulk_density_evaluator_reg.hh
+#  LISTNAME ATS_ECOSIM_RELATIONS_REG
+#)
 
 register_evaluator_with_factory(
   HEADERFILE hydraulic_conductivity/hydraulic_conductivity_evaluator_reg.hh
   LISTNAME ATS_ECOSIM_RELATIONS_REG
 )
 
-register_evaluator_with_factory(
-  HEADERFILE matric_pressure/matric_pressure_evaluator_reg.hh
-  LISTNAME ATS_ECOSIM_RELATIONS_REG
-)
+#register_evaluator_with_factory(
+#  HEADERFILE matric_pressure/matric_pressure_evaluator_reg.hh
+#  LISTNAME ATS_ECOSIM_RELATIONS_REG
+#)
 
 generate_evaluators_registration_header(
     HEADERFILE ats_ecosim_relations_registration.hh

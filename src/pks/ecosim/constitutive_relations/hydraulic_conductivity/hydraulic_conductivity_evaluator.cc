@@ -73,6 +73,9 @@ HydraulicConductivityEvaluator::Evaluate_(const State& S,
   Teuchos::RCP<const CompositeVector> rho = S.GetPtr<CompositeVector>(rho_key_, tag);
   Teuchos::RCP<const CompositeVector> mu = S.GetPtr<CompositeVector>(mu_key_, tag);
 
+  const AmanziGeometry::Point& gravity = S.Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
+  double gz = -gravity[2];
+
   for (CompositeVector::name_iterator comp=result[0]->begin();
        comp!=result[0]->end(); ++comp) {
     const Epetra_MultiVector& k_v = *k->ViewComponent(*comp, false);
@@ -82,7 +85,7 @@ HydraulicConductivityEvaluator::Evaluate_(const State& S,
 
     int ncomp = result[0]->size(*comp, false);
     for (int i=0; i!=ncomp; ++i) {
-      result_v[0][i] = model_->HydraulicConductivity(k_v[0][i], rho_v[0][i], mu_v[0][i]);
+      result_v[0][i] = model_->HydraulicConductivity(k_v[0][i], rho_v[0][i], mu_v[0][i],gz);
     }
   }
 }
@@ -97,6 +100,9 @@ HydraulicConductivityEvaluator::EvaluatePartialDerivative_(const State& S,
   Teuchos::RCP<const CompositeVector> rho = S.GetPtr<CompositeVector>(rho_key_, tag);
   Teuchos::RCP<const CompositeVector> mu = S.GetPtr<CompositeVector>(mu_key_, tag);
 
+  const AmanziGeometry::Point& gravity = S.Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
+  double gz = -gravity[2];
+
   if (wrt_key == k_key_) {
     for (CompositeVector::name_iterator comp=result[0]->begin();
          comp!=result[0]->end(); ++comp) {
@@ -107,7 +113,7 @@ HydraulicConductivityEvaluator::EvaluatePartialDerivative_(const State& S,
 
       int ncomp = result[0]->size(*comp, false);
       for (int i=0; i!=ncomp; ++i) {
-        result_v[0][i] = model_->DHydraulicConductivityDPermeability(k_v[0][i], rho_v[0][i], mu_v[0][i]);
+        result_v[0][i] = model_->DHydraulicConductivityDPermeability(k_v[0][i], rho_v[0][i], mu_v[0][i],gz);
       }
     }
 
@@ -121,7 +127,7 @@ HydraulicConductivityEvaluator::EvaluatePartialDerivative_(const State& S,
 
       int ncomp = result[0]->size(*comp, false);
       for (int i=0; i!=ncomp; ++i) {
-        result_v[0][i] = model_->DHydraulicConductivityDMassDensityLiquid(k_v[0][i], rho_v[0][i], mu_v[0][i]);
+        result_v[0][i] = model_->DHydraulicConductivityDMassDensityLiquid(k_v[0][i], rho_v[0][i], mu_v[0][i],gz);
       }
     }
 
@@ -135,7 +141,7 @@ HydraulicConductivityEvaluator::EvaluatePartialDerivative_(const State& S,
 
       int ncomp = result[0]->size(*comp, false);
       for (int i=0; i!=ncomp; ++i) {
-        result_v[0][i] = model_->DHydraulicConductivityDViscosityLiquid(k_v[0][i], rho_v[0][i], mu_v[0][i]);
+        result_v[0][i] = model_->DHydraulicConductivityDViscosityLiquid(k_v[0][i], rho_v[0][i], mu_v[0][i],gz);
       }
     }
 

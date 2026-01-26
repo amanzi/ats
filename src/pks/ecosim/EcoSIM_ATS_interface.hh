@@ -331,6 +331,7 @@ class EcoSIM : public PK_Physical_Default {
   Key evaporation_snow_key_;
   Key sublimation_snow_key_;
   Key snow_temperature_key_;
+  Key cap_pres_key_;
 
   Teuchos::RCP<BGCEngine> bgc_engine_;
 

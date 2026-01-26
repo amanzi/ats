@@ -20,11 +20,11 @@ class HydraulicConductivityModel {
   explicit
   HydraulicConductivityModel(Teuchos::ParameterList& plist);
 
-  double HydraulicConductivity(double k, double rho, double mu) const;
+  double HydraulicConductivity(double k, double rho, double mu, double gz) const;
 
-  double DHydraulicConductivityDPermeability(double k, double rho, double mu) const;
-  double DHydraulicConductivityDMassDensityLiquid(double k, double rho, double mu) const;
-  double DHydraulicConductivityDViscosityLiquid(double k, double rho, double mu) const;
+  double DHydraulicConductivityDPermeability(double k, double rho, double mu, double gz) const;
+  double DHydraulicConductivityDMassDensityLiquid(double k, double rho, double mu, double gz) const;
+  double DHydraulicConductivityDViscosityLiquid(double k, double rho, double mu, double gz) const;
 
  protected:
   void InitializeFromPlist_(Teuchos::ParameterList& plist);
