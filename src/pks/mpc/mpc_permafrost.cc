@@ -414,11 +414,9 @@ MPCPermafrost::FunctionalResidual(double t_old,
                                   Teuchos::RCP<TreeVector> u_new,
                                   Teuchos::RCP<TreeVector> g)
 {
-  Teuchos::OSTab tab = vo_->getOSTab();
   // propagate updated info into state
   Solution_to_State(*u_new, tag_next_);
 
-  *vo_->os() << "Computing residuals for flow and energy" << std::endl;
   // Evaluate the surface flow residual
   surf_flow_pk_->FunctionalResidual(
     t_old, t_new, u_old->SubVector(2), u_new->SubVector(2), g->SubVector(2));

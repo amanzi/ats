@@ -47,7 +47,6 @@ class WRMFPDPermafrostModel : public WRMPermafrostModel {
   virtual void dsaturations_dpc_liq(double pc_liq, double pc_ice, double (&dsats)[3]);
   virtual void dsaturations_dpc_ice(double pc_liq, double pc_ice, double (&dsats)[3]);
 
-  //virtual void suction_head(double s, double suction_head);
  protected:
   double deriv_regularization_;
 

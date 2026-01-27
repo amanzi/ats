@@ -88,7 +88,6 @@ WRMVanGenuchten::d_k_relative(double s)
 double
 WRMVanGenuchten::saturation(double pc)
 {
-  //std::cout << "What about Saturation?";
   if (pc > pc0_) {
     return std::pow(1.0 + std::pow(alpha_ * pc, n_), -m_) * (1.0 - sr_) + sr_;
   } else if (pc <= 0.) {
@@ -124,8 +123,6 @@ WRMVanGenuchten::capillaryPressure(double s)
   double se = (s - sr_) / (1.0 - sr_);
   se = std::min<double>(se, 1.0);
   se = std::max<double>(se, 1.e-40);
-
-  //std::cout << "Is Capillary pressure running?";
   if (se < 1.e-8) {
     return std::pow(se, -1.0 / (m_ * n_)) / alpha_;
   } else {
@@ -236,11 +233,9 @@ WRMVanGenuchten::InitializeFromPlist_()
 /* ******************************************************************
 * Suction formula: input is liquid saturation.
 ****************************************************************** */
-
 double
 WRMVanGenuchten::suction_head(double s)
 {
-  std::cout << "We are in suction head in van Genuchten";
   double se = (s - sr_) / (1 - sr_);
   if (se > FLOW_WRM_TOLERANCE) {
     return -(1. / alpha_) * pow(pow(se, -1. / m_) - 1, 1. - m_);

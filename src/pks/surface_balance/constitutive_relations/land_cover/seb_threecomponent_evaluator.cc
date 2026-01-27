@@ -209,8 +209,6 @@ SEBThreeComponentEvaluator::Evaluate_(const State& S, const std::vector<Composit
   // collect subsurface properties
   const auto& ss_pres = *S.Get<CompositeVector>(ss_pres_key_, tag).ViewComponent("cell", false);
 
-
-
   // collect output vecs
   auto& water_source = *results[0]->ViewComponent("cell", false);
   auto& energy_source = *results[1]->ViewComponent("cell", false);
@@ -218,25 +216,12 @@ SEBThreeComponentEvaluator::Evaluate_(const State& S, const std::vector<Composit
   auto& ss_energy_source = *results[3]->ViewComponent("cell", false);
   auto& snow_source = *results[4]->ViewComponent("cell", false);
   auto& new_snow = *results[5]->ViewComponent("cell", false);
-
-  if (vo_.os_OK(Teuchos::VERB_EXTREME))
-    *vo_.os() << "Water and Energy Sources Before:"
-              << ": energy source = " << energy_source
-              << ", water source = " << water_source << std::endl;
-
-
   water_source.PutScalar(0.);
   energy_source.PutScalar(0.);
   ss_water_source.PutScalar(0.);
   ss_energy_source.PutScalar(0.);
   snow_source.PutScalar(0.);
   new_snow.PutScalar(0.);
-
-  if (vo_.os_OK(Teuchos::VERB_EXTREME))
-    *vo_.os() << "Water and Energy Sources After:"
-              << ": energy source = " << energy_source
-              << ", water source = " << water_source << std::endl;
-
 
   const auto& mesh = *S.GetMesh(domain_);
   const auto& mesh_ss = *S.GetMesh(domain_ss_);

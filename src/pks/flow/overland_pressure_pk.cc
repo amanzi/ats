@@ -1290,6 +1290,7 @@ OverlandPressureFlow::ModifyCorrection(double h,
 
     Epetra_MultiVector& du_c = *du->Data()->ViewComponent("cell", false);
     const Epetra_MultiVector& u_c = *u->Data()->ViewComponent("cell", false);
+
     for (int c = 0; c != du_c.MyLength(); ++c) {
       if ((u_c[0][c] < patm) && (u_c[0][c] - du_c[0][c] > patm + patm_limit_)) {
         du_c[0][c] = u_c[0][c] - (patm + patm_limit_);
@@ -1340,7 +1341,6 @@ OverlandPressureFlow::ModifyCorrection(double h,
   my_limited = 0;
   int n_limited_change = 0;
 
-  *vo_->os() << "p_limit_ = " << p_limit_ << std::endl;
   if (p_limit_ > 0.) {
     for (CompositeVector::name_iterator comp = du->Data() ->begin(); comp != du->Data()->end();
          ++comp) {

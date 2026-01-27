@@ -51,8 +51,6 @@ WRMEvaluator::InitializeFromPlist_()
   Tag tag = my_keys_.front().second;
   my_keys_.clear();
 
-  std::cout << "In WRMEvaluator: InitializeFromPlist_";
-
   std::size_t liq_pos = akey.find("liquid");
   std::size_t gas_pos = akey.find("gas");
   if (liq_pos != std::string::npos) {
@@ -90,8 +88,6 @@ WRMEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& res
     wrms_->first->Initialize(results[0]->Mesh(), -1);
     wrms_->first->Verify();
   }
-
-  std::cout << "In WRMEvaluator:Evaluate_";
 
   Tag tag = my_keys_.front().second;
   Epetra_MultiVector& sat_c = *results[0]->ViewComponent("cell", false);
@@ -161,9 +157,6 @@ WRMEvaluator::EvaluatePartialDerivative_(const State& S,
     wrms_->first->Initialize(results[0]->Mesh(), -1);
     wrms_->first->Verify();
   }
-
-  std::cout << "In WRMEvaluator: Derivative";
-
 
   Tag tag = my_keys_.front().second;
   Epetra_MultiVector& sat_c = *results[0]->ViewComponent("cell", false);

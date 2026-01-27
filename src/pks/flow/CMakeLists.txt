@@ -12,7 +12,6 @@ include_directories(${ATS_SOURCE_DIR}/src/pks)
 include_directories(${ATS_SOURCE_DIR}/src/operators/advection)
 include_directories(${ATS_SOURCE_DIR}/src/operators/upwinding)
 include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/water_content)
-#include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/matric_pressure)
 include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/wrm)
 include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/overland_conductivity)
 include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/elevation)
@@ -124,8 +123,3 @@ generate_evaluators_registration_header(
  LISTNAME   ATS_FLOW_PKS_REG
  INSTALL    True
  )
-
-
-
-
-

@@ -108,7 +108,6 @@ class WRMPermafrostEvaluator : public EvaluatorSecondaryMonotypeCV {
  protected:
   Key pc_liq_key_;
   Key pc_ice_key_;
-  Key suction_head_key_;
 
   Teuchos::RCP<WRMPermafrostModelPartition> permafrost_models_;
   Teuchos::RCP<WRMPartition> wrms_;

@@ -103,7 +103,6 @@ Richards::parseParameterList()
     Keys::readKey(*plist_, domain_, "capillary_pressure_gas_liq", "capillary_pressure_gas_liq");
   capillary_pressure_liq_ice_key_ =
     Keys::readKey(*plist_, domain_, "capillary_pressure_liq_ice", "capillary_pressure_liq_ice");
-  //matric_pressure_key_ = Keys::readKey(*plist_, domain_, "matric pressure", "matric_pressure");
   depth_key_ = Keys::readKey(*plist_, domain_, "depth", "depth");
 
   if (S_->IsDeformableMesh(domain_))
