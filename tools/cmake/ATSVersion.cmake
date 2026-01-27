@@ -2,16 +2,16 @@
 
 #
 # ATS Version Information:
-#
-# Information about the current source is extracted from the git repository and used to
-# create the version string (ATS_VERSION).
+# 
+# Information about the current source is extracted from the git repository and used to 
+# create the version string (ATS_VERSION).  
 #
 # NOTE: this information won't be accessible without the full repository.
 #       So for releases we need to extract this and set it as part of the tarball creation.
 #
 #   * if ats_version.hh does not exist create it
 #       * if git is found
-#            use git to create version strings
+#            use git to create version strings 
 #       * else
 #            use statically defined version strings
 #       * endif
@@ -31,13 +31,13 @@ message(STATUS ">>>> JDM: ${ATS_SUBMODULE_DIR}")
 
 find_package(Git)
 
-if ( (EXISTS ${ATS_SUBMODULE_DIR}/.git) AND (GIT_FOUND) )
+if ( (EXISTS ${ATS_SUBMODULE_DIR}/.git) AND (GIT_FOUND) ) 
 
   # Get the name of the current branch.
   set(GIT_ARGS status)
   execute_process(COMMAND ${GIT_EXECUTABLE} ${GIT_ARGS}
 	          WORKING_DIRECTORY ${ATS_SUBMODULE_DIR}
-                  RESULT_VARIABLE err_occurred
+                  RESULT_VARIABLE err_occurred 
                   OUTPUT_VARIABLE ATS_GIT_STATUS
                   ERROR_VARIABLE err
                   OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -57,10 +57,9 @@ if ( (EXISTS ${ATS_SUBMODULE_DIR}/.git) AND (GIT_FOUND) )
   STRING(REPLACE "\n" ";" ATS_GIT_STATUS_LIST ${ATS_GIT_STATUS})
   # Extract the first entry - reuse the ATS_GIT_STATUS variable
   LIST(GET ATS_GIT_STATUS_LIST 0 ATS_GIT_STATUS)
-  if (${ATS_GIT_STATUS} MATCHES "(D|d)etached")
+  if (${ATS_GIT_STATUS} MATCHES "(D|d)etached") 
     # For now just set branch to detached - we could add a lookup for tags later
-    #set(ATS_GIT_BRANCH detached)
-    set(ATS_GIT_BRANCH master)
+    set(ATS_GIT_BRANCH detached)
   elseif(${ATS_GIT_STATUS} MATCHES "On branch")
     # Extract the branch name
     STRING(REPLACE "On branch " "" ATS_GIT_BRANCH ${ATS_GIT_STATUS})
@@ -74,7 +73,7 @@ if ( (EXISTS ${ATS_SUBMODULE_DIR}/.git) AND (GIT_FOUND) )
   set(GIT_ARGS rev-parse --short HEAD)
   execute_process(COMMAND ${GIT_EXECUTABLE} ${GIT_ARGS}
 	          WORKING_DIRECTORY ${ATS_SUBMODULE_DIR}
-                  RESULT_VARIABLE err_occurred
+                  RESULT_VARIABLE err_occurred 
                   OUTPUT_VARIABLE ATS_GIT_GLOBAL_HASH
                   ERROR_VARIABLE err
                   OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -91,16 +90,16 @@ if ( (EXISTS ${ATS_SUBMODULE_DIR}/.git) AND (GIT_FOUND) )
   set(GIT_ARGS tag -l ats-*)
   execute_process(COMMAND  ${GIT_EXECUTABLE} ${GIT_ARGS}
 	          WORKING_DIRECTORY ${ATS_SUBMODULE_DIR}
-                  RESULT_VARIABLE err_occurred
+                  RESULT_VARIABLE err_occurred 
                   OUTPUT_VARIABLE ATS_GIT_LATEST_TAG
                   ERROR_VARIABLE err
                   OUTPUT_STRIP_TRAILING_WHITESPACE
                   ERROR_STRIP_TRAILING_WHITESPACE)
 
    # Put the tags in a list
-   #STRING(REPLACE "\n" ";" ATS_GIT_LATEST_TAG_LIST ${ATS_GIT_LATEST_TAG})
+   STRING(REPLACE "\n" ";" ATS_GIT_LATEST_TAG_LIST ${ATS_GIT_LATEST_TAG})
    # Extract the lastest tag of the form ats-*
-   IF ( ${ATS_GIT_BRANCH} MATCHES "master" )
+   IF ( ${ATS_GIT_BRANCH} MATCHES "master" ) 
      FOREACH(atag ${ATS_GIT_LATEST_TAG_LIST})
        IF ( ${atag} MATCHES "^ats-.*-dev" )
          set ( ATS_GIT_LATEST_TAG ${atag} )
@@ -114,21 +113,18 @@ if ( (EXISTS ${ATS_SUBMODULE_DIR}/.git) AND (GIT_FOUND) )
      ENDFOREACH()
    ENDIF()
 
-   message(STATUS ">>>> JDM: GIT_EXEC        = ${GIT_EXECUTABLE}")
-   message(STATUS ">>>> JDM: GIT_ARGS        = ${GIT_ARGS}")
-   message(STATUS ">>>> JDM: RESULT_VARIABLE = ${err_occurred}")
-   message(STATUS ">>>> JDM: ATS_GIT_LATEST_TAG = ${ATS_GIT_LATEST_TAG}")
+   # message(STATUS ">>>> JDM: GIT_EXEC        = ${GIT_EXECUTABLE}")
+   # message(STATUS ">>>> JDM: GIT_ARGS        = ${GIT_ARGS}")
+   # message(STATUS ">>>> JDM: RESULT_VARIABLE = ${err_occurred}")
+   # message(STATUS ">>>> JDM: ATS_GIT_LATEST_TAG = ${ATS_GIT_LATEST_TAG}")
 
-   #STRING(REGEX REPLACE "ats-" "" ATS_GIT_LATEST_TAG_VER ${ATS_GIT_LATEST_TAG})
-   #STRING(REGEX REPLACE "\\..*" "" ATS_GIT_LATEST_TAG_MAJOR ${ATS_GIT_LATEST_TAG_VER})
-   #STRING(REGEX MATCH "\\.[0-9][0-9]?[\\.,-]" ATS_GIT_LATEST_TAG_MINOR ${ATS_GIT_LATEST_TAG_VER})
-   #STRING(REGEX REPLACE "[\\.,-]" "" ATS_GIT_LATEST_TAG_MINOR ${ATS_GIT_LATEST_TAG_MINOR} )
+   STRING(REGEX REPLACE "ats-" "" ATS_GIT_LATEST_TAG_VER ${ATS_GIT_LATEST_TAG})	
+   STRING(REGEX REPLACE "\\..*" "" ATS_GIT_LATEST_TAG_MAJOR ${ATS_GIT_LATEST_TAG_VER})	
+   STRING(REGEX MATCH "\\.[0-9][0-9]?[\\.,-]" ATS_GIT_LATEST_TAG_MINOR ${ATS_GIT_LATEST_TAG_VER})  	
+   STRING(REGEX REPLACE "[\\.,-]" "" ATS_GIT_LATEST_TAG_MINOR ${ATS_GIT_LATEST_TAG_MINOR} )	
 
-   #set(ATS_VERSION_MAJOR ${ATS_GIT_LATEST_TAG_MAJOR})
-   #set(ATS_VERSION_MINOR ${ATS_GIT_LATEST_TAG_MINOR})
-
-   #message(STATUS ">>>> JDM: ATS_GIT_LATEST_TAG_MAJOR = ${ATS_GIT_LATEST_TAG_MAJOR}")
-   #message(STATUS ">>>> JDM: ATS_GIT_LATEST_TAG_MINOR = ${ATS_GIT_LATEST_TAG_MINOR}")
+   set(ATS_VERSION_MAJOR ${ATS_GIT_LATEST_TAG_MAJOR})
+   set(ATS_VERSION_MINOR ${ATS_GIT_LATEST_TAG_MINOR})
 
    #
    # ATS version
@@ -142,7 +138,7 @@ if ( (EXISTS ${ATS_SUBMODULE_DIR}/.git) AND (GIT_FOUND) )
 else()
 
   message(STATUS "  >>>>>>>> Using static version information to create ats_version.hh")
-  if ( NOT GIT_FOUND )
+  if ( NOT GIT_FOUND ) 
     message(STATUS "    >>>>>> Could not locate Git executable.")
   endif()
   if ( NOT EXISTS ${CMAKE_SOURCE_DIR}/.git/ )
@@ -176,10 +172,11 @@ configure_file(${version_template}
                ${CMAKE_CURRENT_BINARY_DIR}/extras/ats_version.hh
                @ONLY)
 
-add_install_include_file(${CMAKE_CURRENT_BINARY_DIR}/ats_version.hh)
+add_install_include_file(${CMAKE_CURRENT_BINARY_DIR}/ats_version.hh)             
 
 message(STATUS "\t >>>>>  ATS Version: ${ATS_VERSION}")
 message(STATUS "\t >>>>>  MAJOR ${ATS_VERSION_MAJOR}")
 message(STATUS "\t >>>>>  MINOR ${ATS_VERSION_MINOR}")
 message(STATUS "\t >>>>>  PATCH ${ATS_VERSION_PATCH}")
 message(STATUS "\t >>>>>  HASH  ${ATS_VERSION_HASH}")
+

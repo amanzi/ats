@@ -72,6 +72,7 @@ SuctionHeadEvaluator::Evaluate_(const State& S, const std::vector<CompositeVecto
   const Epetra_MultiVector& sat_c =
     *S.GetPtr<CompositeVector>(sat_key_, tag)->ViewComponent("cell", false);
   Epetra_MultiVector& res_c = *result[0]->ViewComponent("cell", false);
+
   int ncells = res_c.MyLength();
   for (unsigned int c = 0; c != ncells; ++c) {
     int index = (*wrms_->first)[c];

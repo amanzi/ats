@@ -9,21 +9,18 @@ def loadTemplate(tname):
         _templates[tname] = tfid.read()[:-1] # python seems to force end of file with newline character even though it is not there?
 
 def render(tname, d):
-    print(tname)
     try:
         template = _templates[tname]
     except KeyError:
         loadTemplate(tname)
-        template = _templates[tname]
+        template = _templates[tname]        
 
-    assert type(d) is dict
-    print("Contents of dictionary (d):", d)
-    #return template.format(**d)
-
+    assert type(d) is dict        
+    return template.format(**d)
+    
 class EvalGen(object):
     def __init__(self, name, namespace, descriptor, my_key=None, expression=None,
                  doc=None, **kwargs):
-        print("what is this")
         self.d = {}
         self.setName(name, **kwargs)
         self.setNamespace(namespace, **kwargs)
@@ -79,7 +76,7 @@ class EvalGen(object):
         return '\n'.join([render('evaluator_keyCopyConstructor.cc', dict(arg=arg,var=var)) for arg,var in zip(self.args,self.vars)])
 
     def renderKeyDeclaration(self):
-        return '\n'.join([render('evaluator_keyDeclaration.hh', dict(arg=arg, var=var)) for arg, var in zip(self.args, self.vars)])
+        return '\n'.join([render('evaluator_keyDeclaration.hh', dict(arg=arg,var=var)) for arg,var in zip(self.args, self.vars)])
 
     def renderKeyInitialize(self):
         dicts = []
@@ -88,12 +85,12 @@ class EvalGen(object):
         return '\n\n'.join([render('evaluator_keyInitialize.cc', argdict) for argdict in dicts])
 
     def renderKeyCompositeVector(self):
-        return '\n'.join([render('evaluator_keyCompositeVector.cc', dict(arg=arg,var=var)) for arg,var in zip(self.args,self.vars)])
+        return '\n'.join([render('evaluator_keyCompositeVector.cc', dict(arg=arg,var=var)) for arg,var in zip(self.args,self.vars)])        
 
     def renderKeyEpetraVector(self):
-        return '\n'.join([render('evaluator_keyEpetraVector.cc', dict(arg=arg,var=var)) for arg,var in zip(self.args,self.vars)])
+        return '\n'.join([render('evaluator_keyEpetraVector.cc', dict(arg=arg,var=var)) for arg,var in zip(self.args,self.vars)])        
     def renderKeyEpetraVectorIndented(self):
-        return '\n'.join([render('evaluator_keyEpetraVectorIndented.cc', dict(arg=arg,var=var)) for arg,var in zip(self.args,self.vars)])
+        return '\n'.join([render('evaluator_keyEpetraVectorIndented.cc', dict(arg=arg,var=var)) for arg,var in zip(self.args,self.vars)])        
 
     def renderMyMethodArgs(self):
         return ", ".join(["%s_v[0][i]"%var for var in self.vars])
@@ -118,7 +115,7 @@ class EvalGen(object):
             d['wrtMethod'] = ''.join([word[0].upper()+word[1:] for word in arg.split("_")])
             d['myMethodArgs'] = self.renderMyMethodArgs()
             return d
-
+        
         if len(self.args) > 0:
             d = getDict(self.args[0], self.vars[0])
             d['if_elseif'] = render('evaluator_ifWRT.cc', d)
@@ -135,7 +132,7 @@ class EvalGen(object):
                                    "  }"]))
 
         return "\n\n".join(wrt_list)
-
+                            
     def renderModelMethodDeclaration(self):
         return render('model_declaration.hh', dict(myMethod=self.d['myKeyMethod'],
                                                    myMethodDeclarationArgs=self.d['myMethodDeclarationArgs']))
@@ -170,7 +167,7 @@ class EvalGen(object):
                                      myMethodDeclarationArgs=self.d['myMethodDeclarationArgs'],
                                      myMethodImplementation=implementation)))
         return '\n\n'.join(impls)
-
+    
     def renderModelParamDeclarations(self):
         return '\n'.join(['  %s %s;'%p for p in self.pars])
 
@@ -249,7 +246,6 @@ def generate_evaluator(name, namespace, descriptor, my_key, dependencies, parame
             eg.addArg(*dep)
 
     for par in parameters:
-        print(par)
         eg.addParam(*par)
 
     eg.genArgs()
@@ -265,8 +261,8 @@ def generate_evaluator(name, namespace, descriptor, my_key, dependencies, parame
             fid.write(render(outfile, eg.d))
 
 
-
-
+      
+        
 if __name__ == "__main__":
     eg = EvalGen("iem", "energy", "internal energy", "internal_energy", evalClassName='IEM')
     eg.addArg("temperature", "temp");
@@ -277,4 +273,4 @@ if __name__ == "__main__":
     print (render("evaluator.cc", eg.d))
     print (render("evaluator_reg.hh", eg.d))
     print (render("model.hh", eg.d))
-    print (render("model.cc", eg.d))
+    print (render("model.cc", eg.d))    
