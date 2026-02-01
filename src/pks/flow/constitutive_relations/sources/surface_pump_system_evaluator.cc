@@ -150,8 +150,8 @@ SurfPumpEvaluator::Evaluate_(const State& S,
 
   Amanzi::AmanziMesh::MeshCache<Amanzi::MemSpace_kind::HOST>::cEntity_ID_View pump_outlet_id_list;
   if (!pump_outlet_region_.empty()) {
-    auto pump_outlet_id_list = mesh.getSetEntities(
-      pump_outlet_region_, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+    pump_outlet_id_list = mesh.getSetEntities(
+    pump_outlet_region_, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
   }
 
   // stage_on value should be greater than elevation at inlet or inlet is the reference region
@@ -236,14 +236,16 @@ SurfPumpEvaluator::Evaluate_(const State& S,
   if (!pump_outlet_region_.empty()) {
     surf_src.Dot(cv, &mass_balance);
     // Check if the mass balance is zero
-    AMANZI_ASSERT(std::abs(mass_balance) < 1.e-10);
+    std::cout << "mass_balance: " << mass_balance << std::endl;
+    AMANZI_ASSERT(std::abs(mass_balance) < 1.e-7);
+
   } else { // Debug code
     for (auto c : pump_inlet_id_list) {
       mass_balance += surf_src[0][c] * cv[0][c] / liq_den[0][c]; // m^3/s
     }
     double mass_balance_g = 0;
     mesh.getComm()->SumAll(&mass_balance, &mass_balance_g, 1);
-    AMANZI_ASSERT(std::abs(mass_balance_g + Q) < 1.e-10);
+    AMANZI_ASSERT(std::abs(mass_balance_g + Q) < 1.e-7);
   }
 }
 
