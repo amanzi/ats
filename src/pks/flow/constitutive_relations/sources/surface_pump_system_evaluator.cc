@@ -85,6 +85,7 @@ SurfPumpEvaluator::SurfPumpEvaluator(Teuchos::ParameterList& plist)
   max_elev_pumpline_ = plist.get<double>("maximum pumpline elevation", NaN);
   stage_on_ = plist.get<double>("pump start at stage", NaN);
   stage_off_ = plist.get<double>("pump stop at stage", NaN);
+  pe_outlet_prescribed_ = plist.get<double>("stage at pump outlet", NaN); // UPDATE ME: this should be replaced with a function as should support timeseries (function tabular)
 
   Teuchos::ParameterList& pump_func = plist.sublist("function");
   FunctionFactory fac;
@@ -167,13 +168,11 @@ SurfPumpEvaluator::Evaluate_(const State& S,
   double avg_pd_inlet = computeAreaWeightedAverage(mesh, pump_inlet_id_list, cv, pd);
 
   // average stage at outlet if outlet region provided
-  double avg_pe_outlet;
-  if (!pump_outlet_region_.empty()) {
+  double avg_pe_outlet = max_elev_pumpline_;
+  if (!std::isnan(pe_outlet_prescribed_)) {
+    avg_pe_outlet = pe_outlet_prescribed_;
+  } else if (!pump_outlet_region_.empty()) {
     avg_pe_outlet = computeAreaWeightedAverage(mesh, pump_outlet_id_list, cv, pe);
-  } else {
-    // if the pump is at the domain boundary pumping water out of the domain,
-    // need to provide max pumpline elevation
-    avg_pe_outlet = max_elev_pumpline_;
   }
 
   double avg_pe_on_off = 0;
