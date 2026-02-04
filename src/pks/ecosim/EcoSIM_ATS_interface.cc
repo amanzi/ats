@@ -332,6 +332,9 @@ void EcoSIM::Setup() {
      S_->RequireEvaluator(p_snow_key_, tag_next_);
      S_->Require<CompositeVector, CompositeVectorSpace>(p_snow_key_, tag_next_).SetMesh(mesh_surf_)
        ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+     S_->RequireEvaluator(p_rain_key_, tag_next_);
+     S_->Require<CompositeVector, CompositeVectorSpace>(p_rain_key_, tag_next_).SetMesh(mesh_surf_)
+       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   }
 
   //Setup custom evaluators for EcoSIM, found in constitutive relations
@@ -415,6 +418,8 @@ void EcoSIM::Initialize() {
   } else {
     S_->GetW<CompositeVector>(p_snow_key_, Tags::DEFAULT, "surface-precipitation_snow").PutScalar(0.0);
     S_->GetRecordW(p_snow_key_, Tags::DEFAULT, "surface-precipitation_snow").set_initialized();
+    S_->GetW<CompositeVector>(p_rain_key_, Tags::DEFAULT, "surface-precipitation_rain").PutScalar(0.0);
+    S_->GetRecordW(p_rain_key_, Tags::DEFAULT, "surface-precipitation_rain").set_initialized();
   }
 
   S_->GetW<CompositeVector>(snow_depth_key_, Tags::DEFAULT, "surface-snow_depth").PutScalar(0.0);
