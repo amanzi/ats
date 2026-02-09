@@ -28,7 +28,7 @@ QCRelationFieldEvaluator::QCRelationFieldEvaluator(Teuchos::ParameterList& plist
   dependencies_.insert(KeyTag{ cv_key_, tag });
   molar_density_key_ =
     Keys::readKey(plist, domain_, "molar density liquid", "molar_density_liquid");
-  tcc_key_ = Keys::readKey(plist, domain_, "concentration", "total_component_concentration");
+  tcc_key_ = Keys::readKey(plist, domain_, "mole fraction", "mole_fraction");
   dependencies_.insert(KeyTag{ molar_density_key_, tag });
   field_src_key_ = Keys::readKey(plist, domain_, "field source", "water_source_field");
   dependencies_.insert(KeyTag{ field_src_key_, tag });
@@ -63,15 +63,11 @@ QCRelationFieldEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
   for (AmanziMesh::Entity_ID c = 0; c != ncells; ++c) {
     if (extensive_) {
       // convert extensive quantity in mol/s to m3/s
-      // convert extensive quantity in mol/s to m3/s
       field_flow = water_from_field[0][c] / molar_den[0][c];
     } else {
       // convert intensive quantity from mol/m2/s to m3/s
-      // convert intensive quantity from mol/m2/s to m3/s
       field_flow = water_from_field[0][c] * cv[0][c] / molar_den[0][c];
     }
-    // current concentration
-    tcc_current = tcc[0][c];
     // current concentration
     tcc_current = tcc[0][c];
 

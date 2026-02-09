@@ -883,7 +883,9 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   AMANZI_ASSERT(std::abs(S_->get_time(tag_current_) - t_old) < 1.e-4);
   AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t_new) < 1.e-4);
   db_->WriteCellInfo(true);
-
+  // if (t_old>15040000){
+  //   std::cout<<"here"<<std::endl;
+  // }
   // check the stable step size again -- flow can now be computed at the
   // correct, new time, and may have changed, resulting in a smaller dt.
   //

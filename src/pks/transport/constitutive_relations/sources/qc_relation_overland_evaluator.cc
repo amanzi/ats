@@ -28,7 +28,7 @@ QCRelationOverlandEvaluator::QCRelationOverlandEvaluator(Teuchos::ParameterList&
   dependencies_.insert(KeyTag{ cv_key_, tag });
   molar_density_key_ =
     Keys::readKey(plist, domain_, "molar density liquid", "molar_density_liquid");
-  tcc_key_ = Keys::readKey(plist, domain_, "concentration", "total_component_concentration");
+  tcc_key_ = Keys::readKey(plist, domain_, "mole fraction", "mole_fraction");
   dependencies_.insert(KeyTag{ molar_density_key_, tag });
   field_src_key_ = Keys::readKey(plist, domain_, "overland source", "water_flux");
 
@@ -64,15 +64,26 @@ QCRelationOverlandEvaluator::Evaluate_(const State& S, const std::vector<Composi
     double total_external_flux = 0;
     const auto& [faces, dirs] = mesh.getCellFacesAndDirections(c);
     int nfaces = faces.size();
+    std::cout << "Cell " << c << " at " << centroid << " has " << nfaces << " faces." << std::endl;
 
     for (int i = 0; i < nfaces; i++) {
       int f = faces[i];     // get each face of the cell
       double dir = dirs[i]; // 1: water goes out of the cell; -1: water goes into the cell
+      double wff = water_from_field[0][f];           
       if ((mesh.getFaceCells(f).size() == 1) && (dir == -1)) {
         // External faces are adjacent to only one cell (size() == 1).
         // Flux through these faces represents sources or sinks to/from the overland flow.
         total_external_flux += water_from_field[0][f] * (-dir);
-      }  
+      }
+      // if (mesh.getFaceCells(f).size() == 1) {
+      //   total_external_flux += water_from_field[0][f] * (-dir);
+      // }      
+      std::cout << "  Face " << f 
+          << " with direction " << dir 
+          << " and facesize " << mesh.getFaceCells(f).size() 
+          << " and flux " << std::fixed << std::setprecision(5) << wff 
+          << " and total external flux " << total_external_flux
+          << std::endl;      
     }
     // current concentration
     double tcc_current = tcc[0][c];

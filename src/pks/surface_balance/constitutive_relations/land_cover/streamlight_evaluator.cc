@@ -114,6 +114,13 @@ StreamlightEvaluator::InitializeFromPlist_()
 
   start_date_ = plist_.get<std::string>("start date of forcings [MM-DD]", "01-01");
   days_offset_ = model_->DaysFromJan1(start_date_);
+
+  Key swinc_key = Keys::readKey(plist_, domain_, "sw incoming", "sw_incoming");
+  my_keys_.emplace_back(KeyTag{ swinc_key, tag });
+  Key streamsurf_key = Keys::readKey(plist_, domain_, "stream surface", "stream_surface");
+  my_keys_.emplace_back(KeyTag{ streamsurf_key, tag });
+  Key streambed_key = Keys::readKey(plist_, domain_, "stream bed", "stream_bed");
+  my_keys_.emplace_back(KeyTag{ streambed_key, tag });  
 }
 
 
