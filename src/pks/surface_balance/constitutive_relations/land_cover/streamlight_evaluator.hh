@@ -71,21 +71,21 @@ class StreamlightEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   void InitializeFromPlist_();
+  virtual void EnsureCompatibility_Structure_(State& S) override
+  {
+    EnsureCompatibility_StructureSame_(S);
+  }
   virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& results) override;
   virtual void EvaluatePartialDerivative_(const State& S,
                                           const Key& wrt_key,
                                           const Tag& wrt_tag,
-                                          const std::vector<CompositeVector*>& results) override
-  {}
+                                          const std::vector<CompositeVector*>& results) override {};
 
  protected:
   Key domain_;
   Key qSWin_key_;
   Key lai_key_;
   Key ponded_depth_key_;
-  std::string stream_region_;
-  std::string ats_crs_;
-  std::string latlon_crs_;
   std::string start_date_;
   int days_offset_;
 

@@ -42,6 +42,7 @@ StreamlightEvaluator::InitializeFromPlist_()
 {
   domain_ = Keys::getDomain(my_keys_.front().first);
   Tag tag = my_keys_.front().second;
+  my_keys_.clear();
 
   qSWin_key_ = Keys::readKey(
     plist_, domain_, "incoming shortwave radiation", "incoming_shortwave_radiation");
@@ -59,9 +60,15 @@ StreamlightEvaluator::InitializeFromPlist_()
   lon_key_ = Keys::readKey(plist_, domain_, "longitude", "longitude");
   dependencies_.insert(KeyTag{ lon_key_, tag });
 
-  stream_region_ = plist_.get<std::string>("stream region");
   start_date_ = plist_.get<std::string>("start date of forcings [MM-DD]", "01-01");
   days_offset_ = model_->DaysFromJan1(start_date_);
+
+  Key swinc_key = Keys::readKey(plist_, domain_, "shortwave incoming gpp", "shortwave_incoming_gpp");
+  my_keys_.emplace_back(KeyTag{ swinc_key, tag });
+  Key stream_key = Keys::readKey(plist_, domain_, "stream gpp", "stream_gpp");
+  my_keys_.emplace_back(KeyTag{ stream_key, tag });
+  Key streambed_key = Keys::readKey(plist_, domain_, "streambed gpp", "streambed_gpp");
+  my_keys_.emplace_back(KeyTag{ streambed_key, tag });  
 }
 
 
@@ -77,21 +84,18 @@ StreamlightEvaluator::Evaluate_(const State& S, const std::vector<CompositeVecto
   const auto& lat = *S.Get<CompositeVector>(lat_key_, tag).ViewComponent("cell", false);
   const auto& lon = *S.Get<CompositeVector>(lon_key_, tag).ViewComponent("cell", false);
 
-  CompositeVector* gpp_swinc = results[0];
-  CompositeVector* gpp_stream = results[1]; 
-  CompositeVector* gpp_streambed = results[2]; 
-  Epetra_MultiVector& gpp_swinc_c = *gpp_swinc->ViewComponent("cell", false);
-  Epetra_MultiVector& gpp_stream_c = *gpp_stream->ViewComponent("cell", false);
-  Epetra_MultiVector& gpp_streambed_c = *gpp_streambed->ViewComponent("cell", false);
+  Epetra_MultiVector& gpp_swinc = *results[0]->ViewComponent("cell", false);
+  Epetra_MultiVector& gpp_stream = *results[1]->ViewComponent("cell", false);
+  Epetra_MultiVector& gpp_streambed = *results[2]->ViewComponent("cell", false);
 
   double time_sec = S.get_time();
   std::pair<int,double> doy_hour = model_->DoyHourFromSeconds(time_sec, days_offset_);
   int doy = doy_hour.first;
   double hour = doy_hour.second;
   
-  auto stream_cells = mesh->getSetEntities(
-    stream_region_, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
-  for (auto c : stream_cells) {
+  // Loop through each cell
+  AmanziMesh::Entity_ID ncells = ponded_depth.MyLength();
+  for (AmanziMesh::Entity_ID c = 0; c != ncells; ++c) {
     // get_solar_angles
     StreamlightModel::SolarAngles solang = model_->CalcSolarAngles(doy, hour, lat[0][c], lon[0][c]);
     // corrected solar azimuth
@@ -107,9 +111,9 @@ StreamlightEvaluator::Evaluate_(const State& S, const std::vector<CompositeVecto
       fraction_shade_bank_veg.first, fraction_shade_bank_veg.second, qSWin[0][c], ponded_depth[0][c]);
     // consolidate_metrics, convert to GPP
     StreamlightModel::PARtoGPP gpp = model_->ConvertPARtoGPP(estrm, qSWin[0][c]);
-    gpp_swinc_c[0][c] = gpp.GPP_sw_inc_gO2_m2d;
-    gpp_stream_c[0][c] = gpp.GPP_stream_gO2_m2d;
-    gpp_streambed_c[0][c] = gpp.GPP_streambed_gO2_m2d;
+    gpp_swinc[0][c] = gpp.GPP_sw_inc_gO2_m2d;
+    gpp_stream[0][c] = gpp.GPP_stream_gO2_m2d;
+    gpp_streambed[0][c] = gpp.GPP_streambed_gO2_m2d;
   }
 }
 
