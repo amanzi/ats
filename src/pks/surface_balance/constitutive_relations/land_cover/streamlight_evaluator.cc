@@ -101,6 +101,7 @@ StreamlightEvaluator::InitializeFromPlist_()
 {
   domain_ = Keys::getDomain(my_keys_.front().first);
   Tag tag = my_keys_.front().second;
+  my_keys_.clear();
 
   qSWin_key_ = Keys::readKey(
     plist_, domain_, "incoming shortwave radiation", "incoming_shortwave_radiation");
@@ -114,6 +115,13 @@ StreamlightEvaluator::InitializeFromPlist_()
 
   start_date_ = plist_.get<std::string>("start date of forcings [MM-DD]", "01-01");
   days_offset_ = model_->DaysFromJan1(start_date_);
+
+  Key swinc_key = Keys::readKey(plist_, domain_, "shortwave incoming gpp", "shortwave_incoming_gpp");
+  my_keys_.emplace_back(KeyTag{ swinc_key, tag });
+  Key stream_key = Keys::readKey(plist_, domain_, "stream gpp", "stream_gpp");
+  my_keys_.emplace_back(KeyTag{ stream_key, tag });
+  Key streambed_key = Keys::readKey(plist_, domain_, "streambed gpp", "streambed_gpp");
+  my_keys_.emplace_back(KeyTag{ streambed_key, tag });  
 
   Key swinc_key = Keys::readKey(plist_, domain_, "sw incoming", "sw_incoming");
   my_keys_.emplace_back(KeyTag{ swinc_key, tag });
@@ -134,12 +142,9 @@ StreamlightEvaluator::Evaluate_(const State& S, const std::vector<CompositeVecto
   const auto& qSWin = *S.Get<CompositeVector>(qSWin_key_, tag).ViewComponent("cell", false);
   const auto& ponded_depth = *S.Get<CompositeVector>(ponded_depth_key_, tag).ViewComponent("cell", false);
 
-  CompositeVector* gpp_swinc = results[0];
-  CompositeVector* gpp_stream = results[1]; 
-  CompositeVector* gpp_streambed = results[2]; 
-  Epetra_MultiVector& gpp_swinc_c = *gpp_swinc->ViewComponent("cell", false);
-  Epetra_MultiVector& gpp_stream_c = *gpp_stream->ViewComponent("cell", false);
-  Epetra_MultiVector& gpp_streambed_c = *gpp_streambed->ViewComponent("cell", false);
+  Epetra_MultiVector& gpp_swinc = *results[0]->ViewComponent("cell", false);
+  Epetra_MultiVector& gpp_stream = *results[1]->ViewComponent("cell", false);
+  Epetra_MultiVector& gpp_streambed = *results[2]->ViewComponent("cell", false);
 
   double time_sec = S.get_time();
   std::pair<int,double> doy_hour = model_->DoyHourFromSeconds(time_sec, days_offset_);
@@ -175,9 +180,9 @@ StreamlightEvaluator::Evaluate_(const State& S, const std::vector<CompositeVecto
     
       // consolidate_metrics, convert to GPP
     StreamlightModel::PARtoGPP gpp = model_->ConvertPARtoGPP(estrm, qSWin[0][c]);
-    gpp_swinc_c[0][c] = gpp.GPP_sw_inc_gO2_m2d;
-    gpp_stream_c[0][c] = gpp.GPP_stream_gO2_m2d;
-    gpp_streambed_c[0][c] = gpp.GPP_streambed_gO2_m2d;
+    gpp_swinc[0][c] = gpp.GPP_sw_inc_gO2_m2d;
+    gpp_stream[0][c] = gpp.GPP_stream_gO2_m2d;
+    gpp_streambed[0][c] = gpp.GPP_streambed_gO2_m2d;
   }
 }
 
