@@ -122,13 +122,6 @@ StreamlightEvaluator::InitializeFromPlist_()
   my_keys_.emplace_back(KeyTag{ stream_key, tag });
   Key streambed_key = Keys::readKey(plist_, domain_, "streambed gpp", "streambed_gpp");
   my_keys_.emplace_back(KeyTag{ streambed_key, tag });  
-
-  Key swinc_key = Keys::readKey(plist_, domain_, "sw incoming", "sw_incoming");
-  my_keys_.emplace_back(KeyTag{ swinc_key, tag });
-  Key streamsurf_key = Keys::readKey(plist_, domain_, "stream surface", "stream_surface");
-  my_keys_.emplace_back(KeyTag{ streamsurf_key, tag });
-  Key streambed_key = Keys::readKey(plist_, domain_, "stream bed", "stream_bed");
-  my_keys_.emplace_back(KeyTag{ streambed_key, tag });  
 }
 
 
