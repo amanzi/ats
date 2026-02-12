@@ -235,7 +235,11 @@ SurfPumpEvaluator::Evaluate_(const State& S,
   if (!pump_outlet_region_.empty()) {
     surf_src.Dot(cv, &mass_balance);
     // Check if the mass balance is zero
-    std::cout << "mass_balance: " << mass_balance << std::endl;
+    if (std::abs(mass_balance) >= 1.e-7) {
+      std::cout << "Mass balance assertion failed for pump with inlet region: " << pump_inlet_region_ 
+                << ", outlet region: " << pump_outlet_region_ 
+                << ", mass_balance: " << mass_balance << std::endl;
+    }
     AMANZI_ASSERT(std::abs(mass_balance) < 1.e-7);
 
   } else { // Debug code
@@ -244,6 +248,12 @@ SurfPumpEvaluator::Evaluate_(const State& S,
     }
     double mass_balance_g = 0;
     mesh.getComm()->SumAll(&mass_balance, &mass_balance_g, 1);
+    if (std::abs(mass_balance_g + Q) >= 1.e-7) {
+      std::cout << "Mass balance assertion failed for pump with inlet region: " << pump_inlet_region_ 
+                << ", outlet region: " << pump_outlet_region_ 
+                << ", mass_balance_g: " << mass_balance_g 
+                << ", Q: " << Q << std::endl;
+    }
     AMANZI_ASSERT(std::abs(mass_balance_g + Q) < 1.e-7);
   }
 }
