@@ -303,9 +303,71 @@ TranspirationDistributionRelPermEvaluator::EvaluatePartialDerivative_(
   const Tag& wrt_tag,
   const std::vector<CompositeVector*>& result)
 {
-  // this would be a nontrivial calculation, as it is technically nonlocal due
-  // to rescaling issues?
-  result[0]->PutScalar(0.);
+  Tag tag = my_keys_.front().second;
+
+  const Epetra_MultiVector& soil_pc =
+    *S.Get<CompositeVector>(soil_pc_key_, tag).ViewComponent("cell", false);
+  const Epetra_MultiVector& soil_kr =
+    *S.Get<CompositeVector>(soil_kr_key_, tag).ViewComponent("cell", false);
+  const Epetra_MultiVector& f_root =
+    *S.Get<CompositeVector>(f_root_key_, tag).ViewComponent("cell", false);
+  const Epetra_MultiVector& rho =
+    *S.Get<CompositeVector>(rho_key_, tag).ViewComponent("cell", false);
+  const Epetra_MultiVector& nliq =
+    *S.Get<CompositeVector>(nliq_key_, tag).ViewComponent("cell", false);
+  const Epetra_MultiVector& visc =
+    *S.Get<CompositeVector>(visc_key_, tag).ViewComponent("cell", false);
+  const Epetra_MultiVector& cv = *S.Get<CompositeVector>(cv_key_, tag).ViewComponent("cell", false);
+  const Epetra_MultiVector& sa = *S.Get<CompositeVector>(sa_key_, tag).ViewComponent("cell", false);
+
+  const auto& gravity = S.Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
+  double g = gravity[gravity.dim() - 1];
+
+  double perm_scale = S.Get<double>("permeability_rescaling", Tags::DEFAULT);
+  double K = K_ * perm_scale;
+  double krp = krp_ / perm_scale;
+
+  // plant capillary pressure computed during Evaluate_
+  const Epetra_MultiVector& plant_pc_v =
+    *S.Get<CompositeVector>(my_keys_.back().first, tag).ViewComponent("cell", false);
+
+  Epetra_MultiVector& dres = *result[0]->ViewComponent("cell", false);
+  dres.PutScalar(0.);
+
+  auto& subsurf_mesh = *S.GetMesh(domain_sub_);
+  auto& surf_mesh = *S.GetMesh(domain_surf_);
+
+  for (const auto& region_lc : land_cover_) {
+    auto lc_ids = surf_mesh.getSetEntities(
+      region_lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+
+    for (int sc : lc_ids) {
+      double root_pc = plant_pc_v[0][sc];
+      for (auto c : subsurf_mesh.columns.getCells(sc)) {
+        double Mg_dz_on_2 = rho[0][c] * g * cv[0][c] / (sa[0][sc] * 2);
+        root_pc += Mg_dz_on_2;
+
+        double kr_eff = (root_pc > soil_pc[0][c]) ? soil_kr[0][c] : (krp * nliq[0][c] / visc[0][c]);
+        double scale = sa[0][sc] / cv[0][c];
+
+        if (wrt_key == soil_kr_key_) {
+          // dQ_i/d(soil_kr_i) = -K * f_root_i * (soil_pc_i - root_pc_i)
+          // only nonzero in the uptake branch where soil_kr is the upwinded kr
+          dres[0][c] = (root_pc > soil_pc[0][c]) ?
+            -K * f_root[0][c] * (soil_pc[0][c] - root_pc) * scale :
+            0.;
+        } else if (wrt_key == soil_pc_key_) {
+          // dQ_i/d(soil_pc_i) = -K * f_root_i * kr_eff
+          dres[0][c] = -K * f_root[0][c] * kr_eff * scale;
+        } else {
+          // partial derivative wrt this dep is treated as zero
+          dres[0][c] = 0.;
+        }
+
+        root_pc += Mg_dz_on_2;
+      }
+    }
+  }
 }
 
 

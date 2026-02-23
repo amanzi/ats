@@ -156,10 +156,12 @@ class TranspirationDistributionRelPermEvaluator : public EvaluatorSecondaryMonot
                                    const Key& wrt_key,
                                    const Tag& wrt_tag) const override
   {
-    // calculate of derivatives of this is a tricky thing to do, with
-    // non-cell-local terms due to rescaling.  Just turn off derivatives
-    // instead.
-    return false;
+    // Local, cell-by-cell derivatives are available for soil kr and soil
+    // capillary pressure.  Other dependencies involve non-local terms (e.g.
+    // the root-finder solve for plant water potential), so their derivatives
+    // are suppressed.
+    return (wrt_key == soil_kr_key_ && wrt_tag == my_keys_.front().second) ||
+           (wrt_key == soil_pc_key_ && wrt_tag == my_keys_.front().second);
   }
 
  protected:
