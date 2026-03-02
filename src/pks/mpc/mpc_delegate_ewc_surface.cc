@@ -94,7 +94,7 @@ MPCDelegateEWCSurface::modify_predictor_smart_ewc_(double h, Teuchos::RCP<TreeVe
   int ncells = wc0.MyLength();
   for (int c = 0; c != ncells; ++c) {
     Teuchos::RCP<VerboseObject> dcvo = Teuchos::null;
-    if (vo_->os_OK(Teuchos::VERB_EXTREME) ) dcvo = db_->GetVerboseObject(c, rank);
+    if (vo_->os_OK(Teuchos::VERB_EXTREME) ) dcvo = db_->getVerboseObject(c, rank);
     Teuchos::OSTab dctab = dcvo == Teuchos::null ? vo_->getOSTab() : dcvo->getOSTab();
 
     AmanziGeometry::Point result(2);
@@ -229,7 +229,7 @@ MPCDelegateEWCSurface::precon_ewc_(Teuchos::RCP<const TreeVector> u, Teuchos::RC
   for (int c = 0; c != ncells; ++c) {
     // debugger
     Teuchos::RCP<VerboseObject> dcvo = Teuchos::null;
-    if (vo_->os_OK(Teuchos::VERB_EXTREME) ) dcvo = db_->GetVerboseObject(c, rank);
+    if (vo_->os_OK(Teuchos::VERB_EXTREME) ) dcvo = db_->getVerboseObject(c, rank);
     Teuchos::OSTab dctab = dcvo == Teuchos::null ? vo_->getOSTab() : dcvo->getOSTab();
 
     double T_prev = T_old[0][c];

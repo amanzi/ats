@@ -312,7 +312,7 @@ TranspirationDistributionRelPermEvaluator::Evaluate_(const State& S,
           if (vo_.os_OK(Teuchos::VERB_HIGH) && db_ != Teuchos::null) {
             Teuchos::RCP<VerboseObject> dbvo = Teuchos::null;
             for (const AmanziMesh::Entity_ID c : subsurf_mesh.columns.getCells(sc)) {
-              dbvo = db_->GetVerboseObject(c, subsurf_mesh.getComm()->MyPID());
+              dbvo = db_->getVerboseObject(c, subsurf_mesh.getComm()->MyPID());
               if (dbvo) break;
             }
             if (dbvo) {

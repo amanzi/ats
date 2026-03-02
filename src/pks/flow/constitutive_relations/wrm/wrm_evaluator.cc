@@ -101,9 +101,9 @@ WRMEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& res
   }
 
   // debug WRM parameters
-  if (db_ && vo_.os_OK(Teuchos::VERB_HIGH)) {
-    for (AmanziMesh::Entity_ID c : db_->get_cells()) {
-      auto vo = db_->GetVerboseObject(c, results[0]->Mesh()->getComm()->MyPID());
+  if (vo_.os_OK(Teuchos::VERB_HIGH) && db_ != Teuchos::null) {
+    for (AmanziMesh::Entity_ID c : db_->getLocalCells()) {
+      auto vo = db_->getVerboseObject(c, results[0]->Mesh()->getComm()->MyPID());
       if (vo) {
         *vo->os() << "WRM[ cell: " << results[0]->Mesh()->getEntityGID(AmanziMesh::Entity_kind::CELL, c) << " ]" << std::endl
                   << "  region: \"" << wrms_->first->regions()[(*wrms_->first)[c]] << "\"" << std::endl << "  ";
