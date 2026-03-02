@@ -119,7 +119,8 @@ struct SoilPlantFluxFunctor {
                        const Epetra_MultiVector& sa,
                        double K,
                        double krp,
-                       double g);
+                       double g,
+                       const Teuchos::RCP<VerboseObject>& vo);
 
   // error function used for rootfinder
   double operator()(double plant_pc) const;
@@ -142,6 +143,8 @@ struct SoilPlantFluxFunctor {
 
   AmanziMesh::Entity_ID sc;
   AmanziMesh::Entity_ID_View cells_of_col;
+
+  Teuchos::RCP<VerboseObject> vo;
 };
 
 

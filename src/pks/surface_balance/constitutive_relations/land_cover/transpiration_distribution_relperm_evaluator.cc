@@ -19,7 +19,7 @@ SoilPlantFluxFunctor::SoilPlantFluxFunctor(AmanziMesh::Entity_ID sc_,
                                            const AmanziMesh::Entity_ID_View& cells_of_col_,
                                            const LandCover& lc_,
                                            const Epetra_MultiVector& soil_pc_,
-                                           const Epetra_MultiVector& soil_kr_,
+                                           const Epetra_MultiVector& soil_kr_, // includes 1/permeability_rescaling factor
                                            const Epetra_MultiVector& f_root_,
                                            const Epetra_MultiVector& pet_,
                                            const Epetra_MultiVector& rho_,
@@ -27,9 +27,10 @@ SoilPlantFluxFunctor::SoilPlantFluxFunctor(AmanziMesh::Entity_ID sc_,
                                            const Epetra_MultiVector& visc_,
                                            const Epetra_MultiVector& cv_,
                                            const Epetra_MultiVector& sa_,
-                                           double K_,
-                                           double krp_, // includes permeability_rescaling factor
-                                           double g_)
+                                           double K_,   // includes permeability_rescaling factor
+                                           double krp_, // includes 1/permeability_rescaling factor
+        double g_,
+        const Teuchos::RCP<VerboseObject>& vo_)
   : sc(sc_),
     cells_of_col(cells_of_col_),
     lc(lc_),
@@ -44,7 +45,8 @@ SoilPlantFluxFunctor::SoilPlantFluxFunctor(AmanziMesh::Entity_ID sc_,
     sa(sa_),
     K(K_),
     krp(krp_),
-    g(g_)
+    g(g_),
+    vo(vo_)
 {}
 
 
@@ -66,7 +68,18 @@ double
 SoilPlantFluxFunctor::computeSoilPlantFlux(double root_pc, AmanziMesh::Entity_ID c) const
 {
   double kr = (root_pc > soil_pc[0][c]) ? soil_kr[0][c] : (krp * nliq[0][c] / visc[0][c]);
-  return -K * f_root[0][c] * kr * (soil_pc[0][c] - root_pc);
+  double qflx = -K * f_root[0][c] * kr * (soil_pc[0][c] - root_pc);
+
+  if (vo) {
+    *vo->os() << "  root_pc = " << root_pc << std::endl
+              << "  soil_pc = " << soil_pc[0][c] << std::endl
+              << "  dp = " << (soil_pc[0][c] - root_pc) << std::endl
+              << "  kr = " << kr << std::endl
+              << "  f_root = " << f_root[0][c] << std::endl
+              << "  q_flx = " << qflx << std::endl
+              << "  ------" << std::endl;
+  }
+  return qflx;
 }
 
 
@@ -76,11 +89,18 @@ SoilPlantFluxFunctor::computeSoilPlantFluxes(double plant_pc, Epetra_MultiVector
 {
   double total_trans = 0.;
   double root_pc = plant_pc;
+  double depth = 0.;
   for (auto c : cells_of_col) {
-    double Mg_dz_on_2 = rho[0][c] * g * cv[0][c] / (sa[0][sc] * 2);
+    if (f_root[0][c] == 0.0) break;
+
+    double dz_on_2 = cv[0][c] / (sa[0][sc] * 2);
+    double Mg_dz_on_2 = rho[0][c] * g * dz_on_2;
 
     // top half-cell
     root_pc += Mg_dz_on_2;
+    depth += dz_on_2;
+
+    if (vo) *vo->os() << "  cell " << c << " @ depth = " << depth << std::endl;
 
     // compute flux
     double local_trans = computeSoilPlantFlux(root_pc, c);
@@ -89,6 +109,7 @@ SoilPlantFluxFunctor::computeSoilPlantFluxes(double plant_pc, Epetra_MultiVector
 
     // bottom half-cell
     root_pc += Mg_dz_on_2;
+    depth += dz_on_2;
   }
   return total_trans;
 }
@@ -206,6 +227,7 @@ TranspirationDistributionRelPermEvaluator::Evaluate_(const State& S,
     *S.Get<CompositeVector>(potential_trans_key_, tag).ViewComponent("cell", false);
 
   Epetra_MultiVector& trans_v = *result[0]->ViewComponent("cell", false);
+  trans_v.PutScalar(0.);
   Epetra_MultiVector& plant_pc_v = *result[1]->ViewComponent("cell", false);
 
   auto& subsurf_mesh = *S.GetMesh(domain_sub_);
@@ -232,7 +254,8 @@ TranspirationDistributionRelPermEvaluator::Evaluate_(const State& S,
                                     sa,
                                     K_ * perm_scale,
                                     krp_ / perm_scale,
-                                    g);
+                  g,
+                  Teuchos::null);
 
           // compute the flux at max pc
           double pc_plant_max = region_lc.second.maximum_xylem_capillary_pressure;
@@ -284,10 +307,47 @@ TranspirationDistributionRelPermEvaluator::Evaluate_(const State& S,
             // compute the distributed transpiration fluxes for each grid cell
             func.computeSoilPlantFluxes(plant_pc_v[0][sc], &trans_v);
           }
-        } else {
-          for (auto c : subsurf_mesh.columns.getCells(sc)) {
-            trans_v[0][c] = 0.;
+
+          // write debug info
+          if (vo_.os_OK(Teuchos::VERB_HIGH) && db_ != Teuchos::null) {
+            Teuchos::RCP<VerboseObject> dbvo = Teuchos::null;
+            for (const AmanziMesh::Entity_ID c : subsurf_mesh.columns.getCells(sc)) {
+              dbvo = db_->GetVerboseObject(c, subsurf_mesh.getComm()->MyPID());
+              if (dbvo) break;
+            }
+            if (dbvo) {
+              *dbvo->os() << "Potential Trans(sc: "
+                          << surf_mesh.getEntityGID(AmanziMesh::Entity_kind::CELL, sc)
+                          << ", lc: " << region_lc.first << ") = " << potential_trans[0][sc]
+                          << std::endl << "-------------" << std::endl
+                          << "  plant:" << std::endl
+                          << "  K: " << K_ << std::endl
+                          << "  wilt_pt: " << region_lc.second.maximum_xylem_capillary_pressure << std::endl
+                          << "  collar_pc: " << plant_pc_v[0][sc] << std::endl
+                          << "-------------" << std::endl;
+              SoilPlantFluxFunctor func(sc,
+                      subsurf_mesh.columns.getCells(sc),
+                      region_lc.second,
+                      soil_pc,
+                      soil_kr,
+                      f_root,
+                      potential_trans,
+                      rho,
+                      nliq,
+                      visc,
+                      cv,
+                      sa,
+                      K_ * perm_scale,
+                      krp_ / perm_scale,
+                      g,
+                      dbvo);
+              double tot_trans = func.computeSoilPlantFluxes(plant_pc_v[0][sc]);
+              *dbvo->os() << "pot_trans = " << potential_trans[0][sc] << std::endl;
+              *dbvo->os() << "total_trans = " << tot_trans << std::endl;
+              *dbvo->os() << "downregulation = " << (potential_trans[0][sc] - tot_trans) / potential_trans[0][sc] << std::endl;
+            }
           }
+
         }
       }
     }
