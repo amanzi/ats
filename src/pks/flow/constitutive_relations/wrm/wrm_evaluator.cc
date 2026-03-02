@@ -100,6 +100,18 @@ WRMEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& res
     sat_c[0][c] = wrms_->second[(*wrms_->first)[c]]->saturation(pres_c[0][c]);
   }
 
+  // debug WRM parameters
+  if (db_ && vo_.os_OK(Teuchos::VERB_HIGH)) {
+    for (AmanziMesh::Entity_ID c : db_->get_cells()) {
+      auto vo = db_->GetVerboseObject(c, results[0]->Mesh()->getComm()->MyPID());
+      if (vo) {
+        *vo->os() << "WRM[ cell: " << results[0]->Mesh()->getEntityGID(AmanziMesh::Entity_kind::CELL, c) << " ]" << std::endl
+                  << "  region: \"" << wrms_->first->regions()[(*wrms_->first)[c]] << "\"" << std::endl << "  ";
+        wrms_->second[(*wrms_->first)[c]]->print(vo);
+      }
+    }
+  }
+
   // Potentially do face values as well.
   if (results[0]->HasComponent("boundary_face")) {
     Epetra_MultiVector& sat_bf = *results[0]->ViewComponent("boundary_face", false);

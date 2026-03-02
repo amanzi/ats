@@ -31,6 +31,8 @@ WRMs are available in a collection of types:
 #define AMANZI_FLOWRELATIONS_WRM_
 
 #include "Teuchos_ParameterList.hpp"
+#include "Teuchos_RCP.hpp"
+#include "VerboseObject.hh"
 
 namespace Amanzi {
 namespace Flow {
@@ -44,6 +46,8 @@ const int FLOW_WRM_ONE = 3;
 class WRM {
  public:
   virtual ~WRM() {}
+
+  virtual void print(const Teuchos::RCP<VerboseObject>& vo) const {}
 
   // required methods from the base class
   virtual double k_relative(double saturation) = 0;

@@ -30,6 +30,21 @@ WRMVanGenuchten::WRMVanGenuchten(Teuchos::ParameterList& plist)
 };
 
 
+void
+WRMVanGenuchten::print(const Teuchos::RCP<VerboseObject>& vo) const
+{
+  if (vo) {
+    *vo->os() << "VanGenucten(alpha = " << alpha_
+              << ", n = " << n_
+              << ", s_r = " << sr_;
+    if (s0_ != 0.) *vo->os() << ", s0 = " << s0_;
+    if (pc0_ != 0.) *vo->os() << ", pc0 = " << pc0_;
+    if (l_ != 0.5) *vo->os() << ", Mualem l = " << l_;
+    *vo->os() << ")" << std::endl;
+  }
+}
+
+
 /* ******************************************************************
 * Relative permeability formula: input is liquid saturation.
 * The original curve is regulized on interval (s0, 1) using the

@@ -66,6 +66,8 @@ class WRMVanGenuchten : public WRM {
  public:
   explicit WRMVanGenuchten(Teuchos::ParameterList& plist);
 
+  void print(const Teuchos::RCP<VerboseObject>& vo) const;
+
   // required methods from the base class
   double k_relative(double saturation);
   double d_k_relative(double saturation);
