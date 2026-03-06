@@ -1,6 +1,8 @@
 
 """Functions for parsing Amanzi/ATS XDMF visualization files."""
 import sys,os
+import re
+import warnings
 import numpy as np
 import h5py
 import math
@@ -47,8 +49,8 @@ def time_unit_conversion(value, input_unit, output_unit):
 
 class VisFile:
     """Class managing the reading of ATS visualization files."""
-    def __init__(self, directory='.', domain=None, filename=None, mesh_filename=None, 
-                 input_time_unit='yr', output_time_unit='d'):
+    def __init__(self, directory='.', domain=None, filename=None, mesh_filename=None,
+                 output_time_unit='d'):
         """Create a VisFile object.
 
         Parameters
@@ -62,37 +64,50 @@ class VisFile:
           (e.g. ats_vis_surface_data.h5).
         mesh_filename : str, optional
           Filename for the h5 mesh file.  Default is 'ats_vis_DOMAIN_mesh.h5'.
-        input_time_unit : time unit used in visualization of ATS input files.
-        output_time_unit : time unit used in this vis filrs postprocessing.
+        output_time_unit : str, optional
+          Time unit for times exposed via self.times.  Default is 'd'.
 
         Returns
         -------
         self : VisFile object
         """
         self.directory = directory
-        self.domain = domain
 
         self.filename = filename
         if self.filename is None:
-            if self.domain is None:
-                self.filename = 'ats_vis_data.h5'
+            self.filename = valid_data_filename(domain if domain is not None else 'domain')
+
+        # Infer domain from filename if not given explicitly.
+        # Pattern: ats_vis_{domain}_data.h5; ats_vis_data.h5 means domain='domain'.
+        if domain is not None:
+            self.domain = domain
+        else:
+            m = re.match(r'ats_vis_(.+)_data\.h5', self.filename)
+            if m:
+                self.domain = m.group(1)
             else:
-                self.filename = 'ats_vis_{}_data.h5'.format(self.domain)
+                self.domain = None
 
         self.mesh_filename = mesh_filename
         if self.mesh_filename is None:
-            if self.domain is None:
-                self.mesh_filename = 'ats_vis_mesh.h5'
-            else:
-                self.mesh_filename = 'ats_vis_{}_mesh.h5'.format(self.domain)
-        
-        self.input_time_unit = input_time_unit
+            self.mesh_filename = valid_mesh_filename(self.domain if self.domain is not None else 'domain')
+
         self.output_time_unit = output_time_unit
 
         self.fname = os.path.join(self.directory, self.filename)
         if not os.path.isfile(self.fname):
             raise RuntimeError("Cannot load ATS XDMF h5 file at: {}".format(self.fname))
-        self.d = h5py.File(self.fname,'r')
+        self.d = h5py.File(self.fname, 'r')
+
+        if 'time unit' in self.d.attrs:
+            val = self.d.attrs['time unit']
+            self.input_time_unit = val.decode() if isinstance(val, bytes) else str(val)
+        else:
+            warnings.warn(
+                f"HDF5 file {self.fname!r} has no 'time unit' attribute; "
+                "assuming 'yr'. This file may be from an old version of ATS.")
+            self.input_time_unit = 'yr'
+
         self.loadTimes()
         self.map = None
 
@@ -109,6 +124,49 @@ class VisFile:
         """Search for string in list of variables."""
         return [k for k in self.d.keys() if string in k]
 
+    def variables(self, names=None, exclude=None):
+        """Return the list of variable keys in the h5 file.
+
+        Parameters
+        ----------
+        names : list of str, optional
+          If provided, only return keys that match one of these names.
+          Each name may be a full key (e.g. 'surface-ponded_depth') or a
+          base name with the domain prefix stripped (e.g. 'ponded_depth').
+          Warns if any requested name matches nothing.
+        exclude : list of str, optional
+          If provided, exclude keys matching any of these names.
+          Accepts the same full or base name forms as ``names``.
+          Mutually exclusive with ``names``.
+
+        Returns
+        -------
+        list of str
+          Full variable key strings as stored in the h5 file.
+        """
+        all_keys = list(self.d.keys())
+
+        def _matches(key, name_list):
+            # Exact match always works
+            # Base-name match only if the key is prefixed with self.domain
+            return any(
+                n == key or
+                (self.domain is not None and key == f'{self.domain}-{n}')
+                for n in name_list
+            )
+
+        if names is not None:
+            selected = [k for k in all_keys if _matches(k, names)]
+            unmatched = [n for n in names
+                         if not any(_matches(k, [n]) for k in all_keys)]
+            if unmatched:
+                warnings.warn(f"Requested variables not found: {unmatched}")
+            return selected
+        elif exclude is not None:
+            return [k for k in all_keys if not _matches(k, exclude)]
+        else:
+            return all_keys
+
     def loadTimes(self):
         """(Re-)loads the list of cycles and times."""
         a_field = next(iter(self.d.keys()))
@@ -120,19 +178,17 @@ class VisFile:
         """Filter based on the index into the current set of cycles.
 
         Note that filters are applied sequentially, but can be undone by
-        calling load_times().
+        calling loadTimes().
 
         Parameters
         ----------
         indices : one of:
-          * int : limits to the ith cycle.
-          * list(int) : a list of specific indices
-          * slice object : slice the cycle list
+          * int : limits to the ith cycle (negative indices supported).
+          * list(int) : a list of specific indices (negative indices supported).
+          * slice : slice the cycle list (numpy-style, exclusive end).
         """
-        assert(len(self.cycles) == len(self.times))
-
+        assert len(self.cycles) == len(self.times)
         if type(indices) is int:
-            assert(indices < len(self.cycles))
             self.cycles = [self.cycles[indices],]
             self.times = np.array([self.times[indices],])
         elif type(indices) is slice:
@@ -140,60 +196,123 @@ class VisFile:
             self.times = self.times[indices]
         else:
             inds = list(indices)
-            assert(max(inds) < len(self.cycles))
             self.cycles = [self.cycles[i] for i in inds]
             self.times = np.array([self.times[i] for i in inds])
 
     def filterCycles(self, cycles):
-        """Filter the vis file based on cycles.
+        """Filter the vis file to a subset of cycle numbers.
 
         Note that filters are applied sequentially, but can be undone by
         calling loadTimes().
 
         Parameters
         ----------
-        cycles :
-          One of:
-          * int : limits to one specific cycle
-          * list(int) : a list of specific cycles
+        cycles : one of:
+          * int : one specific cycle number.
+          * list(int) : specific cycle numbers; warns if any are absent.
+          * slice : range of cycle numbers, inclusive on both ends, with
+            optional step.  None start/stop default to first/last cycle.
+            e.g. slice(0, 100, 10) selects every 10th cycle from 0 to 100.
         """
-        raise RuntimeError
-        if type(cycles) is int or type(cycles) is str:
-            cycles = [cycles,]
-        cycles = [str(c) for c in cycles]
+        cycle_strs = self.cycles  # already sorted list of str keys
 
-        # note this would be faster with np.isin, but we care about order and
-        # repetition of cycles here.
-        inds = [np.argwhere(self.cycles == c)[0] for c in cycles]
+        if isinstance(cycles, slice):
+            all_Ns = [int(c) for c in cycle_strs]
+            lo = cycles.start if cycles.start is not None else all_Ns[0]
+            hi = cycles.stop  if cycles.stop  is not None else all_Ns[-1]
+            step = cycles.step if cycles.step is not None else 1
+            wanted = set(range(lo, hi + 1, step))
+            inds = [i for i, c in enumerate(cycle_strs) if int(c) in wanted]
+        else:
+            if isinstance(cycles, int):
+                cycles = [cycles,]
+            wanted = [str(c) for c in cycles]
+            cycle_set = {c: i for i, c in enumerate(cycle_strs)}
+            inds = []
+            for c in wanted:
+                if c in cycle_set:
+                    inds.append(cycle_set[c])
+                else:
+                    warnings.warn(f"Cycle {c} not found in visualization output")
         self.filterIndices(inds)
 
-    def filterTimes(self, times, eps=1.0):
-        """Filter the vis file based on cycles.
+    def filterTimes(self, times, time_unit=None, tolerance=1.0):
+        """Filter the vis file to cycles nearest to requested times.
 
         Note that filters are applied sequentially, but can be undone by
-        calling load_times().
+        calling loadTimes().
 
         Parameters
         ----------
-        cycles :
-          One of:
-          * int : limits to one specific cycle, or the last cycle if -1.
-          * list(int) : a list of specific cycles
-          * slice object : slice the cycle list
-        times : optional
-          One of:
-          * float : a specific time (within eps in seconds).
-          * list(float) : a list of specific times (within eps in seconds).
-        eps : float
-          Tolerance for defining times, in seconds.  Default is 1.
+        times : one of:
+          * float : one specific time.
+          * list(float) : specific times; nearest cycle within tolerance is
+            selected; warns if no cycle is within tolerance.
+          * slice : select cycles in a time range or at evenly-spaced
+            intervals.  None start/stop default to first/last time in the
+            file; start/stop values outside the data range are clamped.
+            - slice(start, stop) : all cycles with time in [start, stop].
+            - slice(start, stop, step) : nearest cycle to each of
+              start, start+step, ..., <= stop.
+        time_unit : str, optional
+          Unit of the values in ``times``.  One of 's', 'hr', 'd', 'yr',
+          'noleap'.  Defaults to self.output_time_unit.
+        tolerance : float, optional
+          Maximum distance (in time_unit) between a requested time and the
+          nearest cycle for it to be accepted.  Default is 1.0.
         """
-        if type(times) is float:
-            times = [times,]
+        if time_unit is None:
+            time_unit = self.output_time_unit
 
-        # note this would be faster with np.isin, but we care about order and
-        # repetition of cycles here.
-        inds = [np.argwhere(np.isclose(self.times, t, eps))[0] for t in times]
+        # self.times is in output_time_unit; convert to time_unit for comparison
+        if time_unit == self.output_time_unit:
+            ts = self.times
+        else:
+            ts = np.array([time_unit_conversion(t, self.output_time_unit, time_unit)
+                           for t in self.times])
+
+        actual_start = ts[0]
+        actual_stop = ts[-1]
+
+        if isinstance(times, slice):
+            start = times.start
+            stop = times.stop
+            step = times.step
+            start = actual_start if start is None else max(start, actual_start)
+            stop  = actual_stop  if stop  is None else min(stop,  actual_stop)
+            if step is None:
+                # Range: all cycles with time in [start, stop]
+                inds = [i for i, t in enumerate(ts)
+                        if start - tolerance <= t <= stop + tolerance]
+            else:
+                # Interval: nearest cycle to each evenly-spaced target
+                targets = np.arange(start, stop + step * 1e-10, step)
+                inds = self._nearest_inds(ts, targets, tolerance, time_unit)
+        else:
+            if isinstance(times, (int, float)):
+                times = [times,]
+            targets = np.array(times)
+            inds = self._nearest_inds(ts, targets, tolerance, time_unit)
+
         self.filterIndices(inds)
+
+    def _nearest_inds(self, ts, targets, tolerance, time_unit):
+        """Return indices of cycles nearest to each target time."""
+        inds = []
+        seen = set()
+        for t_target in targets:
+            diffs = np.abs(ts - t_target)
+            idx = int(np.argmin(diffs))
+            if diffs[idx] > tolerance:
+                warnings.warn(
+                    f"No cycle found within {tolerance} {time_unit} of "
+                    f"t={t_target:.6g} {time_unit} "
+                    f"(nearest is {ts[idx]:.6g} {time_unit})")
+                continue
+            if idx not in seen:
+                inds.append(idx)
+                seen.add(idx)
+        return inds
 
     def variable(self, vname):
         """Forms a variable name.
@@ -206,8 +325,8 @@ class VisFile:
         Returns
         -------
         variable_name : str
-          Variable name mangled like it is used in Amanzi/ATS.  Something like
-          'DOMAIN-vname.cell.0'
+          Variable name as used in Amanzi/ATS HDF5/XMF files, e.g.
+          'surface-ponded_depth' for domain='surface', vname='ponded_depth'.
         """
         if self.domain and '-' not in vname[:-1]:
             vname = self.domain + '-' + vname

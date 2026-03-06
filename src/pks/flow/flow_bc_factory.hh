@@ -393,7 +393,7 @@ class FlowBCFactory : public Amanzi::BCFactory {
   {
     bool is_explicit = CheckExplicitFlag("seepage face with infiltration");
     auto bfunc = CreateWithFunction("seepage face with infiltration", "outward water flux");
-    return std::make_pair(is_explicit, bfunc);
+    return {is_explicit, bfunc};
   }
 
   Teuchos::RCP<Functions::BoundaryFunction> CreateCriticalDepth() const

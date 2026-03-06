@@ -182,6 +182,8 @@ def plot_kr(wrm, ax=None, color='b', format='-', label=None):
     sat = np.array([wrm.saturation(apc) for apc in pc])
     kr = np.array([wrm.k_relative(s) for s in sat])
     ax.plot(sat, kr, color=color, label=label)
+    ax.set_xlabel('saturation [-]')
+    ax.set_ylabel('k_r [-]')
 
        
 if __name__ == "__main__":

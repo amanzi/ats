@@ -209,10 +209,10 @@ class MassBalanceFromVis(object):
         self.p_atm = 101325.0
         
         # load the vis files
-        self.vis = ats_xdmf.VisFile(dirname, time_unit='d')
+        self.vis = ats_xdmf.VisFile(dirname, output_time_unit='d')
         self.vis.loadMesh()
         
-        self.vis_surf = ats_xdmf.VisFile(dirname, domain='surface', time_unit='d')
+        self.vis_surf = ats_xdmf.VisFile(dirname, domain='surface', output_time_unit='d')
         self.vis_surf.loadMesh()
 
         self.length = min(len(self.vis.cycles), len(self.vis_surf.cycles))
