@@ -348,6 +348,19 @@ EOSEvaluator::EvaluatePartialDerivative_(const State& S,
   }
 }
 
+void
+EOSEvaluator::EnsureCompatibility_ToDeps_(State& S){
+
+  auto akeytag = my_keys_.front();
+  const auto& fac =
+    S.Require<CompositeVector, CompositeVectorSpace>(akeytag.first, akeytag.second);
+
+  for (const auto& dep : dependencies_) {
+    auto& dep_fac = S.Require<CompositeVector, CompositeVectorSpace>(dep.first, dep.second);
+    dep_fac.UpdateSameNumDofs(fac);
+  }
+
+}
 
 } // namespace Relations
 } // namespace Amanzi
