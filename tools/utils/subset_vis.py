@@ -55,7 +55,7 @@ def _parse_slice_or_list(s, cast):
 # ---------------------------------------------------------------------------
 
 def subsetVisFiles(in_directory, domain, in_filename, out_directory, out_stem,
-                   times=None, time_unit='s', time_tolerance=1.0,
+                   times=None, time_unit=None, time_tolerance=1.0,
                    cycles=None, indices=None,
                    include_vars=None, exclude_vars=None,
                    dry_run=False):
@@ -77,8 +77,9 @@ def subsetVisFiles(in_directory, domain, in_filename, out_directory, out_stem,
         is the input stem (prefix+domain combined, indistinguishable).
     times : slice or list or None
         Result of _parse_slice_or_list() for --times, or None.
-    time_unit : str
-        One of 's', 'hr', 'd', 'yr'.  Units for time filtering values.
+    time_unit : str or None
+        Units for --times filter values.  Default None uses the native unit
+        stored in the file.
     time_tolerance : float
         Tolerance for time matching, in time_unit.
     cycles : slice or list or None
@@ -103,11 +104,14 @@ def subsetVisFiles(in_directory, domain, in_filename, out_directory, out_stem,
         raise RuntimeError(f"No HDF5 data file found at {in_h5!r}.")
 
     vf = ats_xdmf.VisFile(in_directory, domain=domain, filename=in_filename,
-                           output_time_unit=time_unit)
+                           output_time_unit=None)
+
+    # Resolve time unit: explicit override, or native unit from the file
+    effective_time_unit = time_unit if time_unit is not None else vf.input_time_unit
 
     # Apply cycle/time/index filter
     if times is not None:
-        vf.filterTimes(times, time_unit=time_unit, tolerance=time_tolerance)
+        vf.filterTimes(times, time_unit=effective_time_unit, tolerance=time_tolerance)
     elif cycles is not None:
         vf.filterCycles(cycles)
     elif indices is not None:
@@ -124,7 +128,7 @@ def subsetVisFiles(in_directory, domain, in_filename, out_directory, out_stem,
     if dry_run:
         print(f"Selected {len(vf.cycles)} cycles:")
         for cycle, t in zip(vf.cycles, vf.times):
-            print(f"  cycle {int(cycle):8d}  t = {t:.6g} {time_unit}")
+            print(f"  cycle {int(cycle):8d}  t = {t:.6g} {effective_time_unit}")
         print(f"\nSelected {len(selected_vars)} variables:")
         for v in selected_vars:
             print(f"  {v}")
@@ -294,9 +298,9 @@ def main():
              'Formats: "START:STOP:STEP" (numpy-style, exclusive end), '
              '"i1,i2,i3". Supports negative indices.')
 
-    parser.add_argument('--time-unit', dest='time_unit', default='s',
+    parser.add_argument('--time-unit', dest='time_unit', default=None,
                         choices=['s', 'hr', 'd', 'yr', 'noleap'],
-                        help='Time unit for --times values (default: s)')
+                        help='Time unit for --times values (default: native unit from file)')
     parser.add_argument('--time-tolerance', dest='time_tolerance',
                         type=float, default=1.0,
                         help='Tolerance for nearest-time matching, in '
