@@ -68,6 +68,86 @@ def find_domains(directory='.'):
             f"No ats_vis_*data.h5 files found in '{directory}'.")
     return sorted(found, key=natural_sort_key)
 
+def resolve_vis_input(domain_or_path, directory='.', prefix='ats_vis'):
+    """Resolve (directory, domain, filename) from a domain name or a filepath.
+
+    Accepts three calling conventions:
+
+    1. Domain name  — ``resolve_vis_input('surface')``
+       Returns ``(directory, 'surface', 'ats_vis_surface_data.h5')``.
+
+    2. Domain name with explicit directory / prefix overrides
+       — ``resolve_vis_input('surface', directory='/run', prefix='myprefix')``
+       Returns ``('/run', 'surface', 'myprefix_surface_data.h5')``.
+
+    3. File path — ``resolve_vis_input('/run/ats_vis_surface_data.h5')``
+       The argument is treated as a filepath when it contains a path separator
+       or ends in ``.h5`` or ``.xmf``.  ``directory`` and ``prefix`` args are
+       ignored.  ``domain`` is returned as ``None`` because the filename stem
+       is an opaque combination of prefix and domain (they cannot be separated
+       without additional information).  For ``.xmf`` files the companion
+       ``_data.h5`` file is located in the same directory.
+
+    Parameters
+    ----------
+    domain_or_path : str
+        ATS domain name OR path to any vis-related file.
+    directory : str, optional
+        Input directory, used only in convention 1 / 2.  Default ``'.'``.
+    prefix : str, optional
+        Filename prefix, used only in convention 1 / 2.  Default ``'ats_vis'``.
+
+    Returns
+    -------
+    directory : str
+    domain : str or None
+    filename : str
+        Basename of the data ``.h5`` file (not a full path).
+    """
+    arg = domain_or_path
+
+    # Detect filepath: contains a separator, or ends with a known extension.
+    is_path = (os.sep in arg or '/' in arg or
+               arg.endswith('.h5') or arg.endswith('.xmf'))
+
+    if is_path:
+        directory = os.path.dirname(os.path.abspath(arg)) if os.path.dirname(arg) else '.'
+        basename  = os.path.basename(arg)
+
+        # Normalise .xmf files to their companion _data.h5
+        if basename.endswith('.xmf'):
+            # Per-cycle:   foo_data.h5.42.xmf  -> foo_data.h5
+            # VisIt master: foo_data.VisIt.xmf -> foo_data.h5
+            # General rule: strip everything from the first '.xmf'-adjacent
+            # suffix by finding the _data.h5 sibling.
+            import glob as _glob
+            candidates = _glob.glob(os.path.join(directory, '*_data.h5'))
+            # Keep only candidates whose basename is a prefix of this xmf name
+            matches = [os.path.basename(c) for c in candidates
+                       if basename.startswith(os.path.basename(c))]
+            if len(matches) == 1:
+                basename = matches[0]
+            elif not matches:
+                raise RuntimeError(
+                    f"Cannot find companion _data.h5 for {arg!r} "
+                    f"in {directory!r}.")
+            else:
+                raise RuntimeError(
+                    f"Ambiguous companion _data.h5 for {arg!r}: {matches}")
+
+        # domain is None — stem is prefix+domain combined, indistinguishable
+        return directory, None, basename
+
+    else:
+        # Convention 1 / 2: construct filename from prefix and domain
+        domain = arg
+        if domain == 'domain':
+            fname = f'{prefix}_data.h5'
+        else:
+            fname = f'{prefix}_{domain}_data.h5'
+        return directory, domain, fname
+
+
 def time_unit_conversion(value, input_unit, output_unit):
     time_in_seconds = {
         'yr': 365.25 * 24 * 3600,
