@@ -89,7 +89,7 @@ def time_unit_conversion(value, input_unit, output_unit):
 class VisFile:
     """Class managing the reading of ATS visualization files."""
     def __init__(self, directory='.', domain=None, filename=None, mesh_filename=None,
-                 output_time_unit='d'):
+                 output_time_unit=None):
         """Create a VisFile object.
 
         Parameters
@@ -104,8 +104,9 @@ class VisFile:
           (e.g. ats_vis_surface_data.h5).
         mesh_filename : str, optional
           Filename for the h5 mesh file.  Default is 'ats_vis_DOMAIN_mesh.h5'.
-        output_time_unit : str, optional
-          Time unit for times exposed via self.times.  Default is 'd'.
+        output_time_unit : str or None, optional
+          Time unit for times exposed via self.times.  Default is None, which
+          uses the native unit stored in the HDF5 file.
 
         Returns
         -------
@@ -131,8 +132,6 @@ class VisFile:
         if self.mesh_filename is None:
             self.mesh_filename = valid_mesh_filename(self.domain if self.domain is not None else 'domain')
 
-        self.output_time_unit = output_time_unit
-
         self.fname = os.path.join(self.directory, self.filename)
         if not os.path.isfile(self.fname):
             raise RuntimeError("Cannot load ATS XDMF h5 file at: {}".format(self.fname))
@@ -146,6 +145,8 @@ class VisFile:
                 f"HDF5 file {self.fname!r} has no 'time unit' attribute; "
                 "assuming 'yr'. This file may be from an old version of ATS.")
             self.input_time_unit = 'yr'
+
+        self.output_time_unit = output_time_unit if output_time_unit is not None else self.input_time_unit
 
         self.loadTimes()
         self.map = None
