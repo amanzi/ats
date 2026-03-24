@@ -35,7 +35,7 @@ import h5py
 sys.path.append(os.path.join(os.environ['AMANZI_SRC_DIR'], 'tools', 'amanzi_xml'))
 sys.path.append(os.path.join(os.environ['ATS_SRC_DIR'], 'tools', 'utils'))
 import parse_logfile
-import parse_ats
+import ats_xdmf
 from amanzi_xml.utils import errors as aerrors
 from amanzi_xml.utils import io as aio
 from amanzi_xml.utils import search as asearch
@@ -120,14 +120,15 @@ def build_dt_history(testname, testlog):
 def find_vis_cycles(testname):
     """Parses the output of the run to collect the cycles that were written."""
     try:
-        keys,t,d = parse_ats.readATS(dirname(testname))
-    except IOError:
+        vf = ats_xdmf.VisFile(dirname(testname))
+    except RuntimeError:
         try:
-            keys,t,d = parse_ats.readATS(dirname(testname), "visdump_surface_data.h5")
-        except IOError:
-            raise IOError("Unable to open {0}/visdump_data.h5 (or the surface equivalent)".format(testname))
-        
-    d.close()
+            vf = ats_xdmf.VisFile(dirname(testname), filename="visdump_surface_data.h5")
+        except RuntimeError:
+            raise RuntimeError("Unable to open {0}/visdump_data.h5 (or the surface equivalent)".format(testname))
+
+    keys = vf.cycles
+    vf.close()
     return [int(k) for k in keys]
 
 

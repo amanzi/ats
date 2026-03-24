@@ -1,7 +1,7 @@
 # On EES-16 servers, make sure that an ats module is loaded to access these modules.
 # Otherwise, add the tools/utils folder in your ats source directory to your PYTHONPATH environment variable
 import atsxml
-import parse_ats
+import ats_xdmf
 # On EES-16 servers, load the matk module: module load matk
 # Otherwise, directions to obtain and install matk are at http://matk.lanl.gov/installation.html
 from matk import matk
@@ -18,15 +18,15 @@ def model(pars,hostname,processor):
     atsxml.run(m,nproc=4,stdout='stdout.out',stderr='stdout.err',cpuset=processor) 
 
     # Read results from ats visualization files
-    #keys,times,file handle
-    k,t,f = parse_ats.readATS()
+    vf = ats_xdmf.VisFile()
     # Collect point at middle of polygon 1 m deep
     # x,z = 7.17946807, 4.65764252
     # index for this location is 1733, see below how to find this
     # Create output dictionary that matches MATK observations
     out = {}
-    out['Sl'] = f[u'saturation_liquid.cell.0/'+k[-1]][1733]
-    out['T'] = f[u'temperature.cell.0/'+k[-1]][1733]
+    out['Sl'] = vf.get('saturation_liquid', vf.cycles[-1])[1733]
+    out['T'] = vf.get('temperature', vf.cycles[-1])[1733]
+    vf.close()
 
     # Return simulated values of interest
     return out

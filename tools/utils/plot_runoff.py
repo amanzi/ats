@@ -4,7 +4,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import argparse
 import sys
-import parse_ats
+import ats_xdmf
 
 def load(fname, density):
     dat = np.loadtxt(fname) # units s, mol/s
@@ -22,10 +22,13 @@ def plot(data, format='-', color='b', name=None, ax=None):
     return ax
 
 def load_area_rain(args):
-    k,t,d = parse_ats.readATS(args.directory, args.filename)
-    cv = d[args.area_key][k[0]][:]
+    vf = ats_xdmf.VisFile(args.directory, filename=args.filename)
+    k = vf.cycles
+    t = vf.times
+    cv = vf.d[args.area_key][k[0]][:]
     area = cv.sum()
-    rain = np.array([(d[args.rainfall_rate_key][key][:] * cv).sum() for key in k]) * 86400
+    rain = np.array([(vf.d[args.rainfall_rate_key][key][:] * cv).sum() for key in k]) * 86400
+    vf.close()
     return area, t*365.25, rain # units m^2, days, m^3/s
 
 def plot_rain(area, t, rain, format='--', color='k', ax=None):

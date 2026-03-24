@@ -10,9 +10,19 @@ import h5py
 import numpy as np
 from matplotlib import pyplot as plt
 import matplotlib.cm
-import parse_ats
+import ats_xdmf
 import itertools
 import colors
+
+def _get_surface_data(keys, dat, name):
+    """Replacement for parse_ats.getSurfaceData using raw h5py handle."""
+    if len(name.split(".")) != 3:
+        name = name + ".cell.0"
+    res = np.array([dat[name][key][0] for key in keys])
+    if len(res.shape) == 2 and res.shape[1] == 1:
+        res = res[:,0]
+    return res
+
 
 def get_filename_base(base, suffix):
     if suffix is not None:
@@ -54,14 +64,14 @@ def plot_surface((keys,times,dat), ax, color, varname, style='-', version='dev-n
                 prefix = 'surface_{0}-'.format(domain_suffix)
     else:
         raise RuntimeError("Unrecognized version '%s'"%version)
-    sd = parse_ats.getSurfaceData(keys, dat, prefix+varname)
+    sd = _get_surface_data(keys, dat, prefix+varname)
 
     if divide_by_cell_volume:
         if domain_suffix is None:
             cv_key = 'surface-cell_volume'
         else:
             cv_key = 'surface_{0}-cell_volume'.format(domain_suffix)
-        cv = parse_ats.getSurfaceData(keys, dat, cv_key)
+        cv = _get_surface_data(keys, dat, cv_key)
         sd = sd / cv
     
     if negate:
@@ -189,15 +199,18 @@ if __name__ == "__main__":
             else:
                 c = args.colors[i]
 
-        ktd = parse_ats.readATS(dirname, get_filename_base('surface', domain_suffix))
+        vf_surf = ats_xdmf.VisFile(dirname, filename=get_filename_base('surface', domain_suffix))
+        ktd = (vf_surf.cycles, vf_surf.times, vf_surf.d)
         if version == 'dev-new':
-            ktds = parse_ats.readATS(dirname, get_filename_base('snow', domain_suffix))[2]
+            vf_snow = ats_xdmf.VisFile(dirname, filename=get_filename_base('snow', domain_suffix))
+            ktds = vf_snow.d
         else:
+            vf_snow = None
             ktds = None
-        plot_surface_balance((ktd[0], ktd[1], (ktd[2],ktds)), axs, c, label=dirname, hackfactor=hackfactor, version=version, marker=marker, domain_suffix=domain_suffix)
-        if ktds is not None:
-            ktds.close()
-        ktd[2].close()
+        plot_surface_balance((ktd[0], ktd[1], (ktd[2], ktds)), axs, c, label=dirname, hackfactor=hackfactor, version=version, marker=marker, domain_suffix=domain_suffix)
+        if vf_snow is not None:
+            vf_snow.close()
+        vf_surf.close()
 
     plt.tight_layout()
     axs[0].legend(bbox_to_anchor=(0., 1., 3.6, .05), loc=3,

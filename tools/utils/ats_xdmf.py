@@ -1,6 +1,8 @@
 
 """Functions for parsing Amanzi/ATS XDMF visualization files."""
 import sys,os
+import re
+import warnings
 import numpy as np
 import h5py
 import math
@@ -27,6 +29,45 @@ def valid_mesh_filename(domain, format=None):
         format = 'ats_vis_{}_mesh.h5'
     return valid_data_filename(domain, format)
 
+def natural_sort_key(s):
+    """Sort key that orders embedded integers numerically.
+
+    e.g. ['run1', 'run10', 'run2'] -> ['run1', 'run2', 'run10']
+    """
+    return [int(c) if c.isdigit() else c.lower()
+            for c in re.split(r'(\d+)', s)]
+
+def find_domains(directory='.'):
+    """Find all ATS domain names in a directory by globbing data files.
+
+    Looks for files matching ``ats_vis_*_data.h5`` and extracts the domain
+    name from each.
+
+    Parameters
+    ----------
+    directory : str, optional
+        Directory to search.  Default is '.'.
+
+    Returns
+    -------
+    list of str
+        Domain names in sorted order, e.g. ['domain', 'snow', 'surface'].
+    """
+    import glob
+    found = []
+    for path in sorted(glob.glob(os.path.join(directory, 'ats_vis_*data.h5'))):
+        fname = os.path.basename(path)
+        if fname == 'ats_vis_data.h5':
+            found.append('domain')
+        else:
+            m = re.match(r'ats_vis_(.+)_data\.h5', fname)
+            if m:
+                found.append(m.group(1))
+    if not found:
+        raise RuntimeError(
+            f"No ats_vis_*data.h5 files found in '{directory}'.")
+    return sorted(found, key=natural_sort_key)
+
 def time_unit_conversion(value, input_unit, output_unit):
     time_in_seconds = {
         'yr': 365.25 * 24 * 3600,
@@ -47,8 +88,8 @@ def time_unit_conversion(value, input_unit, output_unit):
 
 class VisFile:
     """Class managing the reading of ATS visualization files."""
-    def __init__(self, directory='.', domain=None, filename=None, mesh_filename=None, 
-                 input_time_unit='yr', output_time_unit='d'):
+    def __init__(self, directory='.', domain=None, filename=None, mesh_filename=None,
+                 output_time_unit='d'):
         """Create a VisFile object.
 
         Parameters
@@ -57,42 +98,55 @@ class VisFile:
           Directory containing vis files.  Default is '.'
         domain : str, optional
           Amanzi/ATS domain name.  Useful in variable names, filenames, and more.
+          If not provided, will be inferred from filename if possible.
         filename : str, optional
           Filename of h5 vis file.  Default is 'ats_vis_DOMAIN_data.h5'.
           (e.g. ats_vis_surface_data.h5).
         mesh_filename : str, optional
           Filename for the h5 mesh file.  Default is 'ats_vis_DOMAIN_mesh.h5'.
-        input_time_unit : time unit used in visualization of ATS input files.
-        output_time_unit : time unit used in this vis filrs postprocessing.
+        output_time_unit : str, optional
+          Time unit for times exposed via self.times.  Default is 'd'.
 
         Returns
         -------
         self : VisFile object
         """
         self.directory = directory
-        self.domain = domain
 
         self.filename = filename
         if self.filename is None:
-            if self.domain is None:
-                self.filename = 'ats_vis_data.h5'
+            self.filename = valid_data_filename(domain if domain is not None else 'domain')
+
+        # Infer domain from filename if not given explicitly.
+        if domain is not None:
+            self.domain = domain
+        else:
+            m = re.match(r'ats_vis_(.+)_data\.h5', self.filename)
+            if m:
+                self.domain = m.group(1)
             else:
-                self.filename = 'ats_vis_{}_data.h5'.format(self.domain)
+                self.domain = None
 
         self.mesh_filename = mesh_filename
         if self.mesh_filename is None:
-            if self.domain is None:
-                self.mesh_filename = 'ats_vis_mesh.h5'
-            else:
-                self.mesh_filename = 'ats_vis_{}_mesh.h5'.format(self.domain)
-        
-        self.input_time_unit = input_time_unit
+            self.mesh_filename = valid_mesh_filename(self.domain if self.domain is not None else 'domain')
+
         self.output_time_unit = output_time_unit
 
         self.fname = os.path.join(self.directory, self.filename)
         if not os.path.isfile(self.fname):
             raise RuntimeError("Cannot load ATS XDMF h5 file at: {}".format(self.fname))
-        self.d = h5py.File(self.fname,'r')
+        self.d = h5py.File(self.fname, 'r')
+
+        if 'time unit' in self.d.attrs:
+            val = self.d.attrs['time unit']
+            self.input_time_unit = val.decode() if isinstance(val, bytes) else str(val)
+        else:
+            warnings.warn(
+                f"HDF5 file {self.fname!r} has no 'time unit' attribute; "
+                "assuming 'yr'. This file may be from an old version of ATS.")
+            self.input_time_unit = 'yr'
+
         self.loadTimes()
         self.map = None
 
@@ -109,6 +163,43 @@ class VisFile:
         """Search for string in list of variables."""
         return [k for k in self.d.keys() if string in k]
 
+    def variables(self, names=None, exclude=None):
+        """Return the list of variable keys stored in the h5 file.
+
+        Parameters
+        ----------
+        names : list of str, optional
+          Full keys or base names (with domain prefix stripped).  Mutually
+          exclusive with exclude.
+        exclude : list of str, optional
+          Variables to omit.  Mutually exclusive with names.
+
+        Returns
+        -------
+        list of str
+          Full variable key strings as stored in the h5 file.
+        """
+        all_keys = list(self.d.keys())
+
+        def _matches(key, name_list):
+            return any(
+                n == key or
+                (self.domain is not None and key == f'{self.domain}-{n}')
+                for n in name_list
+            )
+
+        if names is not None:
+            selected = [k for k in all_keys if _matches(k, names)]
+            unmatched = [n for n in names
+                         if not any(_matches(k, [n]) for k in all_keys)]
+            if unmatched:
+                warnings.warn(f"Requested variables not found: {unmatched}")
+            return selected
+        elif exclude is not None:
+            return [k for k in all_keys if not _matches(k, exclude)]
+        else:
+            return all_keys
+
     def loadTimes(self):
         """(Re-)loads the list of cycles and times."""
         a_field = next(iter(self.d.keys()))
@@ -120,19 +211,18 @@ class VisFile:
         """Filter based on the index into the current set of cycles.
 
         Note that filters are applied sequentially, but can be undone by
-        calling load_times().
+        calling loadTimes().
 
         Parameters
         ----------
         indices : one of:
-          * int : limits to the ith cycle.
+          * int : limits to the ith cycle (negative indices supported).
           * list(int) : a list of specific indices
           * slice object : slice the cycle list
         """
-        assert(len(self.cycles) == len(self.times))
+        assert len(self.cycles) == len(self.times)
 
         if type(indices) is int:
-            assert(indices < len(self.cycles))
             self.cycles = [self.cycles[indices],]
             self.times = np.array([self.times[indices],])
         elif type(indices) is slice:
@@ -140,7 +230,6 @@ class VisFile:
             self.times = self.times[indices]
         else:
             inds = list(indices)
-            assert(max(inds) < len(self.cycles))
             self.cycles = [self.cycles[i] for i in inds]
             self.times = np.array([self.times[i] for i in inds])
 
@@ -152,47 +241,95 @@ class VisFile:
 
         Parameters
         ----------
-        cycles :
-          One of:
+        cycles : one of:
           * int : limits to one specific cycle
           * list(int) : a list of specific cycles
+          * slice(int,int,int) : a range of cycle numbers (inclusive of stop)
         """
-        raise RuntimeError
-        if type(cycles) is int or type(cycles) is str:
-            cycles = [cycles,]
-        cycles = [str(c) for c in cycles]
-
-        # note this would be faster with np.isin, but we care about order and
-        # repetition of cycles here.
-        inds = [np.argwhere(self.cycles == c)[0] for c in cycles]
+        cycle_strs = self.cycles
+        if isinstance(cycles, slice):
+            all_Ns = [int(c) for c in cycle_strs]
+            lo = cycles.start if cycles.start is not None else all_Ns[0]
+            hi = cycles.stop  if cycles.stop  is not None else all_Ns[-1]
+            step = cycles.step if cycles.step is not None else 1
+            wanted = set(range(lo, hi + 1, step))
+            inds = [i for i, c in enumerate(cycle_strs) if int(c) in wanted]
+        else:
+            if isinstance(cycles, int):
+                cycles = [cycles,]
+            wanted = [str(c) for c in cycles]
+            cycle_set = {c: i for i, c in enumerate(cycle_strs)}
+            inds = []
+            for c in wanted:
+                if c in cycle_set:
+                    inds.append(cycle_set[c])
+                else:
+                    warnings.warn(f"Cycle {c} not found in visualization output")
         self.filterIndices(inds)
 
-    def filterTimes(self, times, eps=1.0):
-        """Filter the vis file based on cycles.
+    def _nearest_inds(self, ts, targets, tolerance, time_unit):
+        """Return indices into ts nearest to each target, skipping those outside tolerance."""
+        inds = []
+        seen = set()
+        for t_target in targets:
+            diffs = np.abs(ts - t_target)
+            idx = int(np.argmin(diffs))
+            if diffs[idx] > tolerance:
+                warnings.warn(
+                    f"No cycle found within {tolerance} {time_unit} of "
+                    f"t={t_target:.6g} {time_unit} "
+                    f"(nearest is {ts[idx]:.6g} {time_unit})")
+                continue
+            if idx not in seen:
+                inds.append(idx)
+                seen.add(idx)
+        return inds
+
+    def filterTimes(self, times, time_unit=None, tolerance=1.0):
+        """Filter the vis file based on times.
 
         Note that filters are applied sequentially, but can be undone by
-        calling load_times().
+        calling loadTimes().
 
         Parameters
         ----------
-        cycles :
-          One of:
-          * int : limits to one specific cycle, or the last cycle if -1.
-          * list(int) : a list of specific cycles
-          * slice object : slice the cycle list
-        times : optional
-          One of:
-          * float : a specific time (within eps in seconds).
-          * list(float) : a list of specific times (within eps in seconds).
-        eps : float
-          Tolerance for defining times, in seconds.  Default is 1.
+        times : one of:
+          * float : a specific time (within tolerance).
+          * list(float) : a list of specific times (within tolerance each).
+          * slice(start, stop, step) : a time range, optionally with a step
+            interval.  Start/stop default to the first/last available times.
+            If step is None, all times in [start, stop] are included.
+        time_unit : str, optional
+          Unit for the provided time values.  Defaults to self.output_time_unit.
+        tolerance : float
+          Tolerance for matching times, in time_unit.  Default is 1.0.
         """
-        if type(times) is float:
-            times = [times,]
-
-        # note this would be faster with np.isin, but we care about order and
-        # repetition of cycles here.
-        inds = [np.argwhere(np.isclose(self.times, t, eps))[0] for t in times]
+        if time_unit is None:
+            time_unit = self.output_time_unit
+        if time_unit == self.output_time_unit:
+            ts = self.times
+        else:
+            ts = np.array([time_unit_conversion(t, self.output_time_unit, time_unit)
+                           for t in self.times])
+        actual_start = ts[0]
+        actual_stop = ts[-1]
+        if isinstance(times, slice):
+            start = times.start
+            stop = times.stop
+            step = times.step
+            start = actual_start if start is None else max(start, actual_start)
+            stop  = actual_stop  if stop  is None else min(stop,  actual_stop)
+            if step is None:
+                inds = [i for i, t in enumerate(ts)
+                        if start - tolerance <= t <= stop + tolerance]
+            else:
+                targets = np.arange(start, stop + step * 1e-10, step)
+                inds = self._nearest_inds(ts, targets, tolerance, time_unit)
+        else:
+            if isinstance(times, (int, float)):
+                times = [times,]
+            targets = np.array(times)
+            inds = self._nearest_inds(ts, targets, tolerance, time_unit)
         self.filterIndices(inds)
 
     def variable(self, vname):
@@ -206,8 +343,8 @@ class VisFile:
         Returns
         -------
         variable_name : str
-          Variable name mangled like it is used in Amanzi/ATS.  Something like
-          'DOMAIN-vname.cell.0'
+          Variable name as used in Amanzi/ATS HDF5/XMF files, e.g.
+          'surface-ponded_depth' for domain='surface', vname='ponded_depth'.
         """
         if self.domain and '-' not in vname[:-1]:
             vname = self.domain + '-' + vname
@@ -473,6 +610,34 @@ def meshElemCentroids(directory=".", filename="ats_vis_mesh.h5", key=None, round
         elem_z = np.mean(elem_coords, axis=0)
         centroids[i,:] = elem_z
     return np.round(centroids, round)
+
+
+def meshElemVolume(directory='.', filename='ats_vis_mesh.h5', key=None):
+    """Returns the volume (3D) or area (2D surface mesh) of each element.
+
+    Parameters
+    ----------
+    directory : str, optional
+      Directory containing the mesh file.  Default is '.'
+    filename : str, optional
+      Mesh filename.  Default is 'ats_vis_mesh.h5'.
+    key : str, optional
+      Cycle key within the file.  Defaults to the first key found.
+
+    Returns
+    -------
+    volumes : np.ndarray
+      1D array of volumes/areas, shape (n_elems,).
+    """
+    import geometry
+    etype, coords, conn = meshXYZ(directory, filename, key)
+    volumes = np.zeros((len(conn),), 'd')
+    if etype in ('PRISM', 'HEX', 'POLYHEDRON'):
+        raise NotImplementedError(f"meshElemVolume not implemented for 3D element type '{etype}'.")
+    for i, elem in enumerate(conn):
+        elem_coords = [coords[gid] for gid in elem]
+        volumes[i] = geometry.poly_area(elem_coords)
+    return volumes
 
 
 def structuredOrdering(coordinates, order=None, shape=None, columnar=False):

@@ -9,7 +9,7 @@ import h5py
 import numpy as np
 from matplotlib import pyplot as plt
 import matplotlib.cm
-import parse_ats, column_data
+import ats_xdmf, column_data
     
 
 def water_table_no_surface(dirname, datum=None, patm=101325.):
@@ -37,10 +37,13 @@ def water_table(dirname, datum=None, v86=False, patm=101325.):
     prefix = "" if v86 else "surface-"
 
     # get the ponded depth
-    keys,times,dats = parse_ats.readATS(dirname, "visdump_surface_data.h5")
-    pd = parse_ats.getSurfaceData(keys, dats, prefix+"ponded_depth")
-    elev_surf = dats[prefix+"elevation.cell.0"][keys[0]][0]
-    dats.close()
+    vf = ats_xdmf.VisFile(dirname, filename="visdump_surface_data.h5")
+    keys = vf.cycles
+    times = vf.times
+    pd_key = prefix + "ponded_depth.cell.0"
+    pd = np.array([vf.d[pd_key][k][0] for k in keys])
+    elev_surf = vf.d[prefix + "elevation.cell.0"][keys[0]][0]
+    vf.close()
     
     if datum is None:
         datum = elev_surf
