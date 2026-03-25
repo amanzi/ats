@@ -226,9 +226,9 @@ def _write_visit_xmf(out_directory, h5_name, cycles):
 def _write_subset_h5(in_h5, out_h5, cycles, selected_vars):
     """Copy selected variables and cycles from in_h5 to out_h5."""
     with h5py.File(in_h5, 'r') as src, h5py.File(out_h5, 'w') as dst:
-        # Copy the time unit attribute
-        if 'time unit' in src.attrs:
-            dst.attrs['time unit'] = src.attrs['time unit']
+        # Copy all file-level attributes
+        for key, val in src.attrs.items():
+            dst.attrs[key] = val
         for var in selected_vars:
             if var not in src:
                 warnings.warn(f"Variable {var!r} not found in {in_h5}")

@@ -134,9 +134,11 @@ def _write_combined_h5(run_data, out_h5_path, selected_vars):
     new_key = 0
 
     with h5py.File(out_h5_path, 'w') as dst:
-        first_vf = run_data[0][0]
-        if 'time unit' in first_vf.d.attrs:
-            dst.attrs['time unit'] = first_vf.d.attrs['time unit']
+        # Merge file-level attributes from all runs (superset); values should
+        # be identical across runs so overwriting with the last seen is fine.
+        for vf, _, _, _ in run_data:
+            for key, val in vf.d.attrs.items():
+                dst.attrs[key] = val
 
         for var in selected_vars:
             dst.create_group(var)

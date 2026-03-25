@@ -59,6 +59,9 @@ def queryVisFiles(directory, domain, filename, time_unit=None):
 
     label = domain if domain is not None else filename
     print(f"Domain: {label}   ({filename})")
+    for key, val in vf.d.attrs.items():
+        val_str = val.decode() if isinstance(val, bytes) else str(val)
+        print(f"  {key}: {val_str}")
     if n_cycles > 0:
         print(f"  Cycles:    {n_cycles}  ({first_cycle} \u2026 {last_cycle})")
         print(f"  Time:      {t_first:.3f} \u2026 {t_last:.3f} {vf.output_time_unit}")
