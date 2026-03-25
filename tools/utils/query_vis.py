@@ -31,11 +31,11 @@ def queryVisFiles(directory, domain, filename, time_unit=None):
     ----------
     directory : str
     domain : str or None
-        ATS domain name, or None when opening by raw filename.
+        ATS domain name, or None when opening by raw filename (filepath input).
     filename : str
         Basename of the data HDF5 file.
     time_unit : str or None
-        Display unit.  None means use native unit from the file.
+        Display unit.  None uses the native unit from the file.
     """
     vf = ats_xdmf.VisFile(directory, domain=domain, filename=filename,
                            output_time_unit=time_unit)
@@ -49,7 +49,6 @@ def queryVisFiles(directory, domain, filename, time_unit=None):
 
     diffs = np.diff(vf.times) if n_cycles > 1 else np.array([])
 
-    # Cell count from first variable at first cycle
     n_cells = None
     all_vars = vf.variables()
     if all_vars and n_cycles > 0:
@@ -98,11 +97,9 @@ def main():
                              'A filepath implies its own directory; -d and -p are ignored.')
     parser.add_argument('-d', '--directory', dest='directory', default='.',
                         help='Directory containing visualization files '
-                             '(default: current directory). Ignored when DOMAIN_OR_FILE '
-                             'is a filepath.')
+                             '(default: current directory). Ignored when a filepath is given.')
     parser.add_argument('-p', '--prefix', dest='prefix', default='ats_vis',
-                        help='Filename prefix (default: ats_vis). Ignored when '
-                             'DOMAIN_OR_FILE is a filepath.')
+                        help='Filename prefix (default: ats_vis). Ignored when a filepath is given.')
     parser.add_argument('--time-unit', dest='time_unit', default=None,
                         choices=['s', 'hr', 'd', 'yr', 'noleap'],
                         help='Time unit for display (default: native unit from file)')
@@ -121,7 +118,7 @@ def main():
         for i, domain in enumerate(domains):
             if i > 0:
                 print()
-            _, domain, filename = ats_xdmf.resolve_vis_input(
+            _, _, filename = ats_xdmf.resolve_vis_input(
                 domain, directory=args.directory, prefix=args.prefix)
             queryVisFiles(args.directory, domain, filename, time_unit=args.time_unit)
     else:

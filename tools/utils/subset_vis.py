@@ -54,7 +54,8 @@ def _parse_slice_or_list(s, cast):
 # Core subset function
 # ---------------------------------------------------------------------------
 
-def subsetVisFiles(in_directory, domain, in_filename, out_directory, out_stem,
+def subsetVisFiles(in_directory, domain, out_directory, out_stem,
+                   in_prefix='ats_vis',
                    times=None, time_unit=None, time_tolerance=1.0,
                    cycles=None, indices=None,
                    include_vars=None, exclude_vars=None,
@@ -65,21 +66,19 @@ def subsetVisFiles(in_directory, domain, in_filename, out_directory, out_stem,
     ----------
     in_directory : str
         Directory containing input visualization files.
-    domain : str or None
-        ATS domain name, or None when input was specified as a filepath.
-    in_filename : str
-        Basename of the input data HDF5 file.
+    domain : str
+        ATS domain name (e.g. 'surface', 'domain').
     out_directory : str
         Directory for output files (created if needed).
     out_stem : str
-        Output filename stem (everything before ``_data.h5``).  When domain is
-        known this is ``{out_prefix}_{domain}``; when input was a filepath it
-        is the input stem (prefix+domain combined, indistinguishable).
+        Output filename stem (everything before ``_data.h5``), e.g.
+        ``'ats_vis_ponded_depth_surface'``.
+    in_prefix : str
+        Input filename prefix.  Default ``'ats_vis'``.
     times : slice or list or None
         Result of _parse_slice_or_list() for --times, or None.
     time_unit : str or None
-        Units for --times filter values.  Default None uses the native unit
-        stored in the file.
+        Units for --times filter values.  None uses the native unit from file.
     time_tolerance : float
         Tolerance for time matching, in time_unit.
     cycles : slice or list or None
@@ -93,11 +92,13 @@ def subsetVisFiles(in_directory, domain, in_filename, out_directory, out_stem,
     dry_run : bool
         If True, print what would be done and return without writing files.
     """
+    _, _, in_filename = ats_xdmf.resolve_vis_input(
+        domain, directory=in_directory, prefix=in_prefix)
     out_h5_name = f'{out_stem}_data.h5'
 
     # Mesh always uses the standard ats_vis name so multiple subsets of the
     # same domain can share a single mesh file.
-    mesh_name = ats_xdmf.valid_mesh_filename(domain if domain is not None else 'domain')
+    mesh_name = ats_xdmf.valid_mesh_filename(domain)
 
     in_h5 = os.path.join(in_directory, in_filename)
     if not os.path.isfile(in_h5):
@@ -254,26 +255,21 @@ def main():
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    parser.add_argument('domain', metavar='DOMAIN_OR_FILE',
-                        help='ATS domain name (e.g. "surface", "domain"), path to a '
-                             'vis file (.h5 or .xmf), or "*" to process all domains '
-                             'found in the input directory. A filepath implies its own '
-                             'directory; -d and -p are ignored.')
+    parser.add_argument('domain', metavar='DOMAIN',
+                        help='ATS domain name (e.g. "surface", "domain"), or '
+                             '"*" to process all domains found in the input directory.')
     parser.add_argument('-d', '--directory', dest='directory', default='.',
                         help='Directory containing input visualization files '
-                             '(default: current directory). Ignored when DOMAIN_OR_FILE '
-                             'is a filepath.')
+                             '(default: current directory)')
     parser.add_argument('-p', '--prefix', dest='prefix', default='ats_vis',
-                        help='Input filename prefix (default: ats_vis). Ignored when '
-                             'DOMAIN_OR_FILE is a filepath.')
+                        help='Input filename prefix (default: ats_vis)')
     parser.add_argument('--output', '-o', dest='output', default=None,
                         help='Output directory (default: DIRECTORY/subset)')
     parser.add_argument('--out-prefix', dest='out_prefix', default=None,
                         help='Output filename prefix (default: same as input prefix). '
-                             'Combined with domain to form the output stem: '
-                             '{out_prefix}_{domain}_data.h5. When input was a filepath '
-                             'the default output stem is the input stem (prefix+domain '
-                             'combined).')
+                             'Output stem is {out_prefix}_{domain}, e.g. '
+                             '"--out-prefix ats_vis_ponded_depth" with domain "surface" '
+                             'produces ats_vis_ponded_depth_surface_data.h5.')
 
     # Time/cycle/index selection (mutually exclusive)
     filter_group = parser.add_mutually_exclusive_group()
@@ -300,11 +296,12 @@ def main():
 
     parser.add_argument('--time-unit', dest='time_unit', default=None,
                         choices=['s', 'hr', 'd', 'yr', 'noleap'],
-                        help='Time unit for --times values (default: native unit from file)')
+                        help='Time unit for --times values '
+                             '(default: native unit from file)')
     parser.add_argument('--time-tolerance', dest='time_tolerance',
                         type=float, default=1.0,
                         help='Tolerance for nearest-time matching, in '
-                             '--time-unit units (default: 1.0 s)')
+                             '--time-unit units (default: 1.0)')
 
     # Variable selection (mutually exclusive)
     var_group = parser.add_mutually_exclusive_group()
@@ -322,11 +319,9 @@ def main():
 
     args = parser.parse_args()
 
-    arg = args.domain
-    is_path = (os.sep in arg or '/' in arg or
-               arg.endswith('.h5') or arg.endswith('.xmf'))
-
-    out_directory = args.output
+    in_directory = args.directory
+    out_directory = args.output or os.path.join(in_directory, 'subset')
+    out_prefix = args.out_prefix or args.prefix
 
     # Parse filter arguments
     times_spec = cycles_spec = indices_spec = None
@@ -337,23 +332,20 @@ def main():
     elif args.indices is not None:
         indices_spec = _parse_slice_or_list(args.indices, int)
 
-    if is_path:
-        in_directory, domain, in_filename = ats_xdmf.resolve_vis_input(arg)
-        if out_directory is None:
-            out_directory = os.path.join(in_directory, 'subset')
-        # Default out_stem: input stem (prefix+domain combined)
-        if args.out_prefix is not None:
-            # User supplied an explicit prefix; domain is unknown so treat
-            # out_prefix as the full stem.
-            out_stem = args.out_prefix
-        else:
-            out_stem = in_filename[:-len('_data.h5')]
+    if args.domain == '*':
+        domains = ats_xdmf.find_domains(in_directory)
+        print(f"Found domains: {domains}")
+    else:
+        domains = [args.domain]
+
+    for domain in domains:
+        out_stem = out_prefix if domain == 'domain' else f'{out_prefix}_{domain}'
         subsetVisFiles(
             in_directory=in_directory,
             domain=domain,
-            in_filename=in_filename,
             out_directory=out_directory,
             out_stem=out_stem,
+            in_prefix=args.prefix,
             times=times_spec,
             time_unit=args.time_unit,
             time_tolerance=args.time_tolerance,
@@ -363,40 +355,6 @@ def main():
             exclude_vars=args.exclude_vars,
             dry_run=args.dry_run,
         )
-    else:
-        in_directory = args.directory
-        if out_directory is None:
-            out_directory = os.path.join(in_directory, 'subset')
-
-        if arg == '*':
-            domains = ats_xdmf.find_domains(in_directory)
-            print(f"Found domains: {domains}")
-        else:
-            domains = [arg]
-
-        for domain in domains:
-            _, domain, in_filename = ats_xdmf.resolve_vis_input(
-                domain, directory=in_directory, prefix=args.prefix)
-            out_prefix = args.out_prefix if args.out_prefix is not None else args.prefix
-            if domain == 'domain':
-                out_stem = out_prefix
-            else:
-                out_stem = f'{out_prefix}_{domain}'
-            subsetVisFiles(
-                in_directory=in_directory,
-                domain=domain,
-                in_filename=in_filename,
-                out_directory=out_directory,
-                out_stem=out_stem,
-                times=times_spec,
-                time_unit=args.time_unit,
-                time_tolerance=args.time_tolerance,
-                cycles=cycles_spec,
-                indices=indices_spec,
-                include_vars=args.include_vars,
-                exclude_vars=args.exclude_vars,
-                dry_run=args.dry_run,
-            )
 
 
 if __name__ == '__main__':

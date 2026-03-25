@@ -46,10 +46,7 @@ import ats_xdmf
 # ---------------------------------------------------------------------------
 
 def _validate_time_ordering(vis_files, directories, time_unit):
-    """Warn loudly if runs are not in chronological order.
-
-    The only condition we can guarantee is that start[i+1] > start[i].
-    """
+    """Warn loudly if runs are not in chronological order."""
     for i in range(len(vis_files) - 1):
         t0 = vis_files[i].times[0]
         t1 = vis_files[i + 1].times[0]
@@ -103,22 +100,10 @@ def _select_cycles(vis_files, directories, eps):
 
 
 def _compute_selected_vars(vis_files, include_vars, exclude_vars):
-    """Return the intersection of variable sets across runs, then apply filters.
-
-    Parameters
-    ----------
-    vis_files : list of ats_xdmf.VisFile
-    include_vars : list of str or None
-    exclude_vars : list of str or None
-
-    Returns
-    -------
-    list of str
-    """
+    """Return the intersection of variable sets across runs, then apply filters."""
     var_sets = [set(vf.variables()) for vf in vis_files]
     common_vars = set.intersection(*var_sets)
 
-    # Warn about any per-run differences
     all_vars = set.union(*var_sets)
     if common_vars != all_vars:
         for i, (vf, vs) in enumerate(zip(vis_files, var_sets)):
@@ -128,8 +113,6 @@ def _compute_selected_vars(vis_files, include_vars, exclude_vars):
                     f"Run {i}: missing variables present in other runs: {sorted(missing)}. "
                     "These will be excluded from the combined output.")
 
-    # Apply user filters using the first VisFile's matching logic, then restrict
-    # to common_vars.
     filtered = vis_files[0].variables(names=include_vars, exclude=exclude_vars)
     selected = [v for v in filtered if v in common_vars]
 
@@ -143,27 +126,18 @@ def _compute_selected_vars(vis_files, include_vars, exclude_vars):
 def _write_combined_h5(run_data, out_h5_path, selected_vars):
     """Write combined HDF5 with sequentially renumbered cycle keys.
 
-    Parameters
-    ----------
-    run_data : list of (vf, directory, sel_cycles, sel_times)
-    out_h5_path : str
-    selected_vars : list of str
-
     Returns
     -------
     steps : list of (run_idx, old_key_str, new_key_int, h5_native_time)
-        One entry per written cycle step.
     """
     steps = []
     new_key = 0
 
     with h5py.File(out_h5_path, 'w') as dst:
-        # Propagate time unit from first run
         first_vf = run_data[0][0]
         if 'time unit' in first_vf.d.attrs:
             dst.attrs['time unit'] = first_vf.d.attrs['time unit']
 
-        # Create variable groups up front
         for var in selected_vars:
             dst.create_group(var)
 
@@ -198,29 +172,7 @@ def _write_combined_h5(run_data, out_h5_path, selected_vars):
 
 def _write_step_xmf(in_xmf_path, out_xmf_path, old_key_str, new_key_int,
                     h5_name, h5_native_time, selected_vars):
-    """Write a per-step XMF with updated key references.
-
-    Rewrites DataItem text from ``h5name:VARNAME/{old_key}`` to
-    ``h5name:VARNAME/{new_key}``.  Removes Attribute elements for variables
-    not in selected_vars.  Updates the ``<Time Value="..."/>`` element.
-
-    Parameters
-    ----------
-    in_xmf_path : str
-        Source per-step XMF from the input run directory.
-    out_xmf_path : str
-        Destination path in the output directory.
-    old_key_str : str
-        Original HDF5 dataset key (cycle number string, e.g. '20').
-    new_key_int : int
-        New sequential key.
-    h5_name : str
-        Data filename, e.g. 'ats_vis_data.h5'.
-    h5_native_time : float or None
-        Time value (in H5 native units) to write into ``<Time Value="..."/>``.
-    selected_vars : list of str or None
-        If None, keep all Attribute elements.
-    """
+    """Write a per-step XMF with updated key references."""
     if not os.path.isfile(in_xmf_path):
         warnings.warn(
             f"Per-step XMF not found: {in_xmf_path!r}. "
@@ -229,7 +181,6 @@ def _write_step_xmf(in_xmf_path, out_xmf_path, old_key_str, new_key_int,
                                  h5_native_time, selected_vars)
         return
 
-    # Register the XInclude namespace so it round-trips properly
     ET.register_namespace('xi', 'http://www.w3.org/2001/XInclude')
 
     tree = ET.parse(in_xmf_path)
@@ -239,12 +190,10 @@ def _write_step_xmf(in_xmf_path, out_xmf_path, old_key_str, new_key_int,
     new_suffix = '/' + str(new_key_int)
 
     for grid in root.iter('Grid'):
-        # Update <Time Value="..."/>
         time_elem = grid.find('Time')
         if time_elem is not None and h5_native_time is not None:
             time_elem.set('Value', f'{h5_native_time:.17e}')
 
-        # Update Attribute elements
         to_remove = []
         for attr in list(grid):
             if attr.tag != 'Attribute':
@@ -256,17 +205,13 @@ def _write_step_xmf(in_xmf_path, out_xmf_path, old_key_str, new_key_int,
             di = attr.find('DataItem')
             if di is not None and di.text:
                 text = di.text.strip()
-                # text is like: ats_vis_data.h5:VARNAME/OLD_KEY
-                # Update h5 filename to the combined file (same base name, same domain)
                 parts = text.split(':', 1)
                 if len(parts) == 2:
                     new_text = h5_name + ':' + parts[1]
                 else:
                     new_text = text
-                # Replace the trailing /OLD_KEY with /NEW_KEY
                 if new_text.endswith(old_suffix):
                     new_text = new_text[:-len(old_suffix)] + new_suffix
-                # Preserve leading/trailing whitespace pattern
                 leading  = len(di.text) - len(di.text.lstrip())
                 trailing = len(di.text) - len(di.text.rstrip())
                 di.text  = di.text[:leading] + new_text + di.text[len(di.text) - trailing:]
@@ -292,16 +237,7 @@ def _write_minimal_step_xmf(out_xmf_path, h5_name, new_key_int,
 
 
 def _write_visit_xmf(out_directory, h5_name, n_total_steps):
-    """Write the master VisIt.xmf with xi:include for each step XMF.
-
-    Parameters
-    ----------
-    out_directory : str
-    h5_name : str
-        Data filename, e.g. 'ats_vis_data.h5'.
-    n_total_steps : int
-        Number of steps (0 … n_total_steps-1).
-    """
+    """Write the master VisIt.xmf with xi:include for each step XMF."""
     stem = h5_name[:-3]  # strip '.h5'
     out_path = os.path.join(out_directory, f'{stem}.VisIt.xmf')
 
@@ -328,18 +264,10 @@ def _write_visit_xmf(out_directory, h5_name, n_total_steps):
 
 
 def _copy_mesh(directories, out_directory, domain):
-    """Copy mesh H5 and XMF files from the first run that has them.
-
-    Parameters
-    ----------
-    directories : list of str
-    out_directory : str
-    domain : str
-    """
+    """Copy mesh H5 and XMF files from the first run that has them."""
     mesh_name = ats_xdmf.valid_mesh_filename(domain)
     stem = mesh_name[:-3]  # strip '.h5'
 
-    # Find the first directory that has the mesh H5
     mesh_src_dir = None
     for d in directories:
         if os.path.isfile(os.path.join(d, mesh_name)):
@@ -352,9 +280,7 @@ def _copy_mesh(directories, out_directory, domain):
             "Output will not render correctly in VisIt.")
         return
 
-    for fname in [mesh_name,
-                  f'{mesh_name}.0.xmf',
-                  f'{stem}.VisIt.xmf']:
+    for fname in [mesh_name, f'{mesh_name}.0.xmf', f'{stem}.VisIt.xmf']:
         src_path = os.path.join(mesh_src_dir, fname)
         dst_path = os.path.join(out_directory, fname)
         if os.path.isfile(src_path):
@@ -368,8 +294,9 @@ def _copy_mesh(directories, out_directory, domain):
 # Public API
 # ---------------------------------------------------------------------------
 
-def combineVisFiles(directories, domain, out_directory,
-                    eps=1.0, time_unit='d',
+def combineVisFiles(directories, domain, out_directory, out_stem,
+                    in_prefix='ats_vis',
+                    eps=None, time_unit=None,
                     include_vars=None, exclude_vars=None,
                     dry_run=False):
     """Combine ATS visualization output from multiple restarted runs.
@@ -382,12 +309,17 @@ def combineVisFiles(directories, domain, out_directory,
         ATS domain name (e.g. 'domain', 'surface').
     out_directory : str
         Output directory (created if needed).
-    eps : float
+    out_stem : str
+        Output filename stem (everything before ``_data.h5``).
+    in_prefix : str
+        Input filename prefix.  Default ``'ats_vis'``.
+    eps : float or None
         Overlap tolerance in *time_unit*.  Cycles from run i with time >=
-        (first_time_of_run_i+1 - eps) are dropped.  Default 1.0.
-    time_unit : str
-        Time unit for *eps* and for printing.  One of 's', 'hr', 'd', 'yr',
-        'noleap'.  Default 'd'.
+        (first_time_of_run_i+1 - eps) are dropped.  Default None uses 0.0
+        (no tolerance — exact boundary only).
+    time_unit : str or None
+        Time unit for *eps* and for printing.  None uses the native unit from
+        the first input file.
     include_vars : list of str or None
         If given, only these variables are written.
     exclude_vars : list of str or None
@@ -398,7 +330,6 @@ def combineVisFiles(directories, domain, out_directory,
     if not directories:
         raise ValueError("Must provide at least one directory.")
 
-    # Validate inputs
     for d in directories:
         if not os.path.isdir(d):
             raise RuntimeError(f"Input directory not found: {d!r}")
@@ -408,23 +339,36 @@ def combineVisFiles(directories, domain, out_directory,
             f"Output directory '{out_directory}' is the same as one of the input "
             "directories.  Choose a different output path.")
 
-    h5_name = ats_xdmf.valid_data_filename(domain)
+    _, _, in_filename = ats_xdmf.resolve_vis_input(
+        domain, directory=directories[0], prefix=in_prefix)
+    out_h5_name = f'{out_stem}_data.h5'
 
-    # Open VisFiles
+    # Open VisFiles with native time unit; resolve effective unit after first open
     vis_files = []
     try:
         for d in directories:
             vis_files.append(
-                ats_xdmf.VisFile(d, domain=domain, output_time_unit=time_unit))
+                ats_xdmf.VisFile(d, domain=domain, filename=in_filename,
+                                 output_time_unit=None))
 
-        # Validate time ordering
-        _validate_time_ordering(vis_files, directories, time_unit)
+        effective_time_unit = time_unit if time_unit is not None else vis_files[0].input_time_unit
+        effective_eps = eps if eps is not None else 0.0
 
-        # Compute selected variables (intersection + user filter)
+        # Re-open with the resolved unit so vf.times are in a consistent unit
+        if effective_time_unit != vis_files[0].output_time_unit:
+            for vf in vis_files:
+                vf.close()
+            vis_files = [
+                ats_xdmf.VisFile(d, domain=domain, filename=in_filename,
+                                 output_time_unit=effective_time_unit)
+                for d in directories
+            ]
+
+        _validate_time_ordering(vis_files, directories, effective_time_unit)
+
         selected_vars = _compute_selected_vars(vis_files, include_vars, exclude_vars)
 
-        # Deduplicate cycles across runs
-        run_data = _select_cycles(vis_files, directories, eps)
+        run_data = _select_cycles(vis_files, directories, effective_eps)
         if not run_data:
             raise RuntimeError("No cycles selected across all runs.")
 
@@ -438,39 +382,33 @@ def combineVisFiles(directories, domain, out_directory,
                 print(f"\n  Run: {directory}")
                 for old_key, t in zip(sel_cycles, sel_times):
                     print(f"    new key {new_key:6d}  (old {old_key:>8})  "
-                          f"t = {t:.6g} {time_unit}")
+                          f"t = {t:.6g} {effective_time_unit}")
                     new_key += 1
             print(f"\n{len(selected_vars)} variables selected:")
             for v in selected_vars:
                 print(f"  {v}")
             return
 
-        # Write output
         os.makedirs(out_directory, exist_ok=True)
 
-        # Write combined HDF5
-        out_h5 = os.path.join(out_directory, h5_name)
+        out_h5 = os.path.join(out_directory, out_h5_name)
         print(f"Writing combined HDF5: {out_h5}")
         steps = _write_combined_h5(run_data, out_h5, selected_vars)
 
-        # Write per-step XMFs
         for (run_idx, old_key_str, new_key_int, h5_native_time) in steps:
             directory = run_data[run_idx][1]
-            in_xmf  = os.path.join(directory,    f'{h5_name}.{old_key_str}.xmf')
-            out_xmf = os.path.join(out_directory, f'{h5_name}.{new_key_int}.xmf')
+            in_xmf  = os.path.join(directory,     f'{in_filename}.{old_key_str}.xmf')
+            out_xmf = os.path.join(out_directory,  f'{out_h5_name}.{new_key_int}.xmf')
             _write_step_xmf(in_xmf, out_xmf, old_key_str, new_key_int,
-                             h5_name, h5_native_time, selected_vars)
+                             out_h5_name, h5_native_time, selected_vars)
 
-        # Write master VisIt.xmf
-        _write_visit_xmf(out_directory, h5_name, len(steps))
+        _write_visit_xmf(out_directory, out_h5_name, len(steps))
 
-        # Copy mesh files
         _copy_mesh(directories, out_directory, domain)
 
         print(f"\nDone. Combined {len(steps)} cycles from {len(run_data)} run(s).")
         print(f"Output directory: {out_directory}")
-        stem = h5_name[:-3]
-        print(f"Open in VisIt:    {os.path.join(out_directory, stem + '.VisIt.xmf')}")
+        print(f"Open in VisIt:    {os.path.join(out_directory, out_stem + '.VisIt.xmf')}")
 
     finally:
         for vf in vis_files:
@@ -498,15 +436,20 @@ def main():
                              'Glob patterns (e.g. \'run*\') are accepted if quoted '
                              'and are automatically natural-sorted.  Explicit lists '
                              'are used as-is unless --sort is given.')
+    parser.add_argument('-p', '--prefix', dest='prefix', default='ats_vis',
+                        help='Input filename prefix (default: ats_vis)')
     parser.add_argument('--output', '-o', dest='output', required=True,
                         help='Output directory (created if needed).')
-    parser.add_argument('--time-unit', dest='time_unit', default='d',
+    parser.add_argument('--out-prefix', dest='out_prefix', default=None,
+                        help='Output filename prefix (default: same as input prefix).')
+    parser.add_argument('--time-unit', dest='time_unit', default=None,
                         choices=['s', 'hr', 'd', 'yr', 'noleap'],
-                        help='Time unit for --eps and printed times (default: d).')
-    parser.add_argument('--eps', dest='eps', type=float, default=1.0,
+                        help='Time unit for --eps and printed times '
+                             '(default: native unit from file).')
+    parser.add_argument('--eps', dest='eps', type=float, default=None,
                         help='Overlap tolerance in --time-unit units.  Cycles '
                              'from run i with time >= (start_of_run_i+1 - eps) '
-                             'are dropped.  Default: 1.0.')
+                             'are dropped.  Default: 0.0 (exact boundary).')
 
     var_group = parser.add_mutually_exclusive_group()
     var_group.add_argument('--include', dest='include_vars',
@@ -525,7 +468,6 @@ def main():
 
     args = parser.parse_args()
 
-    # Expand any glob patterns and natural-sort; trust explicit lists unless --sort
     import glob as _glob
     directories = []
     is_glob = False
@@ -549,11 +491,16 @@ def main():
     else:
         domains = [args.domain]
 
+    out_prefix = args.out_prefix or args.prefix
+
     for domain in domains:
+        out_stem = out_prefix if domain == 'domain' else f'{out_prefix}_{domain}'
         combineVisFiles(
             directories=directories,
             domain=domain,
             out_directory=args.output,
+            out_stem=out_stem,
+            in_prefix=args.prefix,
             eps=args.eps,
             time_unit=args.time_unit,
             include_vars=args.include_vars,
