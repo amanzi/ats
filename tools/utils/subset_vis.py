@@ -258,7 +258,7 @@ def main():
     parser.add_argument('domain', metavar='DOMAIN',
                         help='ATS domain name (e.g. "surface", "domain"), or '
                              '"*" to process all domains found in the input directory.')
-    parser.add_argument('-d', '--directory', dest='directory', default='.',
+    parser.add_argument('directory', metavar='DIRECTORY', nargs='?', default='.',
                         help='Directory containing input visualization files '
                              '(default: current directory)')
     parser.add_argument('-p', '--prefix', dest='prefix', default='ats_vis',
