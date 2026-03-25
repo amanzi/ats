@@ -150,16 +150,17 @@ def resolve_vis_input(domain_or_path, directory='.', prefix='ats_vis'):
 
 def time_unit_conversion(value, input_unit, output_unit):
     time_in_seconds = {
-        'yr': 365.25 * 24 * 3600,
+        'y': 365.25 * 24 * 3600,
         'noleap': 365 * 24 *3600,
         'd': 24 * 3600,
-        'hr': 3600,
+        'h': 3600,
+        'min': 60,
         's': 1
     }
     if input_unit not in time_in_seconds:
-        raise ValueError("Invalid input time unit : must be one of 'yr', 'noleap', 'd', 'hr', or 's'")
+        raise ValueError("Invalid input time unit : must be one of 'y', 'noleap', 'd', 'h', 'min', or 's'")
     if output_unit not in time_in_seconds:
-        raise ValueError("Invalid output time unit : must be one of 'yr', 'noleap', 'd', 'hr', or 's'")
+        raise ValueError("Invalid output time unit : must be one of 'y', 'noleap', 'd', 'h', 'min', or 's'")
     
     value2sec = value * time_in_seconds[input_unit]
     output_value = value2sec / time_in_seconds[output_unit]
@@ -223,8 +224,8 @@ class VisFile:
         else:
             warnings.warn(
                 f"HDF5 file {self.fname!r} has no 'time unit' attribute; "
-                "assuming 'yr'. This file may be from an old version of ATS.")
-            self.input_time_unit = 'yr'
+                "assuming 'y'. This file may be from an old version of ATS.")
+            self.input_time_unit = 'y'
 
         self.output_time_unit = output_time_unit if output_time_unit is not None else self.input_time_unit
 

@@ -15,7 +15,7 @@ Examples
 --------
 Subset a single run by time range::
 
-  subset_vis.py surface run0/ -o out/ --times 0:2.5 --time-unit yr
+  subset_vis.py surface run0/ -o out/ --times 0:2.5 --time-unit y
 
 Combine three directories into a single combined result::
 
@@ -85,10 +85,11 @@ def _parse_slice_or_list(s, cast):
 # ---------------------------------------------------------------------------
 
 _TIME_IN_SECONDS = {
-    'yr':     365.25 * 86400,
+    'y':      365.25 * 86400,
     'noleap': 365    * 86400,
     'd':      86400,
-    'hr':     3600,
+    'h':      3600,
+    'min':    60,
     's':      1,
 }
 
@@ -599,7 +600,7 @@ def main():
              '"i1,i2,i3". Supports negative indices.')
 
     parser.add_argument('--time-unit', dest='time_unit', default=None,
-                        choices=['s', 'hr', 'd', 'yr', 'noleap'],
+                        choices=['s', 'min', 'h', 'd', 'y', 'noleap'],
                         help='Time unit for display and --times values '
                              '(default: native unit from file).')
     parser.add_argument('--time-tolerance', dest='time_tolerance',
@@ -607,7 +608,7 @@ def main():
                         help='Tolerance for time matching and restart boundary '
                              'deduplication, in --time-unit units. '
                              'Default: 0.1 s expressed in the effective unit '
-                             '(~1e-9 yr, ~3e-8 d, 2.8e-5 hr, 0.1 s).')
+                             '(~1e-9 y, ~3e-8 d, 2.8e-5 h, 0.1 s).')
 
     # Variable selection (mutually exclusive)
     var_group = parser.add_mutually_exclusive_group()
