@@ -135,12 +135,9 @@ StreamlightEvaluator::Evaluate_(const State& S, const std::vector<CompositeVecto
   const auto& qSWin = *S.Get<CompositeVector>(qSWin_key_, tag).ViewComponent("cell", false);
   const auto& ponded_depth = *S.Get<CompositeVector>(ponded_depth_key_, tag).ViewComponent("cell", false);
 
-  CompositeVector* gpp_swinc = results[0];
-  CompositeVector* gpp_stream = results[1]; 
-  CompositeVector* gpp_streambed = results[2]; 
-  Epetra_MultiVector& gpp_swinc_c = *gpp_swinc->ViewComponent("cell", false);
-  Epetra_MultiVector& gpp_stream_c = *gpp_stream->ViewComponent("cell", false);
-  Epetra_MultiVector& gpp_streambed_c = *gpp_streambed->ViewComponent("cell", false);
+  Epetra_MultiVector& gpp_swinc = *results[0]->ViewComponent("cell", false);
+  Epetra_MultiVector& gpp_stream = *results[1]->ViewComponent("cell", false);
+  Epetra_MultiVector& gpp_streambed = *results[2]->ViewComponent("cell", false);
 
   double time_sec = S.get_time();
   std::pair<int,double> doy_hour = model_->DoyHourFromSeconds(time_sec, days_offset_);
