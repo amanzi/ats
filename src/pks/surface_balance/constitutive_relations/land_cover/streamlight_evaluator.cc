@@ -101,6 +101,7 @@ StreamlightEvaluator::InitializeFromPlist_()
 {
   domain_ = Keys::getDomain(my_keys_.front().first);
   Tag tag = my_keys_.front().second;
+  my_keys_.clear();
 
   qSWin_key_ = Keys::readKey(
     plist_, domain_, "incoming shortwave radiation", "incoming_shortwave_radiation");
@@ -175,9 +176,9 @@ StreamlightEvaluator::Evaluate_(const State& S, const std::vector<CompositeVecto
     
       // consolidate_metrics, convert to GPP
     StreamlightModel::PARtoGPP gpp = model_->ConvertPARtoGPP(estrm, qSWin[0][c]);
-    gpp_swinc_c[0][c] = gpp.GPP_sw_inc_gO2_m2d;
-    gpp_stream_c[0][c] = gpp.GPP_stream_gO2_m2d;
-    gpp_streambed_c[0][c] = gpp.GPP_streambed_gO2_m2d;
+    gpp_swinc[0][c] = gpp.GPP_sw_inc_gO2_m2d;
+    gpp_stream[0][c] = gpp.GPP_stream_gO2_m2d;
+    gpp_streambed[0][c] = gpp.GPP_streambed_gO2_m2d;
   }
 }
 
