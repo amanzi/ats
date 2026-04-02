@@ -64,12 +64,10 @@ QCRelationOverlandEvaluator::Evaluate_(const State& S, const std::vector<Composi
     double total_external_flux = 0;
     const auto& [faces, dirs] = mesh.getCellFacesAndDirections(c);
     int nfaces = faces.size();
-    std::cout << "Cell " << c << " at " << centroid << " has " << nfaces << " faces." << std::endl;
 
     for (int i = 0; i < nfaces; i++) {
       int f = faces[i];     // get each face of the cell
       double dir = dirs[i]; // 1: water goes out of the cell; -1: water goes into the cell
-      double wff = water_from_field[0][f];           
       if ((mesh.getFaceCells(f).size() == 1) && (dir == -1)) {
         // External faces are adjacent to only one cell (size() == 1).
         // Flux through these faces represents sources or sinks to/from the overland flow.
