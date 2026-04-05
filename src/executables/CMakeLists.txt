@@ -143,6 +143,8 @@ endif()
 #  ats_ecosim_data
 #  ats_ecosim_relations
 
+message(STATUS ">>>> JDM: In ATS ECOSIM_LIBRARIES = ${ECOSIM_LIBRARIES}")
+
 # note, we can be inclusive here, because if they aren't enabled,
 # these won't be defined and will result in empty strings.
 set(tpl_link_libs
