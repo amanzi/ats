@@ -91,7 +91,7 @@ StreamlightModel::CalcSolarAngles(double doy, double hour, double lat, double lo
 {
   SolarAngles solang;
   // Julian date
-  int jdate = doy - 1 + hour / 24;
+  double jdate = doy - 1. + hour / 24.;
   // Solar declination
   solang.solar_declination = 23.45 * M_PI / 180.0 * std::sin(2 * M_PI * (jdate + 284) / 365.25);
   double b = M_PI / 182 * (jdate - 81);
@@ -438,8 +438,7 @@ StreamlightModel::PARtoGPP
 StreamlightModel::ConvertPARtoGPP(const EnergyStream& estrm, double qSWin)
 {
   PARtoGPP gpp;
-  double common_val = 0.235 * 3600 / 4186.8 * estrm.energy_total_surface * 
-    light_use_eff_ * 32 * 0.5 /(12 * 3.4);
+  double common_val = 0.235 * 3600 / 4186.8 * light_use_eff_ * 32 * 0.5 /(12 * 3.4);
   gpp.GPP_sw_inc_gO2_m2d = qSWin / 0.235 * common_val;
   gpp.GPP_stream_gO2_m2d = estrm.energy_total_surface_PAR_ppfd * common_val; 
   gpp.GPP_streambed_gO2_m2d = estrm.energy_total_streambed_PAR_ppfd * common_val;
