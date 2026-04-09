@@ -275,7 +275,7 @@ void EcoSIM::Setup() {
           ->SetGhosted(false)
           ->SetComponent("cell", AmanziMesh::CELL, 1);
 
-  S_->Require<CompositeVector, CompositeVectorSpace>(surface_energy_source_ecosim_key_ , tag_next_, name_)
+  S_->Require<CompositeVector, CompositeVectorSpace>(surface_energy_source_ecosim_key_ , tag_next_, surface_energy_source_ecosim_key_)
           .SetMesh(mesh_surf_)
           ->SetGhosted(false)
           ->SetComponent("cell", AmanziMesh::CELL, 1);
@@ -468,8 +468,8 @@ void EcoSIM::Initialize() {
   S_->GetRecordW(snow_temperature_key_, Tags::DEFAULT, snow_temperature_key_).set_initialized();
 
   //Initialize owned evaluators
-  S_->GetW<CompositeVector>(hydraulic_conductivity_key_, Tags::DEFAULT, "hydraulic_conductivity").PutScalar(1.0);
-  S_->GetRecordW(hydraulic_conductivity_key_, Tags::DEFAULT, "hydraulic_conductivity").set_initialized();
+  S_->GetW<CompositeVector>(hydraulic_conductivity_key_, Tags::DEFAULT, name_).PutScalar(1.0);
+  S_->GetRecordW(hydraulic_conductivity_key_, Tags::DEFAULT, name_).set_initialized();
 
   //S_->GetW<CompositeVector>(bulk_density_key_, Tags::DEFAULT, "bulk_density").PutScalar(1.0);
   //S_->GetRecordW(bulk_density_key_, Tags::DEFAULT, "bulk_density").set_initialized();
@@ -1198,7 +1198,7 @@ void EcoSIM::CopyFromEcoSIM_process(const int column,
   auto& rock_density = *(*S_->GetW<CompositeVector>(rock_density_key_, Tags::DEFAULT, rock_density_key_).ViewComponent("cell",false))(0);
   auto& cell_volume = *(*S_->GetW<CompositeVector>(cell_volume_key_, Tags::DEFAULT, cell_volume_key_).ViewComponent("cell",false))(0);
 
-  auto& surface_energy_source = *(*S_->GetW<CompositeVector>(surface_energy_source_ecosim_key_, Tags::DEFAULT, name_).ViewComponent("cell", false))(0);
+  auto& surface_energy_source = *(*S_->GetW<CompositeVector>(surface_energy_source_ecosim_key_, Tags::DEFAULT, surface_energy_source_ecosim_key_).ViewComponent("cell", false))(0);
   auto& subsurface_energy_source = *(*S_->GetW<CompositeVector>(subsurface_energy_source_ecosim_key_, Tags::DEFAULT, subsurface_energy_source_ecosim_key_).ViewComponent("cell", false))(0);
 
   auto& surface_water_source = *(*S_->GetW<CompositeVector>(surface_water_source_ecosim_key_, Tags::DEFAULT, surface_water_source_ecosim_key_).ViewComponent("cell", false))(0);
@@ -1322,7 +1322,7 @@ int EcoSIM::InitializeSingleProcess(int proc)
   bgc_sizes_.num_components = 1;
 
   bgc_engine_->Setup(bgc_props_, bgc_state_, bgc_sizes_, num_iterations, num_columns,ncells_per_col_);
-  CopyFromEcoSIM_process(proc, bgc_props_, bgc_state_, bgc_aux_data_, Tags::DEFAULT);
+  //CopyFromEcoSIM_process(proc, bgc_props_, bgc_state_, bgc_aux_data_, Tags::DEFAULT);
 }
 
 int EcoSIM::AdvanceSingleProcess(double dt, int proc)

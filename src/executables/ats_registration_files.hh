@@ -26,7 +26,7 @@
 #include "pks_chemistry_reg.hh"
 #endif
 #ifdef ECOSIM_ENABLED
-#  include "ats_ecosim_registration.hh"
-#  include "ats_ecosim_relations_registration.hh"
-#  include "ats_ecosim_data_registration.hh"
+#include "ats_ecosim_registration.hh"
+#include "ats_ecosim_relations_registration.hh"
+#include "ats_ecosim_data_registration.hh"
 #endif
