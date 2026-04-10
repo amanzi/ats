@@ -9,18 +9,12 @@
            Phong Le (lepv@ornl.gov)
 */
 
-/*
-  Transport PK
-
-*/
-
 #include <algorithm>
 #include <vector>
 
 #include "Epetra_Vector.h"
 #include "Epetra_IntVector.h"
 #include "Epetra_MultiVector.h"
-#include "Epetra_Import.h"
 #include "Teuchos_RCP.hpp"
 
 #include "errors.hh"
@@ -43,7 +37,6 @@
 #include "TransportBoundaryFunction_Alquimia.hh"
 #include "TransportSourceFunction_Alquimia.hh"
 #include "TransportDomainFunction_UnitConversion.hh"
-
 #include "PK_DomainFunction.hh"
 
 #include "transport_ats.hh"
@@ -77,7 +70,7 @@ Transport_ATS::parseParameterList()
     plist_->set<std::string>("primary variable key suffix", "mole_fraction");
   }
 
-  // with subfield names, the header width is often insufficient
+  // with subfield names, the default header width is often insufficient
   if (!plist_->sublist("verbose object").isParameter("debug cell header width"))
     plist_->sublist("verbose object").set("debug cell header width", 34);
   PK_Physical_Default::parseParameterList();
@@ -92,13 +85,16 @@ Transport_ATS::parseParameterList()
     Exceptions::amanzi_throw(msg);
   }
 
+  // ensure we have component names
+  // NOTE: names MUST be {aqueous_names..., solid_names..., gas_names...}
   if (component_names_.size() == 0) {
     // not set by chemistry... must get set by user
     component_names_ = plist_->get<Teuchos::Array<std::string>>("component names").toVector();
     num_components_ = component_names_.size();
   }
 
-  // NOTE: names MUST be aqueous, solid, gaseous
+  // defaults to all aqueous -- user must specify otherwise
+  // NOTE: why is this not also accessible from chemistry? --etc
   num_aqueous_ = plist_->get<int>("number of aqueous components", component_names_.size());
 
   // parameters
@@ -109,9 +105,12 @@ Transport_ATS::parseParameterList()
 
   if (plist_->isSublist("molecular diffusivity [m^2 s^-1]")) {
     has_diffusion_ = true;
-    molec_diff_ =
-      readParameterMapByComponent(plist_->sublist("molecular diffusivity [m^2 s^-1]"), 0.);
 
+    // NOTE: here we use a molecular diffusivity that is either non-negative
+    // for scalar values or -1 for field-based values.
+    molec_diff_key_ = Keys::readKey(*plist_, domain_, "molecular diffusivity", "molecular_diffusivity");
+    molec_diff_ = readParameterMapByComponent(plist_->sublist("molecular diffusivity [m^2 s^-1]"), 0.,
+            molec_diff_key_);
     tortuosity_ = readParameterMapByPhase(plist_->sublist("tortuosity [-]"), 1.);
   }
 
@@ -121,10 +120,12 @@ Transport_ATS::parseParameterList()
 
   mass_flux_advection_key_ =
     Keys::readKey(*plist_, domain_, "mass flux advection", "mass_flux_advection");
+  // NOTE: should probably be at current?  Aren't these treated explicitly? --ETC
   requireEvaluatorAtNext(mass_flux_advection_key_, tag_next_, *S_, name_);
 
   mass_flux_diffusion_key_ =
     Keys::readKey(*plist_, domain_, "mass flux diffusion", "mass_flux_diffusion");
+  // NOTE: should probably be at current?  Aren't these treated explicitly? --ETC
   requireEvaluatorAtNext(mass_flux_diffusion_key_, tag_next_, *S_, name_);
 
   // -- liquid water content - need at new time, copy at current time
@@ -191,11 +192,21 @@ Transport_ATS::parseParameterList()
 
 
 Transport_ATS::ParameterMap
-Transport_ATS::readParameterMapByComponent(Teuchos::ParameterList& plist, double default_val)
+Transport_ATS::readParameterMapByComponent(Teuchos::ParameterList& plist, double default_val,
+        const Key& field_key, double field_val)
 {
   Transport_ATS::ParameterMap map;
   for (int i = 0; i != num_components_; ++i) {
-    map[component_names_[i]] = plist.get<double>(component_names_[i], default_val);
+    if (plist.isParameter(component_names_[i])) {
+      // scalar
+      map[component_names_[i]] = plist.get<double>(component_names_[i]);
+    } else if (!field_key.empty() && S_->HasEvaluatorList(field_key + "." + component_names_[i])) {
+      // field-based
+      map[component_names_[i]] = field_val;
+    } else {
+      // default value scalar
+      map[component_names_[i]] = default_val;
+    }
   }
   return map;
 }
@@ -287,17 +298,30 @@ Transport_ATS::SetupTransport_()
     S_->RequireEvaluator(dispersion_tensor_key_, tag_next_);
   }
 
+  // field- and component-based diffusivity (as opposed to component-based scalers)
+  if (has_diffusion_) {
+    // NOTE: should probably be at current?  Aren't these treated explicitly? --ETC
+    for (const auto& name_val : molec_diff_) {
+      if (std::isnan(name_val.second)) {
+        requireEvaluatorAtNext(molec_diff_key_+"."+name_val.first, tag_next_, *S_)
+          .SetMesh(mesh_)
+          ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+      }
+    }
+  }
+
   // operator and boundary conditions for diffusion/dispersion solve
   if (has_dispersion_ || has_diffusion_) {
     // default boundary conditions (none inside domain and Neumann on its boundary)
-    diff_bcs_ = Teuchos::rcp(
-                             new Operators::BCs(mesh_, AmanziMesh::Entity_kind::FACE, WhetStone::DOF_Type::SCALAR));
+    diff_bcs_ = Teuchos::rcp(new Operators::BCs(mesh_, AmanziMesh::Entity_kind::FACE,
+            WhetStone::DOF_Type::SCALAR));
 
     PopulateBoundaryData_(-1, *diff_bcs_);
 
     // diffusion operator
     Operators::PDE_DiffusionFactory opfactory;
     Teuchos::ParameterList& op_list = plist_->sublist("diffusion");
+    // -- what does this mean?  When should this get used? --etc
     enforce_bc_ = op_list.get("enforce boundary conditions", false);
     diff_op_ = opfactory.Create(op_list, mesh_, diff_bcs_);
     diff_global_op_ = diff_op_->global_operator();
@@ -309,7 +333,6 @@ Transport_ATS::SetupTransport_()
     diff_sol_ = Teuchos::rcp(new CompositeVector(cvs));
   }
 
-  
   // source term setup
   // --------------------------------------------------------------------------------
   if (plist_->isSublist("source terms")) {
@@ -955,7 +978,7 @@ Transport_ATS ::AdvanceDispersionDiffusion_(double t_old, double t_new)
 {
   if (!has_diffusion_ && !has_dispersion_) return;
   double dt = t_new - t_old;
-  
+
   Epetra_MultiVector& tcc_new =
     *S_->GetW<CompositeVector>(key_, tag_next_, passwd_).ViewComponent("cell", false);
 
@@ -987,23 +1010,39 @@ Transport_ATS ::AdvanceDispersionDiffusion_(double t_old, double t_new)
   // change and can be reused.
   double md_old(0.0);
 
-  for (int i = 0; i != num_aqueous_; ++i) {
+  if (S_->HasEvaluator(molec_diff_key_, tag_next_))
+    S_->GetEvaluator(molec_diff_key_, tag_next_).Update(*S_, name_);
 
-    // Set Dirichlet_BC for 
+  Epetra_MultiVector const * molec_diff_i_prev = nullptr;
+  for (int i = 0; i != num_aqueous_; ++i) {
+    // Set Dirichlet_BC for Diffusion
     if (enforce_bc_) PopulateBoundaryData_(i, *diff_bcs_);
+
     // add molecular diffusion to the dispersion tensor
     bool changed_tensor(false);
     if (has_diffusion_) {
-      double md_new = molec_diff_[component_names_[i]] * tortuosity_["aqueous"];
-      double md_change = md_new - md_old;
-      if (std::abs(md_change) > 1.e-12) {
-        // shift the tensor diagonal by the lwc * delta diff coef
-        for (int c = 0; c != cv.MyLength(); ++c) {
+      Epetra_MultiVector const * molec_diff_i = nullptr;
+      if (std::isnan(molec_diff_[component_names_[i]])) {
+        // is a field-based value
+        S_->GetEvaluator(molec_diff_key_+"."+component_names_[i], tag_next_).Update(*S_, name_);
+        molec_diff_i = &*S_->Get<CompositeVector>(molec_diff_key_+"."+component_names_[i], tag_next_)
+          .ViewComponent("cell", false);
+      }
+
+      // loop over each cell and compute the difference
+      for (int c = 0; c != cv.MyLength(); ++c) {
+        double md_new = molec_diff_i ? (*molec_diff_i)[0][c] * tortuosity_["aqueous"]
+          : molec_diff_[component_names_[i]] * tortuosity_["aqueous"];
+        double md_old = molec_diff_i_prev ? (*molec_diff_i_prev)[0][c] * tortuosity_["aqueous"]
+          : i == 0 ? 0. : molec_diff_[component_names_[i-1]] * tortuosity_["aqueous"];
+        double md_change = md_new - md_old;
+        if (std::abs(md_change) > 1.e-12) {
+          // shift the tensor diagonal by the lwc * delta diff coef
           (*D_)[c] += md_change * lwc[0][c] / cv[0][c];
         }
-        md_old = md_new;
         changed_tensor = true;
       }
+      molec_diff_i_prev = molec_diff_i;
     }
 
     //

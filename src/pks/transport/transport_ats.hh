@@ -164,6 +164,8 @@ Note, this is not dispersion, but strictly isotropic diffusion.
 #ifndef AMANZI_ATS_TRANSPORT_PK_HH_
 #define AMANZI_ATS_TRANSPORT_PK_HH_
 
+#include <limits>
+
 // TPLs
 #include "Epetra_Vector.h"
 #include "Epetra_IntVector.h"
@@ -245,7 +247,8 @@ class Transport_ATS : public PK_Physical_Default {
  protected:
   // component-based or phase-based parameters
   using ParameterMap = std::map<std::string, double>;
-  ParameterMap readParameterMapByComponent(Teuchos::ParameterList& plist, double default_val);
+  ParameterMap readParameterMapByComponent(Teuchos::ParameterList& plist, double default_val,
+          const Key& field_key = Key(), double field_val = std::numeric_limits<double>::quiet_NaN());
   ParameterMap readParameterMapByPhase(Teuchos::ParameterList& plist, double default_val);
 
   // transport physics members
@@ -315,6 +318,7 @@ class Transport_ATS : public PK_Physical_Default {
   Key source_key_;
   bool is_source_term_;
   Key cv_key_;
+  Key molec_diff_key_;
 
   // workspace
   Key solid_residue_mass_key_; // residue -- mass that was left behind by water
