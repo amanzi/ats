@@ -9,6 +9,7 @@
 
 #include "Teuchos_LAPACK.hpp"
 #include "Teuchos_SerialDenseMatrix.hpp"
+#include "Teuchos_SerialDenseVector.hpp"
 #include "Epetra_MultiVector.h"
 
 #include "flow_bc_factory.hh"
@@ -600,7 +601,7 @@ OverlandPressureFlow::CalculateDiagnostics(const Tag& tag)
 
   Teuchos::LAPACK<int, double> lapack;
   Teuchos::SerialDenseMatrix<int, double> matrix(d, d);
-  double rhs[d];
+  Teuchos::SerialDenseVector<int, double> rhs(d);
 
   int ncells_owned =
     mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
@@ -626,7 +627,7 @@ OverlandPressureFlow::CalculateDiagnostics(const Tag& tag)
     }
 
     int info;
-    lapack.POSV('U', d, 1, matrix.values(), d, rhs, d, &info);
+    lapack.POSV('U', d, 1, matrix.values(), d, rhs.values(), d, &info);
 
     // NOTE this is probably wrong in the frozen case?  pd --> uf*pd?
     for (int i = 0; i != d; ++i)
