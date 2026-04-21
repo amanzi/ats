@@ -20,7 +20,7 @@ namespace SurfaceBalance {
 double
 readPositiveLandCoverParameter(Teuchos::ParameterList& plist, const std::string& name)
 {
-  double res = plist.get<double>(name, NAN);
+  double res = plist.get<double>(name);
   if (res < 0) {
     Errors::Message msg;
     msg << "Invalid land cover parameter \"" << name << "\" in land cover type \"" << plist.name()
@@ -33,7 +33,7 @@ readPositiveLandCoverParameter(Teuchos::ParameterList& plist, const std::string&
 double
 readNegativeLandCoverParameter(Teuchos::ParameterList& plist, const std::string& name)
 {
-  double res = plist.get<double>(name, NAN);
+  double res = plist.get<double>(name);
   if (res > 0) {
     Errors::Message msg;
     msg << "Invalid land cover parameter \"" << name << "\" in land cover type \"" << plist.name()
@@ -58,35 +58,69 @@ readZeroOneLandCoverParameter(Teuchos::ParameterList& plist, const std::string& 
 
 
 LandCover::LandCover(Teuchos::ParameterList& plist)
-  : rooting_depth_max(readPositiveLandCoverParameter(plist, "rooting depth max [m]")),
-    rooting_profile_alpha(readPositiveLandCoverParameter(plist, "rooting profile alpha [-]")),
-    rooting_profile_beta(plist.get<double>("rooting profile beta [-]", NAN)),
-    stomata_closed_capillary_pressure(
-      readPositiveLandCoverParameter(plist, "capillary pressure at fully closed stomata [Pa]")),
-    stomata_open_capillary_pressure(
-      readPositiveLandCoverParameter(plist, "capillary pressure at fully open stomata [Pa]")),
-    maximum_xylem_capillary_pressure(
-      readPositiveLandCoverParameter(plist, "maximum xylem capillary pressure [Pa]")),
-    leaf_on_doy(plist.get<double>("leaf on time [doy]", NAN)),
-    leaf_off_doy(plist.get<double>("leaf off time [doy]", NAN)),
-    pt_alpha_snow(readPositiveLandCoverParameter(plist, "Priestley-Taylor alpha of snow [-]")),
-    pt_alpha_canopy(readPositiveLandCoverParameter(plist, "Priestley-Taylor alpha of canopy [-]")),
-    pt_alpha_ground(
-      readPositiveLandCoverParameter(plist, "Priestley-Taylor alpha of bare ground [-]")),
-    pt_alpha_transpiration(
-      readPositiveLandCoverParameter(plist, "Priestley-Taylor alpha of transpiration [-]")),
-    albedo_ground(readZeroOneLandCoverParameter(plist, "albedo of bare ground [-]")),
-    emissivity_ground(readZeroOneLandCoverParameter(plist, "emissivity of bare ground [-]")),
-    albedo_canopy(readZeroOneLandCoverParameter(plist, "albedo of canopy [-]")),
-    beers_k_sw(
-      readPositiveLandCoverParameter(plist, "Beer's law extinction coefficient, shortwave [-]")),
-    beers_k_lw(
-      readPositiveLandCoverParameter(plist, "Beer's law extinction coefficient, longwave [-]")),
-    snow_transition_depth(readPositiveLandCoverParameter(plist, "snow transition depth [m]")),
-    water_transition_depth(readPositiveLandCoverParameter(plist, "water transition depth [m]")),
-    roughness_ground(readPositiveLandCoverParameter(plist, "roughness length of bare ground [m]")),
-    roughness_snow(readPositiveLandCoverParameter(plist, "roughness length of snow [m]")),
-    mannings_n(readPositiveLandCoverParameter(plist, "Manning's n [?]"))
+  : rooting_depth_max(plist.isParameter("rooting depth max [m]") ?
+                      readPositiveLandCoverParameter(plist, "rooting depth max [m]") :
+                      Relations::NaN),
+    rooting_profile_alpha(plist.isParameter("rooting profile alpha [-]") ?
+                          readPositiveLandCoverParameter(plist, "rooting profile alpha [-]") :
+                          Relations::NaN),
+    rooting_profile_beta(plist.isParameter("rooting profile beta [-]") ?
+                         readPositiveLandCoverParameter(plist, "rooting profile beta [-]") :
+                         Relations::NaN),
+    stomata_closed_capillary_pressure(plist.isParameter("capillary pressure at fully closed stomata [Pa]") ?
+            readPositiveLandCoverParameter(plist, "capillary pressure at fully closed stomata [Pa]") :
+            Relations::NaN),
+    stomata_open_capillary_pressure(plist.isParameter("capillary pressure at fully open stomata [Pa]") ?
+            readPositiveLandCoverParameter(plist, "capillary pressure at fully open stomata [Pa]") :
+            Relations::NaN),
+    maximum_xylem_capillary_pressure(plist.isParameter("maximum xylem capillary pressure [Pa]") ?
+            readPositiveLandCoverParameter(plist, "maximum xylem capillary pressure [Pa]") :
+            Relations::NaN),
+    leaf_on_doy(plist.isParameter("leaf on time [doy]") ?
+                plist.get<double>("leaf on time [doy]") :
+                Relations::NaN),
+    leaf_off_doy(plist.isParameter("leaf off time [doy]") ?
+                 plist.get<double>("leaf off time [doy]") :
+                 Relations::NaN),
+    pt_alpha_snow(plist.isParameter("Priestley-Taylor alpha of snow [-]") ?
+                  readPositiveLandCoverParameter(plist, "Priestley-Taylor alpha of snow [-]") :
+                  Relations::NaN),
+    pt_alpha_canopy(plist.isParameter("Priestley-Taylor alpha of canopy [-]") ?
+                    readPositiveLandCoverParameter(plist, "Priestley-Taylor alpha of canopy [-]") :
+                    Relations::NaN),
+    pt_alpha_ground(plist.isParameter("Priestley-Taylor alpha of bare ground [-]") ?
+                    readPositiveLandCoverParameter(plist, "Priestley-Taylor alpha of bare ground [-]") :
+                    Relations::NaN),
+    pt_alpha_transpiration(plist.isParameter("Priestley-Taylor alpha of transpiration [-]") ?
+                           readPositiveLandCoverParameter(plist, "Priestley-Taylor alpha of transpiration [-]") :
+                           Relations::NaN),
+    albedo_ground(plist.isParameter("albedo of bare ground [-]") ?
+                  readZeroOneLandCoverParameter(plist, "albedo of bare ground [-]") :
+                  Relations::NaN),
+    emissivity_ground(plist.isParameter("emissivity of bare ground [-]") ?
+                      readZeroOneLandCoverParameter(plist, "emissivity of bare ground [-]") :
+                      Relations::NaN),
+    albedo_canopy(plist.isParameter("albedo of canopy [-]") ?
+                  readZeroOneLandCoverParameter(plist, "albedo of canopy [-]") :
+                  Relations::NaN),
+    beers_k_sw(plist.isParameter("Beer's law extinction coefficient, shortwave [-]") ?
+               readPositiveLandCoverParameter(plist, "Beer's law extinction coefficient, shortwave [-]") :
+               Relations::NaN),
+    beers_k_lw(plist.isParameter("Beer's law extinction coefficient, longwave [-]") ?
+               readPositiveLandCoverParameter(plist, "Beer's law extinction coefficient, longwave [-]") :
+               Relations::NaN),
+    snow_transition_depth(plist.isParameter("snow transition depth [m]") ?
+                          readPositiveLandCoverParameter(plist, "snow transition depth [m]") :
+                          Relations::NaN),
+    water_transition_depth(plist.isParameter("water transition depth [m]") ?
+                           readPositiveLandCoverParameter(plist, "water transition depth [m]") :
+                           Relations::NaN),
+    roughness_ground(plist.isParameter("roughness length of bare ground [m]") ?
+                     readPositiveLandCoverParameter(plist, "roughness length of bare ground [m]") :
+                     Relations::NaN),
+    roughness_snow(plist.isParameter("roughness length of snow [m]") ?
+                     readPositiveLandCoverParameter(plist, "roughness length of snow [m]") :
+                     Relations::NaN)
 {}
 
 

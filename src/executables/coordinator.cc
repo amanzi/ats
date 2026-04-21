@@ -78,7 +78,8 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
 
   timers_["0: create mesh"] = Teuchos::TimeMonitor::getNewCounter("0: create mesh");
   timers_["1: create run"] = Teuchos::TimeMonitor::getNewCounter("1: create run");
-  timers_["2: setup"] = Teuchos::TimeMonitor::getNewCounter("2: setup");
+  timers_["2a: parseParameterList"] = Teuchos::TimeMonitor::getNewCounter("2a: parseParameterList");
+  timers_["2b: setup"] = Teuchos::TimeMonitor::getNewCounter("2b: setup");
   timers_["3: initialize"] = Teuchos::TimeMonitor::getNewCounter("3: initialize");
   timers_["4: solve"] = Teuchos::TimeMonitor::getNewCounter("4: solve");
   timers_["4a: advance step"] = Teuchos::TimeMonitor::getNewCounter("4a: advance step");
@@ -273,23 +274,30 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
 
 
 void
+Coordinator::parseParameterList()
+{
+  Teuchos::TimeMonitor monitor(*timers_.at("2a: parseParameterList"));
+
+  // require needed times -- these may be targets as dependencies
+  S_->require_time(Amanzi::Tags::CURRENT);
+  S_->require_time(Amanzi::Tags::NEXT);
+
+  pk_->set_tags(Amanzi::Tags::CURRENT, Amanzi::Tags::NEXT);
+  pk_->parseParameterList();
+}
+
+void
 Coordinator::setup()
 {
-  Teuchos::TimeMonitor monitor(*timers_.at("2: setup"));
+  Teuchos::TimeMonitor monitor(*timers_.at("2b: setup"));
 
   // common constants
   S_->Require<double>("atmospheric_pressure", Amanzi::Tags::DEFAULT, "coordinator");
   S_->Require<Amanzi::AmanziGeometry::Point>("gravity", Amanzi::Tags::DEFAULT, "coordinator");
 
-  // needed other times
-  S_->require_time(Amanzi::Tags::CURRENT);
-  S_->require_time(Amanzi::Tags::NEXT);
-
   // order matters here -- PK::Setup() set the leaves, then observations can
   // use those if provided, and State::Setup finally deals with all secondaries
   // and allocates memory
-  pk_->set_tags(Amanzi::Tags::CURRENT, Amanzi::Tags::NEXT);
-  pk_->parseParameterList();
   pk_->Setup();
   for (auto& obs : observations_) obs->Setup(S_.ptr());
   S_->Setup();
