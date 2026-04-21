@@ -55,6 +55,40 @@ MPCSubcycled::parseParameterList()
 
   MPC<PK>::parseParameterList();
 
+  // Build list of secondary fields that need tag bridging for subcycled PKs
+  // Porosity is known to have timing issues with ELM-ATS coupling in subcycling mode
+  secondary_fields_.push_back("porosity");
+  
+  // Allow user to add more fields if needed via XML (optional)
+  if (plist_->isParameter("additional secondary fields for subcycling")) {
+    auto additional = plist_->get<Teuchos::Array<std::string>>(
+      "additional secondary fields for subcycling");
+    secondary_fields_.insert(secondary_fields_.end(), additional.begin(), additional.end());
+  }
+  
+  // Bridge fields between parent and child tags for subcycled PKs
+  // This is necessary when fields are computed at parent tags (e.g., by ELM)
+  // but need to be accessed by subcycled child PKs at their local tags.
+  // See mpc_flow_transport.cc lines 210-254 for similar pattern.
+  int i = 0;
+  for (const auto& tag_pair : tags_) {
+    if (subcycling_[i]) {
+      for (const auto& field : secondary_fields_) {
+        // Only bridge if the field is actually used
+        if (S_->HasEvaluator(field, tag_next_) || S_->HasEvaluatorList(field)) {
+          // First require at parent tags (where field is computed, e.g., by ELM)
+          requireEvaluatorAtNext(field, tag_next_, *S_);
+          requireEvaluatorAtCurrent(field, tag_current_, *S_, name_);
+          
+          // Then require at child tags (creates interpolator/alias)
+          requireEvaluatorAtNext(field, tag_pair.second, *S_);
+          requireEvaluatorAtCurrent(field, tag_pair.first, *S_);
+        }
+      }
+    }
+    ++i;
+  }
+
   // min dt allowed in subcycling
   target_dt_ = plist_->get<double>("subcycling target timestep [s]", -1);
 }
@@ -226,6 +260,22 @@ void
 MPCSubcycled::CommitStep(double t_old, double t_new, const Tag& tag)
 {
   MPC<PK>::CommitStep(t_old, t_new, tag);
+
+  // Copy secondary fields from parent tags to child tags
+  // This ensures fields computed at parent tags (e.g., porosity from ELM)
+  // are available at child tags for subcycled PKs.
+  // See mpc_flow_transport.cc lines 262-279 for similar pattern.
+  int i = 0;
+  for (const auto& tag_pair : tags_) {
+    if (subcycling_[i]) {
+      for (const auto& field : secondary_fields_) {
+        if (S_->HasRecord(field, tag_pair.second)) {
+          assign(field, tag_pair.first, tag_pair.second, *S_);
+        }
+      }
+    }
+    ++i;
+  }
 
   if (S_->get_cycle() < 0 && tag == Tags::NEXT) {
     // initial commit, also do the substep commits

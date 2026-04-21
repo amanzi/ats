@@ -67,6 +67,9 @@ class MPCSubcycled : public MPC<PK> {
   std::vector<double> dts_;
   std::vector<std::pair<Tag, Tag>> tags_;
   std::vector<Teuchos::RCP<Utils::TimeStepManager>> tsms_;
+  
+  // Secondary fields that need tag bridging for subcycled PKs
+  std::vector<std::string> secondary_fields_;
 
  private:
   // factory registration
