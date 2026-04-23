@@ -53,32 +53,28 @@ MPCSubcycled::parseParameterList()
     }
   }
 
-  MPC<PK>::parseParameterList();
-
-  // Build list of secondary fields that need tag bridging for subcycled PKs
-  // Porosity is known to have timing issues with ELM-ATS coupling in subcycling mode
+  // Build list of secondary fields that need tag bridging for subcycled PKs.
+  // Porosity is known to have timing issues with ELM-ATS coupling in subcycling mode.
   secondary_fields_.push_back("porosity");
-  
+
   // Allow user to add more fields if needed via XML (optional)
   if (plist_->isParameter("additional secondary fields for subcycling")) {
     auto additional = plist_->get<Teuchos::Array<std::string>>(
       "additional secondary fields for subcycling");
     secondary_fields_.insert(secondary_fields_.end(), additional.begin(), additional.end());
   }
-  
-  // Bridge fields between parent and child tags for subcycled PKs
-  // This is necessary when fields are computed at parent tags (e.g., by ELM)
-  // but need to be accessed by subcycled child PKs at their local tags.
-  // Pattern based on mpc_flow_transport.cc lines 89-105, 210-254
+
+  // Phase 1: Register temporal interpolation evaluators at child tags BEFORE
+  // child PKs parse their parameter lists. When MPC<PK>::parseParameterList()
+  // triggers child PKs (e.g., Richards flow), they will try to find evaluators
+  // for fields like porosity at their local (child) tags. These evaluators must
+  // already be registered or the lookup fails.
+  // Pattern follows mpc_flow_transport.cc lines 89-105.
   int i = 0;
   for (const auto& tag_pair : tags_) {
     if (subcycling_[i]) {
       for (const auto& field : secondary_fields_) {
-        // Only bridge if the field is actually used at parent tags
         if (S_->HasEvaluator(field, tag_next_) || S_->HasEvaluatorList(field)) {
-
-          // Step 1: Create temporal interpolation evaluator at child next tag
-          // This interpolates between parent current and parent next
           Teuchos::ParameterList& field_list_next =
             S_->GetEvaluatorList(Keys::getKey(field, tag_pair.second));
           if (!field_list_next.isParameter("evaluator type")) {
@@ -86,13 +82,27 @@ MPCSubcycled::parseParameterList()
             field_list_next.set<std::string>("current tag", tag_current_.get());
             field_list_next.set<std::string>("next tag", tag_next_.get());
           }
+        }
+      }
+    }
+    ++i;
+  }
 
-          // Step 2: Require evaluators at parent tags (where field is actually computed, e.g., by ELM)
-          // Must do this BEFORE requiring at child tags, or child will try to alias parent
+  // Phase 2: Parse child PKs -- they now find the interpolation evaluators.
+  MPC<PK>::parseParameterList();
+
+  // Phase 3: Require evaluators with correct ordering: parent tags first, then
+  // child tags. This prevents child tags from aliasing parent tags incorrectly.
+  // Pattern follows mpc_flow_transport.cc lines 210-233.
+  i = 0;
+  for (const auto& tag_pair : tags_) {
+    if (subcycling_[i]) {
+      for (const auto& field : secondary_fields_) {
+        if (S_->HasEvaluator(field, tag_next_) || S_->HasEvaluatorList(field)) {
+          // Parent tags first
           requireEvaluatorAtNext(field, tag_next_, *S_);
           requireEvaluatorAtCurrent(field, tag_current_, *S_, name_);
-
-          // Step 3: Require at child tags (will use the interpolator we just created)
+          // Then child tags (will use the interpolator registered in Phase 1)
           requireEvaluatorAtNext(field, tag_pair.second, *S_);
           requireEvaluatorAtCurrent(field, tag_pair.first, *S_, name_);
         }
