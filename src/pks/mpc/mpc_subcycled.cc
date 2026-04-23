@@ -69,20 +69,32 @@ MPCSubcycled::parseParameterList()
   // Bridge fields between parent and child tags for subcycled PKs
   // This is necessary when fields are computed at parent tags (e.g., by ELM)
   // but need to be accessed by subcycled child PKs at their local tags.
-  // See mpc_flow_transport.cc lines 210-254 for similar pattern.
+  // Pattern based on mpc_flow_transport.cc lines 89-105, 210-254
   int i = 0;
   for (const auto& tag_pair : tags_) {
     if (subcycling_[i]) {
       for (const auto& field : secondary_fields_) {
-        // Only bridge if the field is actually used
+        // Only bridge if the field is actually used at parent tags
         if (S_->HasEvaluator(field, tag_next_) || S_->HasEvaluatorList(field)) {
-          // First require at parent tags (where field is computed, e.g., by ELM)
+
+          // Step 1: Create temporal interpolation evaluator at child next tag
+          // This interpolates between parent current and parent next
+          Teuchos::ParameterList& field_list_next =
+            S_->GetEvaluatorList(Keys::getKey(field, tag_pair.second));
+          if (!field_list_next.isParameter("evaluator type")) {
+            field_list_next.set<std::string>("evaluator type", "temporal interpolation");
+            field_list_next.set<std::string>("current tag", tag_current_.get());
+            field_list_next.set<std::string>("next tag", tag_next_.get());
+          }
+
+          // Step 2: Require evaluators at parent tags (where field is actually computed, e.g., by ELM)
+          // Must do this BEFORE requiring at child tags, or child will try to alias parent
           requireEvaluatorAtNext(field, tag_next_, *S_);
           requireEvaluatorAtCurrent(field, tag_current_, *S_, name_);
-          
-          // Then require at child tags (creates interpolator/alias)
+
+          // Step 3: Require at child tags (will use the interpolator we just created)
           requireEvaluatorAtNext(field, tag_pair.second, *S_);
-          requireEvaluatorAtCurrent(field, tag_pair.first, *S_);
+          requireEvaluatorAtCurrent(field, tag_pair.first, *S_, name_);
         }
       }
     }
