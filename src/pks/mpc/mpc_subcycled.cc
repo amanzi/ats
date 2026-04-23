@@ -289,6 +289,18 @@ MPCSubcycled::CommitStep(double t_old, double t_new, const Tag& tag)
     ++i;
   }
 
+  // Also copy parent next → parent current for temporal interpolation
+  // This is CRITICAL for restart: temporal interpolation evaluators need both
+  // parent_current and parent_next to interpolate values for child tags.
+  // On restart, only parent_next is loaded from checkpoint, so we must
+  // explicitly maintain parent_current by copying from parent_next.
+  // See mpc_flow_transport.cc line 270 for similar pattern.
+  for (const auto& field : secondary_fields_) {
+    if (S_->HasRecord(field, tag_next_)) {
+      assign(field, tag_current_, tag_next_, *S_);
+    }
+  }
+
   if (S_->get_cycle() < 0 && tag == Tags::NEXT) {
     // initial commit, also do the substep commits
     int i = 0;
