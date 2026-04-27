@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <iostream>
 #include <unistd.h>
 #include <sys/resource.h>
@@ -159,6 +160,20 @@ ELM_ATSDriver::parseParameterList()
   requireEvaluatorAtNext(gross_water_source_key_, Amanzi::Tags::NEXT, *S_, gross_water_source_key_);
   requireEvaluatorAtNext(pot_evap_key_, Amanzi::Tags::NEXT, *S_, pot_evap_key_);
   requireEvaluatorAtNext(pot_trans_key_, Amanzi::Tags::NEXT, *S_, pot_trans_key_);
+
+  // Make sure any subcycling MPC in the PK tree knows to bridge ELM-owned
+  // primary variables from the parent NEXT tag to its child tags. Without
+  // this, downstream evaluators that reference these primaries fail to
+  // resolve at the child tag (e.g. "...@coupled_water_system_next").
+  std::vector<std::string> elm_owned = {
+    poro_key_,
+    gross_water_source_key_,
+    pot_evap_key_,
+    pot_trans_key_,
+  };
+  if (plist_->isSublist("PKs")) {
+    injectSubcyclingFields_(plist_->sublist("PKs"), elm_owned);
+  }
 
   Coordinator::parseParameterList();
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
@@ -432,6 +447,42 @@ void ELM_ATSDriver::initValue_(const Key& key, double value)
   auto& vec = S_->GetW<CompositeVector>(key, Tags::NEXT, key);
   vec.PutScalar(value);
   S_->GetRecordW(key, Tags::NEXT, key).set_initialized();
+}
+
+
+// Walks a PKs parameter list and, for every entry whose "PK type" contains
+// "subcycling", appends `fields` to its
+// "additional secondary fields for subcycling" Array(string), deduplicated.
+// Recurses into nested sublists so subcycling MPCs nested under other MPCs
+// are also handled.
+void
+ELM_ATSDriver::injectSubcyclingFields_(Teuchos::ParameterList& pks_list,
+                                       const std::vector<std::string>& fields)
+{
+  for (auto it = pks_list.begin(); it != pks_list.end(); ++it) {
+    const std::string& name = pks_list.name(it);
+    if (!pks_list.isSublist(name)) continue;
+    Teuchos::ParameterList& sub = pks_list.sublist(name);
+
+    if (sub.isParameter("PK type")) {
+      const std::string pk_type = sub.get<std::string>("PK type");
+      if (pk_type.find("subcycling") != std::string::npos) {
+        Teuchos::Array<std::string> existing;
+        if (sub.isParameter("additional secondary fields for subcycling")) {
+          existing = sub.get<Teuchos::Array<std::string>>(
+            "additional secondary fields for subcycling");
+        }
+        for (const auto& f : fields) {
+          if (std::find(existing.begin(), existing.end(), f) == existing.end()) {
+            existing.push_back(f);
+          }
+        }
+        sub.set("additional secondary fields for subcycling", existing);
+      }
+    }
+
+    injectSubcyclingFields_(sub, fields);
+  }
 }
 
 

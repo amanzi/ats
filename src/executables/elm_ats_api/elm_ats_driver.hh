@@ -61,6 +61,8 @@ class ELM_ATSDriver : public Coordinator {
 
  private:
   void initValue_(const Key& key, double value = 0.);
+  void injectSubcyclingFields_(Teuchos::ParameterList& pks_list,
+                               const std::vector<std::string>& fields);
 
  private:
   Teuchos::RCP<Teuchos::ParameterList> elm_plist_;
