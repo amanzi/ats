@@ -346,6 +346,11 @@ void ELM_ATSDriver::advance(double dt, bool force_chkp, bool force_vis)
         << "--------------------------------------------------------------------------------"
         << std::endl;
     }
+
+    // get the dt from ATS, as this may do some internal work that still needs to happen
+    double dt_ats = Coordinator::get_dt(false);
+
+    // but we ignore it and use the requested ELM dt, expecting subcycling or similar to happen
     S_->Assign<double>("dt", Amanzi::Tags::DEFAULT, "dt", dt);
     S_->advance_time(Amanzi::Tags::NEXT, dt);
 
