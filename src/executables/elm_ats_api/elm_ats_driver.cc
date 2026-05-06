@@ -22,6 +22,7 @@
 #include "IO.hh"
 #include "UnstructuredObservations.hh"
 #include "PK_Helpers.hh"
+#include "time_advancer.hh"
 #include "elm_ats_driver.hh"
 
 namespace ATS {
@@ -63,7 +64,7 @@ ELM_ATSDriver::ELM_ATSDriver(const Teuchos::RCP<Teuchos::ParameterList>& plist,
                              const Amanzi::Comm_ptr_type& comm,
                              const std::string& logfile,
                              int npfts)
-  : Coordinator(plist, wallclock_timer, teuchos_comm, comm),
+  : Driver(plist, wallclock_timer, teuchos_comm, comm),
     npfts_(npfts),
     ncolumns(-1),
     ncells_per_col_(-1),
@@ -160,7 +161,16 @@ ELM_ATSDriver::parseParameterList()
   requireEvaluatorAtNext(pot_evap_key_, Amanzi::Tags::NEXT, *S_, pot_evap_key_);
   requireEvaluatorAtNext(pot_trans_key_, Amanzi::Tags::NEXT, *S_, pot_trans_key_);
 
-  Coordinator::parseParameterList();
+  Driver::parseParameterList();
+
+  // construct TimeAdvancer here so time_advancer_->setup() is called in Driver::setup()
+  // before State::Setup() allocates memory.
+  // ELM controls checkpointing, so no checkpoint sublist.
+  time_advancer_ = Teuchos::rcp(new ATS::TimeAdvancer(
+    elm_plist_, S_, pk_, tsm_,
+    Amanzi::Tags::CURRENT, Amanzi::Tags::NEXT,
+    vo_, wallclock_timer_));
+
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
     *vo_->os() << "  ... completed: ";
     reportOneTimer_("2a: parseParameterList");
@@ -238,7 +248,7 @@ ELM_ATSDriver::setup()
 
   // This must be last always -- it allocates memory calling State::setup, so
   // all other setup must be done.
-  Coordinator::setup();
+  Driver::setup();
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
     *vo_->os() << "  ... completed: ";
     reportOneTimer_("2b: setup");
@@ -312,12 +322,9 @@ void ELM_ATSDriver::initialize()
   initValue_(col_baseflow_key_);
   initValue_(col_runoff_key_);
 
-  // initialize ATS data, commit initial conditions
-  Coordinator::initialize();
-
-  // visualization at IC -- TODO remove this or place behind flag
-  visualize();
-  checkpoint();
+  // initialize ATS data, commit initial conditions; TimeAdvancer::initialize()
+  // backs up mesh coordinates and dumps IC vis/obs (no IC checkpoint for ELM).
+  Driver::initialize();
 
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
     *vo_->os() << "  ... completed: ";
@@ -347,18 +354,9 @@ void ELM_ATSDriver::advance(double dt, bool force_chkp, bool force_vis)
         << std::endl;
     }
 
-    // get the dt from ATS, as this may do some internal work that still needs to happen
-    double dt_ats = Coordinator::get_dt(false);
+    double t_now = S_->get_time(Amanzi::Tags::CURRENT);
 
-    // but we ignore it and use the requested ELM dt, expecting subcycling or similar to happen
-    S_->Assign<double>("dt", Amanzi::Tags::DEFAULT, "dt", dt);
-    S_->advance_time(Amanzi::Tags::NEXT, dt);
-
-    // old water_contents are set by ELM, using ELM units.  Change them to ATS units
-    //
-    // NOTE: the change in units is done here, and not in evaluators like
-    // inputs (e.g. transpiration_mps), because WC evaluators are expected to be
-    // primary by flow PKs, and then get overwritten here.
+    // convert ELM water content units to ATS units before solving.
     //
     // NOTE: these were just marked as changed in a call to getFieldPtrW so no
     // need to mark them as changed again.
@@ -384,19 +382,12 @@ void ELM_ATSDriver::advance(double dt, bool force_chkp, bool force_vis)
       }
     }
 
-    // solve model for a single timestep
-    bool fail = Coordinator::advance();
+    // advance from t_now to t_now+dt; TimeAdvancer handles subcycling internally
+    bool fail = time_advancer_->advance(t_now, t_now + dt);
     if (fail) {
       Errors::Message msg("ELM_ATSDriver: advance(dt) failed.  Make ATS subcycle for proper ELM use.");
       Exceptions::amanzi_throw(msg);
     }
-
-    S_->set_time(Amanzi::Tags::CURRENT, S_->get_time(Amanzi::Tags::NEXT));
-    S_->advance_cycle();
-
-    visualize(force_vis);
-    checkpoint(force_chkp);
-    observe();
   }
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
     *vo_->os() << "  ... completed: ";
@@ -410,7 +401,7 @@ void ELM_ATSDriver::advanceTest()
 {
   while (S_->get_time() < t1_) {
     // use dt from ATS for testing
-    double dt = Coordinator::get_dt(false);
+    double dt = pk_->get_dt();
     // call main method
     advance(dt, false, false);
   }
@@ -424,7 +415,7 @@ void ELM_ATSDriver::finalize()
                << "Beginning finalize stage..." << std::endl
                << std::flush;
   }
-  Coordinator::finalize();
+  Driver::finalize(false);
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
     *vo_->os() << "  ... completed: ";
     reportOneTimer_("5: finalize");

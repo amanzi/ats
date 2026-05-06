@@ -13,6 +13,7 @@ set(ats_pks_src_files
   pk_physical_bdf_default.cc
   pk_explicit_default.cc
   bc_factory.cc
+  time_advancer.cc
   )
 
 set(ats_pks_inc_files

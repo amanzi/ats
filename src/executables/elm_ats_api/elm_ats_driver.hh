@@ -14,7 +14,7 @@
 #include "Mesh.hh"
 #include "MeshPartition.hh"
 #include "Key.hh"
-#include "coordinator.hh"
+#include "driver.hh"
 
 #include "ats_variables.hh"
 
@@ -22,7 +22,7 @@ namespace ATS {
 
 using namespace Amanzi;
 
-class ELM_ATSDriver : public Coordinator {
+class ELM_ATSDriver : public Driver {
 
  public:
 
