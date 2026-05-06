@@ -1400,6 +1400,8 @@ Transport_ATS::PopulateBoundaryData_(int component, Operators::BCs& bc)
         for (int i = 0; i < ncomp; i++) {
           int k = tcc_index[i];
           if (k == component) {
+            if (bc_model[f] == Operators::OPERATOR_BC_DIRICHLET) continue;
+            if (values[i] == 0.0 && bc_model[f] == Operators::OPERATOR_BC_NEUMANN) continue;
             bc_model[f] = Operators::OPERATOR_BC_DIRICHLET;
             bc_value[f] = values[i];
             flag = true;
