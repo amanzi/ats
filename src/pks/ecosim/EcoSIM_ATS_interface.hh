@@ -263,6 +263,8 @@ class EcoSIM : public PK_Physical_Default {
   void MatrixColumnToField_(AmanziMesh::Entity_ID column, Epetra_MultiVector& m_arr,
                                  Teuchos::Ptr<Epetra_SerialDenseMatrix> col_arr);
 
+  // component information
+  int num_components_;  
   int number_aqueous_components_;
   int ncells_per_col_;
   int num_columns_;
@@ -295,6 +297,7 @@ class EcoSIM : public PK_Physical_Default {
   Key bulk_density_key_;
   Key hydraulic_conductivity_key_;
   Key sw_key_;
+  Key sw_incident_key_;
   Key lw_key_;
   Key air_temp_key_;
   Key vp_air_key_;
@@ -332,6 +335,7 @@ class EcoSIM : public PK_Physical_Default {
   Key sublimation_snow_key_;
   Key snow_temperature_key_;
   Key cap_pres_key_;
+  Key T_surf_key_;
 
   Teuchos::RCP<BGCEngine> bgc_engine_;
 
@@ -348,7 +352,7 @@ class EcoSIM : public PK_Physical_Default {
   Teuchos::RCP<Epetra_SerialDenseVector> column_wc_save;
 
   bool bgc_initialized_;
-  bool has_energy, has_gas, has_ice, p_bool, a_bool, pheno_bool;
+  bool has_energy, has_gas, has_ice, p_bool, a_bool, pheno_bool, microbe_bool;
   std::vector<std::string> component_names_;
   int num_components;
 
