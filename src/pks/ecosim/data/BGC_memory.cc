@@ -223,13 +223,20 @@ void AllocateBGCTensorDouble(const int cells, const int columns, const int compo
     tensor->capacity_columns= nearest_power_of_2(columns);
     tensor->capacity_components = nearest_power_of_2(components);
 
-    tensor->data = (double***) calloc((size_t)tensor->capacity_columns, sizeof(double**));
+    tensor->data = (double*) calloc(
+      (size_t)tensor->capacity_columns *
+               tensor->capacity_cells *
+               tensor->capacity_components,
+      sizeof(double));
+    
+    /*old unflattened data */
+    /*tensor->data = (double***) calloc((size_t)tensor->capacity_columns, sizeof(double**));
     for (int i = 0; i < tensor->columns; ++i) {
       tensor->data[i] = (double**) calloc((size_t)tensor->capacity_cells, sizeof(double*));
       for (int j = 0; j < tensor->cells; ++j) {
         tensor->data[i][j] = (double*) calloc((size_t)tensor->capacity_components, sizeof(double));
       }
-    }
+    }*/
     //ALQUIMIA_ASSERT(NULL != matrix->data);
   } else {
     tensor->cells= 0;
@@ -264,15 +271,12 @@ void AllocateBGCTensorInt(const int cells, const int columns, const int componen
     tensor->capacity_columns= nearest_power_of_2(columns);
     tensor->capacity_components = nearest_power_of_2(components);
 
-    tensor->data = (int***) calloc((size_t)tensor->capacity_columns, sizeof(int**));
-    for (int i = 0; i < tensor->columns; ++i) {
-      tensor->data[i] = (int**) calloc((size_t)tensor->capacity_cells, sizeof(int*));
-      for (int j = 0; j < tensor->cells; ++j) {
-        tensor->data[i][j] = (int*) calloc((size_t)tensor->capacity_components, sizeof(int));
-      }
-    }
-    //ALQUIMIA_ASSERT(NULL != matrix->data);
-  } else {
+    tensor->data = (int*) calloc(
+      (size_t)tensor->capacity_columns *
+               tensor->capacity_cells *
+               tensor->capacity_components,
+      sizeof(int));
+    } else {
     tensor->cells= 0;
     tensor->columns= 0;
     tensor->components = 0;
@@ -338,7 +342,7 @@ void AllocateBGCState(const BGCSizes* const sizes,
    AllocateBGCVectorDouble(sizes->num_columns, &(state->evaporation_snow));
    AllocateBGCVectorDouble(sizes->num_columns, &(state->sublimation_snow));
    AllocateBGCMatrixDouble(sizes->num_columns, sizes->num_columns, &(state->snow_temperature));
-   AllocateBGCTensorDouble(sizes->ncells_per_col_, sizes->num_columns, sizes->num_components, &(state->total_component_concentration));
+   AllocateBGCTensorDouble(sizes->ncells_per_col_, sizes->num_columns, sizes->num_components, &(state->mole_fraction));
    //ALQUIMIA_ASSERT(state->total_mobile.data != NULL);
  }  /* end AllocateBGCState() */
 
@@ -370,7 +374,7 @@ void AllocateBGCState(const BGCSizes* const sizes,
      FreeBGCVectorDouble(&(state->evaporation_snow));
      FreeBGCVectorDouble(&(state->sublimation_snow));
      FreeBGCMatrixDouble(&(state->snow_temperature));
-     FreeBGCTensorDouble(&(state->total_component_concentration));
+     FreeBGCTensorDouble(&(state->mole_fraction));
    }
  }  /* end FreeAlquimiaState() */
 

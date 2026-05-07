@@ -14,6 +14,7 @@
   --------------------------------------------------------------------------*/
 
 #include <algorithm>
+#include <iostream>
 #include <set>
 #include <string>
 
@@ -80,12 +81,12 @@ EcoSIM::EcoSIM(Teuchos::ParameterList& pk_tree,
 
     //Sources
     surface_water_source_key_ = Keys::readKey(*plist_, domain_surface_, "surface water source", "water_source");
-    surface_energy_source_key_ =
-      Keys::readKey(*plist_, domain_surface_, "surface energy source", "total_energy_source");
+    //surface_energy_source_key_ =
+    //  Keys::readKey(*plist_, domain_surface_, "surface energy source", "total_energy_source");
     subsurface_water_source_key_ =
       Keys::readKey(*plist_, domain_, "subsurface water source", "water_source");
-    subsurface_energy_source_key_ =
-      Keys::readKey(*plist_, domain_, "subsurface energy source", "total_energy_source");
+    //subsurface_energy_source_key_ =
+    //  Keys::readKey(*plist_, domain_, "subsurface energy source", "total_energy_source");
     surface_energy_source_ecosim_key_ =
       Keys::readKey(*plist_, domain_surface_, "surface energy source ecosim", "ecosim_source");
     surface_water_source_ecosim_key_ =
@@ -107,8 +108,11 @@ EcoSIM::EcoSIM(Teuchos::ParameterList& pk_tree,
     //bulk_density_key_ = Keys::readKey(*plist_, domain_, "bulk density", "bulk_density");
 
     //Surface balance items
+    T_surf_key_ = Keys::readKey(*plist_, domain_surface_, "temperature", "temperature");
     sw_key_ =
       Keys::readKey(*plist_, domain_surface_, "incoming shortwave radiation", "incoming_shortwave_radiation");
+    sw_incident_key_ =
+      Keys::readKey(*plist_, domain_surface_, "incident shortwave radiation", "incident_shortwave_radiation");
     lw_key_ =
       Keys::readKey(*plist_,domain_surface_, "incoming longwave radiation", "incoming_longwave_radiation");
     air_temp_key_ = Keys::readKey(*plist_, domain_surface_, "air temperature", "air_temperature");
@@ -157,6 +161,7 @@ EcoSIM::EcoSIM(Teuchos::ParameterList& pk_tree,
     p_bool = plist_->get<bool>("EcoSIM precipitation");
     a_bool = plist_->get<bool>("prescribe snow albedo");
     pheno_bool = plist_->get<bool>("prescribe phenology");
+    microbe_bool = plist_->get<bool>("microbe model");
 
     //Parameters for times and time of year
     dt_ = plist_->get<double>("initial time step");
@@ -308,6 +313,10 @@ void EcoSIM::Setup() {
   S_->Require<CompositeVector, CompositeVectorSpace>(sw_key_, tag_next_).SetMesh(mesh_surf_)
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
+  S_->RequireEvaluator(sw_incident_key_, tag_next_);
+  S_->Require<CompositeVector, CompositeVectorSpace>(sw_incident_key_, tag_next_).SetMesh(mesh_surf_)
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+  
   S_->RequireEvaluator(lai_key_, tag_next_);
   S_->Require<CompositeVector, CompositeVectorSpace>(lai_key_, tag_next_).SetMesh(mesh_surf_)
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
@@ -388,9 +397,12 @@ void EcoSIM::Initialize() {
   //Need to know the number of components to initialize data structures
 
   //Transport removal:
-  /*const Epetra_MultiVector& mole_fraction= *(S_->GetPtr<CompositeVector>(mole_fraction_key_, Tags::DEFAULT)->ViewComponent("cell"));
-  int mole_fraction_num = mole_fraction.NumVectors();*/
   int mole_fraction_num = 1;
+  if(microbe_bool){
+    const Epetra_MultiVector& mole_fraction= *(S_->GetPtr<CompositeVector>(mole_fraction_key_, Tags::DEFAULT)->ViewComponent("cell"));
+    mole_fraction_num = mole_fraction.NumVectors();
+    std::cout << "mole fraction number: " << mole_fraction.NumVectors() << std::endl;
+  }
   Teuchos::OSTab tab = vo_->getOSTab();
 
   num_columns_ = mesh_surf_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
@@ -532,7 +544,9 @@ bool EcoSIM::AdvanceStep(double t_old, double t_new, bool reinit) {
   // Ensure dependencies are filled
   // Transport removal
 
-  //S_->GetEvaluator(mole_fraction_key_, Tags::DEFAULT).Update(*S_, name_);
+  if(microbe_bool) {
+  S_->GetEvaluator(mole_fraction_key_, Tags::DEFAULT).Update(*S_, name_);
+  }
   S_->GetEvaluator(porosity_key_, Tags::DEFAULT).Update(*S_, name_);
   S_->GetEvaluator(saturation_liquid_key_, Tags::DEFAULT).Update(*S_, name_);
   S_->GetEvaluator(water_content_key_, Tags::DEFAULT).Update(*S_, name_);
@@ -550,7 +564,9 @@ bool EcoSIM::AdvanceStep(double t_old, double t_new, bool reinit) {
 
 
   //Surface data
+  S_->GetEvaluator(T_surf_key_, Tags::DEFAULT).Update(*S_, name_);
   S_->GetEvaluator(sw_key_, Tags::DEFAULT).Update(*S_, name_);
+  S_->GetEvaluator(sw_incident_key_, Tags::DEFAULT).Update(*S_, name_);
   //S_->GetEvaluator(lw_key_, Tags::DEFAULT).Update(*S_, name_);
   S_->GetEvaluator(air_temp_key_, Tags::DEFAULT).Update(*S_, name_);
   S_->GetEvaluator(vp_air_key_, Tags::DEFAULT).Update(*S_, name_);
@@ -775,6 +791,7 @@ void EcoSIM::MatrixFieldToColumn_(AmanziMesh::Entity_ID column, const Epetra_Mul
     for (int j=0; j!=n_comp; ++j){
       for (std::size_t i=0; i!=col_iter.size(); ++i) {
         (*col_arr)(i,j) = m_arr[j][col_iter[i]];
+        std::cout << "i = " << i << " j = " << j << " m_arr: " << m_arr[j][col_iter[i]] << std::endl;
       }
     }
   }
@@ -916,10 +933,13 @@ void EcoSIM::CopyToEcoSIM_process(int proc_rank,
   const Epetra_Vector& porosity = *(*S_->Get<CompositeVector>(porosity_key_, water_tag).ViewComponent("cell", false))(0);
 
   //Transport removal
-  /*const Epetra_MultiVector& mole_fraction= *(S_->GetPtr<CompositeVector>(mole_fraction_key_, water_tag)->ViewComponent("cell"));
-  int mole_fraction_num = mole_fraction.NumVectors();*/
   int mole_fraction_num = 1;
-
+  const Epetra_MultiVector* mole_fraction = nullptr;
+  if(microbe_bool) {
+    mole_fraction= S_->GetPtr<CompositeVector>(mole_fraction_key_, water_tag)->ViewComponent("cell").get();
+    mole_fraction_num = mole_fraction->NumVectors();
+  }
+  
   const Epetra_Vector& liquid_saturation = *(*S_->Get<CompositeVector>(saturation_liquid_key_, water_tag).ViewComponent("cell", false))(0);
   const Epetra_Vector& water_content = *(*S_->Get<CompositeVector>(water_content_key_, water_tag).ViewComponent("cell", false))(0);
   //const Epetra_Vector& relative_permeability = *(*S_->Get<CompositeVector>(relative_permeability_key_, water_tag).ViewComponent("cell", false))(0);
@@ -936,7 +956,9 @@ void EcoSIM::CopyToEcoSIM_process(int proc_rank,
   const Epetra_Vector& capillary_pressure = *(*S_->Get<CompositeVector>(cap_pres_key_, water_tag).ViewComponent("cell", false))(0);
 
   //const auto& shortwave_radiation = *S_.Get<CompositeVector>(sw_key_, water_tag).ViewComponent("cell", false);
+  const Epetra_Vector& temp_surf = *(*S_->Get<CompositeVector>(T_surf_key_, water_tag).ViewComponent("cell", false))(0);
   const Epetra_Vector& shortwave_radiation = *(*S_->Get<CompositeVector>(sw_key_, water_tag).ViewComponent("cell", false))(0);
+  const Epetra_Vector& shortwave_incident_radiation = *(*S_->Get<CompositeVector>(sw_incident_key_, water_tag).ViewComponent("cell", false))(0);
   //const Epetra_Vector& longwave_radiation = *(*S_->Get<CompositeVector>(lw_key_, water_tag).ViewComponent("cell", false))(0);
   const Epetra_Vector& air_temperature = *(*S_->Get<CompositeVector>(air_temp_key_, water_tag).ViewComponent("cell", false))(0);
   const Epetra_Vector& vapor_pressure_air = *(*S_->Get<CompositeVector>(vp_air_key_, water_tag).ViewComponent("cell", false))(0);
@@ -1053,8 +1075,10 @@ void EcoSIM::CopyToEcoSIM_process(int proc_rank,
     FieldToColumn_(column,thermal_conductivity,col_cond.ptr());
     //FieldToColumn_(column,capillary_pressure,col_cap_pres.ptr());
 
-    //MatrixFieldToColumn_(column, mole_fraction, col_mole_fraction.ptr());
-
+    if(microbe_bool) {
+      MatrixFieldToColumn_(column, *mole_fraction, col_mole_fraction.ptr());
+    }
+    
     // This is for computing depth
     //ColDepthDz_(column, col_depth.ptr(), col_dz.ptr());
 
@@ -1108,6 +1132,7 @@ void EcoSIM::CopyToEcoSIM_process(int proc_rank,
     }
     //fill surface variables
 
+    //state.temperature.data[1] = temp_surf[column];
     state.surface_energy_source.data[column] = surface_energy_source[column];
     state.surface_water_source.data[column] = surface_water_source[column];
     state.snow_depth.data[column] = snow_depth[0][column];
@@ -1148,6 +1173,18 @@ void EcoSIM::CopyToEcoSIM_process(int proc_rank,
         }
       }
     }*/
+    if(microbe_bool){ 
+      for (int i = 0; i < state.mole_fraction.cells; i++) {
+        for (int k = 0; k < state.mole_fraction.components; k++) {
+          //Assuming column is being grabbed correctly this should look like:
+          //int index = column * ncells_per_col_ * num_components + i
+          int index = i + (column * ncells_per_col_) + (k * ncells_per_col_ * num_columns_);
+        
+          state.mole_fraction.data[index] = (*col_mole_fraction)(i,k);
+        }
+      }
+    }
+    
   }
 
   //Fill the atmospheric abundances
@@ -1165,15 +1202,16 @@ void EcoSIM::CopyToEcoSIM_process(int proc_rank,
   props.p_bool = p_bool;
   props.a_bool = a_bool;
   props.pheno_bool = pheno_bool;
+  props.microbe_bool = microbe_bool;
 
-  std::cout << "Data from state after setting struct: " << std::endl;
+  /*std::cout << "Data from state after setting struct: " << std::endl;
   for (int col=0; col!=num_columns_local; ++col) {
     if (std::isnan(surface_water_source[col]) ||
         std::isinf(surface_water_source[col])) {
         std::cout << "Process " << p_rank << " found bad value at column "
                   << col << ": " << surface_water_source[col] << std::endl;
     }
-  }
+  }*/
 
 }
 
@@ -1185,10 +1223,12 @@ void EcoSIM::CopyFromEcoSIM_process(const int column,
 {
 
   //Transport removal
-  /*Epetra_MultiVector& mole_fraction= *(S_->GetPtrW<CompositeVector>(mole_fraction_key_, Tags::DEFAULT, "subsurface transport")->ViewComponent("cell",false));
-  int mole_fraction_num = mole_fraction.NumVectors();*/
   int mole_fraction_num = 1;
-
+  if (microbe_bool) {
+  Epetra_MultiVector& mole_fraction= *(S_->GetPtrW<CompositeVector>(mole_fraction_key_, Tags::DEFAULT, "subsurface transport")->ViewComponent("cell",false));
+  int mole_fraction_num = mole_fraction.NumVectors();
+  }
+  
   auto& porosity = *(*S_->GetW<CompositeVector>(porosity_key_, Tags::DEFAULT, porosity_key_).ViewComponent("cell",false))(0);
   auto& liquid_saturation = *(*S_->GetW<CompositeVector>(saturation_liquid_key_, Tags::DEFAULT, saturation_liquid_key_).ViewComponent("cell",false))(0);
   auto& water_content = *(*S_->GetW<CompositeVector>(water_content_key_, Tags::DEFAULT, water_content_key_).ViewComponent("cell",false))(0);

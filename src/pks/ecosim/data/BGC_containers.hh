@@ -83,12 +83,12 @@ extern const int kBGCMaxWordLength;
 
   typedef struct {
     int cells, columns, components, capacity_cells, capacity_columns, capacity_components;
-    double*** data;
+    double* data;
   } BGCTensorDouble;
 
   typedef struct {
     int cells, columns, components, capacity_cells, capacity_columns, capacity_components;
-    int*** data;
+    int* data;
   } BGCTensorInt;
 
   typedef struct {
@@ -129,7 +129,7 @@ extern const int kBGCMaxWordLength;
     BGCVectorDouble evaporation_snow;
     BGCVectorDouble sublimation_snow;
     BGCMatrixDouble snow_temperature;
-    BGCTensorDouble total_component_concentration;
+    BGCTensorDouble mole_fraction;
   } BGCState;
 
   typedef struct {
@@ -174,6 +174,7 @@ extern const int kBGCMaxWordLength;
     bool p_bool;
     bool a_bool;
     bool pheno_bool;
+    bool microbe_bool;
   } BGCProperties;
 
   typedef struct {
