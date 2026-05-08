@@ -105,6 +105,8 @@ class ELM_ATSDriver : public Driver {
 
   std::map<ELM::VarID, KeyTag> key_map_;
 
+  int elm_cycle_;
+
 };
 
 

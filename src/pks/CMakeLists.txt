@@ -6,6 +6,7 @@
 #
 include_directories(${GEOCHEM_SOURCE_DIR})
 include_directories(${CHEMPK_SOURCE_DIR})
+include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/generic_evaluators)
 
 set(ats_pks_src_files
   chem_pk_helpers.cc
@@ -39,6 +40,7 @@ set(ats_pks_link_libs
   state
   time_integration
   pks
+  ats_generic_evals
   )
 
 

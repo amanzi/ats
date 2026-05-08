@@ -24,6 +24,7 @@
 #include "IO.hh"
 
 #include "time_advancer.hh"
+#include "EvaluatorTimeAccumulated.hh"
 
 namespace ATS {
 
@@ -150,6 +151,13 @@ TimeAdvancer::setup()
   S_->Require<double>("dt", tag_next_, "dt");
 
   for (auto& obs : observations_) obs->Setup(S_.ptr());
+
+  // parse "time accumulators" list: each entry is "key@tag"
+  if (plist_->isParameter("time accumulators")) {
+    auto keytag_strs = plist_->get<Teuchos::Array<std::string>>("time accumulators");
+    for (const auto& s : keytag_strs)
+      accumulator_keytags_.push_back(Amanzi::Keys::splitKeyTag(s));
+  }
 }
 
 
@@ -159,6 +167,19 @@ TimeAdvancer::initialize()
   // initialize dt if not already done (e.g. by a restart)
   if (!S_->GetRecord("dt", tag_next_).initialized())
     S_->GetRecordW("dt", tag_next_, "dt").set_initialized();
+
+  // resolve time accumulator evaluators now that State is fully set up
+  for (const auto& kt : accumulator_keytags_) {
+    auto* eval = dynamic_cast<Amanzi::Relations::EvaluatorTimeAccumulated*>(
+      &S_->GetEvaluator(kt.first, kt.second));
+    if (!eval) {
+      Errors::Message msg;
+      msg << "TimeAdvancer: \"time accumulators\" entry \"" << kt.first << "@" << kt.second.get()
+          << "\" is not an EvaluatorTimeAccumulated";
+      Exceptions::amanzi_throw(msg);
+    }
+    accumulators_.push_back(eval);
+  }
 
   // dump initial conditions
   visualize_();
@@ -182,6 +203,9 @@ TimeAdvancer::advance(double t_start, double t_end)
   tsm_->RegisterTimeEvent(t_end);
   S_->set_time(tag_current_, t_start);
   S_->set_time(tag_next_, t_start);
+
+  // reset all time accumulators at the start of each outer timestep
+  for (auto* acc : accumulators_) acc->Reset(*S_);
 
   double dt = pk_->get_dt();
   if (dt > max_dt_) dt = max_dt_;
@@ -230,13 +254,13 @@ TimeAdvancer::advance(double t_start, double t_end)
       for (const auto& vis : failed_visualization_) WriteVis(*vis, *S_);
       pk_->FailStep(t_now, t_now + dt, tag_next_);
       S_->set_time(tag_next_, t_now);
-      onFail_(t_now, t_now + dt);
+      FailStep_(t_now, t_now + dt);
       dt = pk_->get_dt();
     } else {
       pk_->CommitStep(t_now, t_now + dt, tag_next_);
       S_->set_time(tag_current_, t_now + dt);
       S_->advance_cycle(tag_next_);
-      onSuccess_(t_now, t_now + dt);
+      CommitStep_(t_now, t_now + dt);
       dt = pk_->get_dt();
     }
     if (dt > max_dt_) dt = max_dt_;
@@ -248,8 +272,9 @@ TimeAdvancer::advance(double t_start, double t_end)
 
 
 void
-TimeAdvancer::onSuccess_(double t_old, double t_new)
+TimeAdvancer::CommitStep_(double t_old, double t_new)
 {
+  for (auto* acc : accumulators_) acc->Update(*S_, "time_advancer");
   visualize_();
   observe_();
   checkpoint_();
@@ -257,7 +282,7 @@ TimeAdvancer::onSuccess_(double t_old, double t_new)
 
 
 void
-TimeAdvancer::onFail_(double t_old, double t_new)
+TimeAdvancer::FailStep_(double t_old, double t_new)
 {
   // Deformable mesh coordinate recovery on failure is handled by the
   // VolumetricDeformation PK in its FailStep() method.

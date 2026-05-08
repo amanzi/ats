@@ -64,6 +64,12 @@ class TimeStepManager;
 } // namespace Utils
 } // namespace Amanzi
 
+namespace Amanzi {
+namespace Relations {
+class EvaluatorTimeAccumulated;
+} // namespace Relations
+} // namespace Amanzi
+
 namespace ATS {
 
 class TimeAdvancer {
@@ -94,10 +100,10 @@ class TimeAdvancer {
 
  protected:
   // Hooks called after each inner step — override for custom behavior.
-  // Default onSuccess_() calls vis, observations, and checkpoint.
-  // Default onFail_() calls failed visualization.
-  virtual void onSuccess_(double t_old, double t_new);
-  virtual void onFail_(double t_old, double t_new);
+  // Default CommitStep_() calls vis, observations, and checkpoint.
+  // Default FailStep_() calls failed visualization.
+  virtual void CommitStep_(double t_old, double t_new);
+  virtual void FailStep_(double t_old, double t_new);
 
  private:
   // True when the loop should stop (besides reaching t_end).
@@ -125,6 +131,10 @@ class TimeAdvancer {
   std::vector<Teuchos::RCP<Amanzi::Visualization>> failed_visualization_;
   Teuchos::RCP<Amanzi::Checkpoint> checkpoint_obj_;
   std::vector<Teuchos::RCP<Amanzi::UnstructuredObservations>> observations_;
+
+  // time accumulation evaluators driven each inner step
+  std::vector<Amanzi::KeyTag> accumulator_keytags_;
+  std::vector<Amanzi::Relations::EvaluatorTimeAccumulated*> accumulators_;
 };
 
 } // namespace ATS

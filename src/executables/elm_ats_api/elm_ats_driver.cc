@@ -68,7 +68,8 @@ ELM_ATSDriver::ELM_ATSDriver(const Teuchos::RCP<Teuchos::ParameterList>& plist,
     npfts_(npfts),
     ncolumns(-1),
     ncells_per_col_(-1),
-    elm_plist_(Teuchos::sublist(Teuchos::sublist(plist, "cycle driver"), "ELM driver"))
+    elm_plist_(Teuchos::sublist(Teuchos::sublist(plist, "cycle driver"), "ELM driver")),
+    elm_cycle_(0)
 {
   // -- set default verbosity level to no output
   // -- TODO make the verbosity level an input argument
@@ -130,7 +131,7 @@ ELM_ATSDriver::parseParameterList()
   // actual water fluxes
   evap_key_ = Keys::readKey(*elm_plist_, domain_surf_, "evaporation", "evaporation");
   key_map_[ELM::VarID::EVAPORATION] = { evap_key_, Tags::NEXT };
-  col_trans_key_ = Keys::readKey(*elm_plist_, domain_surf_, "total transpiration", "total_transpiration");
+  col_trans_key_ = Keys::readKey(*elm_plist_, domain_surf_, "surface transpiration", "transpiration");
   key_map_[ELM::VarID::TRANSPIRATION] = { col_trans_key_, Tags::NEXT };
   col_baseflow_key_ = Keys::readKey(*elm_plist_, domain_surf_, "baseflow generation", "baseflow_mps");
   key_map_[ELM::VarID::BASEFLOW] = { col_baseflow_key_, Tags::NEXT };
@@ -167,9 +168,10 @@ ELM_ATSDriver::parseParameterList()
   // before State::Setup() allocates memory.
   // ELM controls checkpointing, so no checkpoint sublist.
   time_advancer_ = Teuchos::rcp(new ATS::TimeAdvancer(
-    elm_plist_, S_, pk_, tsm_,
-    Amanzi::Tags::CURRENT, Amanzi::Tags::NEXT,
-    vo_, wallclock_timer_));
+            Teuchos::sublist(plist_, "cycle driver"),
+            S_, pk_, tsm_,
+            Amanzi::Tags::CURRENT, Amanzi::Tags::NEXT,
+            vo_, wallclock_timer_));
 
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
     *vo_->os() << "  ... completed: ";
@@ -342,19 +344,19 @@ void ELM_ATSDriver::advance(double dt, bool force_chkp, bool force_vis)
     AMANZI_ASSERT(std::abs(S_->get_time(Amanzi::Tags::NEXT) - S_->get_time(Amanzi::Tags::CURRENT)) <
                   1.e-4);
 
+    double t_now = S_->get_time(Amanzi::Tags::CURRENT);
+
     if (vo_->os_OK(Teuchos::VERB_LOW)) {
       *vo_->os()
         << "================================================================================"
         << std::endl
         << std::endl
-        << "Cycle = " << S_->get_cycle() << ",  Time [days] = " << std::setprecision(16)
-        << S_->get_time() / (60 * 60 * 24) << ",  dt [days] = " << std::setprecision(16)
+        << "ELM Cycle = " << elm_cycle_ << ",  Time [days] = " << std::setprecision(16)
+        << t_now / (60 * 60 * 24) << ",  dt [days] = " << std::setprecision(16)
         << dt / (60 * 60 * 24) << std::endl
-        << "--------------------------------------------------------------------------------"
+        << "================================================================================"
         << std::endl;
     }
-
-    double t_now = S_->get_time(Amanzi::Tags::CURRENT);
 
     // convert ELM water content units to ATS units before solving.
     //
@@ -393,6 +395,8 @@ void ELM_ATSDriver::advance(double dt, bool force_chkp, bool force_vis)
     *vo_->os() << "  ... completed: ";
     reportOneTimer_("4: solve");
   }
+
+  ++elm_cycle_;
 }
 
 
