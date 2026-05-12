@@ -70,7 +70,8 @@ extern "C" {
                         BGCState* state,
                         int ncells_per_col_,
                         int num_components,
-                        int num_columns);
+                        int num_columns,
+                        int num_pfts);
   void FreeBGCState(BGCState* state);
 
   /* Auxiliary Data

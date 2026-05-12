@@ -64,10 +64,11 @@ void BGCEngine::InitState(BGCProperties& properties,
                                 BGCAuxiliaryData& aux_data,
                                 int ncells_per_col_,
                                 int num_components,
-                                int num_columns)
+                                int num_columns,
+                                int num_pfts)
 {
   AllocateBGCProperties(&sizes_, &properties, ncells_per_col_, num_columns);
-  AllocateBGCState(&sizes_, &state, ncells_per_col_, num_components, num_columns);
+  AllocateBGCState(&sizes_, &state, ncells_per_col_, num_components, num_columns, num_pfts);
 }
 
 void BGCEngine::FreeState(BGCProperties& properties,

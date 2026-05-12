@@ -268,6 +268,7 @@ class EcoSIM : public PK_Physical_Default {
   int number_aqueous_components_;
   int ncells_per_col_;
   int num_columns_;
+  int num_pfts = 5;
   int num_columns_local;
   int num_columns_global;
   int num_columns_global_ptype;
@@ -336,6 +337,7 @@ class EcoSIM : public PK_Physical_Default {
   Key snow_temperature_key_;
   Key cap_pres_key_;
   Key T_surf_key_;
+  Key canopy_snow_key_;
 
   Teuchos::RCP<BGCEngine> bgc_engine_;
 

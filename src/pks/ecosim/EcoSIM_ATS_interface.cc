@@ -125,6 +125,7 @@ EcoSIM::EcoSIM(Teuchos::ParameterList& pk_tree,
     aspect_key_ = Keys::readKey(*plist_, domain_surface_, "aspect", "aspect");
     slope_key_ = Keys::readKey(*plist_, domain_surface_, "slope", "slope_magnitude");
     snow_depth_key_ = Keys::readKey(*plist_, domain_surface_, "snow depth", "snow_depth");
+    canopy_snow_key_ = Keys::readKey(*plist_, domain_surface_, "canopy snow", "canopy_snow");
     snow_albedo_key_ = Keys::readKey(*plist_, domain_surface_, "snow_albedo", "snow_albedo");
     snow_temperature_key_ = Keys::readKey(*plist_, domain_surface_, "snow temperature", "snow_temperature");
 
@@ -225,6 +226,13 @@ void EcoSIM::Setup() {
   // over to ATS (evaporation fluxes, snow related variables)
   if (!S_->HasRecord(snow_depth_key_,tag_next_)) {
         S_->Require<CompositeVector, CompositeVectorSpace>(snow_depth_key_, tag_next_, snow_depth_key_)
+          .SetMesh(mesh_surf_)
+          ->SetGhosted(false)
+          ->SetComponent("cell", AmanziMesh::CELL, 1);
+  }
+  
+  if (!S_->HasRecord(canopy_snow_key_,tag_next_)) {
+        S_->Require<CompositeVector, CompositeVectorSpace>(canopy_snow_key_, tag_next_, canopy_snow_key_)
           .SetMesh(mesh_surf_)
           ->SetGhosted(false)
           ->SetComponent("cell", AmanziMesh::CELL, 1);
@@ -408,7 +416,7 @@ void EcoSIM::Initialize() {
   num_columns_ = mesh_surf_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
   //Now we call the engine's init state function which allocates the data
-  bgc_engine_->InitState(bgc_props_, bgc_state_, bgc_aux_data_, ncells_per_col_, mole_fraction_num, num_columns_);
+  bgc_engine_->InitState(bgc_props_, bgc_state_, bgc_aux_data_, ncells_per_col_, mole_fraction_num, num_columns_,num_pfts);
 
   int ierr = 0;
 
@@ -437,6 +445,9 @@ void EcoSIM::Initialize() {
   S_->GetW<CompositeVector>(snow_depth_key_, Tags::DEFAULT, "surface-snow_depth").PutScalar(0.0);
   S_->GetRecordW(snow_depth_key_, Tags::DEFAULT, "surface-snow_depth").set_initialized();
 
+  S_->GetW<CompositeVector>(canopy_snow_key_, Tags::DEFAULT, "surface-canopy_snow").PutScalar(0.0);
+  S_->GetRecordW(canopy_snow_key_, Tags::DEFAULT, "surface-canopy_snow").set_initialized();
+  
   S_->GetW<CompositeVector>(canopy_lw_key_, Tags::DEFAULT, "surface-canopy_longwave_radiation").PutScalar(0.0);
   S_->GetRecordW(canopy_lw_key_, Tags::DEFAULT, "surface-canopy_longwave_radiation").set_initialized();
 
@@ -990,7 +1001,8 @@ void EcoSIM::CopyToEcoSIM_process(int proc_rank,
   const Epetra_Vector& subsurface_water_source = *(*S_->Get<CompositeVector>(subsurface_water_source_ecosim_key_, water_tag).ViewComponent("cell", false))(0);
 
   auto& snow_depth = *S_->GetW<CompositeVector>(snow_depth_key_,tag_next_,snow_depth_key_).ViewComponent("cell");
-
+  auto& canopy_snow = *S_->GetW<CompositeVector>(canopy_snow_key_,tag_next_,canopy_snow_key_).ViewComponent("cell");
+  
   auto& canopy_longwave_radiation = *S_->GetW<CompositeVector>(canopy_lw_key_, tag_next_, canopy_lw_key_).ViewComponent("cell");
   auto& canopy_latent_heat = *S_->GetW<CompositeVector>(canopy_latent_heat_key_, tag_next_, canopy_latent_heat_key_).ViewComponent("cell");
   auto& canopy_sensible_heat = *S_->GetW<CompositeVector>(canopy_sensible_heat_key_, tag_next_, canopy_sensible_heat_key_).ViewComponent("cell");
@@ -1166,13 +1178,11 @@ void EcoSIM::CopyToEcoSIM_process(int proc_rank,
        props.precipitation.data[column] = (*precipitation)[column];
        props.precipitation_snow.data[column] = (*precipitation_snow)[column];
    }
-   /*Don't need this loop until transport is implemented
-    for (int i = 0; i < state.total_component_concentration.columns; i++) {
-      for (int j = 0; j < state.total_component_concentration.cells; j++) {
-        for (int k = 0; k < state.total_component_concentration.components; k++) {
-        }
-      }
-    }*/
+    
+    for (int j = 0; j < num_pfts; j++) {
+        state.canopy_snow.data[column * num_pfts + j] = canopy_snow[column][j];
+    }
+    
     if(microbe_bool){ 
       for (int i = 0; i < state.mole_fraction.cells; i++) {
         for (int k = 0; k < state.mole_fraction.components; k++) {

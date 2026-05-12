@@ -53,7 +53,9 @@ class BGCEngine {
                  BGCAuxiliaryData& aux_data,
                  int ncells_per_col_,
                  int num_components,
-                 int num_columns);
+                 int num_columns,
+                 int num_pfts);
+  
 
   // Frees the data structures that hold the chemical state information.
   void FreeState(BGCProperties& properties,

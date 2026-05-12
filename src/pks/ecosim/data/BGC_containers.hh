@@ -100,6 +100,7 @@ extern const int kBGCMaxWordLength;
     int ncells_per_col_;
     int num_components;
     int num_columns;
+    int num_pfts;
   } BGCSizes;
 
   typedef struct {
@@ -129,6 +130,7 @@ extern const int kBGCMaxWordLength;
     BGCVectorDouble evaporation_snow;
     BGCVectorDouble sublimation_snow;
     BGCMatrixDouble snow_temperature;
+    BGCMatrixDouble canopy_snow;
     BGCTensorDouble mole_fraction;
   } BGCState;
 
