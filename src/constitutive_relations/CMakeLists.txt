@@ -85,6 +85,11 @@ register_evaluator_with_factory(
   LISTNAME ATS_RELATIONS_REG
   )
 
+register_evaluator_with_factory(
+  HEADERFILE generic_evaluators/ComponentAssemblerEvaluator_reg.hh
+  LISTNAME ATS_RELATIONS_REG
+  )
+
 generate_evaluators_registration_header(
   HEADERFILE ats_relations_registration.hh
   LISTNAME   ATS_RELATIONS_REG
