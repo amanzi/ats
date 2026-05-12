@@ -4,7 +4,7 @@
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
+  Authors: Sergi Molins (smolins@lbl.gov), gemini-3.1, claude-sonnet-4.6 
 */
 
 #include "ComponentAssemblerEvaluator.hh"
