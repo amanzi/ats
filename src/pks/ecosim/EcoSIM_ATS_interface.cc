@@ -1000,8 +1000,10 @@ void EcoSIM::CopyToEcoSIM_process(int proc_rank,
   const Epetra_Vector& surface_water_source = *(*S_->Get<CompositeVector>(surface_water_source_ecosim_key_, water_tag).ViewComponent("cell", false))(0);
   const Epetra_Vector& subsurface_water_source = *(*S_->Get<CompositeVector>(subsurface_water_source_ecosim_key_, water_tag).ViewComponent("cell", false))(0);
 
+  const Epetra_Vector& canopy_snow = *(*S_->Get<CompositeVector>(canopy_snow_key_, water_tag).ViewComponent("cell", false))(0);
+  
   auto& snow_depth = *S_->GetW<CompositeVector>(snow_depth_key_,tag_next_,snow_depth_key_).ViewComponent("cell");
-  auto& canopy_snow = *S_->GetW<CompositeVector>(canopy_snow_key_,tag_next_,canopy_snow_key_).ViewComponent("cell");
+  //auto& canopy_snow = *S_->GetW<CompositeVector>(canopy_snow_key_,tag_next_,canopy_snow_key_).ViewComponent("cell");
   
   auto& canopy_longwave_radiation = *S_->GetW<CompositeVector>(canopy_lw_key_, tag_next_, canopy_lw_key_).ViewComponent("cell");
   auto& canopy_latent_heat = *S_->GetW<CompositeVector>(canopy_latent_heat_key_, tag_next_, canopy_latent_heat_key_).ViewComponent("cell");
@@ -1041,6 +1043,7 @@ void EcoSIM::CopyToEcoSIM_process(int proc_rank,
   auto col_ss_water_source = Teuchos::rcp(new Epetra_SerialDenseVector(ncells_per_col_));
   auto col_depth_c = Teuchos::rcp(new Epetra_SerialDenseVector(ncells_per_col_));
   auto col_cap_pres = Teuchos::rcp(new Epetra_SerialDenseVector(ncells_per_col_));
+  auto col_canopy_snow = Teuchos::rcp(new Epetra_SerialDenseVector(ncells_per_col_));
 
   auto col_mole_fraction = Teuchos::rcp(new Epetra_SerialDenseMatrix(mole_fraction_num,ncells_per_col_));
 
@@ -1086,6 +1089,7 @@ void EcoSIM::CopyToEcoSIM_process(int proc_rank,
     FieldToColumn_(column,temp, col_temp.ptr());
     FieldToColumn_(column,thermal_conductivity,col_cond.ptr());
     //FieldToColumn_(column,capillary_pressure,col_cap_pres.ptr());
+    FieldToColumn_(column,canopy_snow,col_canopy_snow.ptr());
 
     if(microbe_bool) {
       MatrixFieldToColumn_(column, *mole_fraction, col_mole_fraction.ptr());
@@ -1121,7 +1125,8 @@ void EcoSIM::CopyToEcoSIM_process(int proc_rank,
       state.subsurface_energy_source.data[column * ncells_per_col_ + i] = (*col_ss_energy_source)[i];
       state.matric_pressure.data[column * ncells_per_col_ + i] = (*col_mat_p)[i];
       state.temperature.data[column * ncells_per_col_ + i] = (*col_temp)[i];
-
+      state.canopy_snow.data[column * ncells_per_col_ + i] = (*col_canopy_snow)[i];
+      
       props.plant_wilting_factor.data[column * ncells_per_col_ + i] = (*col_wp)[i];
       props.rooting_depth_fraction.data[column * ncells_per_col_ + i] = (*col_rf)[i];
       props.liquid_saturation.data[column * ncells_per_col_ + i] = (*col_l_sat)[i];
@@ -1178,10 +1183,6 @@ void EcoSIM::CopyToEcoSIM_process(int proc_rank,
        props.precipitation.data[column] = (*precipitation)[column];
        props.precipitation_snow.data[column] = (*precipitation_snow)[column];
    }
-    
-    for (int j = 0; j < num_pfts; j++) {
-        state.canopy_snow.data[column * num_pfts + j] = canopy_snow[column][j];
-    }
     
     if(microbe_bool){ 
       for (int i = 0; i < state.mole_fraction.cells; i++) {
@@ -1256,7 +1257,8 @@ void EcoSIM::CopyFromEcoSIM_process(const int column,
   auto& temp = *(*S_->GetW<CompositeVector>(T_key_, Tags::DEFAULT, "subsurface energy").ViewComponent("cell",false))(0);
   auto& thermal_conductivity = *(*S_->GetW<CompositeVector>(thermal_conductivity_key_, Tags::DEFAULT, thermal_conductivity_key_).ViewComponent("cell",false))(0);
   auto& snow_temperature = *(*S_->GetW<CompositeVector>(snow_temperature_key_, Tags::DEFAULT, snow_temperature_key_).ViewComponent("cell", false))(0);
-
+  auto& canopy_snow = *(*S_->GetW<CompositeVector>(canopy_snow_key_, Tags::DEFAULT, canopy_snow_key_).ViewComponent("cell", false))(0);
+  
   auto& snow_depth = *S_->GetW<CompositeVector>(snow_depth_key_,tag_next_,snow_depth_key_).ViewComponent("cell");
   auto& canopy_longwave_radiation = *S_->GetW<CompositeVector>(canopy_lw_key_, tag_next_, canopy_lw_key_).ViewComponent("cell");
   auto& canopy_latent_heat = *S_->GetW<CompositeVector>(canopy_latent_heat_key_, tag_next_, canopy_latent_heat_key_).ViewComponent("cell");
@@ -1288,7 +1290,8 @@ void EcoSIM::CopyFromEcoSIM_process(const int column,
   auto col_ss_energy_source = Teuchos::rcp(new Epetra_SerialDenseVector(ncells_per_col_));
   auto col_ss_water_source = Teuchos::rcp(new Epetra_SerialDenseVector(ncells_per_col_));
   auto col_snow_temperature = Teuchos::rcp(new Epetra_SerialDenseVector(ncells_per_col_));
-
+  auto col_canopy_snow = Teuchos::rcp(new Epetra_SerialDenseVector(ncells_per_col_));
+  
   auto col_mole_fraction = Teuchos::rcp(new Epetra_SerialDenseMatrix(mole_fraction_num,ncells_per_col_));
 
   //Gather columns on this process:
@@ -1320,12 +1323,14 @@ void EcoSIM::CopyFromEcoSIM_process(const int column,
       (*col_ss_water_source)[i] = state.subsurface_water_source.data[col * ncells_per_col_ + i];
       (*col_ss_energy_source)[i] = state.subsurface_energy_source.data[col * ncells_per_col_ + i];
       (*col_snow_temperature)[i] = state.snow_temperature.data[col * ncells_per_col_ + i];
+      (*col_canopy_snow)[i] = state.canopy_snow.data[col * ncells_per_col_ + i];
     }
 
     ColumnToField_(col, subsurface_water_source, col_ss_water_source.ptr());
     ColumnToField_(col, subsurface_energy_source, col_ss_energy_source.ptr());
     ColumnToField_(col, snow_temperature, col_snow_temperature.ptr());
-
+    ColumnToField_(col, canopy_snow, col_canopy_snow.ptr());
+    
     surface_energy_source[col] = state.surface_energy_source.data[col]/(3600.0);
     surface_water_source[col] = state.surface_water_source.data[col]/(3600.0);
     snow_depth[0][col] = state.snow_depth.data[col];
