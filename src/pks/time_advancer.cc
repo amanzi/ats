@@ -232,6 +232,7 @@ TimeAdvancer::advance(double t_start, double t_end)
     }
 
     if (vo_->os_OK(Teuchos::VERB_LOW)) {
+      Teuchos::OSTab tab = vo_->getOSTab();
       *vo_->os() << "================================================================================"
                  << std::endl << std::endl
                  << "Cycle = " << S_->get_cycle(tag_next_)

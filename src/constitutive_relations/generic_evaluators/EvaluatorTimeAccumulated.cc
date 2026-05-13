@@ -78,6 +78,7 @@ EvaluatorTimeAccumulated::EnsureCompatibility(State& S)
         .Update(my_fac);
   }
 
+  EvaluatorSecondary::EnsureCompatibility_DepEnsureCompatibility_(S);
   EvaluatorSecondary::EnsureCompatibility_Flags_(S);
 }
 

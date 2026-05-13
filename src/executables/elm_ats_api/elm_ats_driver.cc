@@ -75,12 +75,86 @@ ELM_ATSDriver::ELM_ATSDriver(const Teuchos::RCP<Teuchos::ParameterList>& plist,
   // -- TODO make the verbosity level an input argument
   VerboseObject::global_default_level = Teuchos::VERB_HIGH;
   VerboseObject::global_logfile = logfile;
+
+  if (plist_->isSublist("visualization")) {
+    auto vis_list = Teuchos::sublist(plist_, "visualization");
+    for (auto& entry : *vis_list) {
+      std::string domain_name = entry.first;
+      if (S_->HasMesh(domain_name)) {
+        auto mesh_p = S_->GetMesh(domain_name);
+        auto sublist_p = Teuchos::sublist(vis_list, domain_name);
+        if (!sublist_p->isParameter("file name base")) {
+          if (domain_name.empty() || domain_name == "domain") {
+            sublist_p->set<std::string>("file name base", std::string("ats_vis"));
+          } else {
+            sublist_p->set<std::string>("file name base", std::string("ats_vis_") + domain_name);
+          }
+        }
+        if (S_->HasMesh(domain_name + "_3d") && sublist_p->get<bool>("visualize on 3D mesh", true))
+          mesh_p = S_->GetMesh(domain_name + "_3d");
+        auto vis = Teuchos::rcp(new Amanzi::Visualization(*sublist_p));
+        vis->set_name(domain_name);
+        vis->set_mesh(mesh_p);
+        vis->CreateFiles(false);
+        visualization_.push_back(vis);
+      }
+    }
+  }
+}
+
+
+bool
+ELM_ATSDriver::visualize_(bool force)
+{
+  bool dump = force;
+  double time = S_->get_time();
+  int cycle = elm_cycle_;
+
+  if (!dump) {
+    for (const auto& vis : visualization_) dump |= vis->DumpRequested(cycle, time);
+  }
+  if (dump) pk_->CalculateDiagnostics(Tags::NEXT);
+  for (const auto& vis : visualization_) {
+    if (force || vis->DumpRequested(cycle, time)) WriteVis(*vis, *S_);
+  }
+  return dump;
+}
+
+
+
+Key
+ELM_ATSDriver::setupIntegratedFlux_(const Key& flux_key, ELM::VarID varid)
+{
+  Key integrated_key = flux_key + "_step_integrated";
+
+  // inject EvaluatorTimeAccumulated into state/evaluators if not user-provided
+  if (!S_->HasEvaluatorList(integrated_key)) {
+    auto& ep = S_->GetEvaluatorList(integrated_key);
+    ep.set("evaluator type", "time accumulated");
+    ep.set("tag", Amanzi::Tags::NEXT.get());
+    ep.set("accumulated key", flux_key);
+    ep.set("accumulated tag", Amanzi::Tags::NEXT.get());
+    ep.set("accumulation type", "integral");
+  }
+
+  // append to "time accumulators" in cycle driver plist
+  auto& cd_list = plist_->sublist("cycle driver");
+  auto acc_list = cd_list.get<Teuchos::Array<std::string>>(
+    "time accumulators", Teuchos::Array<std::string>());
+  acc_list.push_back(integrated_key + "@");
+  cd_list.set("time accumulators", acc_list);
+
+  // update key_map_ to point at the integrated quantity
+  key_map_[varid] = { integrated_key, Amanzi::Tags::NEXT };
+
+  return integrated_key;
 }
 
 
 void
 ELM_ATSDriver::parseParameterList()
 {
+  Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
     *vo_->os() << "================================================================================"
                << std::endl
@@ -99,8 +173,8 @@ ELM_ATSDriver::parseParameterList()
   key_map_[ELM::VarID::TIME] = {"time", Tags::NEXT};
 
   // parameters
-  poro_key_ = Keys::readKey(*elm_plist_, domain_subsurf_, "porosity", "porosity");
-  key_map_[ELM::VarID::EFFECTIVE_POROSITY] = { poro_key_, Tags::NEXT };
+  base_poro_key_ = Keys::readKey(*elm_plist_, domain_subsurf_, "base porosity", "base_porosity");
+  key_map_[ELM::VarID::BASE_POROSITY] = { base_poro_key_, Tags::NEXT };
 
   // potential sources
   gross_water_source_key_ = Keys::readKey(*elm_plist_, domain_surf_, "gross water source", "gross_water_source");
@@ -123,20 +197,26 @@ ELM_ATSDriver::parseParameterList()
   surf_wc_key_ = Keys::readKey(*elm_plist_, domain_surf_, "surface water content", "water_content");
   key_map_[ELM::VarID::SURFACE_WATER_CONTENT_OLD] = { surf_wc_key_, Tags::CURRENT };
   wc_key_ = Keys::readKey(*elm_plist_, domain_subsurf_, "water content", "water_content");
+  key_map_[ELM::VarID::WATER_CONTENT] = { wc_key_, Tags::NEXT };
   key_map_[ELM::VarID::WATER_CONTENT_OLD] = { wc_key_, Tags::CURRENT };
 
   lat_key_ = Keys::readKey(*elm_plist_, domain_surf_, "latitude", "latitude");
   lon_key_ = Keys::readKey(*elm_plist_, domain_surf_, "longitude", "longitude");
 
-  // actual water fluxes
-  evap_key_ = Keys::readKey(*elm_plist_, domain_surf_, "evaporation", "evaporation");
-  key_map_[ELM::VarID::EVAPORATION] = { evap_key_, Tags::NEXT };
-  col_trans_key_ = Keys::readKey(*elm_plist_, domain_surf_, "surface transpiration", "transpiration");
-  key_map_[ELM::VarID::TRANSPIRATION] = { col_trans_key_, Tags::NEXT };
-  col_baseflow_key_ = Keys::readKey(*elm_plist_, domain_surf_, "baseflow generation", "baseflow_mps");
-  key_map_[ELM::VarID::BASEFLOW] = { col_baseflow_key_, Tags::NEXT };
-  col_runoff_key_ = Keys::readKey(*elm_plist_, domain_surf_, "runoff generation", "runoff_generation_mps");
-  key_map_[ELM::VarID::RUNOFF] = { col_runoff_key_, Tags::NEXT };
+  // actual water fluxes — each is wrapped in an EvaluatorTimeAccumulated so
+  // that the value returned to ELM is integrated over the outer timestep
+  evap_key_ = setupIntegratedFlux_(
+    Keys::readKey(*elm_plist_, domain_surf_, "evaporation", "evaporation"),
+    ELM::VarID::EVAPORATION);
+  col_trans_key_ = setupIntegratedFlux_(
+    Keys::readKey(*elm_plist_, domain_surf_, "surface transpiration", "transpiration"),
+    ELM::VarID::TRANSPIRATION);
+  col_baseflow_key_ = setupIntegratedFlux_(
+    Keys::readKey(*elm_plist_, domain_surf_, "baseflow generation", "baseflow_mps"),
+    ELM::VarID::BASEFLOW);
+  col_runoff_key_ = setupIntegratedFlux_(
+    Keys::readKey(*elm_plist_, domain_surf_, "runoff generation", "runoff_generation_mps"),
+    ELM::VarID::RUNOFF);
 
   // keys for fields used to convert ELM units to ATS units
   surf_mol_dens_key_ = Keys::readKey(*elm_plist_, domain_surf_, "surface molar density", "molar_density_liquid");
@@ -155,7 +235,7 @@ ELM_ATSDriver::parseParameterList()
 
   // require my primary variables
   // parameters set by ELM
-  requireEvaluatorAtNext(poro_key_, Amanzi::Tags::NEXT, *S_, poro_key_);
+  requireEvaluatorAtNext(base_poro_key_, Amanzi::Tags::NEXT, *S_, base_poro_key_);
 
   // potential fluxes (ELM -> ATS)
   requireEvaluatorAtNext(gross_water_source_key_, Amanzi::Tags::NEXT, *S_, gross_water_source_key_);
@@ -183,6 +263,7 @@ ELM_ATSDriver::parseParameterList()
 void
 ELM_ATSDriver::setup()
 {
+  Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
     *vo_->os() << "================================================================================"
                << std::endl
@@ -203,7 +284,7 @@ ELM_ATSDriver::setup()
 
   // ELM --> ATS variables
   // -- parameters set by ELM
-  requireEvaluatorAtNext(poro_key_, Amanzi::Tags::NEXT, *S_, poro_key_)
+  requireEvaluatorAtNext(base_poro_key_, Amanzi::Tags::NEXT, *S_, base_poro_key_)
     .SetMesh(mesh_subsurf_)->SetComponent("cell", AmanziMesh::CELL, 1);
 
   // -- potential fluxes
@@ -219,6 +300,12 @@ ELM_ATSDriver::setup()
   requireEvaluatorAtCurrent(wc_key_, Amanzi::Tags::CURRENT, *S_)
     .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
   requireEvaluatorAtCurrent(surf_wc_key_, Amanzi::Tags::CURRENT, *S_)
+    .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
+
+  // save a copy for debugging!
+  requireEvaluatorAtCurrent("elm_old_water_content", Amanzi::Tags::NEXT, *S_, "elm_old_water_content")
+    .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
+  requireEvaluatorAtCurrent("surface-elm_old_water_content", Amanzi::Tags::NEXT, *S_, "surface-elm_old_water_content")
     .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
   // ATS --> ELM variables
@@ -305,6 +392,7 @@ ELM_ATSDriver::MeshInfo ELM_ATSDriver::getMeshInfo()
 
 void ELM_ATSDriver::initialize()
 {
+  Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
     *vo_->os() << "================================================================================"
                << std::endl
@@ -313,7 +401,11 @@ void ELM_ATSDriver::initialize()
   }
 
   // some parameters have been initialized in ELM
-  S_->GetRecordW(poro_key_, Tags::NEXT, poro_key_).set_initialized();
+  S_->GetRecordW(base_poro_key_, Tags::NEXT, base_poro_key_).set_initialized();
+
+  // for debugging
+  initValue_("elm_old_water_content");
+  initValue_("surface-elm_old_water_content");
 
   // set as zero and tag as initialized
   initValue_(gross_water_source_key_);
@@ -328,6 +420,18 @@ void ELM_ATSDriver::initialize()
   // backs up mesh coordinates and dumps IC vis/obs (no IC checkpoint for ELM).
   Driver::initialize();
 
+  // initialize has to convert IC for water content into ELM units
+  // convert ATS water content units [mol] to ELM units [m^3 water per m^3 volume] before returning control to ELM
+  {
+    auto& wc = *S_->GetW<CompositeVector>(wc_key_, Tags::NEXT,
+            S_->GetRecord(wc_key_, Tags::NEXT).owner()).ViewComponent("cell", false);
+    const auto& cv = *S_->Get<CompositeVector>(cv_key_, Tags::NEXT).ViewComponent("cell", false);
+    const auto& n_liq = *S_->Get<CompositeVector>(mol_dens_key_, Tags::NEXT).ViewComponent("cell", false);
+    for (int c = 0; c != wc.MyLength(); ++c) {
+      wc[0][c] = wc[0][c] / cv[0][c] / n_liq[0][c];
+    }
+  }
+
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
     *vo_->os() << "  ... completed: ";
     reportOneTimer_("3: initialize");
@@ -338,6 +442,7 @@ void ELM_ATSDriver::initialize()
 
 void ELM_ATSDriver::advance(double dt, bool force_chkp, bool force_vis)
 {
+  Teuchos::OSTab tab = vo_->getOSTab();
   {
     Teuchos::TimeMonitor timer(*timers_.at("4: solve"));
 
@@ -358,7 +463,7 @@ void ELM_ATSDriver::advance(double dt, bool force_chkp, bool force_vis)
         << std::endl;
     }
 
-    // convert ELM water content units to ATS units before solving.
+    // convert ELM water content units [m^3 water per m^3 volume] to ATS units [mol] before solving.
     //
     // NOTE: these were just marked as changed in a call to getFieldPtrW so no
     // need to mark them as changed again.
@@ -384,11 +489,38 @@ void ELM_ATSDriver::advance(double dt, bool force_chkp, bool force_vis)
       }
     }
 
+    // -- save the old values in a new vector so they show up in vis for debugging
+    {
+      const auto& wc = *S_->Get<CompositeVector>(wc_key_, Tags::CURRENT).ViewComponent("cell", false);
+      auto& wc_old = *S_->GetW<CompositeVector>("elm_old_water_content", Tags::NEXT, "elm_old_water_content")
+        .ViewComponent("cell", false);
+      wc_old = wc;
+
+      const auto& surf_wc = *S_->Get<CompositeVector>(surf_wc_key_, Tags::CURRENT).ViewComponent("cell", false);
+      auto& surf_wc_old = *S_->GetW<CompositeVector>("surface-elm_old_water_content", Tags::NEXT, "surface-elm_old_water_content")
+        .ViewComponent("cell", false);
+      surf_wc_old = surf_wc;
+    }
+
     // advance from t_now to t_now+dt; TimeAdvancer handles subcycling internally
     bool fail = time_advancer_->advance(t_now, t_now + dt);
     if (fail) {
       Errors::Message msg("ELM_ATSDriver: advance(dt) failed.  Make ATS subcycle for proper ELM use.");
       Exceptions::amanzi_throw(msg);
+    }
+
+    // potentially visualize
+    visualize_();
+
+    // convert ATS water content units [mol] to ELM units [m^3 water per m^3 volume] before returning control to ELM
+    {
+      auto& wc = *S_->GetW<CompositeVector>(wc_key_, Tags::NEXT,
+              S_->GetRecord(wc_key_, Tags::NEXT).owner()).ViewComponent("cell", false);
+      const auto& cv = *S_->Get<CompositeVector>(cv_key_, Tags::NEXT).ViewComponent("cell", false);
+      const auto& n_liq = *S_->Get<CompositeVector>(mol_dens_key_, Tags::NEXT).ViewComponent("cell", false);
+      for (int c = 0; c != wc.MyLength(); ++c) {
+        wc[0][c] = wc[0][c] / cv[0][c] / n_liq[0][c];
+      }
     }
   }
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
@@ -413,6 +545,7 @@ void ELM_ATSDriver::advanceTest()
 
 void ELM_ATSDriver::finalize()
 {
+  Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
     *vo_->os() << "================================================================================"
                << std::endl
