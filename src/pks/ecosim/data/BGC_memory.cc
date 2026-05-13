@@ -342,8 +342,8 @@ void AllocateBGCState(const BGCSizes* const sizes,
    AllocateBGCVectorDouble(sizes->num_columns, &(state->evaporation_litter));
    AllocateBGCVectorDouble(sizes->num_columns, &(state->evaporation_snow));
    AllocateBGCVectorDouble(sizes->num_columns, &(state->sublimation_snow));
-   AllocateBGCMatrixDouble(sizes->num_columns, sizes->num_columns, &(state->snow_temperature));
-   AllocateBGCMatrixDouble(sizes->num_columns, sizes->num_pfts, &(state->canopy_snow));
+   AllocateBGCMatrixDouble(sizes->ncells_per_col_, sizes->num_columns, &(state->snow_temperature));
+   AllocateBGCMatrixDouble(sizes->ncells_per_col_, sizes->num_columns, &(state->canopy_snow));
    AllocateBGCTensorDouble(sizes->ncells_per_col_, sizes->num_columns, sizes->num_components, &(state->mole_fraction));
    //ALQUIMIA_ASSERT(state->total_mobile.data != NULL);
  }  /* end AllocateBGCState() */
