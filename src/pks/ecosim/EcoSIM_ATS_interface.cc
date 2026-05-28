@@ -186,7 +186,7 @@ EcoSIM::EcoSIM(Teuchos::ParameterList& pk_tree,
       Exceptions::amanzi_throw(msg);
     }
     std::string engine_name = plist_->get<std::string>("engine");
-    std::string engine_inputfile = plist_->get<std::string>("engine input file");
+    engine_inputfile = plist_->get<std::string>("engine input file");
     bgc_engine_ = Teuchos::rcp(new BGCEngine(engine_name, engine_inputfile));
   }
 
@@ -1214,6 +1214,7 @@ void EcoSIM::CopyToEcoSIM_process(int proc_rank,
   props.a_bool = a_bool;
   props.pheno_bool = pheno_bool;
   props.microbe_bool = microbe_bool;
+  props.pft_file = engine_inputfile.data();
 
   /*std::cout << "Data from state after setting struct: " << std::endl;
   for (int col=0; col!=num_columns_local; ++col) {

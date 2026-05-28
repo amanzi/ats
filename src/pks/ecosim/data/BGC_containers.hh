@@ -177,6 +177,7 @@ extern const int kBGCMaxWordLength;
     bool a_bool;
     bool pheno_bool;
     bool microbe_bool;
+    char* pft_file;
   } BGCProperties;
 
   typedef struct {

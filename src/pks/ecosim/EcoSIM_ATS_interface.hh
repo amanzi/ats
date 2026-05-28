@@ -276,6 +276,8 @@ class EcoSIM : public PK_Physical_Default {
   double saved_time_;
   double current_time_;
   double t_ecosim = 0.0;
+  std::string engine_inputfile;
+  std::string engine_name;
 
   // keys
   Key mole_fraction_key_;
