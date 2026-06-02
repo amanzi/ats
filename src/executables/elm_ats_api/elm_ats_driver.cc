@@ -50,11 +50,17 @@ createELM_ATSDriver(MPI_Fint *f_comm, const char *infile, const char *logfile, i
       std::cerr << "ERROR: input file \"" << input_filename << "\" does not exist." << std::endl;
   }
 
+  // Set global logfile before constructing the driver so that the Driver base
+  // class constructor (which creates VerboseObjects) already sees the correct
+  // logfile path rather than falling back to stdout.
+  VerboseObject::global_default_level = Teuchos::VERB_LOW;
+  VerboseObject::global_logfile = logfile_filename;
+
   // -- parse input file
   Teuchos::RCP<Teuchos::ParameterList> plist = Teuchos::getParametersFromXmlFile(input_filename);
 
   auto wallclock_timer = Teuchos::TimeMonitor::getNewCounter("wallclock duration");
-  return new ELM_ATSDriver(plist, wallclock_timer, teuchos_comm, comm, logfile_filename, npfts);
+  return new ELM_ATSDriver(plist, wallclock_timer, teuchos_comm, comm, npfts);
 }
 
 
@@ -62,7 +68,6 @@ ELM_ATSDriver::ELM_ATSDriver(const Teuchos::RCP<Teuchos::ParameterList>& plist,
                              const Teuchos::RCP<Teuchos::Time>& wallclock_timer,
                              const Teuchos::RCP<const Teuchos::Comm<int>>& teuchos_comm,
                              const Amanzi::Comm_ptr_type& comm,
-                             const std::string& logfile,
                              int npfts)
   : Driver(plist, wallclock_timer, teuchos_comm, comm),
     npfts_(npfts),
@@ -71,10 +76,6 @@ ELM_ATSDriver::ELM_ATSDriver(const Teuchos::RCP<Teuchos::ParameterList>& plist,
     elm_plist_(Teuchos::sublist(Teuchos::sublist(plist, "cycle driver"), "ELM driver")),
     elm_cycle_(0)
 {
-  // -- set default verbosity level to no output
-  // -- TODO make the verbosity level an input argument
-  VerboseObject::global_default_level = Teuchos::VERB_HIGH;
-  VerboseObject::global_logfile = logfile;
 
   if (plist_->isSublist("visualization")) {
     auto vis_list = Teuchos::sublist(plist_, "visualization");
@@ -127,15 +128,13 @@ ELM_ATSDriver::setupIntegratedFlux_(const Key& flux_key, ELM::VarID varid)
 {
   Key integrated_key = flux_key + "_step_integrated";
 
-  // inject EvaluatorTimeAccumulated into state/evaluators if not user-provided
-  if (!S_->HasEvaluatorList(integrated_key)) {
-    auto& ep = S_->GetEvaluatorList(integrated_key);
-    ep.set("evaluator type", "time accumulated");
-    ep.set("tag", Amanzi::Tags::NEXT.get());
-    ep.set("accumulated key", flux_key);
-    ep.set("accumulated tag", Amanzi::Tags::NEXT.get());
-    ep.set("accumulation type", "integral");
-  }
+  // inject EvaluatorTimeAccumulated into state/evaluators
+  auto& ep = S_->GetEvaluatorList(integrated_key);
+  ep.set("evaluator type", "time accumulated");
+  ep.set("tag", Amanzi::Tags::NEXT.get());
+  ep.set("accumulated key", flux_key);
+  ep.set("accumulated tag", Amanzi::Tags::NEXT.get());
+  ep.set("accumulation type", "integral");
 
   // append to "time accumulators" in cycle driver plist
   auto& cd_list = plist_->sublist("cycle driver");

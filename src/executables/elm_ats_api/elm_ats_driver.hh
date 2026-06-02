@@ -41,7 +41,6 @@ class ELM_ATSDriver : public Driver {
                 const Teuchos::RCP<Teuchos::Time>& wallclock_timer,
                 const Teuchos::RCP<const Teuchos::Comm<int>>& teuchos_comm,
                 const Amanzi::Comm_ptr_type& comm,
-                const std::string& logfile,
                 int npfts = 17);
 
   MeshInfo getMeshInfo();
