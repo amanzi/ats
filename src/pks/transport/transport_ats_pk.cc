@@ -492,6 +492,7 @@ Transport_ATS::SetupTransport_()
             bc->tcc_names().push_back(component_names_[i]);
             bc->tcc_index().push_back(i);
           }
+          bc->set_location("coupling boundary");
           bc->set_state(S_);
           bcs_.push_back(bc);
         } else if (bc_type == "subgrid") {
@@ -1392,6 +1393,8 @@ Transport_ATS::PopulateBoundaryData_(int component, Operators::BCs& bc)
 
   if (component >= 0) {
     for (int m = 0; m < bcs_.size(); m++) {
+      bool is_coupling = (bcs_[m]->get_location() == "coupling boundary");
+      if (is_coupling) continue;
       std::vector<int>& tcc_index = bcs_[m]->tcc_index();
       int ncomp = tcc_index.size();                                        
       for (auto it = bcs_[m]->begin(); it != bcs_[m]->end(); ++it) {
