@@ -163,6 +163,7 @@ EcoSIM::EcoSIM(Teuchos::ParameterList& pk_tree,
     a_bool = plist_->get<bool>("prescribe snow albedo");
     pheno_bool = plist_->get<bool>("prescribe phenology");
     microbe_bool = plist_->get<bool>("microbe model");
+    num_pfts = plist_->get<int>("number of pfts");
 
     //Parameters for times and time of year
     dt_ = plist_->get<double>("initial time step");
@@ -335,7 +336,7 @@ void EcoSIM::Setup() {
 
   S_->RequireEvaluator(v_type_key_, tag_next_);
   S_->Require<CompositeVector, CompositeVectorSpace>(v_type_key_, tag_next_).SetMesh(mesh_surf_)
-    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_pfts);
 
   Teuchos::OSTab tab = vo_->getOSTab();
 
