@@ -428,6 +428,7 @@ void AllocateBGCState(const BGCSizes* const sizes,
    AllocateBGCMatrixDouble(sizes->ncells_per_col_, sizes->num_columns, &(properties->dz));
    AllocateBGCMatrixDouble(sizes->ncells_per_col_, sizes->num_columns, &(properties->plant_wilting_factor));
    AllocateBGCMatrixDouble(sizes->ncells_per_col_, sizes->num_columns, &(properties->rooting_depth_fraction));
+   AllocateBGCMatrixDouble(sizes->ncells_per_col_, sizes->num_columns, &(properties->plant_functional_type));
 
    AllocateBGCVectorDouble(sizes->num_columns, &(properties->column_area));
    AllocateBGCVectorDouble(sizes->num_columns, &(properties->shortwave_radiation));
@@ -458,6 +459,7 @@ void AllocateBGCState(const BGCSizes* const sizes,
      FreeBGCMatrixDouble(&(properties->dz));
      FreeBGCMatrixDouble(&(properties->plant_wilting_factor));
      FreeBGCMatrixDouble(&(properties->rooting_depth_fraction));
+     FreeBGCMatrixDouble(&(properties->plant_functional_type));
 
      FreeBGCVectorDouble(&(properties->column_area));
      FreeBGCVectorDouble(&(properties->shortwave_radiation));

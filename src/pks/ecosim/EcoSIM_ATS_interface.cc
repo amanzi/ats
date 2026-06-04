@@ -1091,6 +1091,7 @@ void EcoSIM::CopyToEcoSIM_process(int proc_rank,
     FieldToColumn_(column,thermal_conductivity,col_cond.ptr());
     //FieldToColumn_(column,capillary_pressure,col_cap_pres.ptr());
     FieldToColumn_(column,canopy_snow,col_canopy_snow.ptr());
+    FieldToColumn_(column,vegetation_type,col_v_type.ptr());
 
     if(microbe_bool) {
       MatrixFieldToColumn_(column, *mole_fraction, col_mole_fraction.ptr());
@@ -1128,6 +1129,7 @@ void EcoSIM::CopyToEcoSIM_process(int proc_rank,
       state.temperature.data[column * ncells_per_col_ + i] = (*col_temp)[i];
       state.canopy_snow.data[column * ncells_per_col_ + i] = (*col_canopy_snow)[i];
       
+      props.plant_functional_type.data[column * ncells_per_col_ + i] = (*col_v_type)[i];
       props.plant_wilting_factor.data[column * ncells_per_col_ + i] = (*col_wp)[i];
       props.rooting_depth_fraction.data[column * ncells_per_col_ + i] = (*col_rf)[i];
       props.liquid_saturation.data[column * ncells_per_col_ + i] = (*col_l_sat)[i];
@@ -1377,6 +1379,7 @@ int EcoSIM::InitializeSingleProcess(int proc)
   bgc_sizes_.num_columns = num_columns;
   bgc_sizes_.ncells_per_col_ = ncells_per_col_;
   bgc_sizes_.num_components = 1;
+  bgc_sizes_.num_pfts = num_pfts;
 
   bgc_engine_->Setup(bgc_props_, bgc_state_, bgc_sizes_, num_iterations, num_columns,ncells_per_col_);
   //CopyFromEcoSIM_process(proc, bgc_props_, bgc_state_, bgc_aux_data_, Tags::DEFAULT);

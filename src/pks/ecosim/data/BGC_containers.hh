@@ -146,6 +146,7 @@ extern const int kBGCMaxWordLength;
     BGCMatrixDouble dz;
     BGCMatrixDouble plant_wilting_factor;
     BGCMatrixDouble rooting_depth_fraction;
+    BGCMatrixDouble plant_functional_type;
     BGCVectorDouble column_area;
     BGCVectorDouble shortwave_radiation;
     BGCVectorDouble longwave_radiation;
