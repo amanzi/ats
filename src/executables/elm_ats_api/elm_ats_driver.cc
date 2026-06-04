@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <unistd.h>
 #include <sys/resource.h>
 #include <filesystem>
@@ -50,11 +51,15 @@ createELM_ATSDriver(MPI_Fint *f_comm, const char *infile, const char *logfile, i
       std::cerr << "ERROR: input file \"" << input_filename << "\" does not exist." << std::endl;
   }
 
-  // Set global logfile before constructing the driver so that the Driver base
-  // class constructor (which creates VerboseObjects) already sees the correct
-  // logfile path rather than falling back to stdout.
   VerboseObject::global_default_level = Teuchos::VERB_LOW;
-  VerboseObject::global_logfile = logfile_filename;
+
+  // Open the ATS logfile once and install it as the Teuchos default ostream so
+  // that all VerboseObjects share one file descriptor and writes are ordered.
+  if (!logfile_filename.empty()) {
+    auto fos = Teuchos::fancyOStream(Teuchos::rcp(new std::ofstream(logfile_filename)));
+    fos->setOutputToRootOnly(VerboseObject::global_writing_rank);
+    Teuchos::VerboseObjectBase::setDefaultOStream(fos);
+  }
 
   // -- parse input file
   Teuchos::RCP<Teuchos::ParameterList> plist = Teuchos::getParametersFromXmlFile(input_filename);
