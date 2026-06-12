@@ -252,6 +252,62 @@ MPCFlowTransport::parseParameterList()
       requireEvaluatorAtCurrent("surface-porosity", transport_current_tag, *S_);
     }
   }
+
+  if (sub_pks_.size() == 3) {
+    Key gas_sub_lwc_key = Keys::readKey(*getSubPKPlist_(2), "subsurface", "liquid water content", "water_content");
+    auto [gas_transport_current_tag, gas_transport_next_tag] = tags_[2];
+    if (gas_transport_next_tag != flow_next_tag) {
+      // set the flow field evaluator as the flow's NEXT tag
+      //
+      // Note, we could be more careful here and readKey() the flow field's name
+      // from the flow PK's sublist (which may be nested two deep).  Instead we
+      // hard-code this as the default.  If this breaks in the future it can be
+      // fixed. --ETC
+      Teuchos::ParameterList& flux_list =
+        S_->GetEvaluatorList(Keys::getKey("water_flux", gas_transport_next_tag));
+      if (!flux_list.isParameter("evaluator type")) {
+        flux_list.set<std::string>("evaluator type", "alias");
+        flux_list.set<std::string>("target", Keys::getKey("water_flux", flow_next_tag, true));
+      }
+
+      // velocity for dispersivity
+      Teuchos::ParameterList& velo_list =
+        S_->GetEvaluatorList(Keys::getKey("darcy_velocity", gas_transport_next_tag));
+      if (!velo_list.isParameter("evaluator type")) {
+        velo_list.set<std::string>("evaluator type", "alias");
+        velo_list.set<std::string>("target", Keys::getKey("darcy_velocity", flow_next_tag, true));
+      }
+
+      // now set the liquid water content as an interpolated field at next
+      // note that flow_current copy is kept by flow PK, and transport_current copy is kept by transport PK
+      Teuchos::ParameterList& lwc_list_next =
+        S_->GetEvaluatorList(Keys::getKey(gas_sub_lwc_key, gas_transport_next_tag));
+      if (!lwc_list_next.isParameter("evaluator type")) {
+        lwc_list_next.set<std::string>("evaluator type", "temporal interpolation");
+        lwc_list_next.set<std::string>("current tag", flow_current_tag.get());
+        lwc_list_next.set<std::string>("next tag", flow_next_tag.get());
+      }
+
+      // porosity used with velocity to compute particle velocity when dispersion is on
+      // -- and an interpolation at transport's next
+      Teuchos::ParameterList& poro_list_next =
+        S_->GetEvaluatorList(Keys::getKey("porosity", gas_transport_next_tag));
+      if (!poro_list_next.isParameter("evaluator type")) {
+        poro_list_next.set<std::string>("evaluator type", "temporal interpolation");
+        poro_list_next.set<std::string>("current tag", flow_current_tag.get());
+        poro_list_next.set<std::string>("next tag", flow_next_tag.get());
+      }
+    }
+
+    requireEvaluatorAtNext(gas_sub_lwc_key, flow_next_tag, *S_);
+    requireEvaluatorAtNext("porosity", flow_next_tag, *S_);
+    requireEvaluatorAtCurrent("porosity", flow_current_tag, *S_, name_);
+
+    // now require key@transport_next, which will be the interpolant
+    requireEvaluatorAtNext(gas_sub_lwc_key, gas_transport_next_tag, *S_);
+    requireEvaluatorAtNext("porosity", gas_transport_next_tag, *S_);
+
+  }
 }
 
 
