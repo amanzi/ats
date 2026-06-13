@@ -150,6 +150,10 @@ Transport_ATS::parseParameterList()
     // needed by geochemical bcs
     molar_dens_key_ =
       Keys::readKey(*plist_, domain_, "molar density liquid", "molar_density_liquid");
+
+    primary_free_ion_concentration_key_ = 
+      Keys::readKey(*plist_, domain_, "primary free ion concentration",
+                    "primary_free_ion_concentration");
   }
 
   // dispersion coefficient tensor
@@ -581,12 +585,9 @@ Transport_ATS::SetupPhysicalEvaluators_()
   S_->GetRecordSetW(key_).set_subfieldnames(component_names_);
 
   if (chem_engine_ != Teuchos::null) {
-    Key primary_free_ion_concentration_key_ =
-      Keys::readKey(*plist_, domain_, "primary free ion concentration", "primary_free_ion_concentration");
-
-    S_->Require<CompositeVector, CompositeVectorSpace>(primary_free_ion_concentration_key_, tag_next_, passwd_)
+    requireEvaluatorAtNext(primary_free_ion_concentration_key_, tag_next_, *S_)
       .SetMesh(mesh_)
-      ->SetGhosted(true)
+      ->SetGhosted(false)
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_components_);
   }
 

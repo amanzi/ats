@@ -319,6 +319,7 @@ class Transport_ATS : public PK_Physical_Default {
   bool is_source_term_;
   Key cv_key_;
   Key molec_diff_key_;
+  Key primary_free_ion_concentration_key_;
 
   // workspace
   Key solid_residue_mass_key_; // residue -- mass that was left behind by water
