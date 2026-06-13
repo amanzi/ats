@@ -580,6 +580,16 @@ Transport_ATS::SetupPhysicalEvaluators_()
   // ->AddComponent("face", AmanziMesh::Entity_kind::FACE, num_components_);
   S_->GetRecordSetW(key_).set_subfieldnames(component_names_);
 
+  if (chem_engine_ != Teuchos::null) {
+    Key primary_free_ion_concentration_key_ =
+      Keys::readKey(*plist_, domain_, "primary free ion concentration", "primary_free_ion_concentration");
+
+    S_->Require<CompositeVector, CompositeVectorSpace>(primary_free_ion_concentration_key_, tag_next_, passwd_)
+      .SetMesh(mesh_)
+      ->SetGhosted(true)
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_components_);
+  }
+
   // -- water flux
   requireEvaluatorAtNext(water_flux_key_, tag_next_, *S_)
     .SetMesh(mesh_)
