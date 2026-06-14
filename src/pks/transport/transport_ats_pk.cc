@@ -150,7 +150,7 @@ Transport_ATS::parseParameterList()
     // needed by geochemical bcs
     molar_dens_key_ =
       Keys::readKey(*plist_, domain_, "molar density liquid", "molar_density_liquid");
-    }
+  }
 
   // dispersion coefficient tensor
   dispersion_tensor_key_ =
