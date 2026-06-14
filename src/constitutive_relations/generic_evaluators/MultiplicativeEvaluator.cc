@@ -62,9 +62,6 @@ MultiplicativeEvaluator::Evaluate_(const State& S, const std::vector<CompositeVe
     auto& res_c = *(result[0]->ViewComponent(lcv_name, false));
     int i = 0;
     for (const auto& key_tag : dependencies_) {
-      std::cout << "DEBUG MultiplicativeEvaluator::Evaluate_ for " 
-          << my_keys_[0].first << std::endl;
-
       const auto& dep_v =
         *(*S.Get<CompositeVector>(key_tag.first, key_tag.second).ViewComponent(lcv_name, false))(
           dofs_[i]);
