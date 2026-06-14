@@ -151,9 +151,11 @@ Transport_ATS::parseParameterList()
     molar_dens_key_ =
       Keys::readKey(*plist_, domain_, "molar density liquid", "molar_density_liquid");
 
-    primary_free_ion_concentration_key_ = 
-      Keys::readKey(*plist_, domain_, "primary free ion concentration",
-                    "primary_free_ion_concentration");
+    if (domain_ == "domain") {
+      primary_free_ion_concentration_key_ = 
+        Keys::readKey(*plist_, domain_, "primary free ion concentration",
+                      "primary_free_ion_concentration");
+    }
   }
 
   // dispersion coefficient tensor
@@ -584,7 +586,7 @@ Transport_ATS::SetupPhysicalEvaluators_()
   // ->AddComponent("face", AmanziMesh::Entity_kind::FACE, num_components_);
   S_->GetRecordSetW(key_).set_subfieldnames(component_names_);
 
-  if (chem_engine_ != Teuchos::null) {
+  if (chem_engine_ != Teuchos::null && domain_ == "domain") {
     requireEvaluatorAtNext(primary_free_ion_concentration_key_, tag_next_, *S_)
       .SetMesh(mesh_)
       ->SetGhosted(false)
