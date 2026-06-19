@@ -36,10 +36,10 @@ jobs:
         else
           echo "ATS_BRANCH=$GITHUB_REF_NAME" >> $GITHUB_ENV
         fi
-    - name: Set Amanzi branch to the EcoSIM TPLs branch for now.
+    - name: Set Amanzi branch to master (the EcoSIM TPLs branch was merged into master).
       id: amanzi_branch
       run: |
-        echo "AMANZI_BRANCH=david/ecosim-tpls" >> $GITHUB_ENV
+        echo "AMANZI_BRANCH=master" >> $GITHUB_ENV
     - name: Checkout Amanzi to get the right TPLs version
       id: amanzi_branch_checkout
       uses: actions/checkout@v4
