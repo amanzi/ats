@@ -52,7 +52,7 @@ jobs:
       working-directory: src/physics/ats/testing/ats-regression-tests
       run: |
         echo "Looking for a tests branch with the same name: ${{env.ATS_BRANCH}}"; 
-        echo "ATS_TESTS_BRANCH=$(git ls-remote --heads origin ${{env.ATS_BRANCH}}" | sed 's/.*refs\/heads\///')" >> $GITHUB_ENV
+        echo "ATS_TESTS_BRANCH=$(git ls-remote --heads origin ${{env.ATS_BRANCH}} | sed 's/.*refs\/heads\///')" >> $GITHUB_ENV
     - name: Filter the branch name to generate a tag for Docker
       id: tag
       run: |
