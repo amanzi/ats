@@ -93,6 +93,45 @@ jobs:
                        --build-arg ats_tests_branch=${{env.ATS_TESTS_BRANCH}} \
                        -t metsi/ats:${{env.ATS_BRANCH_TAG}}-${{env.ARCH}}-latest -f Dockerfile-ATS-build .
           docker push ${{secrets.DOCKERHUB_USERNAME}}/ats:${{env.ATS_BRANCH_TAG}}-${{env.ARCH}}-latest
+  EcoSIM-feature-tests:
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, ubuntu-24.04-arm ]
+    runs-on: ${{ matrix.os }}
+    name: serial and regression 1-5 series tests
+    needs: build
+    steps:
+    - name: Check out the Amanzi repo
+      uses: actions/checkout@v7
+      with:
+        repository: amanzi/amanzi
+        ref: master
+        submodules: recursive
+    - name: Extract the ATS branch name
+      id: branch
+      working-directory: Docker
+      run: |
+        if [ "${{ github.event_name }}" = "pull_request" ]; then
+          echo "ATS_BRANCH=${{ github.event.pull_request.head.ref }}" >> $GITHUB_ENV
+        else
+          echo "ATS_BRANCH=$GITHUB_REF_NAME" >> $GITHUB_ENV
+        fi
+    - name: Filter the branch name to generate a tag for Docker
+      id: tag
+      run: |
+        echo "ATS_BRANCH_TAG=$(echo ${{env.ATS_BRANCH}} | sed -e 's/\//--/g')" >> $GITHUB_ENV
+    - name: Get runner architecture
+      run: |
+        if [[ ${{matrix.os}} == "ubuntu-24.04-arm" ]]; then
+          echo "ARCH=arm64" >> $GITHUB_ENV
+        else
+          echo "ARCH=amd64" >> $GITHUB_ENV
+        fi
+    - name: Run tests
+      id: tests
+      working-directory: Docker
+      run:
+        docker run --rm ${{secrets.DOCKERHUB_USERNAME}}/ats:${{env.ATS_BRANCH_TAG}}-${{env.ARCH}}-latest /bin/bash -c "cd ~/amanzi_builddir/ats; ctest --output-on-failure -R 'ecosim'"
   serial-reg15-tests:
     strategy:
       matrix:
