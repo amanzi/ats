@@ -129,8 +129,6 @@ extern const int kBGCMaxWordLength;
     BGCVectorDouble evaporation_litter;
     BGCVectorDouble evaporation_snow;
     BGCVectorDouble sublimation_snow;
-    BGCMatrixDouble snow_temperature;
-    BGCMatrixDouble canopy_snow;
     BGCTensorDouble mole_fraction;
   } BGCState;
 
