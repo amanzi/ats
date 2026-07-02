@@ -1051,6 +1051,7 @@ Transport_ATS ::AdvanceDispersionDiffusion_(double t_old, double t_new)
     // -- copy back the solution
     *tcc_new(i) = *(*diff_sol_->ViewComponent("cell", false))(0);
   }
+  changedEvaluatorPrimary(mass_flux_diffusion_key_, tag_next_, *S_);
 
   // NOTE: here was gas diffusion! --ETC
 }
@@ -1129,6 +1130,7 @@ Transport_ATS::AdvanceAdvectionSources_RK1_(double t_old, double t_new, int spat
       // conserve_qty = conserve_qty + div qC
       AddAdvection_SecondOrderUpwind_(t_old, t_new, tcc_old, conserve_qty, mass_flux_advection);
     }
+    changedEvaluatorPrimary(mass_flux_advection_key_, tag_next_, *S_);
     db_->WriteCellVector(
       "qnty (adv)", conserve_qty, S_->GetRecordSet(conserve_qty_key_).subfieldnames());
   }
@@ -1218,6 +1220,7 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(double t_old, double t_new, int spat
     } else if (spatial_order == 2) {
       AddAdvection_SecondOrderUpwind_(t_old, t_new, tcc_old, conserve_qty, mass_flux_advection);
     }
+    changedEvaluatorPrimary(mass_flux_advection_key_, tag_next_, *S_);
     db_->WriteCellVector(
       "qnty (pred adv)", conserve_qty, S_->GetRecordSet(conserve_qty_key_).subfieldnames());
 

@@ -26,7 +26,7 @@ MPCFlowTransport::parseParameterList()
       surf_lwc_key = Keys::readKey(*getSubPKPlist_(1), domain, "water content", "water_content");
     } else {
       subsurface_ = true;
-      sub_lwc_key = Keys::readKey(*getSubPKPlist_(1), domain, "water content", "water_content");
+      sub_lwc_key = Keys::readKey(*getSubPKPlist_(1), domain, "liquid water content", "water_content");
     }
   } else {
     // no domain name means it is an MPC, likely coupled water, but maybe permafrost
