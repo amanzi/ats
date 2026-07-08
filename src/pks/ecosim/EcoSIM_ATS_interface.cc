@@ -766,6 +766,7 @@ bool EcoSIM::AdvanceStep(double t_old, double t_new, bool reinit) {
     curr_year_ = curr_year_ + 1;
   }
 
+  return false;
 }
 
 // helper function for pushing field to column
@@ -1091,7 +1092,7 @@ void EcoSIM::CopyToEcoSIM_process(int proc_rank,
     FieldToColumn_(column,thermal_conductivity,col_cond.ptr());
     //FieldToColumn_(column,capillary_pressure,col_cap_pres.ptr());
     //FieldToColumn_(column,canopy_snow,col_canopy_snow.ptr());
-    //FieldToColumn_(column,vegetation_type,col_v_type.ptr());
+    FieldToColumn_(column,vegetation_type,col_v_type.ptr());
 
     if(microbe_bool) {
       MatrixFieldToColumn_(column, *mole_fraction, col_mole_fraction.ptr());
@@ -1398,6 +1399,8 @@ int EcoSIM::InitializeSingleProcess(int proc)
 
   bgc_engine_->Setup(bgc_props_, bgc_state_, bgc_sizes_, num_iterations, num_columns,ncells_per_col_);
   //CopyFromEcoSIM_process(proc, bgc_props_, bgc_state_, bgc_aux_data_, Tags::DEFAULT);
+  
+  return 0;
 }
 
 int EcoSIM::AdvanceSingleProcess(double dt, int proc)
@@ -1437,7 +1440,7 @@ int EcoSIM::AdvanceSingleProcess(double dt, int proc)
 	last_ecosim_time = current_time_;
   }
 
-  return num_iterations;
+  return 0;
 }
 
 double** ConvertTo2DArray(BGCMatrixDouble* matrix) {
