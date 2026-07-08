@@ -97,6 +97,8 @@ bool BGCEngine::Setup(BGCProperties& properties,
                 num_iterations,
                 num_columns,
                 ncells_per_col_);
+  
+  return true;
 
 }
 
@@ -113,6 +115,8 @@ bool BGCEngine::Advance(const double delta_time,
                 &sizes_,
                 num_iterations,
                 num_columns);
+  
+  return true;
 
 }
 
