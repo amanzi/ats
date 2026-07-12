@@ -78,9 +78,14 @@ StreamlightModel::DoyHourFromSeconds(double time_sec, double days_offset)
 {
   double total_days = time_sec / 86400 + days_offset;
   int days = static_cast<int>(std::floor(total_days));
+  // NOTE: leap years are not resolved here (no absolute start year is
+  // available); a 365-day year is assumed, consistent with how the forcing
+  // time series is indexed.
   int day_of_year = days % 365 + 1;
   double day_fraction = total_days - days;
-  double hour_of_day = std::min(static_cast<int>(day_fraction * 24.0) + 1, 24);
+  // hour-of-day in [0, 24); the Python reference uses jdate = (doy-1) + hour/24
+  // with no offset, so there must be no spurious +1 hour shift here.
+  double hour_of_day = day_fraction * 24.0;
   return std::make_pair(day_of_year, hour_of_day);
 }
 
@@ -433,14 +438,41 @@ StreamlightModel::GetEnergyStream(const RadiativeTransfer& radtrans,
 }
 
 
+// Photoperiod (daylight hours) for the current day.
+// Astronomical daylength from latitude and solar declination:
+//   H0 = arccos(-tan(lat) * tan(declination))   [sunrise/sunset hour angle]
+//   daylength [hr] = 2 * H0 * (12 / pi)
+// This is the continuous form of the Python StreamLight photoperiod, which
+// counts the per-day hours where light reaches the stream surface (i.e. the
+// sun is above the horizon).
+double
+StreamlightModel::DaylengthHours(double lat_deg, double solar_declination)
+{
+  double lat_rad = lat_deg * M_PI / 180.0;
+  double cos_ha = -std::tan(lat_rad) * std::tan(solar_declination);
+  cos_ha = std::clamp(cos_ha, -1.0, 1.0); // polar night -> 0 h, polar day -> 24 h
+  double hour_angle = std::acos(cos_ha);
+  return hour_angle * 24.0 / M_PI;
+}
+
+
 // Conversion of PAR to mean daily GPP (Savoy, P., & Harvey, J. W. (2021))
+//
+// The Python reference (StreamLight consolidate_metrics) forms a mean-daily
+// GPP = daily-mean PAR * K * photoperiod_hr and then redistributes it to hours
+// via PAR normalized by the daily-mean PAR.  Algebraically the daily-mean PAR
+// cancels, leaving a pointwise expression:
+//     GPP(t) = PAR(t) * K * photoperiod_hr,
+// with K = 0.235 * 3600/4186.8 * LUE * (32*0.5)/(12*3.4).  The previous
+// implementation omitted photoperiod_hr; it is restored here so a constant XML
+// multiplier is a true unit conversion rather than a seasonally-varying fudge.
 StreamlightModel::PARtoGPP
-StreamlightModel::ConvertPARtoGPP(const EnergyStream& estrm, double qSWin)
+StreamlightModel::ConvertPARtoGPP(const EnergyStream& estrm, double qSWin, double photoperiod_hr)
 {
   PARtoGPP gpp;
-  double common_val = 0.235 * 3600 / 4186.8 * light_use_eff_ * 32 * 0.5 /(12 * 3.4);
+  double common_val = 0.235 * 3600 / 4186.8 * light_use_eff_ * 32 * 0.5 /(12 * 3.4) * photoperiod_hr;
   gpp.GPP_sw_inc_gO2_m2d = qSWin / 0.235 * common_val;
-  gpp.GPP_stream_gO2_m2d = estrm.energy_total_surface_PAR_ppfd * common_val; 
+  gpp.GPP_stream_gO2_m2d = estrm.energy_total_surface_PAR_ppfd * common_val;
   gpp.GPP_streambed_gO2_m2d = estrm.energy_total_streambed_PAR_ppfd * common_val;
   return gpp;
 }

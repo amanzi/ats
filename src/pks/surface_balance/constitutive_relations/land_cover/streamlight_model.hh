@@ -102,12 +102,18 @@ class StreamlightModel {
                                double qSWin,
                                double ponded_depth);
 
+  // Photoperiod (daylight hours) for the current day, computed as the
+  // astronomical daylength from latitude and solar declination.  This is the
+  // continuous equivalent of the Python model's per-day count of hours with
+  // light reaching the stream surface (StreamLight consolidate_metrics).
+  double DaylengthHours(double lat_deg, double solar_declination);
+
   struct PARtoGPP {
     double GPP_sw_inc_gO2_m2d;
     double GPP_stream_gO2_m2d;
     double GPP_streambed_gO2_m2d;
   };
-  PARtoGPP ConvertPARtoGPP(const EnergyStream& estrm, double qSWin);
+  PARtoGPP ConvertPARtoGPP(const EnergyStream& estrm, double qSWin, double photoperiod_hr);
 
  protected:
   void InitializeFromPlist_(Teuchos::ParameterList& plist);

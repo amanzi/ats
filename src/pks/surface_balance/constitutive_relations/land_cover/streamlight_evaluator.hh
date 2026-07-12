@@ -88,7 +88,13 @@ class StreamlightEvaluator : public EvaluatorSecondaryMonotypeCV {
   Key ponded_depth_key_;
   std::string start_date_;
   int days_offset_;
-
+  // Site latitude/longitude [degrees].  When provided in the plist these are
+  // used directly (a single value is appropriate even for large domains, and
+  // it matches the Python StreamLight reference); otherwise lat/lon are derived
+  // per-cell from the mesh coordinates via an inverse map projection.
+  bool use_site_latlon_;
+  double lat_;
+  double lon_;
   Teuchos::RCP<StreamlightModel> model_;
 
  private:
