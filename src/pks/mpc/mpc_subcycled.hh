@@ -22,6 +22,21 @@ A generic MPC that weakly couples N PKs, potentially subcycling any of them.
      independently without synchronization.  This is required if all sub-PKs are
      being subcycled.
 
+   Each subcycled PK's ``TimeAdvancer`` is configured from a sublist.  The
+   lookup order is:
+
+   1. ``"PKNAME time advancer"`` sublist — per-PK configuration (vis, obs, etc.)
+   2. ``"time advancer"`` sublist — shared fallback for all subcycled PKs
+   3. Empty list — no vis/obs for subcycled PKs
+
+   Example::
+
+     <ParameterList name="subcycling MPC">
+       <ParameterList name="subsurface flow time advancer">
+         <ParameterList name="visualization"> ... </ParameterList>
+       </ParameterList>
+     </ParameterList>
+
    INCLUDES:
 
    - ``[mpc-spec]`` *Is a* :ref:`MPC`.
@@ -33,6 +48,10 @@ A generic MPC that weakly couples N PKs, potentially subcycling any of them.
 
 #include "PK.hh"
 #include "mpc.hh"
+
+namespace ATS {
+class TimeAdvancer;
+} // namespace ATS
 
 namespace Amanzi {
 
@@ -66,7 +85,7 @@ class MPCSubcycled : public MPC<PK> {
   double dt_, target_dt_;
   std::vector<double> dts_;
   std::vector<std::pair<Tag, Tag>> tags_;
-  std::vector<Teuchos::RCP<Utils::TimeStepManager>> tsms_;
+  std::vector<Teuchos::RCP<ATS::TimeAdvancer>> time_advancers_;
 
  private:
   // factory registration

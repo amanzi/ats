@@ -27,6 +27,13 @@ set.  It may also subcycle all or none of its child PKs.
    * `"subcycling target timestep [s]`" ``[double]`` timestep over which to
      syncronize the sub PKs.
 
+   Each subcycled PK's ``TimeAdvancer`` is configured from a sublist using the
+   same lookup order as :ref:`MPCSubcycled <pk-subcycling-mpc-spec>`:
+
+   1. ``"PKNAME time advancer"`` sublist — per-PK configuration (vis, obs, etc.)
+   2. ``"time advancer"`` sublist — shared configuration for all subcycled PKs
+   3. Empty list — no vis/obs for subcycled PKs
+
    END
 
    INCLUDES
@@ -39,6 +46,10 @@ set.  It may also subcycle all or none of its child PKs.
 
 #pragma once
 #include "mpc.hh"
+
+namespace ATS {
+class TimeAdvancer;
+} // namespace ATS
 
 namespace Amanzi {
 
@@ -78,6 +89,7 @@ class MPCWeakSubdomain : public MPC<PK> {
   double internal_subcycling_target_dt_;
   double cycle_dt_;
   Key ds_name_;
+  std::vector<Teuchos::RCP<ATS::TimeAdvancer>> time_advancers_;
 
  private:
   // factory registration

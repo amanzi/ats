@@ -14,7 +14,8 @@
 #include "Mesh.hh"
 #include "MeshPartition.hh"
 #include "Key.hh"
-#include "coordinator.hh"
+#include "Visualization.hh"
+#include "driver.hh"
 
 #include "ats_variables.hh"
 
@@ -22,7 +23,7 @@ namespace ATS {
 
 using namespace Amanzi;
 
-class ELM_ATSDriver : public Coordinator {
+class ELM_ATSDriver : public Driver {
 
  public:
 
@@ -40,7 +41,6 @@ class ELM_ATSDriver : public Coordinator {
                 const Teuchos::RCP<Teuchos::Time>& wallclock_timer,
                 const Teuchos::RCP<const Teuchos::Comm<int>>& teuchos_comm,
                 const Amanzi::Comm_ptr_type& comm,
-                const std::string& logfile,
                 int npfts = 17);
 
   MeshInfo getMeshInfo();
@@ -61,6 +61,11 @@ class ELM_ATSDriver : public Coordinator {
 
  private:
   void initValue_(const Key& key, double value = 0.);
+  bool visualize_(bool force = false);
+
+  // Wraps a raw flux key with an EvaluatorTimeAccumulated that integrates it
+  // over the outer ELM timestep.  Returns the integrated key.
+  Key setupIntegratedFlux_(const Key& flux_key, ELM::VarID varid);
 
  private:
   Teuchos::RCP<Teuchos::ParameterList> elm_plist_;
@@ -74,7 +79,7 @@ class ELM_ATSDriver : public Coordinator {
   Teuchos::RCP<const AmanziMesh::Mesh> mesh_subsurf_;
   Teuchos::RCP<const AmanziMesh::Mesh> mesh_surf_;
 
-  Key poro_key_;
+  Key base_poro_key_;
 
   Key gross_water_source_key_;
   Key pot_evap_key_;
@@ -105,6 +110,8 @@ class ELM_ATSDriver : public Coordinator {
 
   std::map<ELM::VarID, KeyTag> key_map_;
 
+  int elm_cycle_;
+  std::vector<Teuchos::RCP<Amanzi::Visualization>> visualization_;
 };
 
 
