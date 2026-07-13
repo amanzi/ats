@@ -420,7 +420,6 @@ void AllocateBGCState(const BGCSizes* const sizes,
    AllocateBGCMatrixDouble(sizes->ncells_per_col_, sizes->num_columns, &(properties->thermal_conductivity));
    AllocateBGCMatrixDouble(sizes->ncells_per_col_, sizes->num_columns, &(properties->volume));
    AllocateBGCMatrixDouble(sizes->ncells_per_col_, sizes->num_columns, &(properties->depth));
-   AllocateBGCMatrixDouble(sizes->ncells_per_col_, sizes->num_columns, &(properties->depth_c));
    AllocateBGCMatrixDouble(sizes->ncells_per_col_, sizes->num_columns, &(properties->dz));
    AllocateBGCMatrixDouble(sizes->ncells_per_col_, sizes->num_columns, &(properties->plant_wilting_factor));
    AllocateBGCMatrixDouble(sizes->ncells_per_col_, sizes->num_columns, &(properties->rooting_depth_fraction));
