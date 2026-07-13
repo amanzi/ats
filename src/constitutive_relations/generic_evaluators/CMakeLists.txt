@@ -12,6 +12,7 @@ set(ats_generic_evals_src_files
     TimeMaxEvaluator.cc
     ExtractionEvaluator.cc
     InitialTimeEvaluator.cc
+    EvaluatorTimeAccumulated.cc
    )
 
 file(GLOB ats_generic_evals_inc_files "*.hh")

@@ -10,9 +10,6 @@
 // Runs top-level time loop for standalone ATS simulations
 
 
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-
-
 /*!
 
 ATS's top level driver is provided the entire input spec as a single list
@@ -31,7 +28,7 @@ called `"main`".  That list contains the following required elements:
    * `"state`" ``[state-spec]`` A :ref:`State` spec.
 
 
-Coordinator
+Cycle Driver
 ############
 
 In the `"cycle driver`" sublist, the user specifies global control of the
@@ -101,8 +98,7 @@ Example:
 #pragma once
 
 #include "Key.hh"
-#include "coordinator.hh"
-
+#include "driver.hh"
 
 namespace Amanzi {
 class State;
@@ -110,13 +106,15 @@ class State;
 
 namespace ATS {
 
-class ATSDriver : public Coordinator {
+class ATSDriver : public Driver {
  public:
-  using Coordinator::Coordinator;
+  using Driver::Driver;
 
-  // methods
-  void cycle_driver();
   int run();
+
+ private:
+  void cycle_driver_();
+  void createTimeAdvancer_();
 };
 
 } // namespace ATS

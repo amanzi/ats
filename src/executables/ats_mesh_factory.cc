@@ -11,6 +11,7 @@
 #include "Epetra_MpiComm.h"
 #include "Teuchos_ParameterList.hpp"
 #include "Teuchos_TimeMonitor.hpp"
+#include "Teuchos_VerboseObject.hpp"
 #include "AmanziComm.hh"
 #include "AmanziTypes.hh"
 #include "Teuchos_ParameterXMLFileReader.hpp"
@@ -849,7 +850,7 @@ createMeshes(const Teuchos::RCP<Teuchos::ParameterList>& global_list,
     }
   }
 
-  Teuchos::TimeMonitor::summarize();
+  Teuchos::TimeMonitor::summarize(*Teuchos::VerboseObjectBase::getDefaultOStream());
   Teuchos::TimeMonitor::zeroOutTimers();
 }
 
