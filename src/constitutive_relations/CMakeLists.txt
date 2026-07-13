@@ -44,6 +44,11 @@ register_evaluator_with_factory(
   LISTNAME   ATS_RELATIONS_REG
   )
 
+register_evaluator_with_factory(
+  HEADERFILE surface_subsurface_fluxes/flux_divergence_evaluator_reg.hh
+  LISTNAME   ATS_RELATIONS_REG
+  )
+
 
 register_evaluator_with_factory(
   HEADERFILE generic_evaluators/MultiplicativeEvaluator_reg.hh
@@ -77,6 +82,11 @@ register_evaluator_with_factory(
 
 register_evaluator_with_factory(
   HEADERFILE generic_evaluators/InitialTimeEvaluator_reg.hh
+  LISTNAME ATS_RELATIONS_REG
+  )
+
+register_evaluator_with_factory(
+  HEADERFILE generic_evaluators/EvaluatorTimeAccumulated_reg.hh
   LISTNAME ATS_RELATIONS_REG
   )
 
