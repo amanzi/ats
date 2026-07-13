@@ -14,14 +14,14 @@ FortranCInterface_VERIFY(CXX)
 include_directories(${ATS_SOURCE_DIR}/src/executables)
 
 set(elm_ats_src_files
-  ${ATS_SOURCE_DIR}/src/executables/coordinator.cc
+  ${ATS_SOURCE_DIR}/src/executables/driver.cc
   ${ATS_SOURCE_DIR}/src/executables/ats_mesh_factory.cc
   elm_ats_driver.cc
   elm_ats_api.cc
   )
 
 set(elm_ats_inc_files
-  ${ATS_SOURCE_DIR}/src/executables/coordinator.hh
+  ${ATS_SOURCE_DIR}/src/executables/driver.hh
   ${ATS_SOURCE_DIR}/src/executables/ats_mesh_factory.hh
   elm_ats_driver.hh
   elm_ats_api.h
