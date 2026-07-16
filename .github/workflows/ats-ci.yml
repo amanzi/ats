@@ -7,11 +7,13 @@ on:
   push:
     branches:
       - master
+      - elm_ats
     tags-ignore:
       - ats-*
   pull_request:
     branches:
       - master
+      - elm_ats
 
 jobs:
   build: 
