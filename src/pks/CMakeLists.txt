@@ -54,3 +54,7 @@ add_subdirectory(deform)
 add_subdirectory(surface_balance)
 add_subdirectory(biogeochemistry)
 add_subdirectory(mpc)
+
+if (ENABLE_ECOSIM)
+  add_subdirectory(ecosim)
+endif()
