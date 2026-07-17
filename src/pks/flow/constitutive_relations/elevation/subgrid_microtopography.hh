@@ -46,7 +46,8 @@ dVolumetricDepth_dDepth(double depth, double del_max, double del_ex)
 inline bool
 validParameters(double del_max, double del_ex)
 {
-  return (2 * del_max >= 3 * del_ex) && (2 * del_ex >= del_max);
+  const double eps = 1e-12;
+  return (2 * del_max + eps >= 3 * del_ex) && (2 * del_ex + eps >= del_max);
 }
 
 
