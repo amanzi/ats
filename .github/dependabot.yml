@@ -11,3 +11,5 @@ updates:
       action-updates:
         patterns:
           - "*"
+    reviewers:
+      - "rfiorella"
