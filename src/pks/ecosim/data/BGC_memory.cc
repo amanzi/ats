@@ -329,6 +329,7 @@ void AllocateBGCState(const BGCSizes* const sizes,
    AllocateBGCMatrixDouble(sizes->ncells_per_col_, sizes->num_columns, &(state->bulk_density));
    AllocateBGCMatrixDouble(sizes->ncells_per_col_, sizes->num_columns, &(state->subsurface_energy_source));
    AllocateBGCMatrixDouble(sizes->ncells_per_col_, sizes->num_columns, &(state->subsurface_water_source));
+   AllocateBGCMatrixDouble(sizes->ncells_per_col_, sizes->num_columns, &(state->canopy_snow));
    AllocateBGCVectorDouble(sizes->num_columns, &(state->surface_water_source));
    AllocateBGCVectorDouble(sizes->num_columns, &(state->surface_energy_source));
    AllocateBGCVectorDouble(sizes->num_columns, &(state->snow_depth));
@@ -408,11 +409,12 @@ void AllocateBGCState(const BGCSizes* const sizes,
   *******************************************************************************/
 
  void AllocateBGCProperties(BGCSizes* sizes, BGCProperties* properties,
-                           int ncells_per_col_, int num_columns) {
+                           int ncells_per_col_, int num_columns, int num_pfts) {
 
    sizes->ncells_per_col_ = ncells_per_col_;
    sizes->num_columns = num_columns;
-   //sizes->num_components = num_components;
+   sizes->num_pfts = num_pfts;
+   
    AllocateBGCMatrixDouble(sizes->ncells_per_col_, sizes->num_columns, &(properties->liquid_saturation));
    AllocateBGCMatrixDouble(sizes->ncells_per_col_, sizes->num_columns, &(properties->gas_saturation));
    AllocateBGCMatrixDouble(sizes->ncells_per_col_, sizes->num_columns, &(properties->ice_saturation));
@@ -424,7 +426,6 @@ void AllocateBGCState(const BGCSizes* const sizes,
    AllocateBGCMatrixDouble(sizes->ncells_per_col_, sizes->num_columns, &(properties->plant_wilting_factor));
    AllocateBGCMatrixDouble(sizes->ncells_per_col_, sizes->num_columns, &(properties->rooting_depth_fraction));
    AllocateBGCMatrixDouble(sizes->ncells_per_col_, sizes->num_columns, &(properties->plant_functional_type));
-
    AllocateBGCVectorDouble(sizes->num_columns, &(properties->column_area));
    AllocateBGCVectorDouble(sizes->num_columns, &(properties->shortwave_radiation));
    AllocateBGCVectorDouble(sizes->num_columns, &(properties->longwave_radiation));

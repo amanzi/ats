@@ -42,7 +42,8 @@ module bgc_fortran_memory_mod
   ! Memory allocation subroutines
 
   interface
-    subroutine AllocateBGCState(sizes, state, ncells_per_col_, num_components, num_columns) bind(C, name='AllocateBGCState')
+    subroutine AllocateBGCState(sizes, state, ncells_per_col_, num_components, &
+        num_columns, num_pfts) bind(C, name='AllocateBGCState')
       use BGCContainers_module, only : BGCSizes, BGCState
       use, intrinsic :: iso_c_binding, only: c_int
       implicit none
@@ -51,6 +52,7 @@ module bgc_fortran_memory_mod
       integer(c_int),VALUE :: ncells_per_col_
       integer(c_int),VALUE :: num_components
       integer(c_int),VALUE :: num_columns
+      integer(c_int),VALUE :: num_pfts
     end subroutine
   end interface
   interface
@@ -62,7 +64,8 @@ module bgc_fortran_memory_mod
   end interface
 
   interface
-    subroutine AllocateBGCProperties(sizes, properties, ncells_per_col_, num_columns) bind(C, name='AllocateBGCProperties')
+    subroutine AllocateBGCProperties(sizes, properties, ncells_per_col_, num_columns, &
+        num_pfts) bind(C, name='AllocateBGCProperties')
       use BGCContainers_module, only : BGCSizes, BGCProperties
       use, intrinsic :: iso_c_binding, only: c_int
       implicit none
@@ -70,6 +73,7 @@ module bgc_fortran_memory_mod
       type(BGCProperties) :: properties
       integer(c_int),VALUE :: ncells_per_col_
       integer(c_int),VALUE :: num_columns
+      integer(c_int),VALUE :: num_pfts
     end subroutine
   end interface
   interface

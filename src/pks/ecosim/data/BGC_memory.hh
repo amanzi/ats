@@ -84,7 +84,8 @@ extern "C" {
   void AllocateBGCProperties(BGCSizes* sizes,
                              BGCProperties* properties,
                              int ncells_per_col_,
-			                       int num_columns);
+			                 int num_columns,
+							 int num_pfts);
   void FreeBGCProperties(BGCProperties* properties);
 
   // Problem Meta Data

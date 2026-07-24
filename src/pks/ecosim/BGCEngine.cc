@@ -67,7 +67,7 @@ void BGCEngine::InitState(BGCProperties& properties,
                                 int num_columns,
                                 int num_pfts)
 {
-  AllocateBGCProperties(&sizes_, &properties, ncells_per_col_, num_columns);
+  AllocateBGCProperties(&sizes_, &properties, ncells_per_col_, num_columns,num_pfts);
   AllocateBGCState(&sizes_, &state, ncells_per_col_, num_components, num_columns, num_pfts);
 }
 

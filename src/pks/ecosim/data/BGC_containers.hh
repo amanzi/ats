@@ -116,6 +116,7 @@ extern const int kBGCMaxWordLength;
     BGCMatrixDouble bulk_density;
     BGCMatrixDouble subsurface_water_source;
     BGCMatrixDouble subsurface_energy_source;
+    BGCMatrixDouble canopy_snow;
     BGCVectorDouble surface_energy_source;
     BGCVectorDouble surface_water_source;
     BGCVectorDouble snow_depth;
