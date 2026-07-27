@@ -46,9 +46,11 @@ changed on the input line.
 
 */
 
-
+#include "TensorVector.hh"
 #include "micropore_macropore_flux_evaluator.hh"
 #include "micropore_macropore_flux_model.hh"
+
+
 
 namespace Amanzi {
 namespace SurfaceBalance {
@@ -98,7 +100,7 @@ MicroporeMacroporeFluxEvaluator::InitializeFromPlist_()
   dependencies_.insert(KeyTag{ krM_key_, tag });
   // dependency: micropore_absolute_permeability
   K_key_ = Keys::readKey(plist_, macro_domain, "macropore absolute permeability", "permeability");
-  dependencies_.insert(KeyTag{ K_key_, tag });
+  // dependencies_.insert(KeyTag{ K_key_, tag });
   // dependency: micropore_molar_density_liquid
   den_key_ =
     Keys::readKey(plist_, micro_domain, "micropore molar density liquid", "molar_density_liquid");
@@ -115,7 +117,7 @@ MicroporeMacroporeFluxEvaluator::Evaluate_(const State& S,
   Teuchos::RCP<const CompositeVector> pM = S.GetPtr<CompositeVector>(pM_key_, tag);
   Teuchos::RCP<const CompositeVector> krM = S.GetPtr<CompositeVector>(krM_key_, tag);
   Teuchos::RCP<const CompositeVector> krm = S.GetPtr<CompositeVector>(krm_key_, tag);
-  Teuchos::RCP<const CompositeVector> K = S.GetPtr<CompositeVector>(K_key_, tag);
+  Teuchos::RCP<const TensorVector> K = S.GetPtr<TensorVector>(K_key_, tag);
   Teuchos::RCP<const CompositeVector> den = S.GetPtr<CompositeVector>(den_key_, tag);
 
   for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end(); ++comp) {
@@ -123,14 +125,14 @@ MicroporeMacroporeFluxEvaluator::Evaluate_(const State& S,
     const Epetra_MultiVector& pM_v = *pM->ViewComponent(*comp, false);
     const Epetra_MultiVector& krM_v = *krM->ViewComponent(*comp, false);
     const Epetra_MultiVector& krm_v = *krm->ViewComponent(*comp, false);
-    const Epetra_MultiVector& K_v = *K->ViewComponent(*comp, false);
+    //const Epetra_MultiVector& K_v = *K->ViewComponent(*comp, false);
     const Epetra_MultiVector& den_v = *den->ViewComponent(*comp, false);
     Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
 
     int ncomp = result[0]->size(*comp, false);
-    for (int i = 0; i != ncomp; ++i) {
+    for (int i = 0; i != ncomp; ++i) {      
       result_v[0][i] = den_v[0][i] * model_->MicroporeMacroporeFlux(
-                                       pm_v[0][i], pM_v[0][i], krM_v[0][i], krm_v[0][i], K_v[0][i]);
+                                                                    pm_v[0][i], pM_v[0][i], krM_v[0][i], krm_v[0][i], (*K)[i](0,0));
     }
   }
 }
@@ -148,7 +150,7 @@ MicroporeMacroporeFluxEvaluator::EvaluatePartialDerivative_(
   Teuchos::RCP<const CompositeVector> pM = S.GetPtr<CompositeVector>(pM_key_, tag);
   Teuchos::RCP<const CompositeVector> krM = S.GetPtr<CompositeVector>(krM_key_, tag);
   Teuchos::RCP<const CompositeVector> krm = S.GetPtr<CompositeVector>(krm_key_, tag);
-  Teuchos::RCP<const CompositeVector> K = S.GetPtr<CompositeVector>(K_key_, tag);
+  Teuchos::RCP<const TensorVector> K = S.GetPtr<TensorVector>(K_key_, tag);
   Teuchos::RCP<const CompositeVector> den = S.GetPtr<CompositeVector>(den_key_, tag);
 
   if (wrt_key == pm_key_) {
@@ -158,7 +160,7 @@ MicroporeMacroporeFluxEvaluator::EvaluatePartialDerivative_(
       const Epetra_MultiVector& pM_v = *pM->ViewComponent(*comp, false);
       const Epetra_MultiVector& krM_v = *krM->ViewComponent(*comp, false);
       const Epetra_MultiVector& krm_v = *krm->ViewComponent(*comp, false);
-      const Epetra_MultiVector& K_v = *K->ViewComponent(*comp, false);
+      //const Epetra_MultiVector& K_v = *K->ViewComponent(*comp, false);
       const Epetra_MultiVector& den_v = *den->ViewComponent(*comp, false);
       Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
 
@@ -166,7 +168,7 @@ MicroporeMacroporeFluxEvaluator::EvaluatePartialDerivative_(
       for (int i = 0; i != ncomp; ++i) {
         result_v[0][i] =
           den_v[0][i] * model_->DMicroporeMacroporeFluxDMicroporePressure(
-                          pm_v[0][i], pM_v[0][i], krM_v[0][i], krm_v[0][i], K_v[0][i]);
+                   pm_v[0][i], pM_v[0][i], krM_v[0][i], krm_v[0][i], (*K)[i](0,0));
       }
     }
 
@@ -177,7 +179,7 @@ MicroporeMacroporeFluxEvaluator::EvaluatePartialDerivative_(
       const Epetra_MultiVector& pM_v = *pM->ViewComponent(*comp, false);
       const Epetra_MultiVector& krM_v = *krM->ViewComponent(*comp, false);
       const Epetra_MultiVector& krm_v = *krm->ViewComponent(*comp, false);
-      const Epetra_MultiVector& K_v = *K->ViewComponent(*comp, false);
+      //const Epetra_MultiVector& K_v = *K->ViewComponent(*comp, false);
       const Epetra_MultiVector& den_v = *den->ViewComponent(*comp, false);
       Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
 
@@ -185,7 +187,7 @@ MicroporeMacroporeFluxEvaluator::EvaluatePartialDerivative_(
       for (int i = 0; i != ncomp; ++i) {
         result_v[0][i] =
           den_v[0][i] * model_->DMicroporeMacroporeFluxDPressure(
-                          pm_v[0][i], pM_v[0][i], krM_v[0][i], krm_v[0][i], K_v[0][i]);
+                          pm_v[0][i], pM_v[0][i], krM_v[0][i], krm_v[0][i], (*K)[i](0,0));
       }
     }
 
@@ -196,7 +198,7 @@ MicroporeMacroporeFluxEvaluator::EvaluatePartialDerivative_(
       const Epetra_MultiVector& pM_v = *pM->ViewComponent(*comp, false);
       const Epetra_MultiVector& krM_v = *krM->ViewComponent(*comp, false);
       const Epetra_MultiVector& krm_v = *krm->ViewComponent(*comp, false);
-      const Epetra_MultiVector& K_v = *K->ViewComponent(*comp, false);
+      //const Epetra_MultiVector& K_v = *K->ViewComponent(*comp, false);
       const Epetra_MultiVector& den_v = *den->ViewComponent(*comp, false);
       Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
 
@@ -204,7 +206,7 @@ MicroporeMacroporeFluxEvaluator::EvaluatePartialDerivative_(
       for (int i = 0; i != ncomp; ++i) {
         result_v[0][i] =
           den_v[0][i] * model_->DMicroporeMacroporeFluxDRelativePermeability(
-                          pm_v[0][i], pM_v[0][i], krM_v[0][i], krm_v[0][i], K_v[0][i]);
+                          pm_v[0][i], pM_v[0][i], krM_v[0][i], krm_v[0][i], (*K)[i](0,0));
       }
     }
 
@@ -215,7 +217,7 @@ MicroporeMacroporeFluxEvaluator::EvaluatePartialDerivative_(
       const Epetra_MultiVector& pM_v = *pM->ViewComponent(*comp, false);
       const Epetra_MultiVector& krM_v = *krM->ViewComponent(*comp, false);
       const Epetra_MultiVector& krm_v = *krm->ViewComponent(*comp, false);
-      const Epetra_MultiVector& K_v = *K->ViewComponent(*comp, false);
+      //const Epetra_MultiVector& K_v = *K->ViewComponent(*comp, false);
       const Epetra_MultiVector& den_v = *den->ViewComponent(*comp, false);
       Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
 
@@ -223,7 +225,7 @@ MicroporeMacroporeFluxEvaluator::EvaluatePartialDerivative_(
       for (int i = 0; i != ncomp; ++i) {
         result_v[0][i] =
           den_v[0][i] * model_->DMicroporeMacroporeFluxDMicroporeRelativePermeability(
-                          pm_v[0][i], pM_v[0][i], krM_v[0][i], krm_v[0][i], K_v[0][i]);
+                          pm_v[0][i], pM_v[0][i], krM_v[0][i], krm_v[0][i], (*K)[i](0,0));
       }
     }
 
@@ -234,7 +236,7 @@ MicroporeMacroporeFluxEvaluator::EvaluatePartialDerivative_(
       const Epetra_MultiVector& pM_v = *pM->ViewComponent(*comp, false);
       const Epetra_MultiVector& krM_v = *krM->ViewComponent(*comp, false);
       const Epetra_MultiVector& krm_v = *krm->ViewComponent(*comp, false);
-      const Epetra_MultiVector& K_v = *K->ViewComponent(*comp, false);
+      //const Epetra_MultiVector& K_v = *K->ViewComponent(*comp, false);
       const Epetra_MultiVector& den_v = *den->ViewComponent(*comp, false);
       Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
 
@@ -242,7 +244,7 @@ MicroporeMacroporeFluxEvaluator::EvaluatePartialDerivative_(
       for (int i = 0; i != ncomp; ++i) {
         result_v[0][i] =
           den_v[0][i] * model_->DMicroporeMacroporeFluxDMicroporeAbsolutePermeability(
-                          pm_v[0][i], pM_v[0][i], krM_v[0][i], krm_v[0][i], K_v[0][i]);
+                          pm_v[0][i], pM_v[0][i], krM_v[0][i], krm_v[0][i], (*K)[i](0,0));
       }
     }
   } else if (wrt_key == den_key_) {
@@ -252,13 +254,13 @@ MicroporeMacroporeFluxEvaluator::EvaluatePartialDerivative_(
       const Epetra_MultiVector& pM_v = *pM->ViewComponent(*comp, false);
       const Epetra_MultiVector& krM_v = *krM->ViewComponent(*comp, false);
       const Epetra_MultiVector& krm_v = *krm->ViewComponent(*comp, false);
-      const Epetra_MultiVector& K_v = *K->ViewComponent(*comp, false);
+      //const Epetra_MultiVector& K_v = *K->ViewComponent(*comp, false);
       Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
 
       int ncomp = result[0]->size(*comp, false);
       for (int i = 0; i != ncomp; ++i) {
         result_v[0][i] = model_->MicroporeMacroporeFlux(
-          pm_v[0][i], pM_v[0][i], krM_v[0][i], krm_v[0][i], K_v[0][i]);
+          pm_v[0][i], pM_v[0][i], krM_v[0][i], krm_v[0][i], (*K)[i](0,0));
       }
     }
   } else {

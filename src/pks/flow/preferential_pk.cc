@@ -100,6 +100,10 @@ Preferential::SetupPhysicalEvaluators_()
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1)
     ->AddComponent("boundary_face", AmanziMesh::Entity_kind::BOUNDARY_FACE, 1);
+
+  S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
+        coef_grav_key_, tag_next_, key_, tag_next_)
+      .SetGhosted();
 }
 
 
@@ -184,8 +188,14 @@ Preferential::UpdatePermeabilityData_(const Tag& tag)
 
     // Upwind, only overwriting boundary faces if the wind says to do so.
     upwinding_->Update(*rel_perm, "cell", *uw_rel_perm, "face", *S_);
-    upwinding_->Update(*rel_perm, "cell", *uw_rel_perm, "grav", *S_);
+    upwinding_->Update(*rel_perm_grav, "cell", *uw_rel_perm, "grav", *S_);
 
+    // std::cout<<"rel_perm cell\n"<<*rel_perm->ViewComponent("cell", false);
+    // std::cout<<"rel_perm_grav cell\n"<<*rel_perm_grav->ViewComponent("cell", false);
+    // std::cout<<"uw_rel_perm_f\n"<<uw_rel_perm_f<<"\n";
+    // std::cout<<"uw_rel_perm_grav\n"<<uw_rel_perm_grav<<"\n";
+
+    
     if (clobber_policy_ == "clobber") {
       Epetra_MultiVector& uw_rel_perm_f = *uw_rel_perm->ViewComponent("face", false);
       uw_rel_perm_f.Export(rel_perm_bf, vandelay, Insert);

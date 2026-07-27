@@ -46,15 +46,16 @@ void
 WRMEvaluator::InitializeFromPlist_()
 {
   // my keys are for saturation, note that order matters, liquid -> gas
-  Key akey = my_keys_.front().first;
-  Key domain_name = Keys::getDomain(akey);
+  Key full_name = my_keys_.front().first;
+  Key akey = Keys::getVarName(my_keys_.front().first);
+  Key domain_name = Keys::getDomain(my_keys_.front().first);
   Tag tag = my_keys_.front().second;
   my_keys_.clear();
 
   std::size_t liq_pos = akey.find("liquid");
   std::size_t gas_pos = akey.find("gas");
   if (liq_pos != std::string::npos) {
-    my_keys_.emplace_back(KeyTag{ akey, tag });
+    my_keys_.emplace_back(KeyTag{ full_name, tag });
 
     Key otherkey = akey.substr(0, liq_pos) + "gas" + akey.substr(liq_pos + 6);
     otherkey = Keys::readKey(plist_, domain_name, "other saturation", otherkey);
@@ -64,7 +65,7 @@ WRMEvaluator::InitializeFromPlist_()
     Key otherkey = akey.substr(0, gas_pos) + "liquid" + akey.substr(gas_pos + 3);
     otherkey = Keys::readKey(plist_, domain_name, "saturation", otherkey);
     my_keys_.emplace_back(KeyTag{ otherkey, tag });
-    my_keys_.emplace_back(KeyTag{ akey, tag });
+    my_keys_.emplace_back(KeyTag{ full_name, tag });
 
   } else {
     Key liquid_key = Keys::readKey(plist_, domain_name, "saturation");
@@ -77,6 +78,7 @@ WRMEvaluator::InitializeFromPlist_()
   cap_pres_key_ =
     Keys::readKey(plist_, domain_name, "capillary pressure key", "capillary_pressure_gas_liq");
   dependencies_.insert(KeyTag{ cap_pres_key_, tag });
+
 }
 
 
