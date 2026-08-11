@@ -1066,17 +1066,8 @@ void EcoSIM::CopyToEcoSIM_process(int proc_rank,
   MPI_Comm_rank(MPI_COMM_WORLD, &p_rank);
   MPI_Barrier(MPI_COMM_WORLD);
 
-  std::cout << "ATS2EcoSIM rank: " << p_rank <<std::endl;
   num_columns_local = mesh_surf_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
   //Now that the arrays are flat we need to be a little more careful about how we load an unload the data
-  /*for (int column=0; column!=num_columns_local; ++column) {
-    FieldToColumn_(column, temp, col_temp.ptr());
-
-    for (int i=0; i < ncells_per_col_; ++i) {
-    	state.temperature.data[column * ncells_per_col_ + i] = (*col_temp)[i];
-        state.temperature.data[column * ncells_per_col_ + i] = 222.0;
-    }
-  }*/
 
   //Loop over columns on this process
   for (int column=0; column!=num_columns_local; ++column) {
@@ -1227,15 +1218,6 @@ void EcoSIM::CopyToEcoSIM_process(int proc_rank,
   props.microbe_bool = microbe_bool;
   props.pft_file = engine_inputfile.data();
 
-  /*std::cout << "Data from state after setting struct: " << std::endl;
-  for (int col=0; col!=num_columns_local; ++col) {
-    if (std::isnan(surface_water_source[col]) ||
-        std::isinf(surface_water_source[col])) {
-        std::cout << "Process " << p_rank << " found bad value at column "
-                  << col << ": " << surface_water_source[col] << std::endl;
-    }
-  }*/
-
 }
 
 void EcoSIM::CopyFromEcoSIM_process(const int column,
@@ -1316,7 +1298,6 @@ void EcoSIM::CopyFromEcoSIM_process(const int column,
   MPI_Comm_rank(MPI_COMM_WORLD, &p_rank);
   MPI_Barrier(MPI_COMM_WORLD);
 
-  std::cout << "Data from struct after pass back: " << std::endl;
   for (int col=0; col!=num_columns_local; ++col) {
     if (std::isnan(state.surface_water_source.data[col]) ||
         std::isinf(state.surface_water_source.data[col])) {
@@ -1372,20 +1353,6 @@ void EcoSIM::CopyFromEcoSIM_process(const int column,
     //ColumnToField_(col, snow_temperature, col_snow_temperature.ptr());
     ColumnToField_(col, canopy_snow, col_canopy_snow.ptr());
   }
-
-  //std::cout << "(CopyFromEcoSIM) subsurface energy flux: " << std::endl;
-
-  /*for (int col=0; col!=num_columns_local; ++col) {
-    for (int i=0; i < ncells_per_col_; ++i) {
-      std::cout << "col: " << col << " cell: " << i << "value: " << subsurface_energy_source[col*ncells_per_col_+i] << std::endl;
-    }
-  }
-
-  for (int col=0; col!=num_columns_local; ++col) {
-    for (int i=0; i < ncells_per_col_; ++i) {
-      std::cout << "col: " << col << " cell: " << i << "value: " << subsurface_water_source[col*ncells_per_col_+i] << std::endl;
-    }
-    }*/
 }
 
 int EcoSIM::InitializeSingleProcess(int proc)
