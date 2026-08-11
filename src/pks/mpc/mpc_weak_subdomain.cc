@@ -23,6 +23,8 @@ input spec.
 */
 
 
+#include "TimeStepManager.hh"
+#include "time_advancer.hh"
 #include "mpc_weak_subdomain.hh"
 
 
@@ -48,6 +50,29 @@ MPCWeakSubdomain::parseParameterList()
 
   if (internal_subcycling_) {
     internal_subcycling_target_dt_ = plist_->template get<double>("subcycling target timestep [s]");
+
+    const auto& ds = S_->GetDomainSet(ds_name_);
+    int i = 0;
+    for (const auto& subdomain : *ds) {
+      // Locate the TimeAdvancer sublist: "PKNAME time advancer" if present,
+      // else copy from shared "time advancer" if present, else create empty.
+      // Using Teuchos::sublist ensures the sublist is created in plist_ so the
+      // final parameters used are recorded there.
+      std::string pk_ta_key = sub_pks_[i]->name() + " time advancer";
+      if (!plist_->isSublist(pk_ta_key) && plist_->isSublist("time advancer"))
+        plist_->sublist(pk_ta_key) = plist_->sublist("time advancer");
+      auto ta_plist = Teuchos::sublist(plist_, pk_ta_key);
+
+      Tag tag_current = get_ds_tag_current_(subdomain);
+      Tag tag_next = get_ds_tag_next_(subdomain);
+      S_->require_time(tag_current);
+      S_->require_time(tag_next);
+
+      auto tsm = Teuchos::rcp(new Utils::TimeStepManager());
+      time_advancers_.emplace_back(Teuchos::rcp(new ATS::TimeAdvancer(
+        ta_plist, S_, sub_pks_[i], tsm, tag_current, tag_next, vo_)));
+      ++i;
+    }
   }
 };
 
@@ -134,33 +159,16 @@ MPCWeakSubdomain::get_ds_tag_current_(const std::string& subdomain)
 void
 MPCWeakSubdomain::Setup()
 {
-  if (internal_subcycling_) {
-    const auto& ds = S_->GetDomainSet(ds_name_);
-    for (const auto& subdomain : *ds) {
-      Tag tag_subcycle_current = get_ds_tag_current_(subdomain);
-      Tag tag_subcycle_next = get_ds_tag_next_(subdomain);
-
-      S_->require_time(tag_subcycle_current);
-      S_->require_time(tag_subcycle_next);
-      S_->require_cycle(tag_subcycle_next);
-      S_->Require<double>("dt", tag_subcycle_next, name());
-    }
-  }
   MPC<PK>::Setup();
+  for (auto& ta : time_advancers_) ta->setup();
 }
 
 
 void
 MPCWeakSubdomain::Initialize()
 {
-  if (internal_subcycling_) {
-    const auto& ds = S_->GetDomainSet(ds_name_);
-    for (const auto& subdomain : *ds) {
-      Tag tag_subcycle_next = get_ds_tag_next_(subdomain);
-      S_->GetRecordW("dt", tag_subcycle_next, name()).set_initialized();
-    }
-  }
   MPC<PK>::Initialize();
+  for (auto& ta : time_advancers_) ta->initialize();
 }
 
 
@@ -194,65 +202,24 @@ MPCWeakSubdomain::AdvanceStep_Standard_(double t_old, double t_new, bool reinit)
 
 
 //-------------------------------------------------------------------------------------
-// Advance the timestep through subcyling
+// Advance the timestep through subcycling
 //-------------------------------------------------------------------------------------
 bool
 MPCWeakSubdomain::AdvanceStep_InternalSubcycling_(double t_old, double t_new, bool reinit)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  bool fail = false;
   if (vo_->os_OK(Teuchos::VERB_EXTREME))
     *vo_->os() << "Beginning subcycled timestepping." << std::endl;
 
-  const auto& ds = *S_->GetDomainSet(ds_name_);
-  int my_pid = solution_->Comm()->MyPID();
-
-  int i = 0;
+  // Each subdomain PK runs on a potentially different sub-communicator, so
+  // TimestepCrash is non-collective.  Catch per-subdomain and broadcast.
   int n_throw = 0;
   std::string throw_msg;
-  for (const auto& subdomain : ds) {
-    double dt_inner = -1;
-    double t_inner = t_old;
-    try { // must catch non-collective throws for TimestepCrash
+  for (int i = 0; i != (int)time_advancers_.size(); ++i) {
+    try {
       if (vo_->os_OK(Teuchos::VERB_EXTREME))
-        *vo_->os() << "Beginning subcyling on pk \"" << sub_pks_[i]->name() << "\"" << std::endl;
-
-      bool done = false;
-      Tag tag_subcycle_current = get_ds_tag_current_(subdomain);
-      Tag tag_subcycle_next = get_ds_tag_next_(subdomain);
-
-      S_->set_time(tag_subcycle_current, t_old);
-      while (!done) {
-        dt_inner = std::min(sub_pks_[i]->get_dt(), t_new - t_inner);
-        S_->Assign("dt", tag_subcycle_next, name(), dt_inner);
-        S_->set_time(tag_subcycle_next, t_inner + dt_inner);
-        bool fail_inner = sub_pks_[i]->AdvanceStep(t_inner, t_inner + dt_inner, false);
-        if (vo_->os_OK(Teuchos::VERB_EXTREME))
-          *vo_->os() << "  step failed? " << fail_inner << std::endl;
-
-        if (fail_inner) {
-          sub_pks_[i]->FailStep(t_old, t_new, tag_subcycle_next);
-
-          dt_inner = sub_pks_[i]->get_dt();
-          S_->set_time(tag_subcycle_next, S_->get_time(tag_subcycle_current));
-
-          if (vo_->os_OK(Teuchos::VERB_EXTREME))
-            *vo_->os() << "  failed, new timestep is " << dt_inner << std::endl;
-
-        } else {
-          sub_pks_[i]->CommitStep(t_inner, t_inner + dt_inner, tag_subcycle_next);
-          t_inner += dt_inner;
-          if (std::abs(t_new - t_inner) < 1.e-10) done = true;
-
-          S_->set_time(tag_subcycle_current, S_->get_time(tag_subcycle_next));
-          S_->advance_cycle(tag_subcycle_next);
-
-          dt_inner = sub_pks_[i]->get_dt();
-          if (vo_->os_OK(Teuchos::VERB_EXTREME))
-            *vo_->os() << "  success, new timestep is " << dt_inner << std::endl;
-        }
-      }
-      i++;
+        *vo_->os() << "Beginning subcycling on pk \"" << sub_pks_[i]->name() << "\"" << std::endl;
+      time_advancers_[i]->advance(t_old, t_new);
     } catch (Errors::TimestepCrash& e) {
       n_throw++;
       throw_msg = e.what();
@@ -260,11 +227,9 @@ MPCWeakSubdomain::AdvanceStep_InternalSubcycling_(double t_old, double t_new, bo
     }
   }
 
-  // check for any other ranks throwing and, if so, throw ourselves so that all procs throw
   int n_throw_g = 0;
   comm_->SumAll(&n_throw, &n_throw_g, 1);
   if (n_throw > 0) {
-    // inject more information into the crash message
     Errors::TimestepCrash msg;
     msg << throw_msg << "  on rank " << comm_->MyPID() << " of " << comm_->NumProc();
     Exceptions::amanzi_throw(msg);
