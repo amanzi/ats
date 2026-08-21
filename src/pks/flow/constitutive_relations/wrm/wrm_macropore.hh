@@ -24,6 +24,9 @@ An exponential model basd on the equations of... (document me!)
    * `"residual saturation [-]`" ``[double]`` Limit at pc = inf
    * `"smoothing parameter [Pa]`" ``[double]`` **10** Exponential smoothing factor dP above.
    * `"water entry pressure [Pa]`" ``[double]`` Entry pressure Pwe above.
+   * `"field capacity relative permeability [-]`" ``[double]`` **1.e-3**
+     Relative permeability threshold defining field capacity -- the liquid
+     saturation at which ``k_relative(saturation) == `` this value.
 
  */
 
@@ -54,6 +57,7 @@ class WRMMacropore : public WRM {
   double residualSaturation() { return sr_; }
   //double suction_head(double saturation);
   //double d_suction_head(double saturation);
+  double field_capacity() { return sat_fc_; }
 
  private:
   void InitializeFromPlist_();
@@ -64,6 +68,7 @@ class WRMMacropore : public WRM {
   double dP_;
   double Pwe_;
   double sr_; // Macropore residual saturation
+  double sat_fc_; // cached liquid saturation at field capacity
 
   // int function_;
   // double s0_;  // regularization threshold in saturation

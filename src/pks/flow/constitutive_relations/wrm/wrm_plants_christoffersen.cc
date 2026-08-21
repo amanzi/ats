@@ -13,6 +13,8 @@
 #include <algorithm>
 
 #include "dbc.hh"
+#include "errors.hh"
+#include "exceptions.hh"
 #include "Brent.hh"
 
 #include "wrm_plants_christoffersen.hh"
@@ -338,6 +340,27 @@ WRMPlantChristoffersen::InitializeFromPlist_()
   double result = Utils::findRootBrent(*this, 0.0, 1.0, tol, &nits);
   scapfttrans_ = result;
   psicapfttrans_ = potentialLinear(scapfttrans_);
+
+  // field capacity: k_relative(pc) = (saturation(pc) - sr_) / (1 - sr_) is
+  // monotonically decreasing in pc (note k_relative here is parameterized by
+  // pc, not saturation, unlike other WRMs), from 1 at pc=0 towards 0 as pc
+  // grows (capillaryPressure(sr_) itself is singular, so bracket by
+  // expanding outward rather than using it as a fixed endpoint).  Invert for
+  // pc, then convert the resulting pc back to a saturation.
+  double k_rel_fc = plist_.get<double>("field capacity relative permeability [-]", 1.e-3);
+  auto func = [this, k_rel_fc](double pc) { return k_relative(pc) - k_rel_fc; };
+  int bracket_itrs = 100;
+  std::pair<double, double> bracket = Utils::bracketRoot(func, 0.0, 1.e3, &bracket_itrs);
+
+  int itr = 100;
+  double tol_fc = 1.e-8;
+  double pc_fc = Utils::findRootBrent(func, bracket.first, bracket.second, tol_fc, &itr);
+  if (itr < 0) {
+    Errors::Message msg;
+    msg << "WRMPlantChristoffersen: failed to bracket a root for field capacity";
+    Exceptions::amanzi_throw(msg);
+  }
+  sat_fc_ = saturation(pc_fc);
   /*
   printf("sr: %f\nstlp: %f\neps: %f\npsi0: %f\npi0: %f\npsicap: %f\n", sr_, stlp_, eps_, psi0_, pi0_, psicap_);
   printf("sft: %f\nscap: %f\npsitlp: %f\nmcap: %f\nmcapstar: %f\nscapfttrans: %f\npsicapfttrans: %f\n",

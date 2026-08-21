@@ -63,6 +63,11 @@ class WRMLinearSystem : public WRM {
   virtual double d_capillaryPressure(double saturation) { return 1. / alpha_; }
   virtual double residualSaturation() { return 0.0; }
 
+  // k_relative() is constant here (test-only WRM), so there is no saturation
+  // at which it crosses a field capacity threshold; return residual
+  // saturation as a harmless degenerate value.
+  virtual double field_capacity() { return residualSaturation(); }
+
  private:
   void InitializeFromPlist_();
 

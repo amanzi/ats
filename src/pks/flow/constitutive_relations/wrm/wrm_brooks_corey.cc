@@ -40,6 +40,9 @@ WRMBrooksCorey::InitializeFromPlist_()
   if (s0_ < 1.) {
     fit_kr_.Setup(s0_, k_relative(s0_), d_k_relative(s0_), 1.0, 1.0, 0.0);
   }
+
+  double k_rel_fc = plist_.get<double>("field capacity relative permeability [-]", 1.e-3);
+  sat_fc_ = computeFieldCapacity(*this, k_rel_fc);
 }
 
 

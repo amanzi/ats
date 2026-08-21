@@ -55,6 +55,7 @@ class WRMConstant : public WRM {
   double capillaryPressure(double saturation);
   double d_capillaryPressure(double saturation);
   double residualSaturation() { return sr_; }
+  double field_capacity() { return sat_fc_; }
 
  private:
   void InitializeFromPlist_();
@@ -63,6 +64,7 @@ class WRMConstant : public WRM {
 
   double a_;
   double sr_;
+  double sat_fc_; // cached liquid saturation at field capacity
 
   static Utils::RegisteredFactory<WRM, WRMConstant> factory_;
 };

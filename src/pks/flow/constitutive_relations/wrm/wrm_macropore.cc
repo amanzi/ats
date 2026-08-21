@@ -115,6 +115,9 @@ WRMMacropore::InitializeFromPlist_()
   sr_ = plist_.get<double>("residual saturation [-]");
   dP_ = plist_.get<double>("smoothing parameter [Pa]", 10);
   Pwe_ = plist_.get<double>("water entry pressure [Pa]");
+
+  double k_rel_fc = plist_.get<double>("field capacity relative permeability [-]", 1.e-3);
+  sat_fc_ = computeFieldCapacity(*this, k_rel_fc);
 };
 
 
