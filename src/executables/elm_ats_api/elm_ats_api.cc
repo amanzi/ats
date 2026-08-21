@@ -104,11 +104,9 @@ void ats_initialize(ELM_ATSDriver_ptr ats)
 
 // call driver advance(dt)
 void ats_advance(ELM_ATSDriver_ptr ats,
-                   double dt,
-                   bool checkpoint,
-                   bool visualize)
+                 double dt)
 {
-  reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->advance(dt, checkpoint, visualize);
+  reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->advance(dt);
 }
 
 
@@ -117,6 +115,20 @@ void ats_advance_test(ELM_ATSDriver_ptr ats)
 {
   reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->advanceTest();
 }
+
+
+// call driver visualize
+void ats_visualize(ELM_ATSDriver_ptr ats)
+{
+  reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->visualize();
+}
+
+// call driver checkpoint
+void ats_checkpoint(ELM_ATSDriver_ptr ats)
+{
+  reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->checkpoint();
+}
+
 
 //
 // Memory movement/data passing

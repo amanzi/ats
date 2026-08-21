@@ -79,12 +79,20 @@ void ats_initialize(ELM_ATSDriver_ptr ats);
 
 // call driver advance(dt)
 void ats_advance(ELM_ATSDriver_ptr ats,
-                 double dt,
-                 bool checkpoint,
-                 bool visualize);
+                 double dt);
 
 // call driver advance_test()
 void ats_advance_test(ELM_ATSDriver_ptr ats);
+
+// Write visualization/checkpoint output for the current state, between
+// (not during) advance() calls -- intended to be called whenever the
+// caller (ELM) is about to write its own history/restart file, so ATS's
+// output stays aligned with ELM's write cadence. force=true writes
+// unconditionally; force=false only writes if ATS's own XML-configured
+// "visualization"/"checkpoint" schedule requests a dump at the current
+// state's cycle/time.
+void ats_visualize(ELM_ATSDriver_ptr ats);
+void ats_checkpoint(ELM_ATSDriver_ptr ats);
 
 
 //
