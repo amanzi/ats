@@ -299,7 +299,113 @@ TranspirationDistributionRelPermEvaluator::EvaluatePartialDerivative_(
   const Tag& wrt_tag,
   const std::vector<CompositeVector*>& result)
 {
-  AMANZI_ASSERT(false);
+  // cell-local derivative of computeSoilPlantFlux(), plant_pc held fixed
+  Tag tag = my_keys_.front().second;
+
+  result[0]->putScalar(0.);
+  if (result.size() > 1) result[1]->putScalar(0.); // plant_pc: not chained, see UpdateDerivative_
+  if (wrt_key != soil_pc_key_ && wrt_key != soil_kr_key_) return;
+  const bool wrt_pc = (wrt_key == soil_pc_key_);
+
+  auto soil_pc = S.Get<CompositeVector>(soil_pc_key_, tag).viewComponent("cell", false);
+  auto soil_kr = S.Get<CompositeVector>(soil_kr_key_, tag).viewComponent("cell", false);
+  auto f_root = S.Get<CompositeVector>(f_root_key_, tag).viewComponent("cell", false);
+  auto rho = S.Get<CompositeVector>(rho_key_, tag).viewComponent("cell", false);
+  auto nliq = S.Get<CompositeVector>(nliq_key_, tag).viewComponent("cell", false);
+  auto visc = S.Get<CompositeVector>(visc_key_, tag).viewComponent("cell", false);
+  auto cv = S.Get<CompositeVector>(cv_key_, tag).viewComponent("cell", false);
+  auto sa = S.Get<CompositeVector>(sa_key_, tag).viewComponent("cell", false);
+  auto potential_trans =
+    S.Get<CompositeVector>(potential_trans_key_, tag).viewComponent("cell", false);
+  auto plant_pc = S.Get<CompositeVector>(my_keys_[1].first, tag).viewComponent("cell", false);
+
+  const auto& gravity = S.Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
+  double g = gravity[gravity.dim() - 1];
+  double perm_scale = S.Get<double>("permeability_rescaling", Tags::DEFAULT);
+
+  auto dtrans = result[0]->viewComponent("cell", false);
+  auto surf_mesh = S.GetMesh(domain_surf_);
+  const AmanziMesh::MeshCache& subsurf_mesh = S.GetMesh(domain_sub_)->getCache();
+
+  for (const auto& region_lc : land_cover_) {
+    auto lc_ids = surf_mesh->getSetEntities<MemSpace_kind::DEVICE>(
+      region_lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+    if (lc_ids.size() == 0) continue;
+    double krp(krp_), K(K_ * perm_scale);
+
+    Kokkos::parallel_for(
+      "TranspirationDistributionRelPermEvaluator::EvaluatePartialDerivative",
+      lc_ids.size(),
+      KOKKOS_LAMBDA(const int i) {
+        AmanziMesh::Entity_ID sc = lc_ids(i);
+        if (!(potential_trans(sc, 0) > 0. || krp > 0.)) return;
+
+        double root_pc = plant_pc(sc, 0);
+        for (auto c : subsurf_mesh.columns.getCells<MemSpace_kind::DEVICE>(sc)) {
+          double Mg_dz_on_2 = rho(c, 0) * g * cv(c, 0) / (sa(sc, 0) * 2);
+          root_pc += Mg_dz_on_2; // top half-cell, matching computeSoilPlantFluxes()
+
+          bool use_soil_kr = (root_pc > soil_pc(c, 0));
+          double kr = use_soil_kr ? soil_kr(c, 0) : (krp * nliq(c, 0) / visc(c, 0));
+
+          double dflux;
+          if (wrt_pc) {
+            dflux = -K * f_root(c, 0) * kr;
+          } else {
+            dflux = use_soil_kr ? (-K * f_root(c, 0) * (soil_pc(c, 0) - root_pc)) : 0.;
+          }
+          dtrans(c, 0) = dflux * sa(sc, 0) / cv(c, 0);
+
+          root_pc += Mg_dz_on_2; // bottom half-cell
+        }
+      });
+  }
+}
+
+
+// EvaluatorSecondaryMonotype::UpdateDerivative_ restricted to my_keys_[0]
+void
+TranspirationDistributionRelPermEvaluator::UpdateDerivative_(State& S,
+                                                             const Key& wrt_key,
+                                                             const Tag& wrt_tag)
+{
+  std::vector<CompositeVector*> results(my_keys_.size(), nullptr);
+  int j = 0;
+  for (const auto& keytag : my_keys_) {
+    results[j] = &S.GetDerivativeW<CompositeVector>(
+      keytag.first, keytag.second, wrt_key, wrt_tag, keytag.first);
+    results[j]->putScalarMasterAndGhosted(0.0);
+    ++j;
+  }
+
+  if (ProvidesKey(wrt_key, wrt_tag)) {
+    auto keytag = std::make_pair(wrt_key, wrt_tag);
+    int i = std::find(my_keys_.begin(), my_keys_.end(), keytag) - my_keys_.begin();
+    AMANZI_ASSERT(i < my_keys_.size());
+    results[i]->putScalar(1.);
+    return;
+  }
+
+  for (auto& dep : dependencies_) {
+    std::vector<Teuchos::RCP<CompositeVector>> tmp_data(my_keys_.size(), Teuchos::null);
+    for (int i = 0; i != my_keys_.size(); ++i)
+      tmp_data[i] = Teuchos::rcp(new CompositeVector(results[i]->getMap()));
+    std::vector<CompositeVector*> tmp(my_keys_.size(), nullptr);
+    for (int i = 0; i != my_keys_.size(); ++i) tmp[i] = tmp_data[i].get();
+
+    if (wrt_key == dep.first && wrt_tag == dep.second) {
+      // partial F / partial x
+      EvaluatePartialDerivative_(S, wrt_key, wrt_tag, tmp);
+      results[0]->update(1., *tmp_data[0], 1.);
+
+    } else if (!S.GetEvaluator(dep.first, dep.second).ProvidesKey(wrt_key, wrt_tag) &&
+               S.GetEvaluator(dep.first, dep.second).IsDifferentiableWRT(S, wrt_key, wrt_tag)) {
+      // partial F / partial dep * ddep/dx
+      const auto& ddep = S.GetDerivative<CompositeVector>(dep.first, dep.second, wrt_key, wrt_tag);
+      EvaluatePartialDerivative_(S, dep.first, dep.second, tmp);
+      results[0]->elementWiseMultiply(1., ddep, *tmp_data[0], 1.);
+    }
+  }
 }
 
 

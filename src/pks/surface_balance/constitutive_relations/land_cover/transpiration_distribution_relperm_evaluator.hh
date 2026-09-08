@@ -169,11 +169,11 @@ class TranspirationDistributionRelPermEvaluator : public EvaluatorSecondaryMonot
   virtual bool
   IsDifferentiableWRT(const State& S, const Key& wrt_key, const Tag& wrt_tag) const override
   {
-    // calculate of derivatives of this is a tricky thing to do, with
-    // non-cell-local terms due to rescaling.  Just turn off derivatives
-    // instead.
-    return false;
+    return EvaluatorSecondaryMonotypeCV::IsDifferentiableWRT(S, wrt_key, wrt_tag);
   }
+
+  // chain rule for the subsurface output only (plant_pc lives on the surface mesh)
+  virtual void UpdateDerivative_(State& S, const Key& wrt_key, const Tag& wrt_tag) override;
 
   std::string getType() const override { return eval_type; }
 

@@ -188,14 +188,19 @@ Richards::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, doub
   preconditioner_->Zero();
   preconditioner_diff_->UpdateMatrices(Teuchos::null, up->getData().ptr());
 
-  // -- local matries, Jacobian term
+  // -- flux before ApplyBCs() (which overwrites local_op_), Newton correction after it
+  Teuchos::RCP<CompositeVector> flux = Teuchos::null;
   if (jacobian_ && iter_ >= jacobian_lag_) {
-    Teuchos::RCP<CompositeVector> flux = S_->GetPtrW<CompositeVector>(flux_key_, tag_next_, name_);
+    flux = S_->GetPtrW<CompositeVector>(flux_key_, tag_next_, name_);
     preconditioner_diff_->UpdateFlux(up->getData().ptr(), flux.ptr());
-    preconditioner_diff_->UpdateMatricesNewtonCorrection(flux.ptr(), up->getData().ptr());
   }
 
   preconditioner_diff_->ApplyBCs(true, true, true);
+
+  // -- local matries, Jacobian term
+  if (jacobian_ && iter_ >= jacobian_lag_) {
+    preconditioner_diff_->UpdateMatricesNewtonCorrection(flux.ptr(), up->getData().ptr());
+  }
 
   // Update the preconditioner with accumulation terms.
   // -- update the accumulation derivatives
