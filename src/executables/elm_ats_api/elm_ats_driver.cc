@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <sys/resource.h>
 #include <filesystem>
+#include <cmath>
+#include <algorithm>
 #include "errors.hh"
 #include "dbc.hh"
 
@@ -25,6 +27,7 @@
 #include "PK_Helpers.hh"
 #include "time_advancer.hh"
 #include "elm_ats_driver.hh"
+#include "elm_balance_interface_private.hh"
 
 namespace ATS {
 
@@ -208,19 +211,16 @@ ELM_ATSDriver::parseParameterList()
   lon_key_ = Keys::readKey(*elm_plist_, domain_surf_, "longitude", "longitude");
 
   // actual water fluxes — each is wrapped in an EvaluatorTimeAccumulated so
-  // that the value returned to ELM is integrated over the outer timestep
-  evap_key_ = setupIntegratedFlux_(
-    Keys::readKey(*elm_plist_, domain_surf_, "evaporation", "evaporation"),
-    ELM::VarID::EVAPORATION);
-  col_trans_key_ = setupIntegratedFlux_(
-    Keys::readKey(*elm_plist_, domain_surf_, "surface transpiration", "transpiration"),
-    ELM::VarID::TRANSPIRATION);
-  col_baseflow_key_ = setupIntegratedFlux_(
-    Keys::readKey(*elm_plist_, domain_surf_, "baseflow generation", "baseflow_mps"),
-    ELM::VarID::BASEFLOW);
-  col_runoff_key_ = setupIntegratedFlux_(
-    Keys::readKey(*elm_plist_, domain_surf_, "runoff generation", "runoff_generation_mps"),
-    ELM::VarID::RUNOFF);
+  // that the value returned to ELM is integrated over the outer timestep.
+  // The raw (instantaneous) keys are retained for the per-step balance check.
+  evap_raw_key_ = Keys::readKey(*elm_plist_, domain_surf_, "evaporation", "evaporation");
+  evap_key_ = setupIntegratedFlux_(evap_raw_key_, ELM::VarID::EVAPORATION);
+  trans_raw_key_ = Keys::readKey(*elm_plist_, domain_surf_, "surface transpiration", "transpiration");
+  col_trans_key_ = setupIntegratedFlux_(trans_raw_key_, ELM::VarID::TRANSPIRATION);
+  baseflow_raw_key_ = Keys::readKey(*elm_plist_, domain_surf_, "baseflow generation", "baseflow_mps");
+  col_baseflow_key_ = setupIntegratedFlux_(baseflow_raw_key_, ELM::VarID::BASEFLOW);
+  runoff_raw_key_ = Keys::readKey(*elm_plist_, domain_surf_, "runoff generation", "runoff_generation_mps");
+  col_runoff_key_ = setupIntegratedFlux_(runoff_raw_key_, ELM::VarID::RUNOFF);
 
   // keys for fields used to convert ELM units to ATS units
   surf_mol_dens_key_ = Keys::readKey(*elm_plist_, domain_surf_, "surface molar density", "molar_density_liquid");
@@ -256,6 +256,18 @@ ELM_ATSDriver::parseParameterList()
             S_, pk_, tsm_,
             Amanzi::Tags::CURRENT, Amanzi::Tags::NEXT,
             vo_, wallclock_timer_));
+
+  // Optionally gate ATS step acceptance on ELM's water mass-balance constraint.
+  // When "elm mass balance tolerance [mm]" is set (> 0), each inner ATS step is
+  // rejected (and dt reduced) unless every column's errh2o is within tolerance.
+  elm_mb_tol_ = elm_plist_->get<double>("elm mass balance tolerance [mm]", -1.0);
+  if (elm_mb_tol_ > 0.0) {
+    time_advancer_->set_step_validity_check(
+      [this](double t_old, double t_new) { return this->checkELMWaterBalance_(t_old, t_new); });
+    if (vo_->os_OK(Teuchos::VERB_LOW))
+      *vo_->os() << "ELM water mass-balance step gate enabled, tolerance = "
+                 << elm_mb_tol_ << " mm" << std::endl;
+  }
 
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
     *vo_->os() << "  ... completed: ";
@@ -533,6 +545,100 @@ void ELM_ATSDriver::advance(double dt, bool force_chkp, bool force_vis)
   }
 
   ++elm_cycle_;
+}
+
+
+// -----------------------------------------------------------------------------
+// Per-inner-step ELM water mass-balance check.
+//
+// Called by the TimeAdvancer after each otherwise-successful inner ATS step
+// (before CommitStep), so Tags::CURRENT holds the start-of-step storage and
+// Tags::NEXT holds the end-of-step storage and fluxes.  Combining the surface
+// and subsurface storage means the internal surface<->subsurface infiltration
+// exchange cancels, leaving only the true domain-boundary fluxes ELM cares
+// about: source in, evaporation/transpiration/baseflow/runoff out.
+//
+// Returns true iff every column's |errh2o| <= elm_mb_tol_ [mm].  A false
+// return makes the TimeAdvancer reject the step and retry with a smaller dt.
+//
+// NOTE: the surface fluxes are assumed to be in [m/s] with sinks positive
+// (evaporation/transpiration/baseflow/runoff leave the column); this matches
+// the *_mps coupling convention and the +1e3 m/s->mm/s conversion ELM applies
+// on the values it receives (ExternalModelATS.F90).  Validate against a run.
+// -----------------------------------------------------------------------------
+bool ELM_ATSDriver::checkELMWaterBalance_(double t_old, double t_new)
+{
+  const double dt = t_new - t_old;
+  if (dt <= 0.0) return true;
+
+  constexpr double denh2o = 1000.0;            // [kg/m^3], matches ELM
+  constexpr double m_per_s_to_mm_per_s = 1.0e3;
+
+  // make sure flux and molar-density evaluators are current at NEXT
+  for (const auto& k : { gross_water_source_key_, evap_raw_key_, trans_raw_key_,
+                         baseflow_raw_key_, runoff_raw_key_, wc_key_, surf_wc_key_,
+                         mol_dens_key_, surf_mol_dens_key_ }) {
+    if (S_->HasEvaluator(k, Tags::NEXT))
+      S_->GetEvaluator(k, Tags::NEXT).Update(*S_, "elm_water_balance_check");
+  }
+
+  // storage [mol]: subsurface (per cell) and surface (per column)
+  const auto& wc_new = *S_->Get<CompositeVector>(wc_key_, Tags::NEXT).ViewComponent("cell", false);
+  const auto& wc_old = *S_->Get<CompositeVector>(wc_key_, Tags::CURRENT).ViewComponent("cell", false);
+  const auto& swc_new = *S_->Get<CompositeVector>(surf_wc_key_, Tags::NEXT).ViewComponent("cell", false);
+  const auto& swc_old = *S_->Get<CompositeVector>(surf_wc_key_, Tags::CURRENT).ViewComponent("cell", false);
+
+  // molar densities [mol/m^3] and surface cell areas [m^2]
+  const auto& n_liq = *S_->Get<CompositeVector>(mol_dens_key_, Tags::NEXT).ViewComponent("cell", false);
+  const auto& sn_liq = *S_->Get<CompositeVector>(surf_mol_dens_key_, Tags::NEXT).ViewComponent("cell", false);
+  const auto& area = *S_->Get<CompositeVector>(surf_cv_key_, Tags::NEXT).ViewComponent("cell", false);
+
+  // surface boundary fluxes [m/s]
+  const auto& source = *S_->Get<CompositeVector>(gross_water_source_key_, Tags::NEXT).ViewComponent("cell", false);
+  const auto& evap = *S_->Get<CompositeVector>(evap_raw_key_, Tags::NEXT).ViewComponent("cell", false);
+  const auto& tran = *S_->Get<CompositeVector>(trans_raw_key_, Tags::NEXT).ViewComponent("cell", false);
+  const auto& baseflow = *S_->Get<CompositeVector>(baseflow_raw_key_, Tags::NEXT).ViewComponent("cell", false);
+  const auto& runoff = *S_->Get<CompositeVector>(runoff_raw_key_, Tags::NEXT).ViewComponent("cell", false);
+
+  double max_err = 0.0;
+  for (int i = 0; i != ncolumns; ++i) {
+    const double a = area[0][i];
+
+    // column storage [kg/m^2 = mm] = (m^3 water) * denh2o / area
+    double vol_new = swc_new[0][i] / sn_liq[0][i];   // surface, m^3
+    double vol_old = swc_old[0][i] / sn_liq[0][i];
+    auto col_cells = mesh_subsurf_->columns.getCells(i);
+    for (std::size_t j = 0; j != col_cells.size(); ++j) {
+      int c = col_cells[j];
+      vol_new += wc_new[0][c] / n_liq[0][c];
+      vol_old += wc_old[0][c] / n_liq[0][c];
+    }
+    const double endwb = vol_new * denh2o / a;   // mm
+    const double begwb = vol_old * denh2o / a;   // mm
+
+    // fluxes m/s -> mm/s (already per unit area)
+    const double src_mm  = source[0][i]   * m_per_s_to_mm_per_s;
+    const double evap_mm = evap[0][i]     * m_per_s_to_mm_per_s;
+    const double tran_mm = tran[0][i]     * m_per_s_to_mm_per_s;
+    const double base_mm = baseflow[0][i] * m_per_s_to_mm_per_s;
+    const double run_mm  = runoff[0][i]   * m_per_s_to_mm_per_s;
+
+    const double errh2o = elm_ats_water_balance_error_c(
+      &endwb, &begwb, &src_mm, &evap_mm, &tran_mm, &base_mm, &run_mm, &dt);
+    max_err = std::max(max_err, std::abs(errh2o));
+  }
+
+  // reduce across ranks so all processes agree on accept/reject
+  double global_max_err = max_err;
+  mesh_surf_->getComm()->MaxAll(&max_err, &global_max_err, 1);
+
+  const bool ok = global_max_err <= elm_mb_tol_;
+  if (!ok && vo_->os_OK(Teuchos::VERB_LOW)) {
+    Teuchos::OSTab tab = vo_->getOSTab();
+    *vo_->os() << "ELM water balance not satisfied: max|errh2o| = " << global_max_err
+               << " mm > tol = " << elm_mb_tol_ << " mm" << std::endl;
+  }
+  return ok;
 }
 
 
