@@ -18,10 +18,10 @@
 #include "incoming_longwave_radiation_model.hh"
 #include "interception_fraction_model.hh"
 #include "pet_priestley_taylor_evaluator.hh"
-// #include "plant_wilting_factor_evaluator.hh"
+#include "plant_wilting_factor_evaluator.hh"
 #include "rooting_depth_fraction_evaluator.hh"
 #include "snow_meltrate_model.hh"
-// #include "transpiration_distribution_evaluator.hh"
+#include "transpiration_distribution_evaluator.hh"
 #include "transpiration_distribution_relperm_evaluator.hh"
 #include "radiation_balance_evaluator.hh"
 // #include "canopy_radiation_evaluator.hh"
@@ -49,13 +49,11 @@ REGISTER_MODEL(SurfaceBalance::Relations::CanopyDrainageModel);
 REGISTER(SurfaceBalance::Relations::PETPriestleyTaylorEvaluator);
 REGISTER_MODEL(SurfaceBalance::Relations::EvaporationDownregulationSoilModel);
 
-// Utils::RegisteredFactory<Evaluator, PlantWiltingFactorEvaluator>
-//   PlantWiltingFactorEvaluator::reg_("plant wilting factor");
+REGISTER(SurfaceBalance::Relations::PlantWiltingFactorEvaluator);
 
 REGISTER(SurfaceBalance::Relations::RootingDepthFractionEvaluator);
 
-// Utils::RegisteredFactory<Evaluator, TranspirationDistributionEvaluator>
-//   TranspirationDistributionEvaluator::reg_("transpiration distribution via rooting depth");
+REGISTER(SurfaceBalance::Relations::TranspirationDistributionEvaluator);
 REGISTER(SurfaceBalance::Relations::TranspirationDistributionRelPermEvaluator);
 
 REGISTER_BY_MATERIAL(SurfaceBalance::Relations::SnowMeltRateModel);

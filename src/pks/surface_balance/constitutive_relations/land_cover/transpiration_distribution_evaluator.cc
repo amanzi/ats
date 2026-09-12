@@ -8,17 +8,21 @@
 */
 
 //! Distributes and downregulates potential transpiration to the rooting zone.
-#include "Function.hh"
-#include "FunctionFactory.hh"
+#include "errors.hh"
+#include "exceptions.hh"
+#include "Units.hh"
 #include "transpiration_distribution_evaluator.hh"
 
 namespace Amanzi {
 namespace SurfaceBalance {
 namespace Relations {
 
+const std::string TranspirationDistributionEvaluator::eval_type =
+  "transpiration distribution, rooting depth";
+
 // Constructor from ParameterList
 TranspirationDistributionEvaluator::TranspirationDistributionEvaluator(
-  Teuchos::ParameterList& plist)
+  const Teuchos::RCP<Teuchos::ParameterList>& plist)
   : EvaluatorSecondaryMonotypeCV(plist)
 {
   InitializeFromPlist_();
@@ -40,41 +44,39 @@ TranspirationDistributionEvaluator::InitializeFromPlist_()
   // Set up my dependencies
   // - defaults to prefixed via domain
   domain_sub_ = Keys::getDomain(my_keys_.front().first);
-  domain_surf_ = Keys::readDomainHint(plist_, domain_sub_, "domain", "surface");
+  domain_surf_ = Keys::readDomainHint(*plist_, domain_sub_, "domain", "surface");
   Tag tag = my_keys_.front().second;
 
-  limiter_local_ = false;
-  if (plist_.isSublist("water limiter function")) {
-    Amanzi::FunctionFactory fac;
-    limiter_ = Teuchos::rcp(fac.Create(plist_.sublist("water limiter function")));
-  } else {
-    limiter_local_ = plist_.get<bool>("water limiter local", true);
+  if (plist_->isSublist("water limiter function")) {
+    Errors::Message msg("TranspirationDistributionEvaluator: \"water limiter function\" is not "
+                        "supported on device.");
+    Exceptions::amanzi_throw(msg);
   }
+  limiter_local_ = plist_->get<bool>("water limiter local", true);
 
   // - pull Keys from plist
   // dependency: pressure
-  f_wp_key_ = Keys::readKey(plist_, domain_sub_, "plant wilting factor", "plant_wilting_factor");
+  f_wp_key_ = Keys::readKey(*plist_, domain_sub_, "plant wilting factor", "plant_wilting_factor");
   dependencies_.insert(KeyTag{ f_wp_key_, tag });
 
   // dependency: rooting_depth_fraction
-  f_root_key_ = Keys::readKey(plist_, domain_sub_, "root fraction", "root_fraction");
+  f_root_key_ = Keys::readKey(*plist_, domain_sub_, "root fraction", "root_fraction");
   dependencies_.insert(KeyTag{ f_root_key_, tag });
 
   // dependency: transpiration
   potential_trans_key_ =
-    Keys::readKey(plist_, domain_surf_, "potential transpiration", "potential_transpiration");
+    Keys::readKey(*plist_, domain_surf_, "potential transpiration", "potential_transpiration");
   dependencies_.insert(KeyTag{ potential_trans_key_, tag });
 
   // dependency: cell volume, surface cell volume
-  cv_key_ = Keys::readKey(plist_, domain_sub_, "cell volume", "cell_volume");
+  cv_key_ = Keys::readKey(*plist_, domain_sub_, "cell volume", "cell_volume");
   dependencies_.insert(KeyTag{ cv_key_, tag });
-  surf_cv_key_ = Keys::readKey(plist_, domain_surf_, "surface cell volume", "cell_volume");
+  surf_cv_key_ = Keys::readKey(*plist_, domain_surf_, "surface cell volume", "cell_volume");
   dependencies_.insert(KeyTag{ surf_cv_key_, tag });
 
-  year_duration_ = plist_.get<double>("year duration", 1.0);
-  std::string year_duration_units = plist_.get<std::string>("year duration units", "noleap");
+  year_duration_ = plist_->get<double>("year duration", 1.0);
+  std::string year_duration_units = plist_->get<std::string>("year duration units", "noleap");
 
-  // new state!
   land_cover_ =
     getLandCoverMap(plist_->sublist("model parameters"), { "leaf_on_doy", "leaf_off_doy" });
 
@@ -92,59 +94,49 @@ TranspirationDistributionEvaluator::Evaluate_(const State& S,
   Tag tag = my_keys_.front().second;
 
   // on the subsurface
-  const Epetra_MultiVector& f_wp =
-    *S.Get<CompositeVector>(f_wp_key_, tag).ViewComponent("cell", false);
-  const Epetra_MultiVector& f_root =
-    *S.Get<CompositeVector>(f_root_key_, tag).ViewComponent("cell", false);
-  const Epetra_MultiVector& cv = *S.Get<CompositeVector>(cv_key_, tag).ViewComponent("cell", false);
+  auto f_wp = S.Get<CompositeVector>(f_wp_key_, tag).viewComponent("cell", false);
+  auto f_root = S.Get<CompositeVector>(f_root_key_, tag).viewComponent("cell", false);
+  auto cv = S.Get<CompositeVector>(cv_key_, tag).viewComponent("cell", false);
 
   // on the surface
-  const Epetra_MultiVector& potential_trans =
-    *S.Get<CompositeVector>(potential_trans_key_, tag).ViewComponent("cell", false);
-  const Epetra_MultiVector& surf_cv =
-    *S.Get<CompositeVector>(surf_cv_key_, tag).ViewComponent("cell", false);
-  Epetra_MultiVector& result_v = *result[0]->ViewComponent("cell", false);
+  auto potential_trans =
+    S.Get<CompositeVector>(potential_trans_key_, tag).viewComponent("cell", false);
+  auto surf_cv = S.Get<CompositeVector>(surf_cv_key_, tag).viewComponent("cell", false);
 
-  double p_atm = S.Get<double>("atmospheric_pressure", Tags::DEFAULT);
+  result[0]->putScalar(0.);
+  auto result_v = result[0]->viewComponent("cell", false);
 
-  auto& subsurf_mesh = *S.GetMesh(domain_sub_);
-  auto& surf_mesh = *S.GetMesh(domain_surf_);
+  auto surf_mesh = S.GetMesh(domain_surf_);
+  const AmanziMesh::MeshCache& subsurf_mesh = S.GetMesh(domain_sub_)->getCache();
+  bool limiter_local(limiter_local_);
 
-  result_v.PutScalar(0.);
   for (const auto& region_lc : land_cover_) {
-    auto lc_ids = surf_mesh.getSetEntities(
+    if (!TranspirationPeriod_(
+          S.get_time(), region_lc.second.leaf_on_doy, region_lc.second.leaf_off_doy))
+      continue;
+
+    auto lc_ids = surf_mesh->getSetEntities<MemSpace_kind::DEVICE>(
       region_lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
-    if (TranspirationPeriod_(
-          S.get_time(), region_lc.second.leaf_on_doy, region_lc.second.leaf_off_doy)) {
-      for (int sc : lc_ids) {
+    Kokkos::parallel_for(
+      "TranspirationDistributionEvaluator::Evaluate", lc_ids.size(), KOKKOS_LAMBDA(const int i) {
+        AmanziMesh::Entity_ID sc = lc_ids(i);
+        const auto& col_cells = subsurf_mesh.columns.getCells<MemSpace_kind::DEVICE>(sc);
+
         double column_total = 0.;
-        double f_root_total = 0.;
-        double f_wp_total = 0.;
-        double var_dz = 0.;
-        for (auto c : subsurf_mesh.columns.getCells(sc)) {
-          column_total += f_wp[0][c] * f_root[0][c] * cv[0][c];
-          result_v[0][c] = f_wp[0][c] * f_root[0][c];
-          if (f_wp[0][c] * f_root[0][c] > 0) var_dz += cv[0][c];
+        for (auto c : col_cells) {
+          column_total += f_wp(c, 0) * f_root(c, 0) * cv(c, 0);
+          result_v(c, 0) = f_wp(c, 0) * f_root(c, 0);
         }
 
         if (column_total > 0.) {
-          double coef = potential_trans[0][sc] * surf_cv[0][sc] / column_total;
-          if (limiter_.get()) {
-            auto column_total_vector = std::vector<double>(1, column_total / surf_cv[0][sc]);
-            double limiting_factor = (*limiter_)(column_total_vector);
-            AMANZI_ASSERT(limiting_factor >= 0.);
-            AMANZI_ASSERT(limiting_factor <= 1.);
-            coef *= limiting_factor;
-          }
-
-          for (auto c : subsurf_mesh.columns.getCells(sc)) {
-            result_v[0][c] *= coef;
-            if (limiter_local_) { result_v[0][c] *= f_wp[0][c]; }
+          double coef = potential_trans(sc, 0) * surf_cv(sc, 0) / column_total;
+          for (auto c : col_cells) {
+            result_v(c, 0) *= coef;
+            if (limiter_local) result_v(c, 0) *= f_wp(c, 0);
           }
         }
-      }
-    }
+      });
   }
 }
 
@@ -156,8 +148,7 @@ TranspirationDistributionEvaluator::EvaluatePartialDerivative_(
   const Tag& wrt_tag,
   const std::vector<CompositeVector*>& result)
 {
-  result[0]->PutScalar(
-    0.); // this would be a nontrivial calculation, as it is technically nonlocal due to rescaling issues?
+  result[0]->putScalar(0.); // nonlocal due to rescaling, not computed
 }
 
 

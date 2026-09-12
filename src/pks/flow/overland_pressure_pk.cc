@@ -139,10 +139,17 @@ OverlandPressureFlow::parseParameterList()
       bc_pd_list.set("ponded depth", bc_plist->sublist("ponded depth"));
       bc_pd_list.set<std::string>("evaluator type", "flow BC ponded depth");
       bcs_found.emplace_back(bc_pd_name);
+    } else if (bc_sublist.first == "seepage face head") {
+      // -- Dirichlet head where the cell water level is above the face, else no flow
+      auto bc_sfh_name = Keys::getKey(domain_, name_ + "_bcs_seepage_face_head");
+      Teuchos::ParameterList& bc_sfh_list = S_->GetEvaluatorList(bc_sfh_name);
+      bc_sfh_list.set("seepage face head", bc_plist->sublist("seepage face head"));
+      bc_sfh_list.set<std::string>("evaluator type", "flow BC seepage face head");
+      bcs_found.emplace_back(bc_sfh_name);
     } else {
       Errors::Message msg;
       msg << "Invalid overland_pressure PK boundary condition: \"" << bc_sublist.first << "\", valid are"
-          << "\"water level\", \"water flux\", or \"ponded depth\".";
+          << "\"water level\", \"water flux\", \"ponded depth\", or \"seepage face head\".";
       Exceptions::amanzi_throw(msg);
     }
     // Need to add:

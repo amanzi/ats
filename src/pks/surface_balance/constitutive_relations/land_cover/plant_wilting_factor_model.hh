@@ -25,6 +25,7 @@ All parameters are in units of [Pa], and are positive (water potential).
 
 #pragma once
 
+#include "Kokkos_Core.hpp"
 #include "LandCover.hh"
 
 namespace Amanzi {
@@ -33,14 +34,28 @@ namespace Relations {
 
 class PlantWiltingFactorModel {
  public:
-  explicit PlantWiltingFactorModel(const LandCover& lc);
+  KOKKOS_INLINE_FUNCTION
+  explicit PlantWiltingFactorModel(const LandCover& lc)
+    : pc_closed_(lc.stomata_closed_capillary_pressure),
+      pc_open_(lc.stomata_open_capillary_pressure)
+  {}
 
-  double PlantWiltingFactor(double pc) const;
+  KOKKOS_INLINE_FUNCTION
+  double PlantWiltingFactor(double pc) const
+  {
+    return pc_closed_ < pc ? 0. :
+                             (pc < pc_open_ ? 1. : ((-pc + pc_closed_) / (pc_closed_ - pc_open_)));
+  }
 
-  double DPlantWiltingFactorDCapillaryPressureGasLiq(double pc) const;
+  KOKKOS_INLINE_FUNCTION
+  double DPlantWiltingFactorDCapillaryPressureGasLiq(double pc) const
+  {
+    return pc_closed_ < pc ? 0. : (pc < pc_open_ ? 0. : (-1 / (pc_closed_ - pc_open_)));
+  }
 
  protected:
-  const LandCover& lc_;
+  double pc_closed_;
+  double pc_open_;
 };
 
 } // namespace Relations

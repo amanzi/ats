@@ -91,7 +91,7 @@ namespace Relations {
 
 class TranspirationDistributionEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
-  explicit TranspirationDistributionEvaluator(Teuchos::ParameterList& plist);
+  explicit TranspirationDistributionEvaluator(const Teuchos::RCP<Teuchos::ParameterList>& plist);
   TranspirationDistributionEvaluator(const TranspirationDistributionEvaluator& other) = default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
@@ -104,13 +104,16 @@ class TranspirationDistributionEvaluator : public EvaluatorSecondaryMonotypeCV {
     return false;
   }
 
- protected:
+  std::string getType() const override { return eval_type; }
+
   // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
                                           const Key& wrt_key,
                                           const Tag& wrt_tag,
                                           const std::vector<CompositeVector*>& result) override;
+
+ protected:
 
   // need a custom EnsureCompatibility as some vectors cross meshes.
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
@@ -119,6 +122,8 @@ class TranspirationDistributionEvaluator : public EvaluatorSecondaryMonotypeCV {
   bool TranspirationPeriod_(double time, double leaf_on_doy, double leaf_off_doy);
 
  protected:
+  static const std::string eval_type;
+
   Key domain_surf_;
   Key domain_sub_;
 
@@ -133,7 +138,6 @@ class TranspirationDistributionEvaluator : public EvaluatorSecondaryMonotypeCV {
   LandCoverMap land_cover_;
 
   bool limiter_local_;
-  Teuchos::RCP<Function> limiter_;
 
  private:
   static Utils::RegisteredFactory<Evaluator, TranspirationDistributionEvaluator> reg_;

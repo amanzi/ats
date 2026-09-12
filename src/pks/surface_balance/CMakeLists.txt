@@ -14,10 +14,10 @@ set(ats_surface_balance_src_files
   # constitutive_relations/land_cover/seb_physics_funcs.cc
   constitutive_relations/land_cover/incident_shortwave_radiation_evaluator.cc
   constitutive_relations/land_cover/pet_priestley_taylor_evaluator.cc
-  # constitutive_relations/land_cover/plant_wilting_factor_evaluator.cc
+  constitutive_relations/land_cover/plant_wilting_factor_evaluator.cc
   # constitutive_relations/land_cover/plant_wilting_factor_model.cc  
   constitutive_relations/land_cover/rooting_depth_fraction_evaluator.cc  
-  # constitutive_relations/land_cover/transpiration_distribution_evaluator.cc  
+  constitutive_relations/land_cover/transpiration_distribution_evaluator.cc  
   constitutive_relations/land_cover/transpiration_distribution_relperm_evaluator.cc  
   constitutive_relations/land_cover/radiation_balance_evaluator.cc
   # constitutive_relations/land_cover/canopy_radiation_evaluator.cc
@@ -51,12 +51,12 @@ set(ats_surface_balance_inc_files
   constitutive_relations/land_cover/canopy_drainage_model.hh
   constitutive_relations/land_cover/interception_fraction_model.hh
   constitutive_relations/land_cover/pet_priestley_taylor_evaluator.hh
-  # constitutive_relations/land_cover/plant_wilting_factor_evaluator.hh
-  # constitutive_relations/land_cover/plant_wilting_factor_model.hh  
+  constitutive_relations/land_cover/plant_wilting_factor_evaluator.hh
+  constitutive_relations/land_cover/plant_wilting_factor_model.hh  
   constitutive_relations/land_cover/rooting_depth_fraction_evaluator.hh  
   constitutive_relations/land_cover/snow_meltrate_model.hh
   constitutive_relations/land_cover/transpiration_distribution_relperm_evaluator.hh  
-  # constitutive_relations/land_cover/transpiration_distribution_evaluator.hh  
+  constitutive_relations/land_cover/transpiration_distribution_evaluator.hh  
   constitutive_relations/land_cover/albedo_twocomponent_model.hh
   constitutive_relations/land_cover/albedo_threecomponent_model.hh
   # constitutive_relations/land_cover/area_fractions_twocomponent_evaluator.hh

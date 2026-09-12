@@ -24,6 +24,7 @@ set(ats_flow_src_files
   constitutive_relations/overland_conductivity/overland_conductivity_evaluator.cc
   constitutive_relations/overland_conductivity/manning_conductivity_model.cc
   constitutive_relations/boundary_conditions/EvaluatorBCPondedDepth.cc
+  constitutive_relations/boundary_conditions/EvaluatorBCSeepageFaceHead.cc
   predictor_delegate_bc_flux.cc
   richards_pk.cc
   richards_ti.cc
@@ -60,6 +61,7 @@ set(ats_flow_inc_files
   constitutive_relations/sources/soil_resistance_sakagucki_zeng_model.hh
   constitutive_relations/sources/soil_resistance_sakagucki_zeng_evaluator.hh
   constitutive_relations/boundary_conditions/EvaluatorBCPondedDepth.hh
+  constitutive_relations/boundary_conditions/EvaluatorBCSeepageFaceHead.hh
 
   predictor_delegate_bc_flux.hh
   richards.hh

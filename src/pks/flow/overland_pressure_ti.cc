@@ -12,6 +12,7 @@
 #include "Op.hh"
 
 #include "overland_pressure.hh"
+#include "FencedTimer.hh"
 
 namespace Amanzi {
 namespace Flow {
@@ -27,6 +28,7 @@ OverlandPressureFlow::FunctionalResidual(double t_old,
                                          Teuchos::RCP<TreeVector> u_new,
                                          Teuchos::RCP<TreeVector> g)
 {
+  AMANZI_TIMER("2 Overland: residual");
   // VerboseObject stuff.
   Teuchos::OSTab tab = vo_->getOSTab();
 
@@ -151,6 +153,7 @@ OverlandPressureFlow::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
 void
 OverlandPressureFlow::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h)
 {
+  AMANZI_TIMER("2 Overland: precon update");
   // VerboseObject stuff.
   Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "Precon update at t = " << t << std::endl;

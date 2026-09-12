@@ -12,6 +12,7 @@
 #include "Op.hh"
 
 #include "richards.hh"
+#include "FencedTimer.hh"
 
 namespace Amanzi {
 namespace Flow {
@@ -27,6 +28,7 @@ Richards::FunctionalResidual(double t_old,
                              Teuchos::RCP<TreeVector> u_new,
                              Teuchos::RCP<TreeVector> g)
 {
+  AMANZI_TIMER("2 Richards: residual");
   // VerboseObject stuff.
   Teuchos::OSTab tab = vo_->getOSTab();
 
@@ -56,12 +58,18 @@ Richards::FunctionalResidual(double t_old,
   db_->WriteVectors(vnames, vecs, true);
 
   // update boundary conditions
-  UpdateBoundaryConditions_(tag_next_);
+  {
+    AMANZI_TIMER("3 Richards res: BCs");
+    UpdateBoundaryConditions_(tag_next_);
+  }
   auto& bcs = S_->Get<Operators::BCs>(name_ + "_bcs", tag_next_);
   db_->WriteBoundaryConditions(*bcs.model(), *bcs.value());
 
   // diffusion term, treated implicitly
-  ApplyDiffusion_(tag_next_, res.ptr());
+  {
+    AMANZI_TIMER("3 Richards res: diffusion");
+    ApplyDiffusion_(tag_next_, res.ptr());
+  }
   // if (vapor_diffusion_) AddVaporDiffusionResidual_(tag_next_, res.ptr());
 
   // more debugging -- write diffusion/flux variables to screen
@@ -93,7 +101,10 @@ Richards::FunctionalResidual(double t_old,
   db_->WriteVector("res (diff)", res.ptr(), true);
 
   // accumulation term
-  AddAccumulation_(res.ptr());
+  {
+    AMANZI_TIMER("3 Richards res: accumulation");
+    AddAccumulation_(res.ptr());
+  }
 
   // more debugging -- write accumulation variables to screen
   vnames = { "poro", "WC_old", "WC_new" };
@@ -105,6 +116,7 @@ Richards::FunctionalResidual(double t_old,
 
   // source term
   if (is_source_term_) {
+    AMANZI_TIMER("3 Richards res: sources");
     if (explicit_source_) {
       AddSources_(tag_current_, res.ptr());
     } else {
@@ -138,6 +150,7 @@ Richards::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<Tre
 void
 Richards::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h)
 {
+  AMANZI_TIMER("2 Richards: precon update");
   // VerboseObject stuff.
   Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_HIGH)) *vo_->os() << "Precon update at t = " << t << std::endl;
@@ -156,11 +169,20 @@ Richards::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, doub
   moveSolutionToState(*up, tag_next_);
 
   // update the rel perm according to the scheme of choice, also upwind derivatives of rel perm
-  UpdatePermeabilityData_(tag_next_);
-  if (jacobian_ && iter_ >= jacobian_lag_) UpdatePermeabilityDerivativeData_(tag_next_);
+  {
+    AMANZI_TIMER("3 Richards pc: perm data");
+    UpdatePermeabilityData_(tag_next_);
+  }
+  if (jacobian_ && iter_ >= jacobian_lag_) {
+    AMANZI_TIMER("3 Richards pc: perm derivative");
+    UpdatePermeabilityDerivativeData_(tag_next_);
+  }
 
   // update boundary conditions
-  UpdateBoundaryConditions_(tag_next_);
+  {
+    AMANZI_TIMER("3 Richards pc: BCs");
+    UpdateBoundaryConditions_(tag_next_);
+  }
 
   // fill local matrices
   // -- gravity fluxes
@@ -185,6 +207,7 @@ Richards::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, doub
   preconditioner_diff_->SetScalarCoefficient(rel_perm, dkrdp);
 
   // -- local matries, primary term
+  AMANZI_TIMER("3 Richards pc: matrices+acc+src");
   preconditioner_->Zero();
   preconditioner_diff_->UpdateMatrices(Teuchos::null, up->getData().ptr());
 

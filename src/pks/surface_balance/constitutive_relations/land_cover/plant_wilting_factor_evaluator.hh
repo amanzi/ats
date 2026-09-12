@@ -48,15 +48,14 @@ namespace Amanzi {
 namespace SurfaceBalance {
 namespace Relations {
 
-class PlantWiltingFactorModel;
-
 class PlantWiltingFactorEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
-  explicit PlantWiltingFactorEvaluator(Teuchos::ParameterList& plist);
+  explicit PlantWiltingFactorEvaluator(const Teuchos::RCP<Teuchos::ParameterList>& plist);
   PlantWiltingFactorEvaluator(const PlantWiltingFactorEvaluator& other) = default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
- protected:
+  std::string getType() const override { return eval_type; }
+
   // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
@@ -64,15 +63,18 @@ class PlantWiltingFactorEvaluator : public EvaluatorSecondaryMonotypeCV {
                                           const Tag& wrt_tag,
                                           const std::vector<CompositeVector*>& result) override;
 
+ protected:
+
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
  protected:
+  static const std::string eval_type;
+
   Key pc_key_;
   Key domain_surf_;
   Key domain_sub_;
 
   LandCoverMap land_cover_;
-  std::map<std::string, Teuchos::RCP<PlantWiltingFactorModel>> models_;
 
  private:
   static Utils::RegisteredFactory<Evaluator, PlantWiltingFactorEvaluator> reg_;
