@@ -29,7 +29,7 @@ include_directories(${ATS_SOURCE_DIR}/src/executables)
 #set(elm_water_balance_kernel_src
 #  "${_e3sm_src_dir}/components/elm/src/biogeophys/elm_water_balance_kernel.F90")
 
-set(elm_water_balance_kernel_src WaterBalanceKernel.F90)
+set(elm_water_balance_kernel_src "${CMAKE_CURRENT_SOURCE_DIR}/WaterBalanceKernel.F90")
 if (NOT EXISTS "${elm_water_balance_kernel_src}")
   message(FATAL_ERROR
     "elm_ats_api: shared ELM water-balance kernel not found at "
