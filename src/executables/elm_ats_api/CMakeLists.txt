@@ -13,17 +13,23 @@ FortranCInterface_VERIFY(CXX)
 
 include_directories(${ATS_SOURCE_DIR}/src/executables)
 
+# RPF - initial version (commented section belowy)  attempted to use the same F90 file only
+# in one place for ATS and E3SM. But, locating it only in the E3SM submodule
+# seemed a bit too complicated for now and might be a better strategy if 
+# one becomes a submodule of the other at any point ///
 # Shared ELM water-balance kernel: the *same* dependency-free Fortran source
 # that ELM compiles into BalanceCheckMod is compiled here so ATS calls ELM's
 # balance formula (via bind(C)) rather than duplicating it.  Resolve its path
 # from E3SM_SRC_DIR (set per the project environment; see CLAUDE.md).
-if (DEFINED ENV{E3SM_SRC_DIR})
-  set(_e3sm_src_dir "$ENV{E3SM_SRC_DIR}")
-else()
-  set(_e3sm_src_dir "${ATS_SOURCE_DIR}/../../../../../E3SM")
-endif()
-set(elm_water_balance_kernel_src
-  "${_e3sm_src_dir}/components/elm/src/biogeophys/elm_water_balance_kernel.F90")
+#if (DEFINED ENV{E3SM_SRC_DIR})
+#  set(_e3sm_src_dir "$ENV{E3SM_SRC_DIR}")
+#else()
+#  set(_e3sm_src_dir "${ATS_SOURCE_DIR}/../../../../../E3SM")
+#endif()
+#set(elm_water_balance_kernel_src
+#  "${_e3sm_src_dir}/components/elm/src/biogeophys/elm_water_balance_kernel.F90")
+
+set(elm_water_balance_kernel_src WaterBalanceKernel.F90)
 if (NOT EXISTS "${elm_water_balance_kernel_src}")
   message(FATAL_ERROR
     "elm_ats_api: shared ELM water-balance kernel not found at "
