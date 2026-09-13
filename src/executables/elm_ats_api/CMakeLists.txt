@@ -78,14 +78,17 @@ if (BUILD_TESTS)
   # elm_ats_water_balance_error_c directly -- no ATS mesh/state/XML/Kokkos/MPI
   # needed.  This both checks ELM's balance formula and guards the C ABI symbol
   # that ELM_ATSDriver::checkELMWaterBalance_ relies on.
-  include_directories(${UnitTest_INCLUDE_DIRS})
+  #
+  # The test is pure C++ with NO third-party dependency (no UnitTest++): it uses
+  # a tiny self-contained harness and signals failure via a nonzero exit code,
+  # which is all ctest needs.  Only the header dir is added so the test can find
+  # elm_balance_interface_private.hh.
   include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
   add_amanzi_test(elm_ats_water_balance_kernel elm_ats_water_balance_kernel
     KIND unit
-    SOURCE test/KernelTestMain.cc test/water_balance_kernel_test.cc
-           ${elm_water_balance_kernel_src}
-    LINK_LIBS ${UnitTest_LIBRARIES})
+    SOURCE test/water_balance_kernel_test.cc
+           ${elm_water_balance_kernel_src})
 
   # On Apple the mixed C++/Fortran link may need the same undefined-symbol
   # relaxation the shared library uses for the Fortran runtime.
