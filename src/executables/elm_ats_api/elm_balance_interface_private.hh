@@ -4,7 +4,7 @@
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Authors: Rich Fiorella
+  Authors: Rich Fiorella, Ethan Coon
 */
 
 //! Declaration of the ELM water-balance kernel bound from Fortran.
