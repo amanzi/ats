@@ -38,11 +38,11 @@ jobs:
         else
           echo "ATS_BRANCH=$GITHUB_REF_NAME" >> $GITHUB_ENV
         fi
-    - name: Does Amanzi branch of the same name exist?
+    - name: Set Amanzi branch to master (the EcoSIM TPLs branch was merged into master).
       id: amanzi_branch
       run: |
-        echo "AMANZI_BRANCH=$(git ls-remote --heads origin ${GITHUB_REF_NAME} | sed 's/.*refs\/heads\///')" >> $GITHUB_ENV
-    - name: If so, checkout Amanzi to get the right TPLs version
+        echo "AMANZI_BRANCH=master" >> $GITHUB_ENV
+    - name: Checkout Amanzi to get the right TPLs version
       id: amanzi_branch_checkout
       uses: actions/checkout@v7
       with:
@@ -53,7 +53,8 @@ jobs:
       id: ats_tests_branch
       working-directory: src/physics/ats/testing/ats-regression-tests
       run: |
-        echo "ATS_TESTS_BRANCH=$(git ls-remote --heads origin ${GITHUB_REF_NAME} | sed 's/.*refs\/heads\///')" >> $GITHUB_ENV
+        echo "Looking for a tests branch with the same name: ${{env.ATS_BRANCH}}"; 
+        echo "ATS_TESTS_BRANCH=$(git ls-remote --heads origin ${{env.ATS_BRANCH}} | sed 's/.*refs\/heads\///')" >> $GITHUB_ENV
     - name: Filter the branch name to generate a tag for Docker
       id: tag
       run: |
@@ -94,12 +95,13 @@ jobs:
                        --build-arg ats_tests_branch=${{env.ATS_TESTS_BRANCH}} \
                        -t metsi/ats:${{env.ATS_BRANCH_TAG}}-${{env.ARCH}}-latest -f Dockerfile-ATS-build .
           docker push ${{secrets.DOCKERHUB_USERNAME}}/ats:${{env.ATS_BRANCH_TAG}}-${{env.ARCH}}-latest
-  serial-reg15-tests:
+  serial-reg17-tests:
     strategy:
+      fail-fast: false
       matrix:
         os: [ ubuntu-latest, ubuntu-24.04-arm ]
     runs-on: ${{ matrix.os }}
-    name: serial and regression 1-5 series tests
+    name: serial and regression 1-7 series tests
     needs: build
     steps:
     - name: Check out the Amanzi repo
@@ -132,13 +134,14 @@ jobs:
       id: tests
       working-directory: Docker
       run:
-        docker run --rm ${{secrets.DOCKERHUB_USERNAME}}/ats:${{env.ATS_BRANCH_TAG}}-${{env.ARCH}}-latest /bin/bash -c "cd ~/amanzi_builddir/ats; ctest --output-on-failure -LE PARALLEL -E 'ats_regression_test-[1-9][0-9]|ats_regression_test-0[6-9]'"
+        docker run --rm ${{secrets.DOCKERHUB_USERNAME}}/ats:${{env.ATS_BRANCH_TAG}}-${{env.ARCH}}-latest /bin/bash -c "cd ~/amanzi_builddir/ats; ctest --output-on-failure -LE PARALLEL -E 'ats_regression_test-[1-9][0-9]|ats_regression_test-0[8-9]'"
   parallel-tests:
     strategy:
+      fail-fast: false
       matrix:
         os: [ ubuntu-latest, ubuntu-24.04-arm ]
     runs-on: ${{ matrix.os }}
-    name: parallel and regression 6-10 series tests
+    name: parallel and regression 8-13 series tests
     needs: build
     steps:
     - name: Check out the Amanzi repo
@@ -171,10 +174,10 @@ jobs:
       id: tests
       working-directory: Docker
       run: |
-        docker run --rm ${{secrets.DOCKERHUB_USERNAME}}/ats:${{env.ATS_BRANCH_TAG}}-${{env.ARCH}}-latest /bin/bash -c "cd ~/amanzi_builddir/ats; ctest --output-on-failure -L PARALLEL; ctest --output-on-failure -R 'ats_regression_test-0[6-9]|ats_regression_test-[1-9][0-9]'"
+        docker run --rm ${{secrets.DOCKERHUB_USERNAME}}/ats:${{env.ATS_BRANCH_TAG}}-${{env.ARCH}}-latest /bin/bash -c "cd ~/amanzi_builddir/ats; ctest --output-on-failure -L PARALLEL; ctest --output-on-failure -R 'ats_regression_test-0[8-9]|ats_regression_test-[1-9][0-9]'"
   fix-manifest:
     runs-on: ubuntu-latest
-    needs: [serial-reg15-tests, parallel-tests]
+    needs: [serial-reg17-tests, parallel-tests]
     if: success()
     steps:
       - name: Check out the ATS repo
