@@ -97,4 +97,20 @@ if (BUILD_TESTS)
       PROPERTIES LINK_FLAGS "-Wl,-undefined,dynamic_lookup")
   endif()
 
+  # Unit test for the TimeAdvancer reject-and-retry path taken when the step
+  # validity check (the ELM water-balance gate) fails.  Uses a stub PK and the
+  # real kernel with a synthetic leak, so no mesh or input file is needed.
+  include_directories(${ATS_SOURCE_DIR}/src/pks)
+
+  add_amanzi_test(elm_ats_time_advancer_validity_retry elm_ats_time_advancer_validity_retry
+    KIND unit
+    SOURCE test/time_advancer_validity_retry_test.cc
+           ${elm_water_balance_kernel_src}
+    LINK_LIBS ${tpl_link_libs} ${ats_link_libs} ${amanzi_link_libs})
+
+  if (APPLE)
+    set_target_properties(elm_ats_time_advancer_validity_retry
+      PROPERTIES LINK_FLAGS "-Wl,-undefined,dynamic_lookup")
+  endif()
+
 endif()
