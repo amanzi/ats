@@ -27,9 +27,6 @@
 
   Units: endwb/begwb [mm], all fluxes [mm s-1], dtime [s], errh2o [mm].
 
-  This test intentionally has NO third-party dependency (no UnitTest++).  It
-  uses a tiny self-contained harness below and reports failures via a nonzero
-  process exit code, which is all ctest needs to mark the test failed.
 */
 
 #include <cmath>

@@ -22,8 +22,6 @@
   with dt.  With a tolerance between L*dt and L*dt/2 the first step must be
   rejected, dt reduced, and the retry accepted.
 
-  Like water_balance_kernel_test.cc, this uses a tiny self-contained harness
-  (no UnitTest++) and reports failure through a nonzero exit code.
 */
 
 #include <cmath>
