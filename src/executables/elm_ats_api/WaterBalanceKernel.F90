@@ -87,12 +87,13 @@ contains
     real(c_double), parameter :: z = 0.0_c_double
 
     errh2o = elm_water_balance_error( &
-         endwb, begwb, &
-         source, z, z, z, &        ! forc_rain=source, forc_snow, qflx_floodc, qflx_from_uphill
-         z, z, evap + tran, runoff, & ! qflx_surf_irrig, qflx_over_supply, qflx_evap_tot, qflx_surf
-         z, z, z, baseflow, &      ! qflx_h2osfc_surf, qflx_to_downhill, qflx_qrgwl, qflx_drain
-         z, z, z, z, &             ! qflx_drain_perched, qflx_snwcp_ice, qflx_ice_runoff_xs, qflx_lateral
-         z, z, z, dtime)           ! qflx_h2orof_drain, qflx_lnd2ocn, qflx_h2oocn_drain, dtime
+      endwb=endwb, begwb=begwb, &
+      forc_rain=source, forc_snow=z, qflx_floodc=z, qflx_from_uphill=z, &
+      qflx_surf_irrig=z, qflx_over_supply=z, &
+      qflx_evap_tot=evap + tran, qflx_surf=runoff, &
+      qflx_h2osfc_surf=z, qflx_to_downhill=z, qflx_qrgwl=z, qflx_drain=baseflow, &
+      qflx_drain_perched=z, qflx_snwcp_ice=z, qflx_ice_runoff_xs=z, qflx_lateral=z, &
+      qflx_h2orof_drain=z, qflx_lnd2ocn=z, qflx_h2oocn_drain=z, dtime=dtime)
   end function elm_ats_water_balance_error_c
 
 end module elm_water_balance_kernel
