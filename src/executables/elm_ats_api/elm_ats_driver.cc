@@ -22,6 +22,7 @@
 
 #include "AmanziComm.hh"
 #include "CompositeVector.hh"
+#include "Reductions.hh"
 #include "IO.hh"
 #include "UnstructuredObservations.hh"
 #include "PK_Helpers.hh"
@@ -600,7 +601,7 @@ bool ELM_ATSDriver::checkELMWaterBalance_(double t_old, double t_new)
   const auto& baseflow = *S_->Get<CompositeVector>(baseflow_raw_key_, Tags::NEXT).ViewComponent("cell", false);
   const auto& runoff = *S_->Get<CompositeVector>(runoff_raw_key_, Tags::NEXT).ViewComponent("cell", false);
 
-  double max_err = 0.0;
+  Amanzi::Reductions::MaxLoc local = Amanzi::Reductions::createEmptyMaxLoc();
   for (int i = 0; i != ncolumns; ++i) {
     const double a = area[0][i];
 
@@ -616,27 +617,27 @@ bool ELM_ATSDriver::checkELMWaterBalance_(double t_old, double t_new)
     const double endwb = vol_new * denh2o / a;   // mm
     const double begwb = vol_old * denh2o / a;   // mm
 
-    // fluxes m/s -> mm/s (already per unit area)
-    const double src_mm  = source[0][i]   * m_per_s_to_mm_per_s;
-    const double evap_mm = evap[0][i]     * m_per_s_to_mm_per_s;
-    const double tran_mm = tran[0][i]     * m_per_s_to_mm_per_s;
-    const double base_mm = baseflow[0][i] * m_per_s_to_mm_per_s;
-    const double run_mm  = runoff[0][i]   * m_per_s_to_mm_per_s;
-
-    const double errh2o = elm_ats_water_balance_error_c(
-      &endwb, &begwb, &src_mm, &evap_mm, &tran_mm, &base_mm, &run_mm, &dt);
-    max_err = std::max(max_err, std::abs(errh2o));
+    const double errh2o = elmWaterBalanceError(
+      endwb, begwb,
+      source[0][i]   * m_per_s_to_mm_per_s,
+      evap[0][i]     * m_per_s_to_mm_per_s,
+      tran[0][i]     * m_per_s_to_mm_per_s,
+      baseflow[0][i] * m_per_s_to_mm_per_s,
+      runoff[0][i]   * m_per_s_to_mm_per_s,
+      dt);
+    if (std::abs(errh2o) > local.value) local = { std::abs(errh2o), i };
   }
 
   // reduce across ranks so all processes agree on accept/reject
-  double global_max_err = max_err;
-  mesh_surf_->getComm()->MaxAll(&max_err, &global_max_err, 1);
+  auto global = Amanzi::Reductions::reduceAllMaxLoc(*mesh_surf_->getComm(), local);
 
-  const bool ok = global_max_err <= elm_mb_tol_;
+  const bool ok = global.value <= elm_mb_tol_;
+  // is this actually global.gid? or do we just have local.gid here?
   if (!ok && vo_->os_OK(Teuchos::VERB_LOW)) {
     Teuchos::OSTab tab = vo_->getOSTab();
-    *vo_->os() << "ELM water balance not satisfied: max|errh2o| = " << global_max_err
-               << " mm > tol = " << elm_mb_tol_ << " mm" << std::endl;
+    *vo_->os() << "ELM water balance not satisfied: max|errh2o| = " << global.value
+               << " mm (column GID " << global.gid << ") > tol = " << elm_mb_tol_ << " mm"
+               << std::endl;
   }
   return ok;
 }

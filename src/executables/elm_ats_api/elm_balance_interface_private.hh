@@ -41,4 +41,14 @@ extern "C"
                                        const double* dtime);
 }
 
+inline double
+elmWaterBalanceError(double endwb_mm, double begwb_mm, double source_mm_per_s,
+                     double evap_mm_per_s, double tran_mm_per_s,
+                     double baseflow_mm_per_s, double runoff_mm_per_s, double dt_s)
+{
+  return elm_ats_water_balance_error_c(&endwb_mm, &begwb_mm, &source_mm_per_s, &evap_mm_per_s,
+                                       &tran_mm_per_s, &baseflow_mm_per_s, &runoff_mm_per_s,
+                                       &dt_s);
+}
+
 #endif
