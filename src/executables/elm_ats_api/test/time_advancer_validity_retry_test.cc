@@ -169,7 +169,7 @@ run(double tol, double reduction = -1.0)
     r.checked_dts.push_back(dt);
     const double begwb = 100.0, endwb = begwb, zero = 0.0, leak = LEAK;
     const double errh2o =
-      elmWaterBalanceError(&endwb, &begwb, &zero, &leak, &zero, &zero, &zero, &dt);
+      elmWaterBalanceError(endwb, begwb, zero, leak, zero, zero, zero, dt);
     return std::abs(errh2o) <= tol;
   });
 
