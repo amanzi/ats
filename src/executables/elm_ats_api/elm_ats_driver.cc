@@ -625,14 +625,15 @@ bool ELM_ATSDriver::checkELMWaterBalance_(double t_old, double t_new)
       baseflow[0][i] * m_per_s_to_mm_per_s,
       runoff[0][i]   * m_per_s_to_mm_per_s,
       dt);
-    if (std::abs(errh2o) > local.value) local = { std::abs(errh2o), i };
+    if (std::abs(errh2o) > local.value) {
+      local = { std::abs(errh2o), mesh_surf_->getMap(AmanziMesh::Entity_kind::CELL, false).GID(i) };
+    }
   }
 
   // reduce across ranks so all processes agree on accept/reject
   auto global = Amanzi::Reductions::reduceAllMaxLoc(*mesh_surf_->getComm(), local);
 
   const bool ok = global.value <= elm_mb_tol_;
-  // is this actually global.gid? or do we just have local.gid here?
   if (!ok && vo_->os_OK(Teuchos::VERB_LOW)) {
     Teuchos::OSTab tab = vo_->getOSTab();
     *vo_->os() << "ELM water balance not satisfied: max|errh2o| = " << global.value
