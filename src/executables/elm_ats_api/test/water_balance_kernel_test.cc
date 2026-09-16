@@ -61,15 +61,6 @@ check_close(double expected, double actual, double tol, const char* file,
 #define CHECK_CLOSE(expected, actual, tol)                                     \
   check_close((expected), (actual), (tol), __FILE__, __LINE__, #actual)
 
-// Convenience wrapper: the Fortran bind(C) entry takes everything by reference.
-double
-errh2o(double endwb, double begwb, double source, double evap, double tran,
-       double baseflow, double runoff, double dtime)
-{
-  return elm_ats_water_balance_error_c(
-    &endwb, &begwb, &source, &evap, &tran, &baseflow, &runoff, &dtime);
-}
-
 // Independent C++ evaluation of the same formula, used as the reference oracle.
 double
 reference(double endwb, double begwb, double source, double evap, double tran,
@@ -91,7 +82,7 @@ PerfectBalance()
   const double source = 2.0e-3;   // mm/s in
   const double begwb = 100.0;     // mm
   const double endwb = begwb + source * dt; // storage rises by the source input
-  CHECK_CLOSE(0.0, errh2o(endwb, begwb, source, 0.0, 0.0, 0.0, 0.0, dt), TIGHT);
+  CHECK_CLOSE(0.0, elmWaterBalanceError(endwb, begwb, source, 0.0, 0.0, 0.0, 0.0, dt), TIGHT);
 }
 
 // Pure source, no storage change: all the input shows up as imbalance.
@@ -100,7 +91,7 @@ PureSource()
 {
   const double dt = 1800.0;
   const double source = 2.0e-3;
-  CHECK_CLOSE(-source * dt, errh2o(50.0, 50.0, source, 0.0, 0.0, 0.0, 0.0, dt), TIGHT);
+  CHECK_CLOSE(-source * dt, elmWaterBalanceError(50.0, 50.0, source, 0.0, 0.0, 0.0, 0.0, dt), TIGHT);
 }
 
 // Each sink term, in isolation, with no storage change, adds +term*dt to error.
@@ -108,28 +99,28 @@ void
 EvapSink()
 {
   const double dt = 1800.0, evap = 1.5e-3;
-  CHECK_CLOSE(evap * dt, errh2o(50.0, 50.0, 0.0, evap, 0.0, 0.0, 0.0, dt), TIGHT);
+  CHECK_CLOSE(evap * dt, elmWaterBalanceError(50.0, 50.0, 0.0, evap, 0.0, 0.0, 0.0, dt), TIGHT);
 }
 
 void
 TranSink()
 {
   const double dt = 1800.0, tran = 1.1e-3;
-  CHECK_CLOSE(tran * dt, errh2o(50.0, 50.0, 0.0, 0.0, tran, 0.0, 0.0, dt), TIGHT);
+  CHECK_CLOSE(tran * dt, elmWaterBalanceError(50.0, 50.0, 0.0, 0.0, tran, 0.0, 0.0, dt), TIGHT);
 }
 
 void
 RunoffSink()
 {
   const double dt = 1800.0, runoff = 0.7e-3;
-  CHECK_CLOSE(runoff * dt, errh2o(50.0, 50.0, 0.0, 0.0, 0.0, 0.0, runoff, dt), TIGHT);
+  CHECK_CLOSE(runoff * dt, elmWaterBalanceError(50.0, 50.0, 0.0, 0.0, 0.0, 0.0, runoff, dt), TIGHT);
 }
 
 void
 BaseflowSink()
 {
   const double dt = 1800.0, baseflow = 0.4e-3;
-  CHECK_CLOSE(baseflow * dt, errh2o(50.0, 50.0, 0.0, 0.0, 0.0, baseflow, 0.0, dt), TIGHT);
+  CHECK_CLOSE(baseflow * dt, elmWaterBalanceError(50.0, 50.0, 0.0, 0.0, 0.0, baseflow, 0.0, dt), TIGHT);
 }
 
 // evap and tran both map to qflx_evap_tot, i.e. they are summed.
@@ -138,7 +129,7 @@ EvapPlusTran()
 {
   const double dt = 1800.0, evap = 1.5e-3, tran = 1.1e-3;
   CHECK_CLOSE((evap + tran) * dt,
-              errh2o(50.0, 50.0, 0.0, evap, tran, 0.0, 0.0, dt), TIGHT);
+              elmWaterBalanceError(50.0, 50.0, 0.0, evap, tran, 0.0, 0.0, dt), TIGHT);
 }
 
 // dtime == 0: the flux term drops out; the kernel has no dt guard (that lives
@@ -147,7 +138,7 @@ void
 StorageOnlyZeroDt()
 {
   CHECK_CLOSE(12.5 - 10.0,
-              errh2o(12.5, 10.0, 3.0e-3, 1.0e-3, 1.0e-3, 1.0e-3, 1.0e-3, 0.0),
+              elmWaterBalanceError(12.5, 10.0, 3.0e-3, 1.0e-3, 1.0e-3, 1.0e-3, 1.0e-3, 0.0),
               TIGHT);
 }
 
@@ -160,7 +151,7 @@ CombinedNonZero()
   const double source = 3.3e-3, evap = 1.2e-3, tran = 0.9e-3;
   const double baseflow = 0.5e-3, runoff = 0.6e-3;
   CHECK_CLOSE(reference(endwb, begwb, source, evap, tran, baseflow, runoff, dt),
-              errh2o(endwb, begwb, source, evap, tran, baseflow, runoff, dt),
+              elmWaterBalanceError(endwb, begwb, source, evap, tran, baseflow, runoff, dt),
               TIGHT);
 }
 
