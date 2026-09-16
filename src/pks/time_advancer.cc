@@ -13,6 +13,7 @@
 #include "Teuchos_TimeMonitor.hpp"
 
 #include "CompositeVector.hh"
+#include "Event.hh"
 #include "TimeStepManager.hh"
 #include "Visualization.hh"
 #include "VisualizationDomainSet.hh"
@@ -48,7 +49,9 @@ TimeAdvancer::TimeAdvancer(const Teuchos::RCP<Teuchos::ParameterList>& plist,
     min_dt_(plist->get<double>("min timestep size [s]", 1.0e-12)),
     cycle1_(plist->get<int>("end cycle", -1)),
     duration_(plist->get<double>("wallclock duration [hrs]", -1.0)),
-    subcycled_ts_(plist->get<bool>("subcycled timestep", false))
+    subcycled_ts_(plist->get<bool>("subcycled timestep", false)),
+    validity_reduction_(plist->get<double>("validity timestep reduction factor", 0.5)),
+    step_validity_check_(nullptr)
 {
   // construct checkpoint — always created so finalize() can write a final checkpoint;
   // only register with TSM for periodic checkpoints if the sublist is present.
@@ -199,8 +202,6 @@ TimeAdvancer::finalize(bool checkpoint)
 bool
 TimeAdvancer::advance(double t_start, double t_end)
 {
-  // register end time as a required TSM event
-  tsm_->RegisterTimeEvent(t_end);
   S_->set_time(tag_current_, t_start);
   S_->set_time(tag_next_, t_start);
 
@@ -221,8 +222,33 @@ TimeAdvancer::advance(double t_start, double t_end)
 
     // constrain dt via TSM, then clamp
     dt = tsm_->TimeStep(t_now, dt, fail);
+
+    // Land exactly on t_end without registering it as a TSM event: tsm_ is a
+    // persistent, simulation-lifetime object and advance() is called once
+    // per outer coupling step by ELM_ATSDriver and MPCSubcycled/
+    // MPCWeakSubdomain's internal subcycling, each with a different t_end;
+    // TimeStepManager has no unregister, so registering here would append
+    // one Event per call forever (unbounded memory, and TimeStep()'s linear
+    // scan over events grows every outer step). These are the same three
+    // rules TimeStepManager::TimeStep() applies to a registered event, so
+    // the dt sequence is unchanged from when t_end was a registered event:
+    // dt never overshoots t_end, and a tiny leftover remainder step is
+    // avoided the same way TSM avoids it for any other event.
+    {
+      const double t_remaining = t_end - t_now;
+      constexpr double kEventNearEqualTol = 1.e4 * Amanzi::Utils::Event_EPS<double>::value;
+      if (dt > t_remaining ||
+          Amanzi::Utils::isNearEqual(dt, t_remaining, kEventNearEqualTol)) {
+        dt = t_remaining;
+      } else if (dt > 0.75 * t_remaining) {
+        dt = 0.5 * t_remaining;
+      }
+    }
+
     if (dt < min_dt_) {
-      Errors::Message msg("TimeAdvancer: timestep too small");
+      Errors::Message msg;
+      msg << "TimeAdvancer: timestep " << dt << " < min timestep size " << min_dt_
+          << " at t = " << t_now << " (t_end = " << t_end << ")";
       Exceptions::amanzi_throw(msg);
     }
     double dt_pk = dt;
@@ -247,7 +273,20 @@ TimeAdvancer::advance(double t_start, double t_end)
     S_->Assign("dt", tag_next_, "dt", dt);
     S_->set_time(tag_next_, t_now + dt);
 
+    double dt_used = dt;
     fail = pk_->AdvanceStep(t_now, t_now + dt, false);
+
+    // An otherwise-successful step may still be rejected by the optional
+    // validity check (e.g. the ELM water mass-balance constraint).
+    bool validity_reject = false;
+    if (!fail && step_validity_check_ && !step_validity_check_(t_now, t_now + dt)) {
+      fail = true;
+      validity_reject = true;
+      if (vo_->os_OK(Teuchos::VERB_LOW)) {
+        Teuchos::OSTab tab = vo_->getOSTab();
+        *vo_->os() << "Step rejected by validity check; reducing dt and retrying." << std::endl;
+      }
+    }
 
     WriteStateStatistics(*S_, *vo_, Teuchos::VERB_EXTREME);
 
@@ -257,6 +296,9 @@ TimeAdvancer::advance(double t_start, double t_end)
       S_->set_time(tag_next_, t_now);
       FailStep_(t_now, t_now + dt);
       dt = pk_->get_dt();
+      // The PK converged, so it may not have shrunk its own dt; force a
+      // reduction so the retry actually uses a smaller step.
+      if (validity_reject) dt = std::min(dt, dt_used * validity_reduction_);
     } else {
       pk_->CommitStep(t_now, t_now + dt, tag_next_);
       S_->set_time(tag_current_, t_now + dt);

@@ -41,6 +41,7 @@ which drives the PK from t_start to t_end, subcycling internally as needed.
 
 #pragma once
 
+#include <functional>
 #include <map>
 #include <string>
 #include <vector>
@@ -96,7 +97,22 @@ class TimeAdvancer {
   void finalize(bool checkpoint = true);
 
   // Advance the PK from t_start to t_end.  Returns true on unrecoverable failure.
+  // May be called many times over the life of this object -- once per outer
+  // coupling step for ELM_ATSDriver and MPCSubcycled/MPCWeakSubdomain.  t_end
+  // is enforced by clamping dt internally; advance() registers no events with
+  // the TimeStepManager, so repeated calls do not accumulate state there.
   bool advance(double t_start, double t_end);
+
+  // Optional per-step validity check.  If set, it is invoked after each
+  // otherwise-successful inner step (before CommitStep) with (t_old, t_new).
+  // Returning false rejects the step: the step is failed, dt is reduced, and
+  // the inner step is retried.  Used by ELM_ATSDriver to require that each
+  // ATS step satisfies ELM's water mass-balance constraint.  Null by default,
+  // so standalone drivers and MPCSubcycled are unaffected.
+  void set_step_validity_check(const std::function<bool(double, double)>& f)
+  {
+    step_validity_check_ = f;
+  }
 
  protected:
   // Hooks called after each inner step — override for custom behavior.
@@ -126,6 +142,10 @@ class TimeAdvancer {
   int cycle1_;
   double duration_;
   bool subcycled_ts_;
+
+  // factor by which dt is cut when the step_validity_check_ rejects a step
+  double validity_reduction_;
+  std::function<bool(double, double)> step_validity_check_;
 
   std::vector<Teuchos::RCP<Amanzi::Visualization>> visualization_;
   std::vector<Teuchos::RCP<Amanzi::Visualization>> failed_visualization_;
