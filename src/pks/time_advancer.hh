@@ -97,6 +97,10 @@ class TimeAdvancer {
   void finalize(bool checkpoint = true);
 
   // Advance the PK from t_start to t_end.  Returns true on unrecoverable failure.
+  // May be called many times over the life of this object -- once per outer
+  // coupling step for ELM_ATSDriver and MPCSubcycled/MPCWeakSubdomain.  t_end
+  // is enforced by clamping dt internally; advance() registers no events with
+  // the TimeStepManager, so repeated calls do not accumulate state there.
   bool advance(double t_start, double t_end);
 
   // Optional per-step validity check.  If set, it is invoked after each
