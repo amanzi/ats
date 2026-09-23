@@ -159,11 +159,11 @@ EcoSIM::EcoSIM(Teuchos::ParameterList& pk_tree,
 
     pressure_at_field_capacity = plist_->get<double>("field capacity [Mpa]");
     pressure_at_wilting_point = plist_->get<double>("wilting point [Mpa]");
-    p_bool = plist_->get<bool>("EcoSIM precipitation");
-    a_bool = plist_->get<bool>("prescribe snow albedo");
-    pheno_bool = plist_->get<bool>("prescribe phenology");
-    microbe_bool = plist_->get<bool>("microbe model");
-    num_pfts = plist_->get<int>("number of pfts");
+    p_bool = plist_->get<bool>("EcoSIM precipitation", false);
+    a_bool = plist_->get<bool>("prescribe snow albedo", false);
+    pheno_bool = plist_->get<bool>("prescribe phenology", false);
+    microbe_bool = plist_->get<bool>("microbe model", false);
+    num_pfts = plist_->get<int>("number of pfts", 1);
 
     //Parameters for times and time of year
     dt_ = plist_->get<double>("initial time step");
@@ -812,7 +812,6 @@ void EcoSIM::MatrixFieldToColumn_(AmanziMesh::Entity_ID column, const Epetra_Mul
     for (int j=0; j!=n_comp; ++j){
       for (std::size_t i=0; i!=col_iter.size(); ++i) {
         (*col_arr)(i,j) = m_arr[j][col_iter[i]];
-        std::cout << "i = " << i << " j = " << j << " m_arr: " << m_arr[j][col_iter[i]] << std::endl;
       }
     }
   }
@@ -1056,7 +1055,7 @@ void EcoSIM::CopyToEcoSIM_process(int proc_rank,
   auto col_cap_pres = Teuchos::rcp(new Epetra_SerialDenseVector(ncells_per_col_));
   auto col_canopy_snow = Teuchos::rcp(new Epetra_SerialDenseVector(ncells_per_col_));
 
-  auto col_mole_fraction = Teuchos::rcp(new Epetra_SerialDenseMatrix(mole_fraction_num,ncells_per_col_));
+  auto col_mole_fraction = Teuchos::rcp(new Epetra_SerialDenseMatrix(ncells_per_col_,mole_fraction_num));
 
   //Gather columns on this process:
   num_columns_global = mesh_surf_->getMap(AmanziMesh::Entity_kind::CELL,false).NumGlobalElements();

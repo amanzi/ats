@@ -34,24 +34,28 @@ Structures for looping over cells of columns were adapted from ATS's simpleBGC c
    * `"initial time step [s]`" ``[double]]`` **3600.0** EcoSIM is an hourly model so the
      standard is to run it after the end of hour 1
 
-   * `"EcoSIM Precipitation`" ``[bool]`` This allows EcoSIM to partition the precipitation
+   * `"EcoSIM Precipitation`" ``[bool]`` **false** This allows EcoSIM to partition the precipitation
      itself. If false it will expect the precipitation forcing to be already divided into
      rain and snow as in ATS.
 
-   * `"Prescribe Albedo`" ``[bool]`` determines if the code will use EcoSIM's internal
+   * `"Prescribe Albedo`" ``[bool]`` **false** Determines if the code will use EcoSIM's internal
      albedo calculation, or if it will be prescirbed from data.
 
-   * `"Prescribe Phenology`" ``[bool]`` Determines if the coupling will use the prescribed
+   * `"Prescribe Phenology`" ``[bool]`` **false** Determines if the coupling will use the prescribed
      phenology methodology where LAI and PFT are input. This will eventually be complemented
      with a full phenology method, where plant parameters are directly, but will remain in
      the code as an option.
+
+   * `"microbe bool`" ``[bool]`` **false** This serves as the general switch to allow ATS-EcoSIM to
+      Access and transfer the mole fraction to EcoSIM so ATS-EcoSIM can be used with ATS transport
+      PKs enabled. This will further allow EcoSIM to run it's microbe models and root nutrient uptake 
 
    * `"starting day of year [0-364]`" ``[int]`` day of the year, needed for EcoSIMs internal
      radiation and biogeochemical processes.
 
    * `"Starting year`" ``[int]`` Year also needed for internal EcoSIM computations
 
-    * `"Number of PFTs [1-5] "`" ``[int]`` Number of PFTs allowed in every column. 5
+    * `"Number of PFTs [1-5] "`" ``[int]`` **1** Number of PFTs allowed in every column. 5
      is the maximum number allowed
 
    * `"domain name`" ``[string]`` **domain**
