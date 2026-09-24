@@ -46,6 +46,7 @@ class Coordinator {
               const Amanzi::Comm_ptr_type& comm);
 
   // PK methods
+  void parseParameterList();
   void setup();
   void initialize();
   void finalize();

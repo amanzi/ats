@@ -45,6 +45,9 @@ MPCCoupledWater::parseParameterList()
   exfilt_key_ =
     Keys::readKey(*plist_, domain_surf_, "exfiltration flux", "surface_subsurface_flux");
 
+  // require the primary variable coupling field, claim ownership
+  requireEvaluatorAtNext(exfilt_key_, tag_next_, *S_, name_);
+
   StrongMPC<PK_PhysicalBDF_Default>::parseParameterList();
 }
 
@@ -60,13 +63,13 @@ MPCCoupledWater::Setup()
   domain_flow_pk_ = sub_pks_[0];
   surf_flow_pk_ = sub_pks_[1];
 
-  // call the MPC's setup, which calls the sub-pk's setups
-  StrongMPC<PK_PhysicalBDF_Default>::Setup();
-
-  // require the coupling fields, claim ownership
+  // set structure of the primary variable
   requireEvaluatorAtNext(exfilt_key_, tag_next_, *S_, name_)
     .SetMesh(surf_mesh_)
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+
+  // call the MPC's setup, which calls the sub-pk's setups
+  StrongMPC<PK_PhysicalBDF_Default>::Setup();
 
   // Create the preconditioner.
   // -- collect the preconditioners
@@ -163,7 +166,7 @@ MPCCoupledWater::FunctionalResidual(double t_old,
     t_old, t_new, u_old->SubVector(1), u_new->SubVector(1), g->SubVector(1));
 
   // The residual of the surface flow equation provides the water flux from
-  // subsurface to surface.
+  // subsurface to surface, in [mols s^-1]
   Epetra_MultiVector& source =
     *S_->GetW<CompositeVector>(exfilt_key_, tag_next_, name_).ViewComponent("cell", false);
   source = *g->SubVector(1)->Data()->ViewComponent("cell", false);
