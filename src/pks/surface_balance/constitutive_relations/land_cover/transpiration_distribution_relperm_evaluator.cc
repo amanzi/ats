@@ -172,7 +172,7 @@ TranspirationDistributionRelPermEvaluator::InitializeFromPlist_()
   dependencies_.insert(KeyTag{ potential_trans_key_, tag });
 
   // K, maximal trans rate
-  K_ = plist_->get<double>("plant permeability per m [m]", 1.e-12); // ? what is the equivalent?
+  K_ = plist_->get<double>("plant permeability per m [m]", 1.e-14); // ? what is the equivalent?
   krp_ = plist_->get<double>("plant relative conductance [-]", 0.); // 1 = redistribution, 0 = none
 
   land_cover_ =
