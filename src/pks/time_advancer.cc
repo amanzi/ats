@@ -53,6 +53,21 @@ TimeAdvancer::TimeAdvancer(const Teuchos::RCP<Teuchos::ParameterList>& plist,
     validity_reduction_(plist->get<double>("validity timestep reduction factor", 0.5)),
     step_validity_check_(nullptr)
 {
+  // Validate here rather than relying on a downstream guard: unlike
+  // TimestepController, which tolerates a loose [0,1] reduction factor because
+  // TimestepControllerRecoverable::getTimestep() throws once dt falls below
+  // dt_min_, advance() has no such backstop -- a non-positive dt only reaches
+  // the "dt <= 0." loop exit.  A factor of 0 would therefore end the run
+  // quietly, and a factor >= 1 would never shrink dt, so the same step would
+  // be rejected forever without ever tripping min_dt_.
+  if (validity_reduction_ <= 0.0 || validity_reduction_ >= 1.0) {
+    Errors::Message msg;
+    msg << "TimeAdvancer: \"validity timestep reduction factor\" = " << validity_reduction_
+        << " must be in (0,1); <= 0 ends the run without reaching t_end, "
+        << ">= 1 never reduces dt and retries forever.";
+    Exceptions::amanzi_throw(msg);
+  }
+
   // construct checkpoint — always created so finalize() can write a final checkpoint;
   // only register with TSM for periodic checkpoints if the sublist is present.
   checkpoint_obj_ = Teuchos::rcp(
@@ -218,7 +233,19 @@ TimeAdvancer::advance(double t_start, double t_end)
     // done?
     if (std::abs(t_end - t_now) < 1.e-10 * std::abs(t_end + 1.)) break;
     if (extraDoneCheck_(t_now, S_->get_cycle())) break;
-    if (dt <= 0.) break;
+
+    // A negative dt is a deliberate signal from some steady-state PKs that no
+    // second step is to be taken (see TimestepControllerRecoverable::
+    // getTimestep()), so stop quietly.  A dt of exactly zero is never a valid
+    // request: it cannot advance time, so continuing would spin and exiting
+    // would report success from a run that never reached t_end.
+    if (dt == 0.) {
+      Errors::Message msg;
+      msg << "TimeAdvancer: timestep of zero at t = " << t_now << " (t_end = " << t_end
+          << "); cannot advance time.";
+      Exceptions::amanzi_throw(msg);
+    }
+    if (dt < 0.) break;
 
     // constrain dt via TSM, then clamp
     dt = tsm_->TimeStep(t_now, dt, fail);
