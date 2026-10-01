@@ -31,6 +31,7 @@
 
 #include <cmath>
 #include <cstdio>
+#include <vector>
 
 #include "elm_balance_interface_private.hh"
 
@@ -155,6 +156,132 @@ CombinedNonZero()
               TIGHT);
 }
 
+// --- Unit conversions: ATS [mol] storage -> ELM [mm] column storage ----------
+//
+// These cover the arithmetic ELM_ATSDriver::checkELMWaterBalance_ performs
+// before calling the kernel, which the cases above do not touch because they
+// feed mm values in directly.  The driver passes Epetra row pointers and a mesh
+// column view; here plain arrays and a vector stand in for them.
+
+// Single column, non-uniform molar density: volume is the sum of per-cell
+// mol/(mol m-3), so a hoisted or swapped divisor changes the answer.
+void
+ColumnVolumeNonUniformDensity()
+{
+  // 3 subsurface cells + the surface cell, all with distinct molar densities.
+  const double wc[3] = { 5.5e4, 4.0e4, 3.0e4 };       // mol
+  const double n_liq[3] = { 5.5e4, 5.0e4, 6.0e4 };    // mol m-3
+  const std::vector<int> cells = { 0, 1, 2 };
+  const double surf_wc = 1.0e3, surf_n_liq = 5.0e4;   // mol, mol m-3
+
+  // 1.0e3/5.0e4 + 5.5e4/5.5e4 + 4.0e4/5.0e4 + 3.0e4/6.0e4
+  //   = 0.02 + 1.0 + 0.8 + 0.5 = 2.32 m^3
+  CHECK_CLOSE(2.32, elmColumnWaterVolume(surf_wc, surf_n_liq, wc, n_liq, cells), TIGHT);
+}
+
+// The column's cell ids need not be contiguous or ordered: ELM columns index
+// into a full subsurface array.  Only the listed cells may contribute -- a
+// version that walked 0..n-1 instead of the id list would fail here.
+void
+ColumnVolumeScatteredCellIds()
+{
+  // 8-cell subsurface array; this column owns only {7, 2, 5}.
+  const double wc[8] = { 9.9e9, 9.9e9, 2.0e4, 9.9e9, 9.9e9, 3.0e4, 9.9e9, 1.0e4 };
+  const double n_liq[8] = { 1.0, 1.0, 4.0e4, 1.0, 1.0, 5.0e4, 1.0, 2.0e4 };
+  const std::vector<int> cells = { 7, 2, 5 };
+  const double surf_wc = 0.0, surf_n_liq = 5.0e4;
+
+  // 0 + 1.0e4/2.0e4 + 2.0e4/4.0e4 + 3.0e4/5.0e4 = 0.5 + 0.5 + 0.6 = 1.6 m^3
+  // The decoy cells would contribute ~1e10 if they were included.
+  CHECK_CLOSE(1.6, elmColumnWaterVolume(surf_wc, surf_n_liq, wc, n_liq, cells), TIGHT);
+}
+
+// The surface cell must use the *surface* molar density, not the subsurface
+// one.  Identical mol amounts with different densities must not cancel.
+void
+ColumnVolumeSurfaceUsesSurfaceDensity()
+{
+  const double wc[1] = { 1.0e4 };      // mol
+  const double n_liq[1] = { 1.0e4 };   // mol m-3 -> 1.0 m^3
+  const std::vector<int> cells = { 0 };
+  const double surf_wc = 1.0e4;        // same mol amount...
+  const double surf_n_liq = 2.0e4;     // ...but half the volume: 0.5 m^3
+
+  CHECK_CLOSE(1.5, elmColumnWaterVolume(surf_wc, surf_n_liq, wc, n_liq, cells), TIGHT);
+}
+
+// Storage depth divides by surface area, so a non-unit area is exercised:
+// 2.5 m^3 * 1000 kg/m^3 / 250 m^2 = 10 mm.
+void
+StorageDepthNonUnitArea()
+{
+  CHECK_CLOSE(10.0, elmStorageDepth(2.5, 250.0), TIGHT);
+}
+
+// Full driver chain on a synthetic balanced column: storage rises by exactly
+// the source input over the step, so errh2o must be ~0.  This ties the mol->mm
+// conversion to the m/s->mm/s flux scaling: dropping the 1e3 factor, or the
+// denh2o/area division, breaks the cancellation.
+void
+DriverChainBalancedColumn()
+{
+  const double dt = 1800.0;            // s
+  const double area = 250.0;           // m^2
+  const double n_liq[2] = { 5.0e4, 5.0e4 };
+  const double surf_n_liq = 5.0e4;
+  const std::vector<int> cells = { 0, 1 };
+
+  // Begin: 2.0 m^3 subsurface (1.0 each), no surface water.
+  const double wc_old[2] = { 5.0e4, 5.0e4 };
+  const double swc_old = 0.0;
+  const double begwb = elmStorageDepth(
+    elmColumnWaterVolume(swc_old, surf_n_liq, wc_old, n_liq, cells), area);
+  CHECK_CLOSE(8.0, begwb, TIGHT);      // 2.0 * 1000 / 250
+
+  // A source of 1e-6 m/s over 1800 s adds 1.8e-3 m depth = 1.8 mm, which over
+  // 250 m^2 is 0.45 m^3 = 2.25e4 mol.  Put it in the surface cell.
+  const double source_mps = 1.0e-6;
+  const double swc_new = 2.25e4;
+  const double endwb = elmStorageDepth(
+    elmColumnWaterVolume(swc_new, surf_n_liq, wc_old, n_liq, cells), area);
+  CHECK_CLOSE(9.8, endwb, TIGHT);      // 8.0 + 1.8
+
+  const double errh2o = elmWaterBalanceError(
+    endwb, begwb, source_mps * ELM_M_PER_S_TO_MM_PER_S, 0.0, 0.0, 0.0, 0.0, dt);
+  CHECK_CLOSE(0.0, errh2o, 1.0e-10);
+}
+
+// Same chain, but water leaves as evaporation while storage is unchanged, so
+// the imbalance is exactly the sink over the step.
+//
+// NOTE: this pins the sign convention as currently coded -- sinks
+// (evap/tran/baseflow/runoff) are positive-leaving, matching the *_mps coupling
+// convention.  That convention is still flagged for runtime validation against
+// a real run (see the NOTE on checkELMWaterBalance_); this case exists so an
+// accidental sign flip in the conversion fails a test, not to assert that the
+// assumption itself has been confirmed.
+void
+DriverChainEvaporativeLeak()
+{
+  const double dt = 1800.0;
+  const double area = 250.0;
+  const double n_liq[1] = { 5.0e4 };
+  const double surf_n_liq = 5.0e4;
+  const std::vector<int> cells = { 0 };
+  const double wc[1] = { 5.0e4 };      // 1.0 m^3, unchanged over the step
+
+  const double wb = elmStorageDepth(
+    elmColumnWaterVolume(0.0, surf_n_liq, wc, n_liq, cells), area);
+  CHECK_CLOSE(4.0, wb, TIGHT);         // 1.0 * 1000 / 250
+
+  // Storage did not change, so all of the evaporated water is unaccounted for:
+  // errh2o = 0 - (-evap)*dt = +evap*dt = 1e-6 * 1e3 * 1800 = 1.8 mm.
+  const double evap_mps = 1.0e-6;
+  const double errh2o = elmWaterBalanceError(
+    wb, wb, 0.0, evap_mps * ELM_M_PER_S_TO_MM_PER_S, 0.0, 0.0, 0.0, dt);
+  CHECK_CLOSE(1.8, errh2o, 1.0e-10);
+}
+
 struct TestCase {
   const char* name;
   void (*fn)();
@@ -170,6 +297,12 @@ const TestCase TESTS[] = {
   { "EvapPlusTran", EvapPlusTran },
   { "StorageOnlyZeroDt", StorageOnlyZeroDt },
   { "CombinedNonZero", CombinedNonZero },
+  { "ColumnVolumeNonUniformDensity", ColumnVolumeNonUniformDensity },
+  { "ColumnVolumeScatteredCellIds", ColumnVolumeScatteredCellIds },
+  { "ColumnVolumeSurfaceUsesSurfaceDensity", ColumnVolumeSurfaceUsesSurfaceDensity },
+  { "StorageDepthNonUnitArea", StorageDepthNonUnitArea },
+  { "DriverChainBalancedColumn", DriverChainBalancedColumn },
+  { "DriverChainEvaporativeLeak", DriverChainEvaporativeLeak },
 };
 
 } // namespace

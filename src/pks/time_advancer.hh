@@ -31,6 +31,12 @@ which drives the PK from t_start to t_end, subcycling internally as needed.
    * `"min timestep size [s]`" ``[double]`` **1e-12** If dt falls below this, throw.
    * `"subcycled timestep`" ``[bool]`` **false** If true, limit dt to the PK's
      suggested dt even after TSM expansion.
+   * `"validity timestep reduction factor`" ``[double]`` **0.5** Factor, in the open
+     interval (0,1), by which dt is reduced when an optional step validity check
+     (see set_step_validity_check()) rejects an otherwise-successful step.  A
+     validity rejection means the PK itself converged, so it may not have reduced
+     its own dt; this forces the retry to use a smaller step.  Values outside
+     (0,1) are an error.
    * `"checkpoint`" ``[checkpoint-spec]`` **optional** Checkpoint output spec.
    * `"observations`" ``[observation-spec-list]`` **optional** Observation specs.
    * `"visualization`" ``[visualization-spec-list]`` **optional** Vis specs.

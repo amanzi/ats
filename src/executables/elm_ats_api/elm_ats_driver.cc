@@ -572,9 +572,6 @@ bool ELM_ATSDriver::checkELMWaterBalance_(double t_old, double t_new)
   const double dt = t_new - t_old;
   if (dt <= 0.0) return true;
 
-  constexpr double denh2o = 1000.0;            // [kg/m^3], matches ELM
-  constexpr double m_per_s_to_mm_per_s = 1.0e3;
-
   // make sure flux and molar-density evaluators are current at NEXT
   for (const auto& k : { gross_water_source_key_, evap_raw_key_, trans_raw_key_,
                          baseflow_raw_key_, runoff_raw_key_, wc_key_, surf_wc_key_,
@@ -601,32 +598,29 @@ bool ELM_ATSDriver::checkELMWaterBalance_(double t_old, double t_new)
   const auto& baseflow = *S_->Get<CompositeVector>(baseflow_raw_key_, Tags::NEXT).ViewComponent("cell", false);
   const auto& runoff = *S_->Get<CompositeVector>(runoff_raw_key_, Tags::NEXT).ViewComponent("cell", false);
 
+  const auto& surf_cell_map = mesh_surf_->getMap(AmanziMesh::Entity_kind::CELL, false);
+
   Amanzi::Reductions::MaxLoc local = Amanzi::Reductions::createEmptyMaxLoc();
   for (int i = 0; i != ncolumns; ++i) {
     const double a = area[0][i];
-
-    // column storage [kg/m^2 = mm] = (m^3 water) * denh2o / area
-    double vol_new = swc_new[0][i] / sn_liq[0][i];   // surface, m^3
-    double vol_old = swc_old[0][i] / sn_liq[0][i];
     auto col_cells = mesh_subsurf_->columns.getCells(i);
-    for (std::size_t j = 0; j != col_cells.size(); ++j) {
-      int c = col_cells[j];
-      vol_new += wc_new[0][c] / n_liq[0][c];
-      vol_old += wc_old[0][c] / n_liq[0][c];
-    }
-    const double endwb = vol_new * denh2o / a;   // mm
-    const double begwb = vol_old * denh2o / a;   // mm
+
+    // column storage [mol] -> [m^3] -> [mm]; see elm_balance_interface_private.hh
+    const double endwb = elmStorageDepth(
+      elmColumnWaterVolume(swc_new[0][i], sn_liq[0][i], wc_new[0], n_liq[0], col_cells), a);
+    const double begwb = elmStorageDepth(
+      elmColumnWaterVolume(swc_old[0][i], sn_liq[0][i], wc_old[0], n_liq[0], col_cells), a);
 
     const double errh2o = elmWaterBalanceError(
       endwb, begwb,
-      source[0][i]   * m_per_s_to_mm_per_s,
-      evap[0][i]     * m_per_s_to_mm_per_s,
-      tran[0][i]     * m_per_s_to_mm_per_s,
-      baseflow[0][i] * m_per_s_to_mm_per_s,
-      runoff[0][i]   * m_per_s_to_mm_per_s,
+      source[0][i]   * ELM_M_PER_S_TO_MM_PER_S,
+      evap[0][i]     * ELM_M_PER_S_TO_MM_PER_S,
+      tran[0][i]     * ELM_M_PER_S_TO_MM_PER_S,
+      baseflow[0][i] * ELM_M_PER_S_TO_MM_PER_S,
+      runoff[0][i]   * ELM_M_PER_S_TO_MM_PER_S,
       dt);
     if (std::abs(errh2o) > local.value) {
-      local = { std::abs(errh2o), mesh_surf_->getMap(AmanziMesh::Entity_kind::CELL, false).GID(i) };
+      local = { std::abs(errh2o), surf_cell_map.GID(i) };
     }
   }
 
