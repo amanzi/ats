@@ -13,6 +13,7 @@
 #include "Teuchos_TimeMonitor.hpp"
 
 #include "CompositeVector.hh"
+#include "Event.hh"
 #include "TimeStepManager.hh"
 #include "Visualization.hh"
 #include "VisualizationDomainSet.hh"
@@ -48,8 +49,25 @@ TimeAdvancer::TimeAdvancer(const Teuchos::RCP<Teuchos::ParameterList>& plist,
     min_dt_(plist->get<double>("min timestep size [s]", 1.0e-12)),
     cycle1_(plist->get<int>("end cycle", -1)),
     duration_(plist->get<double>("wallclock duration [hrs]", -1.0)),
-    subcycled_ts_(plist->get<bool>("subcycled timestep", false))
+    subcycled_ts_(plist->get<bool>("subcycled timestep", false)),
+    validity_reduction_(plist->get<double>("validity timestep reduction factor", 0.5)),
+    step_validity_check_(nullptr)
 {
+  // Validate here rather than relying on a downstream guard: unlike
+  // TimestepController, which tolerates a loose [0,1] reduction factor because
+  // TimestepControllerRecoverable::getTimestep() throws once dt falls below
+  // dt_min_, advance() has no such backstop -- a non-positive dt only reaches
+  // the "dt <= 0." loop exit.  A factor of 0 would therefore end the run
+  // quietly, and a factor >= 1 would never shrink dt, so the same step would
+  // be rejected forever without ever tripping min_dt_.
+  if (validity_reduction_ <= 0.0 || validity_reduction_ >= 1.0) {
+    Errors::Message msg;
+    msg << "TimeAdvancer: \"validity timestep reduction factor\" = " << validity_reduction_
+        << " must be in (0,1); <= 0 ends the run without reaching t_end, "
+        << ">= 1 never reduces dt and retries forever.";
+    Exceptions::amanzi_throw(msg);
+  }
+
   // construct checkpoint — always created so finalize() can write a final checkpoint;
   // only register with TSM for periodic checkpoints if the sublist is present.
   checkpoint_obj_ = Teuchos::rcp(
@@ -199,8 +217,6 @@ TimeAdvancer::finalize(bool checkpoint)
 bool
 TimeAdvancer::advance(double t_start, double t_end)
 {
-  // register end time as a required TSM event
-  tsm_->RegisterTimeEvent(t_end);
   S_->set_time(tag_current_, t_start);
   S_->set_time(tag_next_, t_start);
 
@@ -217,12 +233,49 @@ TimeAdvancer::advance(double t_start, double t_end)
     // done?
     if (std::abs(t_end - t_now) < 1.e-10 * std::abs(t_end + 1.)) break;
     if (extraDoneCheck_(t_now, S_->get_cycle())) break;
-    if (dt <= 0.) break;
+
+    // A negative dt is a deliberate signal from some steady-state PKs that no
+    // second step is to be taken (see TimestepControllerRecoverable::
+    // getTimestep()), so stop quietly.  A dt of exactly zero is never a valid
+    // request: it cannot advance time, so continuing would spin and exiting
+    // would report success from a run that never reached t_end.
+    if (dt == 0.) {
+      Errors::Message msg;
+      msg << "TimeAdvancer: timestep of zero at t = " << t_now << " (t_end = " << t_end
+          << "); cannot advance time.";
+      Exceptions::amanzi_throw(msg);
+    }
+    if (dt < 0.) break;
 
     // constrain dt via TSM, then clamp
     dt = tsm_->TimeStep(t_now, dt, fail);
+
+    // Land exactly on t_end without registering it as a TSM event: tsm_ is a
+    // persistent, simulation-lifetime object and advance() is called once
+    // per outer coupling step by ELM_ATSDriver and MPCSubcycled/
+    // MPCWeakSubdomain's internal subcycling, each with a different t_end;
+    // TimeStepManager has no unregister, so registering here would append
+    // one Event per call forever (unbounded memory, and TimeStep()'s linear
+    // scan over events grows every outer step). These are the same three
+    // rules TimeStepManager::TimeStep() applies to a registered event, so
+    // the dt sequence is unchanged from when t_end was a registered event:
+    // dt never overshoots t_end, and a tiny leftover remainder step is
+    // avoided the same way TSM avoids it for any other event.
+    {
+      const double t_remaining = t_end - t_now;
+      constexpr double kEventNearEqualTol = 1.e4 * Amanzi::Utils::Event_EPS<double>::value;
+      if (dt > t_remaining ||
+          Amanzi::Utils::isNearEqual(dt, t_remaining, kEventNearEqualTol)) {
+        dt = t_remaining;
+      } else if (dt > 0.75 * t_remaining) {
+        dt = 0.5 * t_remaining;
+      }
+    }
+
     if (dt < min_dt_) {
-      Errors::Message msg("TimeAdvancer: timestep too small");
+      Errors::Message msg;
+      msg << "TimeAdvancer: timestep " << dt << " < min timestep size " << min_dt_
+          << " at t = " << t_now << " (t_end = " << t_end << ")";
       Exceptions::amanzi_throw(msg);
     }
     double dt_pk = dt;
@@ -247,7 +300,20 @@ TimeAdvancer::advance(double t_start, double t_end)
     S_->Assign("dt", tag_next_, "dt", dt);
     S_->set_time(tag_next_, t_now + dt);
 
+    double dt_used = dt;
     fail = pk_->AdvanceStep(t_now, t_now + dt, false);
+
+    // An otherwise-successful step may still be rejected by the optional
+    // validity check (e.g. the ELM water mass-balance constraint).
+    bool validity_reject = false;
+    if (!fail && step_validity_check_ && !step_validity_check_(t_now, t_now + dt)) {
+      fail = true;
+      validity_reject = true;
+      if (vo_->os_OK(Teuchos::VERB_LOW)) {
+        Teuchos::OSTab tab = vo_->getOSTab();
+        *vo_->os() << "Step rejected by validity check; reducing dt and retrying." << std::endl;
+      }
+    }
 
     WriteStateStatistics(*S_, *vo_, Teuchos::VERB_EXTREME);
 
@@ -257,6 +323,9 @@ TimeAdvancer::advance(double t_start, double t_end)
       S_->set_time(tag_next_, t_now);
       FailStep_(t_now, t_now + dt);
       dt = pk_->get_dt();
+      // The PK converged, so it may not have shrunk its own dt; force a
+      // reduction so the retry actually uses a smaller step.
+      if (validity_reject) dt = std::min(dt, dt_used * validity_reduction_);
     } else {
       pk_->CommitStep(t_now, t_now + dt, tag_next_);
       S_->set_time(tag_current_, t_now + dt);
