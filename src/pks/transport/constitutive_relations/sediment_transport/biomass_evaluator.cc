@@ -116,6 +116,15 @@ BiomassEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>&
 
   int ncells = biomass.MyLength();
 
+  for (const auto* res : { &biomass, &stem_density, &stem_height, &stem_diameter, &plant_area }) {
+    if (res->NumVectors() < nspecies_) {
+      Errors::Message msg;
+      msg << "BiomassEvaluator: result vectors have " << res->NumVectors()
+          << " dofs, but \"number of vegetation species\" is " << nspecies_;
+      Exceptions::amanzi_throw(msg);
+    }
+  }
+
   for (int n = 0; n < nspecies_; n++) {
     AMANZI_ASSERT((zmax[n] - zmin[n]) > 1e-6);
     switch (type_) {
