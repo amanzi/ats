@@ -29,6 +29,7 @@ water sources, etc.
 #include <cmath>
 #include <vector>
 
+#include "errors.hh"
 #include "PK_Helpers.hh"
 #include "ats_clm_interface.hh"
 #include "surface_balance_CLM.hh"
@@ -289,6 +290,12 @@ SurfaceBalanceCLM::InitializeCLM_(const Tag& tag)
 
   // lat/lon
   auto latlon = plist_->get<Teuchos::Array<double>>("latitude,longitude [degrees]");
+  if (latlon.size() != 2) {
+    Errors::Message msg;
+    msg << "SurfaceBalanceCLM: \"latitude,longitude [degrees]\" must have exactly 2 entries, got "
+        << static_cast<std::size_t>(latlon.size());
+    Exceptions::amanzi_throw(msg);
+  }
   int ncols =
     mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
   // heap-allocated: a variable-length stack array of this size can overflow
