@@ -251,7 +251,6 @@ main(int argc, char* argv[])
 
 
     // create the top level driver and run simulation
-    int ret = 0;
     {
       auto wallclock_timer = Teuchos::TimeMonitor::getNewCounter("wallclock duration");
       ATS::ATSDriver driver(plist, wallclock_timer, teuchos_comm, comm);
