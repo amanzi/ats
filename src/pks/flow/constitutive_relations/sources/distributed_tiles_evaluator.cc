@@ -72,6 +72,19 @@ DistributedTilesRateEvaluator::DistributedTilesRateEvaluator(Teuchos::ParameterL
   th_ = plist.get<double>("drain layer thickness [m]", -1.0);
   num_components_ = plist.get<int>("number of components", 1);
   p_enter_ = plist.get<double>("entering pressure [Pa]", 101325);
+
+  if (num_ditches_ <= 0) {
+    Errors::Message msg;
+    msg << "DistributedTilesRateEvaluator: \"number of ditches\" must be positive, got "
+        << num_ditches_;
+    Exceptions::amanzi_throw(msg);
+  }
+  if (num_components_ <= 0) {
+    Errors::Message msg;
+    msg << "DistributedTilesRateEvaluator: \"number of components\" must be positive, got "
+        << num_components_;
+    Exceptions::amanzi_throw(msg);
+  }
 }
 
 void
@@ -112,8 +125,21 @@ DistributedTilesRateEvaluator::Update_(State& S)
   if (!factor_key_.empty()) {
     num_vectors =
       S.GetPtr<CompositeVector>(factor_key_, tag)->ViewComponent("cell", false)->NumVectors();
-    AMANZI_ASSERT(num_vectors == sub_sink.NumVectors());
-    AMANZI_ASSERT(num_vectors == num_components_);
+    // These must be enforced in release builds too: they guard the writes into
+    // sub_sink[i] and acc_src_vec below.
+    if (num_vectors != sub_sink.NumVectors() || num_vectors != num_components_) {
+      Errors::Message msg;
+      msg << "DistributedTilesRateEvaluator: factor field \"" << factor_key_ << "\" has "
+          << num_vectors << " dofs, but \"number of components\" is " << num_components_
+          << " and \"" << dist_sources_key_ << "\" has " << sub_sink.NumVectors() << " dofs.";
+      Exceptions::amanzi_throw(msg);
+    }
+  }
+  if ((int)acc_src_vec.size() < num_ditches_ * num_vectors) {
+    Errors::Message msg;
+    msg << "DistributedTilesRateEvaluator: \"" << acc_sources_key_ << "\" has length "
+        << static_cast<std::size_t>(acc_src_vec.size()) << ", expected " << num_ditches_ * num_vectors;
+    Exceptions::amanzi_throw(msg);
   }
 
   if (std::abs(dt) > 1e-13) {
