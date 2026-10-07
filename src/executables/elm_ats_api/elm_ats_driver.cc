@@ -42,9 +42,10 @@ createELM_ATSDriver(MPI_Fint *f_comm, const char *infile, const char *logfile, i
   auto rank = comm->MyPID();
 
   // convert input file to std::string for easier handling
-  // infile must be null-terminated
-  std::string input_filename(infile);
-  std::string logfile_filename(logfile);
+  // infile must be null-terminated; a null pointer is treated as empty
+  // (constructing std::string from nullptr is undefined behavior)
+  std::string input_filename(infile ? infile : "");
+  std::string logfile_filename(logfile ? logfile : "");
 
   // check validity of input file name
   if (input_filename.empty()) {
