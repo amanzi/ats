@@ -27,6 +27,7 @@ water sources, etc.
 */
 
 #include <cmath>
+#include <vector>
 
 #include "PK_Helpers.hh"
 #include "ats_clm_interface.hh"
@@ -290,10 +291,12 @@ SurfaceBalanceCLM::InitializeCLM_(const Tag& tag)
   auto latlon = plist_->get<Teuchos::Array<double>>("latitude,longitude [degrees]");
   int ncols =
     mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
-  double latlon_arr[ncols][2];
+  // heap-allocated: a variable-length stack array of this size can overflow
+  // the stack on large partitions.  Layout is [ncols][2], row-major.
+  std::vector<double> latlon_arr(2 * ncols);
   for (int i = 0; i != ncols; ++i) {
-    latlon_arr[i][0] = latlon[0];
-    latlon_arr[i][1] = latlon[1];
+    latlon_arr[2 * i] = latlon[0];
+    latlon_arr[2 * i + 1] = latlon[1];
   }
 
   // soil properties
@@ -313,13 +316,15 @@ SurfaceBalanceCLM::InitializeCLM_(const Tag& tag)
   std::vector<int> color_index(ncols);
   for (int i = 0; i != ncols; ++i) color_index[i] = std::round(color_index_tmp[0][i]);
 
-  double pft_fraction[ncols][NUM_LC_CLASSES];
+  // Layout is [ncols][NUM_LC_CLASSES], row-major.
+  std::vector<double> pft_fraction(ncols * NUM_LC_CLASSES);
   for (int i = 0; i != ncols; ++i) {
     for (int j = 0; j != NUM_LC_CLASSES; ++j) {
-      pft_fraction[i][j] = j == std::round(pft_index_tmp[0][i]) ? 1. : 0.;
+      pft_fraction[i * NUM_LC_CLASSES + j] = j == std::round(pft_index_tmp[0][i]) ? 1. : 0.;
     }
   }
-  ATS::CLM::set_ground_properties(&latlon_arr[0][0], sand, clay, color_index, &pft_fraction[0][0]);
+  ATS::CLM::set_ground_properties(
+    latlon_arr.data(), sand, clay, color_index, pft_fraction.data());
 
   // CLM setup stage
   ATS::CLM::setup_begin();
