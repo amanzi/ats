@@ -173,16 +173,22 @@ main(int argc, char* argv[])
     if (writing_rank.empty()) {
       // pass
     } else {
-      int writing_rank_j;
+      int writing_rank_j = -1;
+      std::size_t n_parsed = 0;
       try {
-        writing_rank_j = std::stoi(writing_rank);
+        writing_rank_j = std::stoi(writing_rank, &n_parsed);
       } catch (std::invalid_argument& e) {
-        std::cerr << "ERROR: invalid writing rank \"" << writing_rank << "\"" << std::endl;
-        clp.printHelpMessage("ats", std::cerr);
+        writing_rank_j = -1;
+      } catch (std::out_of_range& e) {
+        writing_rank_j = -1;
       }
-      if (writing_rank_j < 0) {
-        std::cerr << "ERROR: invalid writing rank \"" << writing_rank << "\"" << std::endl;
-        clp.printHelpMessage("ats", std::cerr);
+      if (writing_rank_j < 0 || n_parsed != writing_rank.size()) {
+        if (rank == 0) {
+          std::cerr << "ERROR: invalid writing rank \"" << writing_rank << "\"" << std::endl;
+          clp.printHelpMessage("ats", std::cerr);
+        }
+        Kokkos::finalize();
+        return 1;
       }
       Amanzi::VerboseObject::global_writing_rank = writing_rank_j;
     }
