@@ -236,8 +236,8 @@ ELM_ATSDriver::parseParameterList()
 
   // -- mesh info
   ncolumns = mesh_surf_->getNumEntities(AmanziMesh::CELL, AmanziMesh::Parallel_kind::OWNED);
-  auto col_zero = mesh_subsurf_->columns.getCells(0);
-  ncells_per_col_ = col_zero.size();
+  // a rank may own no columns; column 0 does not exist there
+  ncells_per_col_ = ncolumns > 0 ? mesh_subsurf_->columns.getCells(0).size() : 0;
 
   // require my primary variables
   // parameters set by ELM
@@ -375,10 +375,12 @@ ELM_ATSDriver::MeshInfo ELM_ATSDriver::getMeshInfo()
 
   // compute dzs on one column only -- presumed terrain following!
   info.dzs.resize(ncells_per_col_);
-  const auto& col_cells = mesh_subsurf_->columns.getCells(0);
-  double surface_area = mesh_surf_->getCellVolume(0);
-  for (int i = 0; i != ncells_per_col_; ++i) {
-    info.dzs[i] = mesh_subsurf_->getCellVolume(i) / surface_area;
+  if (ncolumns > 0) {
+    const auto& col_cells = mesh_subsurf_->columns.getCells(0);
+    double surface_area = mesh_surf_->getCellVolume(0);
+    for (int i = 0; i != ncells_per_col_; ++i) {
+      info.dzs[i] = mesh_subsurf_->getCellVolume(i) / surface_area;
+    }
   }
 
   // surface area
