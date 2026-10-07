@@ -42,8 +42,10 @@ ELM_ATSDriver_ptr ats_create(MPI_Fint* f_comm,
 void ats_delete(ELM_ATSDriver_ptr ats)
 {
   auto ats_ptr = reinterpret_cast<ATS::ELM_ATSDriver*>(ats);
-  ats_ptr->finalize();
-  delete ats_ptr;
+  if (ats_ptr) {
+    ats_ptr->finalize();
+    delete ats_ptr;
+  }
 
   // If ATS initialized Kokkos, then finalize it here
   if (ats_kokkos_init && Kokkos::is_initialized()) {
