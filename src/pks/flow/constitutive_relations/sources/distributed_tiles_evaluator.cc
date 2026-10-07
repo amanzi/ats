@@ -124,6 +124,14 @@ DistributedTilesRateEvaluator::Update_(State& S)
 
     for (AmanziMesh::Entity_ID c = 0; c != ncells; ++c) {
       if (sub_marks[0][c] > 0) {
+        int catch_id = static_cast<int>(sub_marks[0][c]);
+        if (catch_id < 1 || catch_id > num_ditches_) {
+          Errors::Message msg;
+          msg << "DistributedTilesRateEvaluator: \"" << catch_id_key_ << "\" value "
+              << sub_marks[0][c] << " in cell " << c << " is outside [1, " << num_ditches_
+              << "] (\"number of ditches\").";
+          Exceptions::amanzi_throw(msg);
+        }
         if (th_ < 0) {
           const auto& [faces, dirs] = mesh->getCellFacesAndDirections(c);
           double zmax = -1e+98;
@@ -148,13 +156,13 @@ DistributedTilesRateEvaluator::Update_(State& S)
         if (!factor_key_.empty()) {
           for (int i = 0; i < num_components_; ++i) {
             sub_sink[i][c] = (*factor)[i][c] * val;
-            acc_src_vec[sub_marks[0][c] - 1 + i * num_ditches_] +=
+            acc_src_vec[catch_id - 1 + i * num_ditches_] +=
               (*factor)[i][c] * val * dt * cv[0][c];
             total = total + (*factor)[i][c] * val * dt * cv[0][c];
           }
         } else {
           sub_sink[0][c] = val;
-          acc_src_vec[sub_marks[0][c] - 1] += val * dt * cv[0][c];
+          acc_src_vec[catch_id - 1] += val * dt * cv[0][c];
           total = total + val * dt * cv[0][c];
         }
       }
