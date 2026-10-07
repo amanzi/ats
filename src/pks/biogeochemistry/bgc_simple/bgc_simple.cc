@@ -19,6 +19,7 @@
      3. all columns have the same number of cells
    ------------------------------------------------------------------------- */
 
+#include "errors.hh"
 #include "MeshPartition.hh"
 #include "PK_Helpers.hh"
 #include "bgc_simple_funcs.hh"
@@ -115,7 +116,14 @@ BGCSimple::Setup()
     if (ncells_per_col_ < 0) {
       ncells_per_col_ = ncol_cells;
     } else {
-      AMANZI_ASSERT(ncol_cells == ncells_per_col_);
+      // Per-column buffers are sized from the first column, so this must be
+      // enforced in release builds too.
+      if (ncol_cells != ncells_per_col_) {
+        Errors::Message msg;
+        msg << "BGCSimple: requires all columns to have the same number of cells, but column "
+            << static_cast<int>(col) << " has " << ncol_cells << " and the first has " << ncells_per_col_;
+        Exceptions::amanzi_throw(msg);
+      }
     }
 
     pfts_old_[col].resize(num_pfts_);
