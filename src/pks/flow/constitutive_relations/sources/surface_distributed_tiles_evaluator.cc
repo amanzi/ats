@@ -24,6 +24,7 @@ Accumulated surface sources due to tile drains.
 
 */
 
+#include "errors.hh"
 #include "Key.hh"
 #include "surface_distributed_tiles_evaluator.hh"
 
@@ -75,7 +76,15 @@ SurfDistributedTilesRateEvaluator::Update_(State& S)
   AmanziMesh::Entity_ID ncells = catch_id.MyLength();
   for (AmanziMesh::Entity_ID c = 0; c != ncells; ++c) {
     if ((catch_id[0][c] > 0) && (dt > 1e-14)) {
-      surf_src[0][c] = -acc_sources_vec[catch_id[0][c] - 1] * catch_frac[0][c] / (cv[0][c] * dt);
+      int id = static_cast<int>(catch_id[0][c]);
+      if (id < 1 || id > num_ditches_ || id > (int)acc_sources_vec.size()) {
+        Errors::Message msg;
+        msg << "SurfDistributedTilesRateEvaluator: \"" << catch_id_key_ << "\" value "
+            << catch_id[0][c] << " in cell " << c << " is outside [1, " << num_ditches_
+            << "] (\"number of ditches\").";
+        Exceptions::amanzi_throw(msg);
+      }
+      surf_src[0][c] = -acc_sources_vec[id - 1] * catch_frac[0][c] / (cv[0][c] * dt);
     }
   }
 
