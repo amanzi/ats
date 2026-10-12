@@ -62,6 +62,17 @@ through providing a "verify mesh" option.
      - `"metis`" uses the METIS graph partitioner
      - `"zoltan`" uses the default Zoltan graph-based partitioner.
 
+   * `"space dimension names`" ``[Array(string)]`` **optional, default="x","y","z"
+     (truncated to the mesh's dimension)** Names of the spatial axes, one per
+     dimension, used e.g. to label velocity subfields.
+   * `"natural map ordering`" ``[bool]`` **false** Order entity maps by their
+     natural (framework-provided) ordering rather than Amanzi's own.
+   * `"cache policy`" ``[string]`` **default** What mesh geometry/topology to
+     precompute and cache at construction, rather than on first use.  One of:
+
+     - `"default`" caches a reasonable default set of quantities.
+     - `"all`" caches everything.
+
 
 Generated Mesh
 ==============

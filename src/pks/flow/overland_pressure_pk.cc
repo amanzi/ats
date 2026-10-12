@@ -394,7 +394,8 @@ OverlandPressureFlow::SetupOverlandFlow_()
   PKHelpers::requireAtNext(velocity_key_, Tags::NEXT, *S_, name_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 3);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 2);
+  S_->GetRecordSetW(velocity_key_).set_subfieldnames(mesh_->getSpaceDimensionNames());
 };
 
 
