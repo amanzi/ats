@@ -29,7 +29,6 @@ set(ats_deform_link_libs
   time_integration
   state
   pks
-  ats_operators
   ats_pks
   )
 

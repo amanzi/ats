@@ -30,7 +30,6 @@ This is the same as Richards equation, but turns off the accumulation term.
 #include "CompositeVector.hh"
 #include "TreeVector.hh"
 #include "State.hh"
-#include "upwinding.hh"
 
 #include "PKFactory.hh"
 #include "richards.hh"

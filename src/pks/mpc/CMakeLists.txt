@@ -23,7 +23,6 @@ include_directories(${ATS_SOURCE_DIR}/src/pks/flow)
 # include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/wrm)
 # include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/porosity)
 # include_directories(${ATS_SOURCE_DIR}/src/pks/surface_balance/constitutive_relations/land_cover)
-include_directories(${ATS_SOURCE_DIR}/src/operators/upwinding)
 # include_directories(${ATS_SOURCE_DIR}/src/operators/advection)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/constitutive_relations)
@@ -94,7 +93,6 @@ set(ats_mpc_link_libs
   state
   pks
   # chemistry_pk
-  ats_operators
   # ats_eos
   # ats_generic_evals
   # ats_pks
