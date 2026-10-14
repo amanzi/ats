@@ -98,7 +98,6 @@ set(ats_surface_balance_link_libs
   time_integration
   state
   pks
-  ats_operators
   )
 
 add_amanzi_library(ats_surface_balance

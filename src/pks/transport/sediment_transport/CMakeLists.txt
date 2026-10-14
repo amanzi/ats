@@ -80,7 +80,6 @@ set(sed_transport_link_libs
     time_integration
     state
     pks
-    ats_operators
     ats_eos
     ats_pks
     )

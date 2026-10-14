@@ -8,7 +8,7 @@
 # ATS include directories
 include_directories(${ATS_SOURCE_DIR}/src/pks)
 include_directories(${ATS_SOURCE_DIR}/src/operators/advection)
-include_directories(${ATS_SOURCE_DIR}/src/operators/upwinding)
+include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/upwinding)
 include_directories(${ATS_SOURCE_DIR}/src/pks/flow)
 include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/water_content)
 include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/porosity)
@@ -90,7 +90,7 @@ set(ats_flow_link_libs
   time_integration
   state
   pks
-  ats_operators
+  ats_upwinding_evals
   # ats_eos
   # ats_pks
   )

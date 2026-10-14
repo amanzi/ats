@@ -41,7 +41,7 @@ OverlandPressureFlow::FunctionalResidual(double t_old,
   Teuchos::RCP<CompositeVector> res = g->getData();
   res->putScalar(0.0);
 
-  // pointer-copy temperature into state and update any auxilary data
+  // pointer-copy primary variable into state and update any auxilary data
   moveSolutionToState(*u_new, tag_next_);
   Teuchos::RCP<CompositeVector> u = u_new->getData();
 
@@ -50,7 +50,20 @@ OverlandPressureFlow::FunctionalResidual(double t_old,
                << "Residual calculation: t0 = " << t_old << " t1 = " << t_new << " h = " << h
                << std::endl;
 
-  // unnecessary here if not debeugging, but doesn't hurt either
+  // update boundary conditions
+  UpdateBoundaryConditions_(tag_next_);
+
+  // update ponded depth
+  S_->GetEvaluator(pd_key_, tag_next_).Update(*S_, name_);
+  {
+    // stamp ponded depth with dirichlet data -- doing this now so it shows up in debugging
+    const auto& bcs = S_->Get<Operators::BCs>(name_ + "_bcs", tag_next_);
+    const auto& elev = S_->Get<CompositeVector>(elev_key_, tag_next_);
+    auto& pd = S_->GetW<CompositeVector>(pd_key_, tag_next_, S_->GetRecord(pd_key_, tag_next_).owner());
+    ApplyDirichletBCs_(bcs, pd, elev);
+  }
+
+  // updated h + z: unnecessary here if not debeugging, but doesn't hurt either
   S_->GetEvaluator(potential_key_, tag_next_).Update(*S_, name_);
 
   // debugging -- write primary variables to screen
@@ -77,10 +90,11 @@ OverlandPressureFlow::FunctionalResidual(double t_old,
   }
   db_->WriteVectors(vnames, vecs, true);
 
-  // update boundary conditions
-  UpdateBoundaryConditions_(tag_next_);
-  auto& bcs = S_->Get<Operators::BCs>(name_ + "_bcs", tag_next_);
-  db_->WriteBoundaryConditions(*bcs.model(), *bcs.value());
+  // debug boundary conditions
+  {
+    auto& bcs = S_->Get<Operators::BCs>(name_ + "_bcs", tag_next_);
+    db_->WriteBoundaryConditions(*bcs.model(), *bcs.value());
+  }
 
   // diffusion term, treated implicitly
   ApplyDiffusion_(tag_next_, res.ptr());
@@ -183,8 +197,9 @@ OverlandPressureFlow::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVect
   // -- jacobian term
   Teuchos::RCP<const CompositeVector> dcond = Teuchos::null;
   if (jacobian_ && iter_ >= jacobian_lag_) {
-    if (!duw_cond_key_.empty()) {
-      dcond = S_->GetPtr<CompositeVector>(duw_cond_key_, tag_next_);
+    if (coef_is_upwinded_ &&
+        S_->GetEvaluator(uw_cond_key_, tag_next_).IsDifferentiableWRT(*S_, pd_key_, tag_next_)) {
+      dcond = S_->GetDerivativePtr<CompositeVector>(uw_cond_key_, tag_next_, pd_key_, tag_next_);
     } else {
       dcond = S_->GetDerivativePtr<CompositeVector>(cond_key_, tag_next_, pd_key_, tag_next_);
     }

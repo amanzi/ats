@@ -125,8 +125,6 @@ Uses the PK type:
 #ifndef PK_FLOW_OVERLAND_HEAD_HH_
 #define PK_FLOW_OVERLAND_HEAD_HH_
 
-#include "upwinding.hh"
-
 #include "PKFactory.hh"
 #include "PK_PhysicalBDF_Default.hh"
 
@@ -245,14 +243,10 @@ class OverlandPressureFlow : public PK_PhysicalBDF_Default {
   Key wc_bar_key_;
   Key cond_key_;
   Key uw_cond_key_;
-  Key duw_cond_key_;
   Key mass_dens_key_;
   Key molar_dens_key_;
   Key source_key_;
   Key ss_flux_key_;
-
-  // control switches
-  Operators::UpwindMethod upwind_method_;
 
   bool is_source_term_;
   // bool source_only_if_unfrozen_;
@@ -276,15 +270,12 @@ class OverlandPressureFlow : public PK_PhysicalBDF_Default {
   double iter_counter_time_;
   int jacobian_lag_;
 
-  // work data space
-  Teuchos::RCP<Operators::Upwinding> upwinding_;
-  Teuchos::RCP<Operators::Upwinding> upwinding_dkdp_;
+  bool coef_is_upwinded_;
 
   // mathematical operators
   Teuchos::RCP<Operators::Operator> matrix_;
   Teuchos::RCP<Operators::Operator> preconditioner_;
   Teuchos::RCP<Operators::PDE_Diffusion> matrix_diff_;
-  Teuchos::RCP<Operators::PDE_Diffusion> face_matrix_diff_;
   Teuchos::RCP<Operators::PDE_Diffusion> preconditioner_diff_;
   Teuchos::RCP<Operators::PDE_Accumulation> preconditioner_acc_;
 
