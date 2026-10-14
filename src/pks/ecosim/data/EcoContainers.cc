@@ -27,24 +27,16 @@
 ** Authors: Benjamin Andre <bandre@lbl.gov>
 */
 
-#include "BGC_containers.hh"
+#include "EcoContainers.hh"
 
 #include "../ecosim_interface.h"
 
-//String lengths
-const int kBGCMaxStringLength = 512;
-const int kBGCMaxWordLength = 32;
-
-/* Its kind of silly to have this as a separate code at this point, but this
-will in theory become the switching code if we add other bgc
-codes, in alquimia this switches between CrunchFlow and PFloTran*/
-
-void CreateBGCInterface(const char* const engine_name, BGCInterface* interface)
- {
-
-   interface->DataTest = &ecosim_datatest;
-   interface->Setup = &ecosim_setup;
-   interface->Shutdown = &ecosim_shutdown;
-   interface->Advance = &ecosim_advance;
-
- }  /* end CreateBGCInterface() */
+/* Only one engine (EcoSIM) for now; kept as a function table as in Alquimia,
+   which switches between CrunchFlow and PFloTran here. */
+void CreateEcoInterface(const char* const engine_name, EcoInterface* interface)
+{
+  interface->DataTest = &ecosim_datatest;
+  interface->Setup = &ecosim_setup;
+  interface->Shutdown = &ecosim_shutdown;
+  interface->Advance = &ecosim_advance;
+}  /* end CreateEcoInterface() */

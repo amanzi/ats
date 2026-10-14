@@ -125,21 +125,9 @@ EcoSIM::EcoSIM(Teuchos::ParameterList& pk_tree,
     aspect_key_ = Keys::readKey(*plist_, domain_surface_, "aspect", "aspect");
     slope_key_ = Keys::readKey(*plist_, domain_surface_, "slope", "slope_magnitude");
     snow_depth_key_ = Keys::readKey(*plist_, domain_surface_, "snow depth", "snow_depth");
-    canopy_snow_key_ = Keys::readKey(*plist_, domain_surface_, "canopy snow", "canopy_snow");
     snow_albedo_key_ = Keys::readKey(*plist_, domain_surface_, "snow_albedo", "snow_albedo");
+    canopy_snow_key_ = Keys::readKey(*plist_, domain_surface_, "canopy snow", "canopy_snow");
     //snow_temperature_key_ = Keys::readKey(*plist_, domain_surface_, "snow temperature", "snow_temperature");
-
-    //Canopy hold over vars for EcoSIM
-    canopy_lw_key_ = Keys::readKey(*plist_, domain_surface_, "canopy longwave radiation", "canopy_longwave_radiation");
-    canopy_latent_heat_key_ = Keys::readKey(*plist_, domain_surface_, "canopy latent heat", "canopy_latent_heat");
-    canopy_sensible_heat_key_ = Keys::readKey(*plist_, domain_surface_, "canopy sensible heat", "canopy_sensible_heat");
-    canopy_surface_water_key_ = Keys::readKey(*plist_, domain_surface_, "canopy surface water", "canopy_surface_water");
-    transpiration_key_ = Keys::readKey(*plist_, domain_surface_, "transpiration", "transpiration");
-    evaporation_canopy_key_ = Keys::readKey(*plist_, domain_surface_, "evaporation canopy", "evaporation_canopy");
-    evaporation_ground_key_ = Keys::readKey(*plist_, domain_surface_, "evaporation ground", "evaporation_ground");
-    evaporation_litter_key_ = Keys::readKey(*plist_, domain_surface_, "evaporation litter", "evaporation_litter");
-    evaporation_snow_key_ = Keys::readKey(*plist_, domain_surface_, "evaporation snow", "evaporation_snow");
-    sublimation_snow_key_ = Keys::readKey(*plist_, domain_surface_, "sublimation snow", "sublimation_snow");
 
     //Plant Phenology Datasets
     lai_key_ = Keys::readKey(*plist_, domain_surface_, "LAI", "LAI");
@@ -165,6 +153,14 @@ EcoSIM::EcoSIM(Teuchos::ParameterList& pk_tree,
     microbe_bool = plist_->get<bool>("microbe model", false);
     num_pfts = plist_->get<int>("number of pfts", 1);
 
+    // EcoSIM internal state entries (by ATS name) to visualize; none by default
+    if (plist_->isParameter("visualize ecosim state")) {
+      visualize_internal_state_ =
+        plist_->get<Teuchos::Array<std::string>>("visualize ecosim state").toVector();
+    }
+    internal_state_version_key_ =
+      Keys::getKey(domain_surface_, "ecosim_internal_state_layout_version");
+
     //Parameters for times and time of year
     dt_ = plist_->get<double>("initial time step");
     c_m_ = plist_->get<double>("heat capacity [MJ mol^-1 K^-1]");
@@ -188,14 +184,39 @@ EcoSIM::EcoSIM(Teuchos::ParameterList& pk_tree,
     }
     std::string engine_name = plist_->get<std::string>("engine");
     engine_inputfile = plist_->get<std::string>("engine input file");
-    bgc_engine_ = Teuchos::rcp(new BGCEngine(engine_name, engine_inputfile));
+    eco_engine_ = Teuchos::rcp(new EcoEngine(engine_name, engine_inputfile));
   }
 
+
+// -- Parse the parameter list and declare evaluators other PKs depend on
+void EcoSIM::parseParameterList()
+{
+  PK_Physical_Default::parseParameterList();
+
+  // These sources are primary variables owned by this PK (see Setup). PKs
+  // that use them (e.g. overland flow) are set up before this one, so declare
+  // the evaluator type here: parseParameterList() runs for every PK before
+  // any Setup().
+  for (const auto& key : { surface_energy_source_ecosim_key_, surface_water_source_ecosim_key_,
+                           subsurface_energy_source_ecosim_key_, subsurface_water_source_ecosim_key_ }) {
+    if (S_->HasEvaluatorList(key) &&
+        S_->GetEvaluatorList(key).get<std::string>("evaluator type", "primary variable") !=
+          "primary variable") {
+      Errors::Message msg;
+      msg << "EcoSIM: \"" << key << "\" is computed by the EcoSIM PK; remove its evaluator \""
+          << S_->GetEvaluatorList(key).get<std::string>("evaluator type")
+          << "\" from the state's evaluators list.";
+      Exceptions::amanzi_throw(msg);
+    }
+    S_->GetEvaluatorList(key).set<std::string>("evaluator type", "primary variable");
+  }
+}
 
 // -- Destroy ansilary data structures.
 EcoSIM::~EcoSIM()
   {
-    bgc_engine_->FreeState(bgc_props_, bgc_state_, bgc_aux_data_);
+    eco_engine_->FreeState(eco_env_, eco_feedback_);
+    eco_engine_->FreeInternalState(eco_istate_);
   }
 
 // -- Setup step
@@ -231,82 +252,86 @@ void EcoSIM::Setup() {
           ->SetComponent("cell", AmanziMesh::CELL, 1);
   }
   
-  if (!S_->HasRecord(canopy_snow_key_,tag_next_)) {
-        S_->Require<CompositeVector, CompositeVectorSpace>(canopy_snow_key_, tag_next_, canopy_snow_key_)
-          .SetMesh(mesh_surf_)
-          ->SetGhosted(false)
-          ->SetComponent("cell", AmanziMesh::CELL, num_pfts);
+  // EcoSIM internal state: one field per entry of EcoSIM's layout
+  // (ATSStateRegistryMod.F90). PRIVATE entries are carried state, checkpointed
+  // and visualized only on request; OUTPUT entries are visualized but not
+  // checkpointed. Fields are written only by this PK.
+  EcoSizes layout_sizes;
+  layout_sizes.ncells_per_col_ = ncells_per_col_;
+  layout_sizes.num_components = 1;
+  layout_sizes.num_columns = mesh_surf_->getNumEntities(AmanziMesh::Entity_kind::CELL,
+                                                        AmanziMesh::Parallel_kind::OWNED);
+  layout_sizes.num_pfts = num_pfts;
+  internal_state_layout_ = eco_engine_->InternalStateLayout(layout_sizes);
+
+  for (const auto& name : visualize_internal_state_) {
+    auto entry = std::find_if(internal_state_layout_.begin(), internal_state_layout_.end(),
+                              [&](const EcoInternalStateEntry& e) { return e.ats_name == name; });
+    if (entry == internal_state_layout_.end()) {
+      Errors::Message msg;
+      msg << "EcoSIM: \"visualize ecosim state\" entry \"" << name
+          << "\" is not an EcoSIM internal state variable. Valid names are:";
+      for (const auto& e : internal_state_layout_) msg << " " << e.ats_name;
+      Exceptions::amanzi_throw(msg);
+    }
   }
 
-  S_->Require<CompositeVector, CompositeVectorSpace>(canopy_lw_key_ , tag_next_, canopy_lw_key_)
-          .SetMesh(mesh_surf_)
-          ->SetGhosted(false)
-          ->SetComponent("cell", AmanziMesh::CELL, 1);
+  internal_state_keys_.clear();
+  for (const auto& entry : internal_state_layout_) {
+    Key key = Keys::getKey(domain_surface_, entry.ats_name);
+    internal_state_keys_.push_back(key);
+    S_->Require<CompositeVector, CompositeVectorSpace>(key, tag_next_, key)
+      .SetMesh(mesh_surf_)
+      ->SetGhosted(false)
+      ->SetComponent("cell", AmanziMesh::CELL, entry.num_components);
+    auto& record = S_->GetRecordW(key, tag_next_, key);
+    if (entry.role == kEcoRoleOutput) {
+      record.set_io_checkpoint(false);
+    } else {
+      bool requested = std::find(visualize_internal_state_.begin(),
+                                 visualize_internal_state_.end(),
+                                 entry.ats_name) != visualize_internal_state_.end();
+      record.set_io_vis(requested);
+    }
+  }
+  S_->Require<int>(internal_state_version_key_, tag_next_, name_);
 
-  S_->Require<CompositeVector, CompositeVectorSpace>(canopy_latent_heat_key_ , tag_next_, canopy_latent_heat_key_)
-          .SetMesh(mesh_surf_)
-          ->SetGhosted(false)
-          ->SetComponent("cell", AmanziMesh::CELL, 1);
+  if (vo_->os_OK(Teuchos::VERB_HIGH)) {
+    Teuchos::OSTab tab = vo_->getOSTab();
+    *vo_->os() << "EcoSIM internal state (layout version "
+               << eco_engine_->InternalStateLayoutVersion() << "):" << std::endl
+               << "  ATS field | EcoSIM variable | components | units | role" << std::endl;
+    for (int i = 0; i != internal_state_layout_.size(); ++i) {
+      const auto& e = internal_state_layout_[i];
+      *vo_->os() << "  " << internal_state_keys_[i] << " | " << e.ecosim_name << " | "
+                 << e.num_components << " | " << e.units << " | "
+                 << (e.role == kEcoRoleOutput ? "output" : "private") << std::endl;
+    }
+  }
 
-  S_->Require<CompositeVector, CompositeVectorSpace>(canopy_sensible_heat_key_, tag_next_, canopy_sensible_heat_key_)
-          .SetMesh(mesh_surf_)
-          ->SetGhosted(false)
-          ->SetComponent("cell", AmanziMesh::CELL, 1);
+  // Sources EcoSIM returns to ATS. This PK owns them as primary evaluators and
+  // marks them changed after every write, so evaluators that use them (e.g.
+  // overland flow's molar water source) recompute. Inputs must not declare
+  // evaluators for these keys.
+  requireEvaluatorPrimary(surface_energy_source_ecosim_key_, tag_next_, *S_, name_)
+    .SetMesh(mesh_surf_)
+    ->SetGhosted(false)
+    ->SetComponent("cell", AmanziMesh::CELL, 1);
 
-  S_->Require<CompositeVector, CompositeVectorSpace>(canopy_surface_water_key_ , tag_next_, canopy_surface_water_key_)
-          .SetMesh(mesh_surf_)
-          ->SetGhosted(false)
-          ->SetComponent("cell", AmanziMesh::CELL, 1);
+  requireEvaluatorPrimary(surface_water_source_ecosim_key_, tag_next_, *S_, name_)
+    .SetMesh(mesh_surf_)
+    ->SetGhosted(false)
+    ->SetComponent("cell", AmanziMesh::CELL, 1);
 
-  S_->Require<CompositeVector, CompositeVectorSpace>(transpiration_key_ , tag_next_, transpiration_key_)
-          .SetMesh(mesh_surf_)
-          ->SetGhosted(false)
-          ->SetComponent("cell", AmanziMesh::CELL, 1);
+  requireEvaluatorPrimary(subsurface_energy_source_ecosim_key_, tag_next_, *S_, name_)
+    .SetMesh(mesh_)
+    ->SetGhosted(false)
+    ->SetComponent("cell", AmanziMesh::CELL, 1);
 
-  S_->Require<CompositeVector, CompositeVectorSpace>(evaporation_canopy_key_ , tag_next_, evaporation_canopy_key_)
-          .SetMesh(mesh_surf_)
-          ->SetGhosted(false)
-          ->SetComponent("cell", AmanziMesh::CELL, 1);
-
-  S_->Require<CompositeVector, CompositeVectorSpace>(evaporation_ground_key_ , tag_next_, evaporation_ground_key_)
-          .SetMesh(mesh_surf_)
-          ->SetGhosted(false)
-          ->SetComponent("cell", AmanziMesh::CELL, 1);
-
-  S_->Require<CompositeVector, CompositeVectorSpace>(evaporation_litter_key_ , tag_next_, evaporation_litter_key_)
-          .SetMesh(mesh_surf_)
-          ->SetGhosted(false)
-          ->SetComponent("cell", AmanziMesh::CELL, 1);
-
-  S_->Require<CompositeVector, CompositeVectorSpace>(evaporation_snow_key_ , tag_next_, evaporation_snow_key_)
-          .SetMesh(mesh_surf_)
-          ->SetGhosted(false)
-          ->SetComponent("cell", AmanziMesh::CELL, 1);
-
-  S_->Require<CompositeVector, CompositeVectorSpace>(sublimation_snow_key_ , tag_next_, sublimation_snow_key_)
-          .SetMesh(mesh_surf_)
-          ->SetGhosted(false)
-          ->SetComponent("cell", AmanziMesh::CELL, 1);
-
-  S_->Require<CompositeVector, CompositeVectorSpace>(surface_energy_source_ecosim_key_ , tag_next_, surface_energy_source_ecosim_key_)
-          .SetMesh(mesh_surf_)
-          ->SetGhosted(false)
-          ->SetComponent("cell", AmanziMesh::CELL, 1);
-
-  S_->Require<CompositeVector, CompositeVectorSpace>(surface_water_source_ecosim_key_ , tag_next_, surface_water_source_ecosim_key_)
-          .SetMesh(mesh_surf_)
-          ->SetGhosted(false)
-          ->SetComponent("cell", AmanziMesh::CELL, 1);
-
-  S_->Require<CompositeVector, CompositeVectorSpace>(subsurface_energy_source_ecosim_key_ , tag_next_, subsurface_energy_source_ecosim_key_)
-          .SetMesh(mesh_)
-          ->SetGhosted(false)
-          ->SetComponent("cell", AmanziMesh::CELL, 1);
-
-  S_->Require<CompositeVector, CompositeVectorSpace>(subsurface_water_source_ecosim_key_ , tag_next_, subsurface_water_source_ecosim_key_)
-          .SetMesh(mesh_)
-          ->SetGhosted(false)
-          ->SetComponent("cell", AmanziMesh::CELL, 1);
+  requireEvaluatorPrimary(subsurface_water_source_ecosim_key_, tag_next_, *S_, name_)
+    .SetMesh(mesh_)
+    ->SetGhosted(false)
+    ->SetComponent("cell", AmanziMesh::CELL, 1);
 
   /*S_->Require<CompositeVector, CompositeVectorSpace>(snow_temperature_key_ , tag_next_, snow_temperature_key_)
           .SetMesh(mesh_)
@@ -327,19 +352,22 @@ void EcoSIM::Setup() {
   
   S_->RequireEvaluator(lai_key_, tag_next_);
   S_->Require<CompositeVector, CompositeVectorSpace>(lai_key_, tag_next_).SetMesh(mesh_surf_)
-    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_pfts);
 
   S_->RequireEvaluator(sai_key_, tag_next_);
   S_->Require<CompositeVector, CompositeVectorSpace>(sai_key_, tag_next_).SetMesh(mesh_surf_)
-    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_pfts);
 
   S_->RequireEvaluator(v_type_key_, tag_next_);
   S_->Require<CompositeVector, CompositeVectorSpace>(v_type_key_, tag_next_).SetMesh(mesh_surf_)
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_pfts);
   
-  //S_->RequireEvaluator(canopy_snow_key_, tag_next_);
-  //S_->Require<CompositeVector, CompositeVectorSpace>(canopy_snow_key_, tag_next_).SetMesh(mesh_surf_)
-  //  ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_pfts);
+  if (!S_->HasRecord(canopy_snow_key_, tag_next_)) {
+    S_->Require<CompositeVector, CompositeVectorSpace>(canopy_snow_key_, tag_next_, canopy_snow_key_)
+      .SetMesh(mesh_surf_)
+      ->SetGhosted(false)
+      ->SetComponent("cell", AmanziMesh::CELL, num_pfts);
+  }
 
   Teuchos::OSTab tab = vo_->getOSTab();
 
@@ -420,7 +448,8 @@ void EcoSIM::Initialize() {
   num_columns_ = mesh_surf_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
   //Now we call the engine's init state function which allocates the data
-  bgc_engine_->InitState(bgc_props_, bgc_state_, bgc_aux_data_, ncells_per_col_, mole_fraction_num, num_columns_,num_pfts);
+  eco_engine_->InitState(eco_env_, eco_feedback_, ncells_per_col_, mole_fraction_num, num_columns_, num_pfts);
+  eco_engine_->InitInternalState(eco_istate_, internal_state_layout_, num_columns_);
 
   int ierr = 0;
 
@@ -449,50 +478,29 @@ void EcoSIM::Initialize() {
   S_->GetW<CompositeVector>(snow_depth_key_, Tags::DEFAULT, "surface-snow_depth").PutScalar(0.0);
   S_->GetRecordW(snow_depth_key_, Tags::DEFAULT, "surface-snow_depth").set_initialized();
 
-  S_->GetW<CompositeVector>(canopy_snow_key_, Tags::DEFAULT, "surface-canopy_snow").PutScalar(0.0);
-  S_->GetRecordW(canopy_snow_key_, Tags::DEFAULT, "surface-canopy_snow").set_initialized();
-  
-  S_->GetW<CompositeVector>(canopy_lw_key_, Tags::DEFAULT, "surface-canopy_longwave_radiation").PutScalar(0.0);
-  S_->GetRecordW(canopy_lw_key_, Tags::DEFAULT, "surface-canopy_longwave_radiation").set_initialized();
+  S_->GetW<CompositeVector>(canopy_snow_key_, Tags::DEFAULT, canopy_snow_key_).PutScalar(0.0);
+  S_->GetRecordW(canopy_snow_key_, Tags::DEFAULT, canopy_snow_key_).set_initialized();
 
-  S_->GetW<CompositeVector>(canopy_latent_heat_key_, Tags::DEFAULT, "surface-canopy_latent_heat").PutScalar(0.0);
-  S_->GetRecordW(canopy_latent_heat_key_, Tags::DEFAULT, "surface-canopy_latent_heat").set_initialized();
-
-  S_->GetW<CompositeVector>(canopy_sensible_heat_key_, Tags::DEFAULT, "surface-canopy_sensible_heat").PutScalar(0.0);
-  S_->GetRecordW(canopy_sensible_heat_key_, Tags::DEFAULT, "surface-canopy_sensible_heat").set_initialized();
-
-  S_->GetW<CompositeVector>(canopy_surface_water_key_, Tags::DEFAULT, "surface-canopy_surface_water").PutScalar(0.0);
-  S_->GetRecordW(canopy_surface_water_key_, Tags::DEFAULT, "surface-canopy_surface_water").set_initialized();
-
-  S_->GetW<CompositeVector>(transpiration_key_, Tags::DEFAULT, "surface-transpiration").PutScalar(0.0);
-  S_->GetRecordW(transpiration_key_, Tags::DEFAULT, "surface-transpiration").set_initialized();
-
-  S_->GetW<CompositeVector>(evaporation_canopy_key_, Tags::DEFAULT, "surface-evaporation_canopy").PutScalar(0.0);
-  S_->GetRecordW(evaporation_canopy_key_, Tags::DEFAULT, "surface-evaporation_canopy").set_initialized();
-
-  S_->GetW<CompositeVector>(evaporation_ground_key_, Tags::DEFAULT, "surface-evaporation_ground").PutScalar(0.0);
-  S_->GetRecordW(evaporation_ground_key_, Tags::DEFAULT, "surface-evaporation_ground").set_initialized();
-
-  S_->GetW<CompositeVector>(evaporation_litter_key_, Tags::DEFAULT, "surface-evaporation_litter").PutScalar(0.0);
-  S_->GetRecordW(evaporation_litter_key_, Tags::DEFAULT, "surface-evaporation_litter").set_initialized();
-
-  S_->GetW<CompositeVector>(evaporation_snow_key_, Tags::DEFAULT, "surface-evaporation_snow").PutScalar(0.0);
-  S_->GetRecordW(evaporation_snow_key_, Tags::DEFAULT, "surface-evaporation_snow").set_initialized();
-
-  S_->GetW<CompositeVector>(sublimation_snow_key_, Tags::DEFAULT, "surface-sublimation_snow").PutScalar(0.0);
-  S_->GetRecordW(sublimation_snow_key_, Tags::DEFAULT, "surface-sublimation_snow").set_initialized();
-
-  S_->GetW<CompositeVector>(surface_water_source_ecosim_key_, Tags::DEFAULT, surface_water_source_ecosim_key_).PutScalar(0.0);
-  S_->GetRecordW(surface_water_source_ecosim_key_, Tags::DEFAULT, surface_water_source_ecosim_key_).set_initialized();
-
-  S_->GetW<CompositeVector>(subsurface_water_source_ecosim_key_, Tags::DEFAULT, subsurface_water_source_ecosim_key_).PutScalar(0.0);
-  S_->GetRecordW(subsurface_water_source_ecosim_key_, Tags::DEFAULT, subsurface_water_source_ecosim_key_).set_initialized();
-
-  S_->GetW<CompositeVector>(subsurface_energy_source_ecosim_key_, Tags::DEFAULT, subsurface_energy_source_ecosim_key_).PutScalar(0.0);
-  S_->GetRecordW(subsurface_energy_source_ecosim_key_, Tags::DEFAULT, subsurface_energy_source_ecosim_key_).set_initialized();
+  for (const auto& key : { surface_energy_source_ecosim_key_, surface_water_source_ecosim_key_,
+                           subsurface_energy_source_ecosim_key_, subsurface_water_source_ecosim_key_ }) {
+    S_->GetW<CompositeVector>(key, tag_next_, name_).PutScalar(0.0);
+    S_->GetRecordW(key, tag_next_, name_).set_initialized();
+    changedEvaluatorPrimary(key, tag_next_, *S_);
+  }
 
   //S_->GetW<CompositeVector>(snow_temperature_key_, Tags::DEFAULT, snow_temperature_key_).PutScalar(0.0);
   //S_->GetRecordW(snow_temperature_key_, Tags::DEFAULT, snow_temperature_key_).set_initialized();
+
+  // EcoSIM internal state: carried state is filled from EcoSIM's
+  // initialization below and overwritten by the checkpoint on restart;
+  // outputs stay zero until the first advance.
+  for (const auto& key : internal_state_keys_) {
+    S_->GetW<CompositeVector>(key, tag_next_, key).PutScalar(0.0);
+    S_->GetRecordW(key, tag_next_, key).set_initialized();
+  }
+  S_->GetW<int>(internal_state_version_key_, tag_next_, name_) =
+    eco_engine_->InternalStateLayoutVersion();
+  S_->GetRecordW(internal_state_version_key_, tag_next_, name_).set_initialized();
 
   //Initialize owned evaluators
   S_->GetW<CompositeVector>(hydraulic_conductivity_key_, Tags::DEFAULT, name_).PutScalar(1.0);
@@ -716,12 +724,12 @@ bool EcoSIM::AdvanceStep(double t_old, double t_new, bool reinit) {
           .ViewComponent("cell",false);
 
   S_->GetEvaluator("surface-LAI", tag_next_).Update(*S_, name_);
-  const Epetra_MultiVector& LAI = *(*S_->Get<CompositeVector>("surface-LAI", tag_next_)
-          .ViewComponent("cell",false))(0);
+  Teuchos::RCP<const Epetra_MultiVector> LAI = S_->Get<CompositeVector>("surface-LAI", tag_next_)
+          .ViewComponent("cell",false);
 
   S_->GetEvaluator("surface-SAI", tag_next_).Update(*S_, name_);
-  const Epetra_MultiVector& SAI = *(*S_->Get<CompositeVector>("surface-SAI", tag_next_)
-          .ViewComponent("cell",false))(0);
+  Teuchos::RCP<const Epetra_MultiVector> SAI = S_->Get<CompositeVector>("surface-SAI", tag_next_)
+          .ViewComponent("cell",false);
 
   S_->GetEvaluator("surface-vegetation_type", tag_next_).Update(*S_, name_);
   const Epetra_MultiVector& vegetation_type = *(*S_->Get<CompositeVector>("surface-vegetation_type", tag_next_)
@@ -941,12 +949,25 @@ void EcoSIM::VolDepthDz_(AmanziMesh::Entity_ID column,
   }
 }
 
-//Copy to EcoSIM
+// ATS -> EcoSIM, once at setup: run parameters and flags
+void EcoSIM::CopyConfigToEcoSIM_(EcoConfig& config)
+{
+  config.heat_capacity = c_m_;
+  config.field_capacity = pressure_at_field_capacity;
+  config.wilting_point = pressure_at_wilting_point;
+  config.p_bool = p_bool;
+  config.a_bool = a_bool;
+  config.pheno_bool = pheno_bool;
+  config.microbe_bool = microbe_bool;
+  config.pft_file = engine_inputfile.data();
+}
+
+// ATS -> EcoSIM, at setup and every advance: the environment, the snow depth
+// EcoSIM carries (in the feedback container), and the internal state
 void EcoSIM::CopyToEcoSIM_process(int proc_rank,
-                                 BGCProperties& props,
-                                 BGCState& state,
-                                 BGCAuxiliaryData& aux_data,
-                               const Tag& water_tag)
+                                  EcoEnvironment& environment,
+                                  EcoFeedback& feedback,
+                                  const Tag& water_tag)
 {
   //This is the copy function for a loop over a single process instead of a single column
   //Fill state with ATS variables that are going to be changed by EcoSIM
@@ -999,32 +1020,16 @@ void EcoSIM::CopyToEcoSIM_process(int proc_rank,
   const Epetra_Vector& slope = *(*S_->Get<CompositeVector>(slope_key_, water_tag).ViewComponent("cell", false))(0);
   const Epetra_Vector& snow_albedo = *(*S_->Get<CompositeVector>(snow_albedo_key_, water_tag).ViewComponent("cell", false))(0);
 
-  const Epetra_Vector& LAI = *(*S_->Get<CompositeVector>(lai_key_, water_tag).ViewComponent("cell", false))(0);
-  const Epetra_Vector& SAI = *(*S_->Get<CompositeVector>(sai_key_, water_tag).ViewComponent("cell", false))(0);
+  Teuchos::RCP<const Epetra_MultiVector> LAI = S_->Get<CompositeVector>(lai_key_, water_tag).ViewComponent("cell", false);
+  Teuchos::RCP<const Epetra_MultiVector> SAI = S_->Get<CompositeVector>(sai_key_, water_tag).ViewComponent("cell", false);
   //const Epetra_Vector& vegetation_type = *(*S_->Get<CompositeVector>(v_type_key_, water_tag).ViewComponent("cell", false))(0);
-  //const Epetra_Vector& canopy_snow = *(*S_->Get<CompositeVector>(canopy_snow_key_, water_tag).ViewComponent("cell", false))(0);
   Teuchos::RCP<const Epetra_MultiVector> vegetation_type = S_->Get<CompositeVector>(v_type_key_, tag_next_).ViewComponent("cell", false);
-  Teuchos::RCP<const Epetra_MultiVector> canopy_snow = S_->Get<CompositeVector>(canopy_snow_key_, tag_next_).ViewComponent("cell", false);
 
-  const Epetra_Vector& surface_energy_source = *(*S_->Get<CompositeVector>(surface_energy_source_ecosim_key_, water_tag).ViewComponent("cell", false))(0);
-  const Epetra_Vector& subsurface_energy_source = *(*S_->Get<CompositeVector>(subsurface_energy_source_ecosim_key_, water_tag).ViewComponent("cell", false))(0);
+  // the EcoSIM sources (EcoFeedback) are EcoSIM outputs and are not sent in
 
-  const Epetra_Vector& surface_water_source = *(*S_->Get<CompositeVector>(surface_water_source_ecosim_key_, water_tag).ViewComponent("cell", false))(0);
-  const Epetra_Vector& subsurface_water_source = *(*S_->Get<CompositeVector>(subsurface_water_source_ecosim_key_, water_tag).ViewComponent("cell", false))(0);
-  
   auto& snow_depth = *S_->GetW<CompositeVector>(snow_depth_key_,tag_next_,snow_depth_key_).ViewComponent("cell");
-  //auto& canopy_snow = *S_->GetW<CompositeVector>(canopy_snow_key_,tag_next_,canopy_snow_key_).ViewComponent("cell");
+  auto& canopy_snow_in = *S_->GetW<CompositeVector>(canopy_snow_key_,tag_next_,canopy_snow_key_).ViewComponent("cell");
   
-  auto& canopy_longwave_radiation = *S_->GetW<CompositeVector>(canopy_lw_key_, tag_next_, canopy_lw_key_).ViewComponent("cell");
-  auto& canopy_latent_heat = *S_->GetW<CompositeVector>(canopy_latent_heat_key_, tag_next_, canopy_latent_heat_key_).ViewComponent("cell");
-  auto& canopy_sensible_heat = *S_->GetW<CompositeVector>(canopy_sensible_heat_key_, tag_next_, canopy_sensible_heat_key_).ViewComponent("cell");
-  auto& canopy_surface_water = *S_->GetW<CompositeVector>(canopy_surface_water_key_, tag_next_, canopy_surface_water_key_).ViewComponent("cell");
-  auto& transpiration = *S_->GetW<CompositeVector>(transpiration_key_, tag_next_, transpiration_key_).ViewComponent("cell");
-  auto& evaporation_canopy = *S_->GetW<CompositeVector>(evaporation_canopy_key_, tag_next_, evaporation_canopy_key_).ViewComponent("cell");
-  auto& evaporation_ground = *S_->GetW<CompositeVector>(evaporation_ground_key_, tag_next_, evaporation_ground_key_).ViewComponent("cell");
-  auto& evaporation_litter = *S_->GetW<CompositeVector>(evaporation_litter_key_, tag_next_, evaporation_litter_key_).ViewComponent("cell");
-  auto& evaporation_snow = *S_->GetW<CompositeVector>(evaporation_snow_key_, tag_next_, evaporation_snow_key_).ViewComponent("cell");
-  auto& sublimation_snow = *S_->GetW<CompositeVector>(sublimation_snow_key_, tag_next_, sublimation_snow_key_).ViewComponent("cell");
 
   auto col_porosity = Teuchos::rcp(new Epetra_SerialDenseVector(ncells_per_col_));
   auto col_l_sat = Teuchos::rcp(new Epetra_SerialDenseVector(ncells_per_col_));
@@ -1046,14 +1051,11 @@ void EcoSIM::CopyToEcoSIM_process(int proc_rank,
   auto col_dz = Teuchos::rcp(new Epetra_SerialDenseVector(ncells_per_col_));
   auto col_wp = Teuchos::rcp(new Epetra_SerialDenseVector(ncells_per_col_));
   auto col_rf = Teuchos::rcp(new Epetra_SerialDenseVector(ncells_per_col_));
-  auto col_lai = Teuchos::rcp(new Epetra_SerialDenseVector(ncells_per_col_));
-  auto col_sai = Teuchos::rcp(new Epetra_SerialDenseVector(ncells_per_col_));
   auto col_v_type = Teuchos::rcp(new Epetra_SerialDenseVector(ncells_per_col_));
   auto col_ss_energy_source = Teuchos::rcp(new Epetra_SerialDenseVector(ncells_per_col_));
   auto col_ss_water_source = Teuchos::rcp(new Epetra_SerialDenseVector(ncells_per_col_));
   //auto col_depth_c = Teuchos::rcp(new Epetra_SerialDenseVector(ncells_per_col_));
   auto col_cap_pres = Teuchos::rcp(new Epetra_SerialDenseVector(ncells_per_col_));
-  auto col_canopy_snow = Teuchos::rcp(new Epetra_SerialDenseVector(ncells_per_col_));
 
   auto col_mole_fraction = Teuchos::rcp(new Epetra_SerialDenseMatrix(ncells_per_col_,mole_fraction_num));
 
@@ -1062,15 +1064,12 @@ void EcoSIM::CopyToEcoSIM_process(int proc_rank,
   num_columns_local = mesh_surf_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
   num_columns_global_ptype = mesh_surf_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::ALL);
 
-  //Trying to loop over processors now:
   int p_rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &p_rank);
   MPI_Barrier(MPI_COMM_WORLD);
 
   num_columns_local = mesh_surf_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
-  //Now that the arrays are flat we need to be a little more careful about how we load an unload the data
 
-  //Loop over columns on this process
   for (int column=0; column!=num_columns_local; ++column) {
     FieldToColumn_(column,porosity,col_porosity.ptr());
     FieldToColumn_(column,liquid_saturation,col_l_sat.ptr());
@@ -1083,8 +1082,6 @@ void EcoSIM::CopyToEcoSIM_process(int proc_rank,
     //FieldToColumn_(column,bulk_density,col_b_dens.ptr());
     FieldToColumn_(column,plant_wilting_factor,col_wp.ptr());
     FieldToColumn_(column,rooting_depth_fraction,col_rf.ptr());
-    FieldToColumn_(column,subsurface_water_source,col_ss_water_source.ptr());
-    FieldToColumn_(column,subsurface_energy_source,col_ss_energy_source.ptr());
     //setting matric pressure to capillary pressure here
     FieldToColumn_(column,capillary_pressure,col_mat_p.ptr());
     FieldToColumn_(column,temp, col_temp.ptr());
@@ -1107,7 +1104,7 @@ void EcoSIM::CopyToEcoSIM_process(int proc_rank,
 
     double column_area = mesh_->getFaceArea(f);
     //std::cout << "column: " << column << " column_area: " << column_area << std::endl;
-    props.column_area.data[column] = column_area;
+    environment.column_area.data[column] = column_area;
 
     VolDepthDz_(column, col_depth.ptr(), col_dz.ptr(), col_vol.ptr());
     double sum = 0.0;
@@ -1118,95 +1115,79 @@ void EcoSIM::CopyToEcoSIM_process(int proc_rank,
 
     for (int pft = 0; pft != num_pfts; ++pft) {
       const Epetra_Vector& pft_vec = *(*vegetation_type)(pft);
-      const Epetra_Vector& canopy_snow_vec = *(*canopy_snow)(pft);
-      props.plant_functional_type.data[column * ncells_per_col_ + pft] = pft_vec[column];
-      state.canopy_snow.data[column * ncells_per_col_ + pft] = canopy_snow_vec[column];
+      const Epetra_Vector& lai_vec = *(*LAI)(pft);
+      const Epetra_Vector& sai_vec = *(*SAI)(pft);
+
+      environment.plant_functional_type.data[column * ncells_per_col_ + pft] = pft_vec[column];
+      environment.LAI.data[column * ncells_per_col_ + pft] = lai_vec[column];
+      environment.SAI.data[column * ncells_per_col_ + pft] = sai_vec[column];
     }
     
-    /*for (int sl = 0; sl != 5; ++sl) {
-      const Epetra_Vector& canopy_snow_vec = *(*canopy_snow)(sl);
-      state.canopy_snow.data[column * ncells_per_col_ + sl] = canopy_snow_vec[column];
-    }*/
     
     for (int i=0; i < ncells_per_col_; ++i) {
-      state.liquid_density.data[column * ncells_per_col_ + i] = (*col_l_dens)[i];
-      state.rock_density.data[column * ncells_per_col_ + i] = (*col_r_dens)[i];
-      state.porosity.data[column * ncells_per_col_ + i] = (*col_porosity)[i];
-      state.water_content.data[column * ncells_per_col_ + i] = (*col_wc)[i];
-      state.hydraulic_conductivity.data[column * ncells_per_col_ + i] = (*col_h_cond)[i];
-      //state.bulk_density.data[column * ncells_per_col_ + i] = (*col_b_dens)[i];
-      state.subsurface_water_source.data[column * ncells_per_col_ + i] = (*col_ss_water_source)[i];
-      state.subsurface_energy_source.data[column * ncells_per_col_ + i] = (*col_ss_energy_source)[i];
-      state.matric_pressure.data[column * ncells_per_col_ + i] = (*col_mat_p)[i];
-      state.temperature.data[column * ncells_per_col_ + i] = (*col_temp)[i];
-      //state.canopy_snow.data[column * ncells_per_col_ + i] = (*col_canopy_snow)[i];
-      
-      //props.plant_functional_type.data[column * ncells_per_col_ + i] = (*col_v_type)[i];
-      props.plant_wilting_factor.data[column * ncells_per_col_ + i] = (*col_wp)[i];
-      props.rooting_depth_fraction.data[column * ncells_per_col_ + i] = (*col_rf)[i];
-      props.liquid_saturation.data[column * ncells_per_col_ + i] = (*col_l_sat)[i];
-      props.relative_permeability.data[column * ncells_per_col_ + i] = (*col_relative_permeability)[i];
-      props.volume.data[column * ncells_per_col_ + i] = (*col_vol)[i];
-      props.depth.data[column * ncells_per_col_ + i] = (*col_depth)[i];
-      //props.depth_c.data[column * ncells_per_col_ + i] = (*col_depth_c)[i];
-      props.dz.data[column * ncells_per_col_ + i] = (*col_dz)[i];
+      environment.liquid_density.data[column * ncells_per_col_ + i] = (*col_l_dens)[i];
+      environment.rock_density.data[column * ncells_per_col_ + i] = (*col_r_dens)[i];
+      environment.porosity.data[column * ncells_per_col_ + i] = (*col_porosity)[i];
+      environment.water_content.data[column * ncells_per_col_ + i] = (*col_wc)[i];
+      environment.hydraulic_conductivity.data[column * ncells_per_col_ + i] = (*col_h_cond)[i];
+      //environment.bulk_density.data[column * ncells_per_col_ + i] = (*col_b_dens)[i];
+      environment.matric_pressure.data[column * ncells_per_col_ + i] = (*col_mat_p)[i];
+      environment.temperature.data[column * ncells_per_col_ + i] = (*col_temp)[i];
+      //environment.plant_functional_type.data[column * ncells_per_col_ + i] = (*col_v_type)[i];
+      environment.plant_wilting_factor.data[column * ncells_per_col_ + i] = (*col_wp)[i];
+      environment.rooting_depth_fraction.data[column * ncells_per_col_ + i] = (*col_rf)[i];
+      environment.liquid_saturation.data[column * ncells_per_col_ + i] = (*col_l_sat)[i];
+      environment.relative_permeability.data[column * ncells_per_col_ + i] = (*col_relative_permeability)[i];
+      environment.volume.data[column * ncells_per_col_ + i] = (*col_vol)[i];
+      environment.depth.data[column * ncells_per_col_ + i] = (*col_depth)[i];
+      //environment.depth_c.data[column * ncells_per_col_ + i] = (*col_depth_c)[i];
+      environment.dz.data[column * ncells_per_col_ + i] = (*col_dz)[i];
 
       /*if (has_gas) {
-        props.gas_saturation.data[column * ncells_per_col_ + i] = (*col_g_sat)[i];
-        //state.gas_density.data[column][i] = (*col_g_dens)[i];
+        environment.gas_saturation.data[column * ncells_per_col_ + i] = (*col_g_sat)[i];
+        //environment.gas_density.data[column][i] = (*col_g_dens)[i];
       }*/
 
       if (has_ice) {
-        state.ice_density.data[column * ncells_per_col_ + i] = (*col_i_dens)[i];
-        props.ice_saturation.data[column * ncells_per_col_ + i] = (*col_i_sat)[i];
+        environment.ice_density.data[column * ncells_per_col_ + i] = (*col_i_dens)[i];
+        environment.ice_saturation.data[column * ncells_per_col_ + i] = (*col_i_sat)[i];
       }
 
     }
     //fill surface variables
 
-    //state.temperature.data[1] = temp_surf[column];
-    state.surface_energy_source.data[column] = surface_energy_source[column];
-    state.surface_water_source.data[column] = surface_water_source[column];
-    state.snow_depth.data[column] = snow_depth[0][column];
-    state.canopy_longwave_radiation.data[column] = canopy_longwave_radiation[0][column];
-    state.boundary_latent_heat_flux.data[column] = canopy_latent_heat[0][column];
-    state.boundary_sensible_heat_flux.data[column] = canopy_sensible_heat[0][column];
-    state.canopy_surface_water.data[column] = canopy_surface_water[0][column];
-    state.transpiration.data[column] = transpiration[0][column];
-    state.evaporation_canopy.data[column] = evaporation_canopy[0][column];
-    state.evaporation_bare_ground.data[column] = evaporation_ground[0][column];
-    state.evaporation_litter.data[column] = evaporation_litter[0][column];
-    state.evaporation_snow.data[column] = evaporation_snow[0][column];
-    state.sublimation_snow.data[column] = sublimation_snow[0][column];
+    //environment.temperature.data[1] = temp_surf[column];
+    feedback.snow_depth.data[column] = snow_depth[0][column];
+    for (int pft = 0; pft != num_pfts; ++pft) {
+      feedback.canopy_snow.data[column * num_pfts + pft] = canopy_snow_in[pft][column];
+    }
 
-    props.shortwave_radiation.data[column] = shortwave_radiation[column];
-    //props.longwave_radiation.data[column] = longwave_radiation[column];
-    props.air_temperature.data[column] = air_temperature[column];
-    props.vapor_pressure_air.data[column] = vapor_pressure_air[column];
-    props.wind_speed.data[column] = wind_speed[column];
-    props.elevation.data[column] = elevation[column];
-    props.aspect.data[column] = aspect[column];
-    props.slope.data[column] = slope[column];
-    props.LAI.data[column] = LAI[column];
-    props.SAI.data[column] = SAI[column];
-    props.snow_albedo.data[column] = snow_albedo[column];
-    //props.vegetation_type.data[column] = vegetation_type[column];
+    environment.shortwave_radiation.data[column] = shortwave_radiation[column];
+    //environment.longwave_radiation.data[column] = longwave_radiation[column];
+    environment.air_temperature.data[column] = air_temperature[column];
+    environment.vapor_pressure_air.data[column] = vapor_pressure_air[column];
+    environment.wind_speed.data[column] = wind_speed[column];
+    environment.elevation.data[column] = elevation[column];
+    environment.aspect.data[column] = aspect[column];
+    environment.slope.data[column] = slope[column];
+    environment.snow_albedo.data[column] = snow_albedo[column];
+    //environment.vegetation_type.data[column] = vegetation_type[column];
 
     if(p_bool){
-       props.precipitation.data[column] = (*precipitation)[column];
+       environment.precipitation.data[column] = (*precipitation)[column];
    } else {
-       props.precipitation.data[column] = (*precipitation)[column];
-       props.precipitation_snow.data[column] = (*precipitation_snow)[column];
+       environment.precipitation.data[column] = (*precipitation)[column];
+       environment.precipitation_snow.data[column] = (*precipitation_snow)[column];
    }
     
     if(microbe_bool){ 
-      for (int i = 0; i < state.mole_fraction.cells; i++) {
-        for (int k = 0; k < state.mole_fraction.components; k++) {
+      for (int i = 0; i < environment.mole_fraction.cells; i++) {
+        for (int k = 0; k < environment.mole_fraction.components; k++) {
           //Assuming column is being grabbed correctly this should look like:
           //int index = column * ncells_per_col_ * num_components + i
           int index = i + (column * ncells_per_col_) + (k * ncells_per_col_ * num_columns_);
         
-          state.mole_fraction.data[index] = (*col_mole_fraction)(i,k);
+          environment.mole_fraction.data[index] = (*col_mole_fraction)(i,k);
         }
       }
     }
@@ -1215,29 +1196,21 @@ void EcoSIM::CopyToEcoSIM_process(int proc_rank,
 
   //Fill the atmospheric abundances
   //NOTE: probably want to add an if statement here to only do this only once
-  props.atm_n2 = atm_n2_;
-  props.atm_o2 = atm_o2_;
-  props.atm_co2 = atm_co2_;
-  props.atm_ch4 = atm_ch4_;
-  props.atm_n2o = atm_n2o_;
-  props.atm_h2 = atm_h2_;
-  props.atm_nh3 = atm_nh3_;
-  props.heat_capacity = c_m_;
-  props.field_capacity = pressure_at_field_capacity;
-  props.wilting_point = pressure_at_wilting_point;
-  props.p_bool = p_bool;
-  props.a_bool = a_bool;
-  props.pheno_bool = pheno_bool;
-  props.microbe_bool = microbe_bool;
-  props.pft_file = engine_inputfile.data();
+  environment.atm_n2 = atm_n2_;
+  environment.atm_o2 = atm_o2_;
+  environment.atm_co2 = atm_co2_;
+  environment.atm_ch4 = atm_ch4_;
+  environment.atm_n2o = atm_n2o_;
+  environment.atm_h2 = atm_h2_;
+  environment.atm_nh3 = atm_nh3_;
 
+  CopyInternalStateToEcoSIM_(eco_istate_);
 }
 
+// EcoSIM -> ATS, every advance: the feedback and the internal state
 void EcoSIM::CopyFromEcoSIM_process(const int column,
-                                   const BGCProperties& props,
-                                   const BGCState& state,
-                                   const BGCAuxiliaryData& aux_data,
-                                  const Tag& water_tag)
+                                    const EcoFeedback& feedback,
+                                    const Tag& water_tag)
 {
 
   //Transport removal
@@ -1256,28 +1229,16 @@ void EcoSIM::CopyFromEcoSIM_process(const int column,
   auto& rock_density = *(*S_->GetW<CompositeVector>(rock_density_key_, Tags::DEFAULT, rock_density_key_).ViewComponent("cell",false))(0);
   auto& cell_volume = *(*S_->GetW<CompositeVector>(cell_volume_key_, Tags::DEFAULT, cell_volume_key_).ViewComponent("cell",false))(0);
 
-  auto& surface_energy_source = *(*S_->GetW<CompositeVector>(surface_energy_source_ecosim_key_, Tags::DEFAULT, surface_energy_source_ecosim_key_).ViewComponent("cell", false))(0);
-  auto& subsurface_energy_source = *(*S_->GetW<CompositeVector>(subsurface_energy_source_ecosim_key_, Tags::DEFAULT, subsurface_energy_source_ecosim_key_).ViewComponent("cell", false))(0);
+  auto& surface_energy_source = *(*S_->GetW<CompositeVector>(surface_energy_source_ecosim_key_, tag_next_, name_).ViewComponent("cell", false))(0);
+  auto& subsurface_energy_source = *(*S_->GetW<CompositeVector>(subsurface_energy_source_ecosim_key_, tag_next_, name_).ViewComponent("cell", false))(0);
 
-  auto& surface_water_source = *(*S_->GetW<CompositeVector>(surface_water_source_ecosim_key_, Tags::DEFAULT, surface_water_source_ecosim_key_).ViewComponent("cell", false))(0);
-  auto& subsurface_water_source = *(*S_->GetW<CompositeVector>(subsurface_water_source_ecosim_key_, Tags::DEFAULT, subsurface_water_source_ecosim_key_).ViewComponent("cell", false))(0);
+  auto& surface_water_source = *(*S_->GetW<CompositeVector>(surface_water_source_ecosim_key_, tag_next_, name_).ViewComponent("cell", false))(0);
+  auto& subsurface_water_source = *(*S_->GetW<CompositeVector>(subsurface_water_source_ecosim_key_, tag_next_, name_).ViewComponent("cell", false))(0);
   auto& temp = *(*S_->GetW<CompositeVector>(T_key_, Tags::DEFAULT, "subsurface energy").ViewComponent("cell",false))(0);
   auto& thermal_conductivity = *(*S_->GetW<CompositeVector>(thermal_conductivity_key_, Tags::DEFAULT, thermal_conductivity_key_).ViewComponent("cell",false))(0);
   //auto& snow_temperature = *(*S_->GetW<CompositeVector>(snow_temperature_key_, Tags::DEFAULT, snow_temperature_key_).ViewComponent("cell", false))(0);
-  auto& canopy_snow = *S_->GetW<CompositeVector>(canopy_snow_key_, Tags::DEFAULT, canopy_snow_key_).ViewComponent("cell", false);
-  //Teuchos::RCP<const Epetra_MultiVector> canopy_snow = S_->GetW<CompositeVector>(canopy_snow_key_, tag_next_, canopy_snow_key_).ViewComponent("cell", false);
-  
   auto& snow_depth = *S_->GetW<CompositeVector>(snow_depth_key_,tag_next_,snow_depth_key_).ViewComponent("cell");
-  auto& canopy_longwave_radiation = *S_->GetW<CompositeVector>(canopy_lw_key_, tag_next_, canopy_lw_key_).ViewComponent("cell");
-  auto& canopy_latent_heat = *S_->GetW<CompositeVector>(canopy_latent_heat_key_, tag_next_, canopy_latent_heat_key_).ViewComponent("cell");
-  auto& canopy_sensible_heat = *S_->GetW<CompositeVector>(canopy_sensible_heat_key_, tag_next_, canopy_sensible_heat_key_).ViewComponent("cell");
-  auto& canopy_surface_water = *S_->GetW<CompositeVector>(canopy_surface_water_key_, tag_next_, canopy_surface_water_key_).ViewComponent("cell");
-  auto& transpiration = *S_->GetW<CompositeVector>(transpiration_key_, tag_next_, transpiration_key_).ViewComponent("cell");
-  auto& evaporation_canopy = *S_->GetW<CompositeVector>(evaporation_canopy_key_, tag_next_, evaporation_canopy_key_).ViewComponent("cell");
-  auto& evaporation_ground = *S_->GetW<CompositeVector>(evaporation_ground_key_, tag_next_, evaporation_ground_key_).ViewComponent("cell");
-  auto& evaporation_litter = *S_->GetW<CompositeVector>(evaporation_litter_key_, tag_next_, evaporation_litter_key_).ViewComponent("cell");
-  auto& evaporation_snow = *S_->GetW<CompositeVector>(evaporation_snow_key_, tag_next_, evaporation_snow_key_).ViewComponent("cell");
-  auto& sublimation_snow = *S_->GetW<CompositeVector>(sublimation_snow_key_, tag_next_, sublimation_snow_key_).ViewComponent("cell");
+  auto& canopy_snow_out = *S_->GetW<CompositeVector>(canopy_snow_key_,tag_next_,canopy_snow_key_).ViewComponent("cell");
 
   auto col_porosity = Teuchos::rcp(new Epetra_SerialDenseVector(ncells_per_col_));
   auto col_l_sat = Teuchos::rcp(new Epetra_SerialDenseVector(ncells_per_col_));
@@ -1298,8 +1259,7 @@ void EcoSIM::CopyFromEcoSIM_process(const int column,
   auto col_ss_energy_source = Teuchos::rcp(new Epetra_SerialDenseVector(ncells_per_col_));
   auto col_ss_water_source = Teuchos::rcp(new Epetra_SerialDenseVector(ncells_per_col_));
   //auto col_snow_temperature = Teuchos::rcp(new Epetra_SerialDenseVector(ncells_per_col_));
-  auto col_canopy_snow = Teuchos::rcp(new Epetra_SerialDenseVector(ncells_per_col_));
-  
+
   auto col_mole_fraction = Teuchos::rcp(new Epetra_SerialDenseMatrix(mole_fraction_num,ncells_per_col_));
 
   //Gather columns on this process:
@@ -1313,23 +1273,23 @@ void EcoSIM::CopyFromEcoSIM_process(const int column,
   MPI_Barrier(MPI_COMM_WORLD);
 
   for (int col=0; col!=num_columns_local; ++col) {
-    if (std::isnan(state.surface_water_source.data[col]) ||
-        std::isinf(state.surface_water_source.data[col])) {
+    if (std::isnan(feedback.surface_water_source.data[col]) ||
+        std::isinf(feedback.surface_water_source.data[col])) {
         std::cout << "Process " << p_rank << " found bad value at column "
-                  << col << ": " << state.surface_water_source.data[col] << std::endl;
+                  << col << ": " << feedback.surface_water_source.data[col] << std::endl;
     }
   }
 
   num_columns_local = mesh_surf_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
-  double energy_source_tot = state.surface_energy_source.data[0];
-  double water_source_tot = state.surface_water_source.data[0];
-  double snow_depth_cell = state.snow_depth.data[0];
+  double energy_source_tot = feedback.surface_energy_source.data[0];
+  double water_source_tot = feedback.surface_water_source.data[0];
+  double snow_depth_cell = feedback.snow_depth.data[0];
 
   for (int col=0; col!=num_columns_local; ++col) {
     
     /*for (int i=0; i < ncells_per_col_; ++i) {
-      (*col_ss_water_source)[i] = state.subsurface_water_source.data[col * ncells_per_col_ + i];
-      (*col_ss_energy_source)[i] = state.subsurface_energy_source.data[col * ncells_per_col_ + i];
+      (*col_ss_water_source)[i] = feedback.subsurface_water_source.data[col * ncells_per_col_ + i];
+      (*col_ss_energy_source)[i] = feedback.subsurface_energy_source.data[col * ncells_per_col_ + i];
       (*col_snow_temperature)[i] = state.snow_temperature.data[col * ncells_per_col_ + i];
       (*col_canopy_snow)[i] = state.canopy_snow.data[col * ncells_per_col_ + i];
     }
@@ -1339,26 +1299,18 @@ void EcoSIM::CopyFromEcoSIM_process(const int column,
     ColumnToField_(col, snow_temperature, col_snow_temperature.ptr());
     ColumnToField_(col, canopy_snow, col_canopy_snow.ptr());*/
     
-    surface_energy_source[col] = state.surface_energy_source.data[col]/(3600.0);
-    surface_water_source[col] = state.surface_water_source.data[col]/(3600.0);
-    snow_depth[0][col] = state.snow_depth.data[col];
-    canopy_longwave_radiation[0][col] = state.canopy_longwave_radiation.data[col];
-    canopy_latent_heat[0][col] = state.boundary_latent_heat_flux.data[col];
-    canopy_sensible_heat[0][col] = state.boundary_sensible_heat_flux.data[col];
-    //canopy_surface_water[0][col] = state.canopy_surface_water.data[col];
-    transpiration[0][col] = state.transpiration.data[col];
-    evaporation_canopy[0][col] = state.evaporation_canopy.data[col];
-    evaporation_ground[0][col] = state.evaporation_bare_ground.data[col];
-    evaporation_litter[0][col] = state.evaporation_litter.data[col];
-    evaporation_snow[0][col] = state.evaporation_snow.data[col];
-    sublimation_snow[0][col] = state.sublimation_snow.data[col];
-    canopy_surface_water[0][col] = state.canopy_surface_water.data[col];
+    surface_energy_source[col] = feedback.surface_energy_source.data[col]/(3600.0);
+    surface_water_source[col] = feedback.surface_water_source.data[col]/(3600.0);
+    snow_depth[0][col] = feedback.snow_depth.data[col];
+    for (int pft = 0; pft != num_pfts; ++pft) {
+      canopy_snow_out[pft][col] = feedback.canopy_snow.data[col * num_pfts + pft];
+    }
   }
    
   for (int col=0; col!=num_columns_local; ++col) {
     for (int i=0; i < ncells_per_col_; ++i) {
-      (*col_ss_water_source)[i] = state.subsurface_water_source.data[col * ncells_per_col_ + i];
-      //(*col_ss_energy_source)[i] = state.subsurface_energy_source.data[col * ncells_per_col_ + i];
+      (*col_ss_water_source)[i] = feedback.subsurface_water_source.data[col * ncells_per_col_ + i];
+      //(*col_ss_energy_source)[i] = feedback.subsurface_energy_source.data[col * ncells_per_col_ + i];
       //(*col_snow_temperature)[i] = state.snow_temperature.data[col * ncells_per_col_ + i];
       //(*col_canopy_snow)[i] = state.canopy_snow.data[col * ncells_per_col_ + i];
     }
@@ -1367,14 +1319,60 @@ void EcoSIM::CopyFromEcoSIM_process(const int column,
     //ColumnToField_(col, subsurface_energy_source, col_ss_energy_source.ptr());
     //ColumnToField_(col, snow_temperature, col_snow_temperature.ptr());
     //ColumnToField_(col, canopy_snow, col_canopy_snow.ptr());
-    
-    for (int pft = 0; pft != num_pfts; ++pft) {
-      Epetra_Vector& canopy_snow_vec = *canopy_snow(pft);
-      canopy_snow_vec[col] = state.canopy_snow.data[col * ncells_per_col_ + pft];
-    }
-    
+
+
   }
-  
+
+  // EcoSIM gives the subsurface water source as water volume per grid cell
+  // (i.e. per ATS cell) per hour [m^3 h^-1]. Subsurface flow multiplies its
+  // source by cell volume, so it needs [mol m^-3 s^-1]:
+  //   q = S * molar density [mol m^-3] / (3600 [s h^-1] * cell volume [m^3])
+  for (int c = 0; c != subsurface_water_source.MyLength(); ++c) {
+    subsurface_water_source[c] *= liquid_density[c] / (3600.0 * cell_volume[c]);
+  }
+
+  CopyInternalStateFromEcoSIM_(eco_istate_);
+
+  // tell the evaluators that use EcoSIM's sources that they changed
+  for (const auto& key : { surface_energy_source_ecosim_key_, surface_water_source_ecosim_key_,
+                           subsurface_energy_source_ecosim_key_, subsurface_water_source_ecosim_key_ }) {
+    changedEvaluatorPrimary(key, tag_next_, *S_);
+  }
+}
+
+// Copy the EcoSIM internal state from the ATS fields that hold it. All
+// entries are copied; EcoSIM only reads back the PRIVATE ones.
+void EcoSIM::CopyInternalStateToEcoSIM_(EcoInternalState& internal_state)
+{
+  const int n = internal_state.values_per_column;
+  int offset = 0;
+  for (int i = 0; i != internal_state_layout_.size(); ++i) {
+    const auto& field =
+      *S_->Get<CompositeVector>(internal_state_keys_[i], tag_next_).ViewComponent("cell", false);
+    for (int col = 0; col != num_columns_local; ++col) {
+      for (int k = 0; k != internal_state_layout_[i].num_components; ++k) {
+        internal_state.values.data[col * n + offset + k] = field[k][col];
+      }
+    }
+    offset += internal_state_layout_[i].num_components;
+  }
+}
+
+// Copy the EcoSIM internal state into the ATS fields that hold it.
+void EcoSIM::CopyInternalStateFromEcoSIM_(const EcoInternalState& internal_state)
+{
+  const int n = internal_state.values_per_column;
+  int offset = 0;
+  for (int i = 0; i != internal_state_layout_.size(); ++i) {
+    auto& field = *S_->GetW<CompositeVector>(internal_state_keys_[i], tag_next_, internal_state_keys_[i])
+                     .ViewComponent("cell", false);
+    for (int col = 0; col != num_columns_local; ++col) {
+      for (int k = 0; k != internal_state_layout_[i].num_components; ++k) {
+        field[k][col] = internal_state.values.data[col * n + offset + k];
+      }
+    }
+    offset += internal_state_layout_[i].num_components;
+  }
 }
 
 int EcoSIM::InitializeSingleProcess(int proc)
@@ -1386,15 +1384,21 @@ int EcoSIM::InitializeSingleProcess(int proc)
 
   Teuchos::OSTab tab = vo_->getOSTab();
 
-  CopyToEcoSIM_process(proc, bgc_props_, bgc_state_, bgc_aux_data_, Tags::DEFAULT);
+  // C and Fortran must agree on the exchange containers
+  eco_engine_->CheckContainerSizes();
 
-  bgc_sizes_.num_columns = num_columns;
-  bgc_sizes_.ncells_per_col_ = ncells_per_col_;
-  bgc_sizes_.num_components = 1;
-  bgc_sizes_.num_pfts = num_pfts;
+  CopyConfigToEcoSIM_(eco_config_);
+  CopyToEcoSIM_process(proc, eco_env_, eco_feedback_, Tags::DEFAULT);
 
-  bgc_engine_->Setup(bgc_props_, bgc_state_, bgc_sizes_, num_iterations, num_columns,ncells_per_col_);
-  //CopyFromEcoSIM_process(proc, bgc_props_, bgc_state_, bgc_aux_data_, Tags::DEFAULT);
+  eco_sizes_.num_columns = num_columns;
+  eco_sizes_.ncells_per_col_ = ncells_per_col_;
+  eco_sizes_.num_components = 1;
+  eco_sizes_.num_pfts = num_pfts;
+
+  eco_engine_->Setup(eco_config_, eco_env_, eco_feedback_, eco_istate_, eco_sizes_,
+                     num_iterations, num_columns, ncells_per_col_);
+  // EcoSIM's initialized carried state; overwritten by the checkpoint on restart
+  CopyInternalStateFromEcoSIM_(eco_istate_);
   
   return 0;
 }
@@ -1417,8 +1421,8 @@ int EcoSIM::AdvanceSingleProcess(double dt, int proc)
   int current_day = (day0_ + total_days) % 365;
   int current_year = year0_ + ((day0_ + total_days)/365);
 
-  bgc_props_.current_day = current_day;
-  bgc_props_.current_year = current_year;
+  eco_env_.current_day = current_day;
+  eco_env_.current_year = current_year;
 
   Teuchos::OSTab tab = vo_->getOSTab();
 
@@ -1427,24 +1431,26 @@ int EcoSIM::AdvanceSingleProcess(double dt, int proc)
                << ", Year: " << current_year << ", Day: " << current_day << std::endl;
     *vo_->os() << "Running EcoSIM Advance: " << std::endl;
 
-	CopyToEcoSIM_process(proc, bgc_props_, bgc_state_, bgc_aux_data_, Tags::DEFAULT);
+	// the restored internal state must have been written with this EcoSIM layout
+	int saved_version = S_->Get<int>(internal_state_version_key_, tag_next_);
+	if (saved_version != eco_engine_->InternalStateLayoutVersion()) {
+	  Errors::Message msg;
+	  msg << "EcoSIM: internal state was saved with layout version " << saved_version
+	      << " but this EcoSIM uses layout version " << eco_engine_->InternalStateLayoutVersion()
+	      << "; restarting from this checkpoint is not supported.";
+	  Exceptions::amanzi_throw(msg);
+	}
 
-	bgc_engine_->Advance(dt, bgc_props_, bgc_state_, bgc_sizes_, num_iterations, num_columns);
+	CopyToEcoSIM_process(proc, eco_env_, eco_feedback_, Tags::DEFAULT);
 
-    CopyFromEcoSIM_process(proc, bgc_props_, bgc_state_, bgc_aux_data_, Tags::DEFAULT);
+	eco_engine_->Advance(dt, eco_env_, eco_feedback_, eco_istate_, eco_sizes_, num_iterations, num_columns);
+
+    CopyFromEcoSIM_process(proc, eco_feedback_, Tags::DEFAULT);
 
 	last_ecosim_time = current_time_;
   }
 
   return 0;
-}
-
-double** ConvertTo2DArray(BGCMatrixDouble* matrix) {
-    double** data_2d = new double*[matrix->cells];
-    for (int i = 0; i < matrix->cells; ++i) {
-        data_2d[i] = &(matrix->data[i * matrix->capacity_columns]);
-    }
-    return data_2d;
 }
 
 
