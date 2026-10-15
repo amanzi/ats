@@ -150,14 +150,15 @@ DistributedTilesRateEvaluator::Update_(State& S)
 
     for (AmanziMesh::Entity_ID c = 0; c != ncells; ++c) {
       if (sub_marks[0][c] > 0) {
-        int catch_id = static_cast<int>(sub_marks[0][c]);
-        if (catch_id < 1 || catch_id > num_ditches_) {
+        double v = sub_marks[0][c];
+        if (!(v >= 1 && v < num_ditches_ + 1)) {
           Errors::Message msg;
           msg << "DistributedTilesRateEvaluator: \"" << catch_id_key_ << "\" value "
               << sub_marks[0][c] << " in cell " << c << " is outside [1, " << num_ditches_
               << "] (\"number of ditches\").";
           Exceptions::amanzi_throw(msg);
         }
+        int catch_id = static_cast<int>(v);
         if (th_ < 0) {
           const auto& [faces, dirs] = mesh->getCellFacesAndDirections(c);
           double zmax = -1e+98;

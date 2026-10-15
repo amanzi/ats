@@ -76,14 +76,15 @@ SurfDistributedTilesRateEvaluator::Update_(State& S)
   AmanziMesh::Entity_ID ncells = catch_id.MyLength();
   for (AmanziMesh::Entity_ID c = 0; c != ncells; ++c) {
     if ((catch_id[0][c] > 0) && (dt > 1e-14)) {
-      int id = static_cast<int>(catch_id[0][c]);
-      if (id < 1 || id > num_ditches_ || id > (int)acc_sources_vec.size()) {
+      double v = catch_id[0][c];
+      if (v >= 1 && v < num_ditches_ + 1 && v < (int)acc_sources_vec.size() + 1) {
         Errors::Message msg;
         msg << "SurfDistributedTilesRateEvaluator: \"" << catch_id_key_ << "\" value "
             << catch_id[0][c] << " in cell " << c << " is outside [1, " << num_ditches_
             << "] (\"number of ditches\").";
         Exceptions::amanzi_throw(msg);
       }
+      int id = static_cast<int>(v);
       surf_src[0][c] = -acc_sources_vec[id - 1] * catch_frac[0][c] / (cv[0][c] * dt);
     }
   }
