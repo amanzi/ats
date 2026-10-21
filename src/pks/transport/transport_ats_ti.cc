@@ -328,7 +328,7 @@ Transport_ATS::InvertTccNew_(const Epetra_MultiVector& conserve_qty,
         double dissolved_qty = std::min((tcc_max - tcc[i][c]) * water_total, (*solid_qty)[i][c]);
         if (water_new > water_tolerance_ / cv[0][c]) {
           // new water -- dissolve in place
-          tcc[i][c] += dissolved_qty / water_new;
+          tcc[i][c] += dissolved_qty / water_total;
         } // otherwise dissolve into water_sink, advect out, tcc stays 0
 
         (*solid_qty)[i][c] -= dissolved_qty;
