@@ -296,39 +296,61 @@ Transport_ATS::InvertTccNew_(const Epetra_MultiVector& conserve_qty,
     for (int i = 0; i != num_components_; ++i) {
       double tcc_max = tcc_max_[component_names_[i]];
 
-      if (water_new > water_tolerance_ / cv[0][c] && conserve_qty[i][c] > 0) {
-        // there is both water and stuff present at the new time this is stuff
-        // at the new time + stuff leaving through the domain coupling, divided
-        // by water of both
+      // NOTE: conserve_qty may be negative -- for reactive transport, these
+      // are total component concentrations, which are linear combinations of
+      // primary and secondary species and may legitimately be negative.
+      // Otherwise, negative mass is numerical undershoot, and is removed.
+      if (clip_negative_ && conserve_qty[i][c] < 0.) conserve_qty[i][c] = 0.;
+
+      if (water_new > water_tolerance_ / cv[0][c]) {
+        // there is water present at the new time this is stuff at the new
+        // time + stuff leaving through the domain coupling, divided by water
+        // of both
         tcc[i][c] = conserve_qty[i][c] / water_total;
         if (include_current_water_mass) conserve_qty[num_aqueous_][c] = water_total;
 
-        if (solid_qty && tcc_max > 0 && tcc[i][c] > tcc_max) {
-          (*solid_qty)[i][c] += (tcc[i][c] - tcc_max) * water_total;
-          tcc[i][c] = tcc_max;
+        // tcc_max bounds the magnitude of tcc, since total concentrations may
+        // be negative
+        if (solid_qty && tcc_max > 0 && std::abs(tcc[i][c]) > tcc_max) {
+          double tcc_bound = std::copysign(tcc_max, tcc[i][c]);
+          (*solid_qty)[i][c] += (tcc[i][c] - tcc_bound) * water_total;
+          tcc[i][c] = tcc_bound;
         }
 
-      } else if (water_sink > water_tolerance_ / cv[0][c] && conserve_qty[i][c] > 0) {
+      } else if (water_sink > water_tolerance_ / cv[0][c]) {
         // there is water and stuff leaving through the domain coupling, but it
         // all leaves (none at the new time)
         tcc[i][c] = 0.;
       } else {
         // there is no water leaving, and no water at the new time.  Change any
-        // stuff into solid
-        if (solid_qty) (*solid_qty)[i][c] += std::max(conserve_qty[i][c], 0.);
+        // stuff into solid.  Like conserve_qty, the solid residue may be
+        // negative.
+        if (solid_qty) (*solid_qty)[i][c] += conserve_qty[i][c];
         conserve_qty[i][c] = 0.;
         tcc[i][c] = 0.;
       }
 
-      // dissolve solid
-      if (solid_qty &&
+      // dissolve solid -- only when tcc_max is set.  Otherwise there is no
+      // bound on tcc, and residue left behind when the cell dried out stays
+      // solid, since dissolving it into a little returning water could
+      // result in a huge (positive or negative) concentration.
+      if (solid_qty && tcc_max > 0 &&
           water_total > water_tolerance_ / cv[0][c] && // water available for dissolution
-          (*solid_qty)[i][c] > 0. &&                   // solid available to dissolve
-          tcc[i][c] < tcc_max) {
-        double dissolved_qty = std::min((tcc_max - tcc[i][c]) * water_total, (*solid_qty)[i][c]);
+          (*solid_qty)[i][c] != 0.) {                  // solid available to dissolve
+        // dissolve only until |tcc| reaches tcc_max
+        double dissolved_qty;
+        if ((*solid_qty)[i][c] > 0.) {
+          dissolved_qty = std::min(std::max((tcc_max - tcc[i][c]) * water_total, 0.),
+                                   (*solid_qty)[i][c]);
+        } else {
+          dissolved_qty = std::max(std::min((-tcc_max - tcc[i][c]) * water_total, 0.),
+                                   (*solid_qty)[i][c]);
+        }
         if (water_new > water_tolerance_ / cv[0][c]) {
-          // new water -- dissolve in place
-          tcc[i][c] += dissolved_qty / water_new;
+          // new water -- dissolve in place, into both the new water and the
+          // water leaving through the domain coupling, consistent with tcc =
+          // conserve_qty / water_total above
+          tcc[i][c] += dissolved_qty / water_total;
         } // otherwise dissolve into water_sink, advect out, tcc stays 0
 
         (*solid_qty)[i][c] -= dissolved_qty;

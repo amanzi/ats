@@ -104,6 +104,7 @@ SedimentTransport_PK::parseParameterList()
   // other parameters
   // -- a small amount of water, used to define when we are going to completely dry out a grid cell
   water_tolerance_ = plist_->get<double>("water tolerance [mol H2O / m^d]", 1e-6);
+  clip_negative_ = plist_->get<bool>("clip negative concentrations", true);
 
   // global transport parameters
   cfl_ = plist_->get<double>("cfl", 1.0);
