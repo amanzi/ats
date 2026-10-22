@@ -31,7 +31,7 @@ def parse_logfile(fid, wallclock=False):
     # find number of "cycles"
     total_cycles = 0
     for i, line in enumerate(fid):
-        if "Cycle =" in line:
+        if "Cycle =" in line and "ELM Cycle" not in line:
             # try:
                 cyc, time, dt = parse_line(line)
             # except:
