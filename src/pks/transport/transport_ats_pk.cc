@@ -159,6 +159,9 @@ Transport_ATS::parseParameterList()
   // other parameters
   // -- a small amount of water, used to define when we are going to completely dry out a grid cell
   water_tolerance_ = plist_->get<double>("water tolerance [mol H2O / m^d]", 1e-6);
+  // -- with chemistry, components are total concentrations, which may be negative
+  clip_negative_ =
+    plist_->get<bool>("clip negative concentrations", chem_engine_ == Teuchos::null);
 
   // global transport parameters
   cfl_ = plist_->get<double>("cfl", 1.0);

@@ -66,6 +66,19 @@ evaluator`".
 
    * `"source terms`" ``[transport-source-spec-list]`` Provides solute source.
 
+   * `"component maximum concentration [mol C / mol H2O]`" ``[list]``
+     **optional** Maximum concentration by component name.  If provided,
+     :math:`|C|` is bounded by this value, and mass beyond it is stored as
+     solid residue, which dissolves back as long as :math:`|C|` stays within
+     the bound.  If not provided, concentration is unbounded and residue left
+     behind when a cell dries out stays solid.
+
+   * `"clip negative concentrations`" ``[bool]`` **true, or false if coupled
+     to a geochemical engine** If true, negative component mass (e.g. from
+     numerical undershoot) is removed.  Note that when coupled to chemistry,
+     components are total concentrations, which may legitimately be
+     negative.
+
    Math and solver algorithm options:
 
    * `"diffusion`" ``[pde-diffusion-typedinline-spec]`` Diffusion drives the
@@ -335,6 +348,7 @@ class Transport_ATS : public PK_Physical_Default {
   ParameterMap molec_diff_; // molecular diffusivity by component [m^2 s^-1]
   ParameterMap tortuosity_; // phase-based tortuosity [-]
   double water_tolerance_;  // mol H2O / m^d (d = 2 for surface, d = 3 for subsurface)
+  bool clip_negative_;      // remove negative component mass
 
 #ifdef ALQUIMIA_ENABLED
   Teuchos::RCP<AmanziChemistry::Alquimia_PK> chem_pk_;
