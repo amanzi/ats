@@ -289,6 +289,7 @@ void AllocateEcoEnvironment(EcoEnvironment* env, int ncells_per_col_, int num_co
   AllocateEcoVectorDouble(ncol, &(env->slope));
   AllocateEcoVectorDouble(ncol, &(env->vegetation_type));
   AllocateEcoVectorDouble(ncol, &(env->snow_albedo));
+  AllocateEcoVectorDouble(ncol, &(env->surface_temperature));
 }
 
 void FreeEcoEnvironment(EcoEnvironment* env) {
@@ -330,6 +331,7 @@ void FreeEcoEnvironment(EcoEnvironment* env) {
     FreeEcoMatrixDouble(&(env->SAI));
     FreeEcoVectorDouble(&(env->vegetation_type));
     FreeEcoVectorDouble(&(env->snow_albedo));
+    FreeEcoVectorDouble(&(env->surface_temperature));
   }
 }
 

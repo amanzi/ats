@@ -108,7 +108,9 @@ EcoSIM::EcoSIM(Teuchos::ParameterList& pk_tree,
     //bulk_density_key_ = Keys::readKey(*plist_, domain_, "bulk density", "bulk_density");
 
     //Surface balance items
-    T_surf_key_ = Keys::readKey(*plist_, domain_surface_, "temperature", "temperature");
+    // distinct basename: readKey stores "<basename> key" in plist_, so reusing
+    // "temperature" would return the subsurface key set for T_key_ above
+    T_surf_key_ = Keys::readKey(*plist_, domain_surface_, "surface temperature", "temperature");
     sw_key_ =
       Keys::readKey(*plist_, domain_surface_, "incoming shortwave radiation", "incoming_shortwave_radiation");
     sw_incident_key_ =
@@ -1000,7 +1002,7 @@ void EcoSIM::CopyToEcoSIM_process(int proc_rank,
   const Epetra_Vector& temp_surf = *(*S_->Get<CompositeVector>(T_surf_key_, water_tag).ViewComponent("cell", false))(0);
   const Epetra_Vector& shortwave_radiation = *(*S_->Get<CompositeVector>(sw_key_, water_tag).ViewComponent("cell", false))(0);
   const Epetra_Vector& shortwave_incident_radiation = *(*S_->Get<CompositeVector>(sw_incident_key_, water_tag).ViewComponent("cell", false))(0);
-  //const Epetra_Vector& longwave_radiation = *(*S_->Get<CompositeVector>(lw_key_, water_tag).ViewComponent("cell", false))(0);
+  const Epetra_Vector& longwave_radiation = *(*S_->Get<CompositeVector>(lw_key_, water_tag).ViewComponent("cell", false))(0);
   const Epetra_Vector& air_temperature = *(*S_->Get<CompositeVector>(air_temp_key_, water_tag).ViewComponent("cell", false))(0);
   const Epetra_Vector& vapor_pressure_air = *(*S_->Get<CompositeVector>(vp_air_key_, water_tag).ViewComponent("cell", false))(0);
   const Epetra_Vector& wind_speed= *(*S_->Get<CompositeVector>(wind_speed_key_, water_tag).ViewComponent("cell", false))(0);
@@ -1133,6 +1135,7 @@ void EcoSIM::CopyToEcoSIM_process(int proc_rank,
       //environment.bulk_density.data[column * ncells_per_col_ + i] = (*col_b_dens)[i];
       environment.matric_pressure.data[column * ncells_per_col_ + i] = (*col_mat_p)[i];
       environment.temperature.data[column * ncells_per_col_ + i] = (*col_temp)[i];
+      environment.thermal_conductivity.data[column * ncells_per_col_ + i] = (*col_cond)[i];
       //environment.plant_functional_type.data[column * ncells_per_col_ + i] = (*col_v_type)[i];
       environment.plant_wilting_factor.data[column * ncells_per_col_ + i] = (*col_wp)[i];
       environment.rooting_depth_fraction.data[column * ncells_per_col_ + i] = (*col_rf)[i];
@@ -1156,14 +1159,14 @@ void EcoSIM::CopyToEcoSIM_process(int proc_rank,
     }
     //fill surface variables
 
-    //environment.temperature.data[1] = temp_surf[column];
+    environment.surface_temperature.data[column] = temp_surf[column];
     feedback.snow_depth.data[column] = snow_depth[0][column];
     for (int pft = 0; pft != num_pfts; ++pft) {
       feedback.canopy_snow.data[column * num_pfts + pft] = canopy_snow_in[pft][column];
     }
 
     environment.shortwave_radiation.data[column] = shortwave_radiation[column];
-    //environment.longwave_radiation.data[column] = longwave_radiation[column];
+    environment.longwave_radiation.data[column] = longwave_radiation[column];
     environment.air_temperature.data[column] = air_temperature[column];
     environment.vapor_pressure_air.data[column] = vapor_pressure_air[column];
     environment.wind_speed.data[column] = wind_speed[column];

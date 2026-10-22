@@ -144,7 +144,7 @@ extern "C" {
     /* per column: num_columns */
     EcoVectorDouble column_area;
     EcoVectorDouble shortwave_radiation;
-    EcoVectorDouble longwave_radiation;     /* not filled */
+    EcoVectorDouble longwave_radiation;     
     EcoVectorDouble air_temperature;
     EcoVectorDouble vapor_pressure_air;
     EcoVectorDouble wind_speed;
@@ -155,6 +155,7 @@ extern "C" {
     EcoVectorDouble slope;
     EcoVectorDouble vegetation_type;        /* not filled */
     EcoVectorDouble snow_albedo;
+    EcoVectorDouble surface_temperature;    /* surface-temperature [K] */
     /* atmosphere composition (not initialized by the PK) */
     double atm_n2;
     double atm_o2;
