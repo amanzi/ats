@@ -14,8 +14,10 @@
   --------------------------------------------------------------------------*/
 
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 #include <set>
+#include <sstream>
 #include <string>
 
 // TPLs
@@ -37,6 +39,7 @@
 // #include "hydraulic_conductivity_evaluator.hh"
 
 #include "PK_Helpers.hh"
+#include "Reader.hh"
 #include "EcoSIM_ATS_interface.hh"
 
 namespace Amanzi {
@@ -166,8 +169,14 @@ EcoSIM::EcoSIM(Teuchos::ParameterList& pk_tree,
     //Parameters for times and time of year
     dt_ = plist_->get<double>("initial time step");
     c_m_ = plist_->get<double>("heat capacity [MJ mol^-1 K^-1]");
-    day0_ = plist_->get<int>("starting day of year [0-364]");
-    year0_ = plist_->get<int>("starting year");
+    // site and calendar: each a value, a {"file", "header"} sublist, or a default
+    year0_ = static_cast<int>(ReadSiteParameter_("starting year", "start year", nullptr));
+    day0_ = static_cast<int>(
+      ReadSiteParameter_("starting day of year [0-364]", "start day of year [0-364]", nullptr));
+    const double default_hour = 0.0, default_latitude = 40.0, default_solar_noon = 12.0;
+    hour0_ = ReadSiteParameter_("starting hour [h]", "start hour [h]", &default_hour);
+    latitude_ = ReadSiteParameter_("latitude [degrees]", "latitude [deg]", &default_latitude);
+    solar_noon_ = ReadSiteParameter_("solar noon [h]", "solar noon [h]", &default_solar_noon);
 
     curr_day_ = day0_;
     curr_year_ = year0_;
@@ -952,11 +961,59 @@ void EcoSIM::VolDepthDz_(AmanziMesh::Entity_ID column,
 }
 
 // ATS -> EcoSIM, once at setup: run parameters and flags
+double EcoSIM::ReadSiteParameter_(const std::string& name, const std::string& header,
+                                  const double* default_value)
+{
+  double value;
+  std::string source;
+  if (plist_->isSublist(name)) {
+    Teuchos::ParameterList& sub = plist_->sublist(name);
+    std::string filename = sub.get<std::string>("file");
+    std::string dataset = sub.get<std::string>("header", header);
+    Teuchos::Array<double> v;
+    try {
+      createReader(filename)->read(dataset, v);
+    } catch (const std::exception& e) {
+      // thrown while the PK is constructed, where it is not reported: say what failed
+      Errors::Message msg;
+      msg << "EcoSIM: \"" << name << "\": cannot read dataset \"" << dataset << "\" from \""
+          << filename << "\": " << e.what();
+      std::cerr << msg.what() << std::endl;
+      Exceptions::amanzi_throw(msg);
+    }
+    if (v.size() != 1) {
+      Errors::Message msg;
+      msg << "EcoSIM: \"" << name << "\": dataset \"" << dataset << "\" in \"" << filename
+          << "\" must have one value, it has " << static_cast<int>(v.size());
+      Exceptions::amanzi_throw(msg);
+    }
+    value = v[0];
+    source = "file " + filename + ", dataset \"" + dataset + "\"";
+  } else if (plist_->isParameter(name)) {
+    value = plist_->isType<int>(name) ? plist_->get<int>(name) : plist_->get<double>(name);
+    source = "input";
+  } else if (default_value) {
+    value = *default_value;
+    source = "default";
+  } else {
+    Errors::Message msg;
+    msg << "EcoSIM: parameter \"" << name << "\" is required (a value, or a sublist with "
+        << "\"file\" and \"header\")";
+    Exceptions::amanzi_throw(msg);
+  }
+  std::stringstream line;
+  line << "  " << name << " = " << value << " (" << source << ")\n";
+  site_log_ += line.str();
+  return value;
+}
+
 void EcoSIM::CopyConfigToEcoSIM_(EcoConfig& config)
 {
   config.heat_capacity = c_m_;
   config.field_capacity = pressure_at_field_capacity;
   config.wilting_point = pressure_at_wilting_point;
+  config.latitude = latitude_;
+  config.solar_noon = solar_noon_;
   config.p_bool = p_bool;
   config.a_bool = a_bool;
   config.pheno_bool = pheno_bool;
@@ -1390,6 +1447,7 @@ int EcoSIM::InitializeSingleProcess(int proc)
   // C and Fortran must agree on the exchange containers
   eco_engine_->CheckContainerSizes();
 
+  *vo_->os() << "EcoSIM site and calendar:\n" << site_log_;
   CopyConfigToEcoSIM_(eco_config_);
   CopyToEcoSIM_process(proc, eco_env_, eco_feedback_, Tags::DEFAULT);
 
@@ -1420,18 +1478,23 @@ int EcoSIM::AdvanceSingleProcess(double dt, int proc)
   // Time tracking variables
   current_time_ = S_->get_time();        //Current time
   static double last_ecosim_time = 0.0;
-  int total_days = static_cast<int>(current_time_ / 86400.0);
+  // clock: time 0 is the starting year, day and hour (365-day calendar)
+  double t_clock = current_time_ + hour0_ * 3600.0;
+  int total_days = static_cast<int>(t_clock / 86400.0);
   int current_day = (day0_ + total_days) % 365;
   int current_year = year0_ + ((day0_ + total_days)/365);
+  int current_hour = static_cast<int>(std::fmod(t_clock, 86400.0) / 3600.0);
 
   eco_env_.current_day = current_day;
   eco_env_.current_year = current_year;
+  eco_env_.current_hour = current_hour;
 
   Teuchos::OSTab tab = vo_->getOSTab();
 
   if (current_time_ - last_ecosim_time >= 3600.0) {
     *vo_->os() << "Hour completed at total_time: " << current_time_
-               << ", Year: " << current_year << ", Day: " << current_day << std::endl;
+               << ", Year: " << current_year << ", Day: " << current_day
+               << ", Hour: " << current_hour << std::endl;
     *vo_->os() << "Running EcoSIM Advance: " << std::endl;
 
 	// the restored internal state must have been written with this EcoSIM layout

@@ -70,10 +70,31 @@ Structures for looping over cells of columns were adapted from ATS's simpleBGC c
       Access and transfer the mole fraction to EcoSIM so ATS-EcoSIM can be used with ATS transport
       PKs enabled. This will further allow EcoSIM to run it's microbe models and root nutrient uptake 
 
-   * `"starting day of year [0-364]`" ``[int]`` day of the year, needed for EcoSIMs internal
-     radiation and biogeochemical processes.
+   SITE AND CALENDAR. Time 0 of the forcing must be the starting year, day and
+   hour at this site; EcoSIM computes the sun from them every hour. Each of the
+   parameters below is given either as a value, or as a sublist read from a
+   file with the ATS reader (.h5 or .nc, one-element dataset), e.g.
 
-   * `"Starting year`" ``[int]`` Year also needed for internal EcoSIM computations
+     <ParameterList name="latitude [degrees]">
+       <Parameter name="file" type="string" value="../data/daymet_hourly.h5"/>
+       <Parameter name="header" type="string" value="latitude [deg]"/>
+     </ParameterList>
+
+   ("header" defaults to the dataset name written by
+   tools/utils/daymet_to_ats_ecosim.py, given in parentheses below).
+
+   * `"starting year`" ``[int]`` (`start year`) required.
+
+   * `"starting day of year [0-364]`" ``[int]`` (`start day of year [0-364]`)
+     required; day 0 = 1 January (365-day calendar).
+
+   * `"starting hour [h]`" ``[double]`` **0** (`start hour [h]`) hour of the day
+     at time 0.
+
+   * `"latitude [degrees]`" ``[double]`` **40** (`latitude [deg]`).
+
+   * `"solar noon [h]`" ``[double]`` **12** (`solar noon [h]`) hour of solar
+     noon in the forcing's clock; 12 for local solar time.
 
     * `"Number of PFTs [1-5] "`" ``[int]`` **1** Number of PFTs allowed in every column. 5
      is the maximum number allowed
@@ -94,6 +115,8 @@ Structures for looping over cells of columns were adapted from ATS's simpleBGC c
 
    DEPENDENCIES
    //Sources
+   Sign: positive = water or energy added to the ATS domain (e.g. root uptake
+   and evaporation are negative).
    `"surface water source ecosim`"     **surface-ecosim_water_source**   [m s^-1]
    `"surface energy source ecosim`"    **surface-ecosim_source**
    `"subsurface water source ecosim`"  **subsurface_ecosim_water_source**   [mol m^-3 s^-1]
@@ -126,6 +149,13 @@ Structures for looping over cells of columns were adapted from ATS's simpleBGC c
    OUTPUT entries are visualized and not checkpointed. A checkpoint records the
    layout version, and restarting with a different layout is an error.
 
+   Water vapor OUTPUT entries (transpiration, evaporation_*, sublimation_snow)
+   use EcoSIM's air -> surface sign: negative = water leaving to the air,
+   positive = condensation/deposition. They are separate terms;
+   evaporation_ground is the top soil layer only and does not include snow
+   evaporation or sublimation (standalone EcoSIM's EVAPGrnd_col is ground +
+   snow).
+
    ATS field                                  EcoSIM variable       comps   units        role
    surface-snow_layer_dry_swe                 VLDrySnoWE_snvr       JS      m3 d-2       private
    surface-snow_layer_liquid                  VLWatSnow_snvr        JS      m3 d-2       private
@@ -142,10 +172,18 @@ Structures for looping over cells of columns were adapted from ATS's simpleBGC c
    surface-litter_temperature                 TKS_vr(0)             1       K            private
    surface-litter_heat_capacity               VHeatCapacity_vr(0)   1       MJ m-3 K-1   private
    surface-canopy_water_pft                   WatHeldOnCanopy_pft   npft    m3 d-2       private
+   surface-plant_state_initialized            a_PlantInit           1       -            private
+   surface-canopy_water_potential             PSICanopy_pft         npft    MPa          private
+   surface-plant_water                        CanopyBiomWater_pft   npft    m3 d-2       private
+   surface-canopy_temperature                 TKC_pft               npft    K            private
+   surface-canopy_temperature_start           TKCanopy_pft          npft    K            private
+   surface-canopy_heat_storage                ENGYX_pft             npft    MJ d-2       private
+   surface-canopy_temperature_change          DeltaTKC_pft          npft    K            private
    surface-canopy_longwave_radiation          LWRadCanGPrev_col     1       MJ h-1       private (*)
    surface-canopy_latent_heat                 TLEX_col              1       MJ m-1       private (*)
    surface-canopy_sensible_heat               TSHX_col              1       MJ m-1       private (*)
    surface-transpiration                      a_Transpiration       1       m3 d-2 h-1   output
+   surface-transpiration_pft                  Transpiration_pft     npft    m3 d-2 h-1   output
    surface-evaporation_canopy                 a_EvapCan             1       m2 d-2 h-1   output
    surface-evaporation_ground                 a_EvapGrnd            1       unannotated  output
    surface-evaporation_litter                 a_EvapLitr            1       unannotated  output
@@ -154,6 +192,8 @@ Structures for looping over cells of columns were adapted from ATS's simpleBGC c
    surface-canopy_surface_water               WatHeldOnCanopy_col   1       m3 d-2       output
 
    JS is EcoSIM's number of snow layers (5); npft = min("number of pfts", 5).
+   Canopy snow (SnowOnCanopy_pft) is not an entry here: it is exchanged through
+   EcoFeedback.canopy_snow (surface-canopy_snow, "canopy snow" above).
 
    (*) EcoSIM carry-over values, NOT fluxes for ATS to use, despite their names.
        EcoSIM saves them at the end of each step and reads them at the start of
@@ -270,6 +310,9 @@ class EcoSIM : public PK_Physical_Default {
 
    // ATS -> EcoSIM, once at setup
    void CopyConfigToEcoSIM_(EcoConfig& config);
+   // site/calendar parameter: a value, a {"file", "header"} sublist, or the default
+   double ReadSiteParameter_(const std::string& name, const std::string& header,
+                             const double* default_value);
 
    // ATS -> EcoSIM, at setup and every advance: the environment, snow depth
    // (feedback), and the internal state
@@ -341,6 +384,10 @@ class EcoSIM : public PK_Physical_Default {
   int num_columns_global;
   int num_columns_global_ptype;
   int day0_, year0_, curr_day_, curr_year_;
+  double hour0_;          // starting hour of the day [h]
+  double latitude_;       // site latitude [degrees]
+  double solar_noon_;     // hour of solar noon [h]
+  std::string site_log_;  // site/calendar values and their sources, printed at setup
   double saved_time_;
   double current_time_;
   double t_ecosim = 0.0;

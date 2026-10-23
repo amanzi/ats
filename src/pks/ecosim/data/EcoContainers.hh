@@ -107,6 +107,8 @@ extern "C" {
     double heat_capacity;   /* [MJ mol^-1 K^-1] */
     double field_capacity;  /* pressure at field capacity [MPa] */
     double wilting_point;   /* pressure at wilting point [MPa] */
+    double latitude;        /* site latitude [degrees] */
+    double solar_noon;      /* hour of solar noon in the forcing's clock [h] */
     bool p_bool;            /* EcoSIM precipitation (total, partitioned by EcoSIM) */
     bool a_bool;            /* prescribe snow albedo */
     bool pheno_bool;        /* prescribe phenology */
@@ -167,6 +169,7 @@ extern "C" {
     /* clock (set before every advance) */
     int current_day;
     int current_year;
+    int current_hour;        /* hour of the day [0-23] starting at the current time */
   } EcoEnvironment;
 
   /* EcoSIM -> ATS, every advance */
