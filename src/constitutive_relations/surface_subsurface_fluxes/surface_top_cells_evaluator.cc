@@ -68,10 +68,15 @@ SurfaceTopCellsEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
   auto domain_name = Keys::getDomain(my_keys_.front().first);
 
-  CompositeVectorSpace fac;
-  fac.SetMesh(S.GetMesh(domain_name)->getParentMesh())
+  CompositeVectorSpace dep_fac;
+  dep_fac.SetMesh(S.GetMesh(domain_name)->getParentMesh())
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  EvaluatorSecondaryMonotypeCV::EnsureCompatibility_ToDeps_(S, fac);
+  EvaluatorSecondaryMonotypeCV::EnsureCompatibility_ToDeps_(S, dep_fac);
+
+  S.Require<CompositeVector, CompositeVectorSpace>(my_keys_.front().first,
+                                                   my_keys_.front().second)
+    .SetMesh(S.GetMesh(domain_name))
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 }
 
 

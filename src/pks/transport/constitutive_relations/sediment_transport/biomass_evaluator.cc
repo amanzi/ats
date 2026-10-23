@@ -11,6 +11,11 @@
 
 */
 
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "errors.hh"
 #include "biomass_evaluator.hh"
 #include "Teuchos_ParameterList.hpp"
 
@@ -67,6 +72,25 @@ BiomassEvaluator::InitializeFromPlist_()
   zmax = plist_.get<Teuchos::Array<double>>("zmax").toVector();
   zmin = plist_.get<Teuchos::Array<double>>("zmin").toVector();
 
+  if (nspecies_ < 1) {
+    Errors::Message msg;
+    msg << "BiomassEvaluator: \"number of vegetation species\" must be positive, got "
+        << nspecies_;
+    Exceptions::amanzi_throw(msg);
+  }
+  for (const auto& [name, arr] : std::vector<std::pair<std::string, const std::vector<double>*>>{
+         { "alpha n", &alpha_n }, { "alpha h", &alpha_h }, { "alpha a", &alpha_a },
+         { "alpha d", &alpha_d }, { "beta n", &beta_n },   { "beta h", &beta_h },
+         { "beta a", &beta_a },   { "beta d", &beta_d },   { "Bmax", &Bmax },
+         { "zmax", &zmax },       { "zmin", &zmin } }) {
+    if ((int)arr->size() < nspecies_) {
+      Errors::Message msg;
+      msg << "BiomassEvaluator: \"" << name << "\" has " << arr->size()
+          << " entries, but \"number of vegetation species\" is " << nspecies_;
+      Exceptions::amanzi_throw(msg);
+    }
+  }
+
   elev_key_ = Keys::readKey(plist_, domain_name, "elevation", "elevation");
   dependencies_.insert(KeyTag{ elev_key_, tag });
 
@@ -91,6 +115,15 @@ BiomassEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>&
     *S.GetPtr<CompositeVector>(msl_key_, tag)->ViewComponent("cell", false);
 
   int ncells = biomass.MyLength();
+
+  for (const auto* res : { &biomass, &stem_density, &stem_height, &stem_diameter, &plant_area }) {
+    if (res->NumVectors() < nspecies_) {
+      Errors::Message msg;
+      msg << "BiomassEvaluator: result vectors have " << res->NumVectors()
+          << " dofs, but \"number of vegetation species\" is " << nspecies_;
+      Exceptions::amanzi_throw(msg);
+    }
+  }
 
   for (int n = 0; n < nspecies_; n++) {
     AMANZI_ASSERT((zmax[n] - zmin[n]) > 1e-6);

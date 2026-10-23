@@ -5,11 +5,6 @@
   provided in the top-level COPYRIGHT file.
 
   Authors: Daniil Svyatsky (dasvyat@lanl.gov)
-
-/*
-
-  Determining input organic matter into sediment transport
-
 */
 
 #include "organic_matter_evaluator.hh"
