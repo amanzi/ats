@@ -25,8 +25,9 @@ EXCHANGE CONTAINERS
                      prescribed vegetation, atmosphere composition, clock.
                      Owned by ATS, never read back.
    EcoFeedback       EcoSIM -> ATS, every advance: surface and subsurface water
-                     and energy sources, snow depth. Snow depth is also sent in
-                     (EcoSIM's snow state); the incoming sources are unused.
+                     and energy sources, snow depth, canopy snow. Snow depth and
+                     canopy snow are also sent in (EcoSIM's snow state); the
+                     incoming sources are unused.
    EcoInternalState  EcoSIM-private state (see ECOSIM INTERNAL STATE below).
    EcoSizes          cells per column, columns, components, PFTs.
 
@@ -136,6 +137,7 @@ Structures for looping over cells of columns were adapted from ATS's simpleBGC c
    `"LAI`"                               **surface-LAI**
    `"SAI`"                               **surface-SAI**
    `"vegetation type`"                   **surface-vegetation_type**
+   `"canopy snow`"                       **surface-canopy_snow**
 
    ECOSIM INTERNAL STATE
 
@@ -170,7 +172,6 @@ Structures for looping over cells of columns were adapted from ATS's simpleBGC c
    surface-litter_temperature                 TKS_vr(0)             1       K            private
    surface-litter_heat_capacity               VHeatCapacity_vr(0)   1       MJ m-3 K-1   private
    surface-canopy_water_pft                   WatHeldOnCanopy_pft   npft    m3 d-2       private
-   surface-canopy_snow                        SnowOnCanopy_pft      npft    m3 d-2       private
    surface-plant_state_initialized            a_PlantInit           1       -            private
    surface-canopy_water_potential             PSICanopy_pft         npft    MPa          private
    surface-plant_water                        CanopyBiomWater_pft   npft    m3 d-2       private
@@ -182,6 +183,7 @@ Structures for looping over cells of columns were adapted from ATS's simpleBGC c
    surface-canopy_latent_heat                 TLEX_col              1       MJ m-1       private (*)
    surface-canopy_sensible_heat               TSHX_col              1       MJ m-1       private (*)
    surface-transpiration                      a_Transpiration       1       m3 d-2 h-1   output
+   surface-transpiration_pft                  Transpiration_pft     npft    m3 d-2 h-1   output
    surface-evaporation_canopy                 a_EvapCan             1       m2 d-2 h-1   output
    surface-evaporation_ground                 a_EvapGrnd            1       unannotated  output
    surface-evaporation_litter                 a_EvapLitr            1       unannotated  output
@@ -190,6 +192,8 @@ Structures for looping over cells of columns were adapted from ATS's simpleBGC c
    surface-canopy_surface_water               WatHeldOnCanopy_col   1       m3 d-2       output
 
    JS is EcoSIM's number of snow layers (5); npft = min("number of pfts", 5).
+   Canopy snow (SnowOnCanopy_pft) is not an entry here: it is exchanged through
+   EcoFeedback.canopy_snow (surface-canopy_snow, "canopy snow" above).
 
    (*) EcoSIM carry-over values, NOT fluxes for ATS to use, despite their names.
        EcoSIM saves them at the end of each step and reads them at the start of
@@ -438,6 +442,7 @@ class EcoSIM : public PK_Physical_Default {
   Key snow_depth_key_;
   Key snow_albedo_key_;
   Key snow_temperature_key_;
+  Key canopy_snow_key_;
   Key cap_pres_key_;
   Key T_surf_key_;
 

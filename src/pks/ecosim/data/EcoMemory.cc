@@ -273,6 +273,8 @@ void AllocateEcoEnvironment(EcoEnvironment* env, int ncells_per_col_, int num_co
   AllocateEcoMatrixDouble(nc, ncol, &(env->plant_wilting_factor));
   AllocateEcoMatrixDouble(nc, ncol, &(env->rooting_depth_fraction));
   AllocateEcoMatrixDouble(nc, ncol, &(env->plant_functional_type));
+  AllocateEcoMatrixDouble(nc, ncol, &(env->LAI));
+  AllocateEcoMatrixDouble(nc, ncol, &(env->SAI));
   AllocateEcoTensorDouble(nc, ncol, num_components, &(env->mole_fraction));
   AllocateEcoVectorDouble(ncol, &(env->column_area));
   AllocateEcoVectorDouble(ncol, &(env->shortwave_radiation));
@@ -285,10 +287,9 @@ void AllocateEcoEnvironment(EcoEnvironment* env, int ncells_per_col_, int num_co
   AllocateEcoVectorDouble(ncol, &(env->elevation));
   AllocateEcoVectorDouble(ncol, &(env->aspect));
   AllocateEcoVectorDouble(ncol, &(env->slope));
-  AllocateEcoVectorDouble(ncol, &(env->LAI));
-  AllocateEcoVectorDouble(ncol, &(env->SAI));
   AllocateEcoVectorDouble(ncol, &(env->vegetation_type));
   AllocateEcoVectorDouble(ncol, &(env->snow_albedo));
+  AllocateEcoVectorDouble(ncol, &(env->surface_temperature));
 }
 
 void FreeEcoEnvironment(EcoEnvironment* env) {
@@ -326,10 +327,11 @@ void FreeEcoEnvironment(EcoEnvironment* env) {
     FreeEcoVectorDouble(&(env->elevation));
     FreeEcoVectorDouble(&(env->aspect));
     FreeEcoVectorDouble(&(env->slope));
-    FreeEcoVectorDouble(&(env->LAI));
-    FreeEcoVectorDouble(&(env->SAI));
+    FreeEcoMatrixDouble(&(env->LAI));
+    FreeEcoMatrixDouble(&(env->SAI));
     FreeEcoVectorDouble(&(env->vegetation_type));
     FreeEcoVectorDouble(&(env->snow_albedo));
+    FreeEcoVectorDouble(&(env->surface_temperature));
   }
 }
 
@@ -338,12 +340,13 @@ void FreeEcoEnvironment(EcoEnvironment* env) {
  **  Feedback (EcoSIM -> ATS)
  **
  *******************************************************************************/
-void AllocateEcoFeedback(EcoFeedback* feedback, int ncells_per_col_, int num_columns) {
+void AllocateEcoFeedback(EcoFeedback* feedback, int ncells_per_col_, int num_columns, int num_pfts) {
   AllocateEcoMatrixDouble(ncells_per_col_, num_columns, &(feedback->subsurface_water_source));
   AllocateEcoMatrixDouble(ncells_per_col_, num_columns, &(feedback->subsurface_energy_source));
   AllocateEcoVectorDouble(num_columns, &(feedback->surface_water_source));
   AllocateEcoVectorDouble(num_columns, &(feedback->surface_energy_source));
   AllocateEcoVectorDouble(num_columns, &(feedback->snow_depth));
+  AllocateEcoMatrixDouble(num_pfts, num_columns, &(feedback->canopy_snow));
 }
 
 void FreeEcoFeedback(EcoFeedback* feedback) {
@@ -353,6 +356,7 @@ void FreeEcoFeedback(EcoFeedback* feedback) {
     FreeEcoVectorDouble(&(feedback->surface_water_source));
     FreeEcoVectorDouble(&(feedback->surface_energy_source));
     FreeEcoVectorDouble(&(feedback->snow_depth));
+    FreeEcoMatrixDouble(&(feedback->canopy_snow));
   }
 }
 

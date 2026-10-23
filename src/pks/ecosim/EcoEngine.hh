@@ -45,7 +45,8 @@ class EcoEngine {
                  EcoFeedback& feedback,
                  int ncells_per_col_,
                  int num_components,
-                 int num_columns);
+                 int num_columns,
+                 int num_pfts);
   void FreeState(EcoEnvironment& environment, EcoFeedback& feedback);
 
   // Throws if the container sizes differ between this build and EcoSIM's

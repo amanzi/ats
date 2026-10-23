@@ -67,7 +67,7 @@ extern "C" {
                               int num_columns);
   void FreeEcoEnvironment(EcoEnvironment* environment);
 
-  void AllocateEcoFeedback(EcoFeedback* feedback, int ncells_per_col_, int num_columns);
+  void AllocateEcoFeedback(EcoFeedback* feedback, int ncells_per_col_, int num_columns, int num_pfts);
   void FreeEcoFeedback(EcoFeedback* feedback);
 
   void AllocateEcoInternalState(EcoInternalState* internal_state,

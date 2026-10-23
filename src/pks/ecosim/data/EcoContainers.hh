@@ -140,11 +140,13 @@ extern "C" {
     EcoMatrixDouble plant_wilting_factor;   /* placeholder, filled from porosity */
     EcoMatrixDouble rooting_depth_fraction; /* placeholder, filled from porosity */
     EcoMatrixDouble plant_functional_type;  /* first num_pfts entries of each column */
+    EcoMatrixDouble LAI;  /* num_pfts x num_columns */
+    EcoMatrixDouble SAI;  /* num_pfts x num_columns */
     EcoTensorDouble mole_fraction;          /* ncells x num_columns x num_components; microbes only */
     /* per column: num_columns */
     EcoVectorDouble column_area;
     EcoVectorDouble shortwave_radiation;
-    EcoVectorDouble longwave_radiation;     /* not filled */
+    EcoVectorDouble longwave_radiation;     
     EcoVectorDouble air_temperature;
     EcoVectorDouble vapor_pressure_air;
     EcoVectorDouble wind_speed;
@@ -153,10 +155,9 @@ extern "C" {
     EcoVectorDouble elevation;
     EcoVectorDouble aspect;
     EcoVectorDouble slope;
-    EcoVectorDouble LAI;
-    EcoVectorDouble SAI;
     EcoVectorDouble vegetation_type;        /* not filled */
     EcoVectorDouble snow_albedo;
+    EcoVectorDouble surface_temperature;    /* surface-temperature [K] */
     /* atmosphere composition (not initialized by the PK) */
     double atm_n2;
     double atm_o2;
@@ -178,6 +179,7 @@ extern "C" {
     EcoVectorDouble surface_water_source;     /* EcoSIM: m h-1 */
     EcoVectorDouble surface_energy_source;    /* EcoSIM: per hour */
     EcoVectorDouble snow_depth;               /* also sent in: EcoSIM's snow state */
+    EcoMatrixDouble canopy_snow;              /* num_pfts x num_columns; also sent in */
   } EcoFeedback;
 
   /* EcoSIM-private data (carried state and EcoSIM-only outputs), packed by
