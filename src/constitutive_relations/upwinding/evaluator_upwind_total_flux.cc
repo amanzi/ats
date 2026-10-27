@@ -159,25 +159,32 @@ EvaluatorUpwindTotalFlux::UpwindDerivative_(const State& S,
       auto fcells = m.getFaceCells(f);
 
       if (fcells.size() == 1) {
-        // boundary face: no second cell to differentiate wrt.
+        // boundary face: slot 0 is d(value)/d(p_cell), slot 1 is
+        // d(value)/d(p_boundary) -- the boundary candidate's own
+        // derivative, pre-loaded into dcoef_faces(f,0) by
+        // SeedBoundaryFaces_.
+        double dcoef_boundary = dcoef_faces(f, 0);
         int c0 = fcells(0);
         int orientation = 0;
         m.getFaceNormal(f, c0, &orientation);
         if (Kokkos::abs(flux_v(f, 0)) >= flow_eps) {
           if (flux_v(f, 0) * orientation > 0) {
             dcoef_faces(f, 0) = dfield_cells(c0, 0);
+            dcoef_faces(f, 1) = 0.0;
           } else {
-            dcoef_faces(f, 0) = 0.0; // boundary-face value has zero derivative wrt interior p
+            dcoef_faces(f, 0) = 0.0;
+            dcoef_faces(f, 1) = dcoef_boundary;
           }
         } else {
           double param = Kokkos::abs(flux_v(f, 0)) / (2 * flow_eps) + 0.5;
           if (flux_v(f, 0) * orientation > 0) {
             dcoef_faces(f, 0) = param * dfield_cells(c0, 0);
+            dcoef_faces(f, 1) = (1. - param) * dcoef_boundary;
           } else {
             dcoef_faces(f, 0) = (1. - param) * dfield_cells(c0, 0);
+            dcoef_faces(f, 1) = param * dcoef_boundary;
           }
         }
-        dcoef_faces(f, 1) = 0.0;
         return;
       }
 

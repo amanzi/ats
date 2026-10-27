@@ -39,6 +39,7 @@ set(ats_mpc_src_files
   # mpc_surface.cc
   mpc_delegate_water.cc
   mpc_coupled_water.cc
+  mpc_coupled_water_noninjected.cc
   #  mpc_coupled_dualmedia_water.cc
   # mpc_coupled_water_split_flux.cc
   # mpc_permafrost.cc
@@ -67,6 +68,7 @@ set(ats_mpc_inc_files
   # mpc_surface.hh
   mpc_delegate_water.hh
   mpc_coupled_water.hh
+  mpc_coupled_water_noninjected.hh
   # mpc_coupled_dualmedia_water.hh
   # mpc_permafrost.hh
   # mpc_coupled_transport.hh

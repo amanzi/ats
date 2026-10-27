@@ -581,6 +581,16 @@ OverlandPressureFlow::UpdateBoundaryConditions_(const Tag& tag)
   if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "  Updating BCs." << std::endl;
 
   S_->GetEvaluator(name_ + "_bcs", tag_next_).Update(*S_, name_);
+
+  // stamp the current Dirichlet data (head units) into ponded depth's own
+  // boundary_face/face components, so every consumer sees live boundary data
+  // regardless of which call site triggered this update.
+  S_->GetEvaluator(pd_key_, tag).Update(*S_, name_);
+  S_->GetEvaluator(elev_key_, tag).Update(*S_, name_);
+  const auto& bcs = S_->Get<Operators::BCs>(name_ + "_bcs", tag_next_);
+  const auto& elev = S_->Get<CompositeVector>(elev_key_, tag);
+  auto& pd = S_->GetW<CompositeVector>(pd_key_, tag, S_->GetRecord(pd_key_, tag).owner());
+  ApplyDirichletBCs_(bcs, pd, elev);
 }
 
 

@@ -204,7 +204,6 @@ Richards::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, doub
     } else {
       dkrdp = S_->GetDerivativePtr<CompositeVector>(coef_key_, tag_next_, key_, tag_next_);
     }
-    // dkrdp->print(std::cout);
   }
 
   // -- primary term

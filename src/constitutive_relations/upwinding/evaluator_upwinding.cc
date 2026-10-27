@@ -8,6 +8,7 @@
 */
 
 #include "Mesh.hh"
+#include "MeshHelpers_decl.hh"
 #include "CompositeVector.hh"
 #include "State.hh"
 
@@ -25,12 +26,11 @@ EvaluatorUpwinding::EvaluatorUpwinding(const Teuchos::RCP<Teuchos::ParameterList
   field_key_ = Keys::readKey(*plist, domain, "field");
   dependencies_.insert(KeyTag{ field_key_, tag });
 
-  clobber_policy_ = plist->get<std::string>("clobber policy", "none");
-  if (clobber_policy_ != "none" && clobber_policy_ != "clobber") {
+  strategy_ = plist->get<std::string>("clobber policy", "none");
+  if (strategy_ != "none" && strategy_ != "clobber") {
     Errors::Message msg;
-    msg << "EvaluatorUpwinding: " << my_keys_.front().first
-        << ": invalid \"clobber policy\" \"" << clobber_policy_
-        << "\" -- valid are \"none\" and \"clobber\"";
+    msg << "EvaluatorUpwinding: " << my_keys_.front().first << ": invalid \"clobber policy\" \""
+        << strategy_ << "\" -- valid are \"none\" and \"clobber\"";
     Exceptions::amanzi_throw(msg);
   }
 }
@@ -74,11 +74,11 @@ EvaluatorUpwinding::EnsureCompatibility_ToDeps_(State& S)
 {
   Tag tag = my_keys_.front().second;
 
-  // the field to upwind lives on cells, and always on boundary_face too --
-  // boundary faces are unconditionally seeded from this component before
-  // the upwind decision runs (see SeedBoundaryFaces_), independent of
-  // clobber_policy_, since a boundary face has no "other side" cell for the
-  // upwind loop to fall back on.
+  // the field to upwind lives on cells and (when present) on boundary_face
+  // -- boundary faces are then unconditionally seeded from that component
+  // before the upwind decision runs (see SeedBoundaryFaces_), since a
+  // boundary face has no "other side" cell for the upwind loop to fall
+  // back on.
   CompositeVectorSpace field_fac;
   field_fac.SetMesh(S.GetMesh(Keys::getDomain(field_key_)))
     ->SetGhosted()
@@ -100,24 +100,18 @@ EvaluatorUpwinding::UpdateDerivative_(State& S, const Key& wrt_key, const Tag& w
     ++j;
   }
 
-  // If the field-to-upwind is the wrt_key, we need its derivative.  The
-  // directional dependency (flux_dir/potential) is never differentiated
-  // through, so the only dependency whose derivative we ever need is
-  // field_key_ itself.
+  // The directional dependency (flux_dir/potential) is never differentiated
+  // through, so the only dependency whose derivative wrt wrt_key matters
+  // here is field_key_.
   Tag tag = my_keys_.front().second;
-  if (wrt_key == field_key_ && wrt_tag == tag) {
-    const auto& dfield_dp = S.GetDerivative<CompositeVector>(field_key_, tag, wrt_key, wrt_tag);
-    for (auto* result : results) {
-      UpwindDerivative_(S, dfield_dp, *result);
-      ApplyClobber_(S, *result, /*is_derivative=*/true);
-    }
-  } else if (S.GetEvaluator(field_key_, tag).IsDifferentiableWRT(S, wrt_key, wrt_tag)) {
-    // chain rule through the field evaluator's own derivative wrt wrt_key
-    const auto& dfield_dp = S.GetDerivative<CompositeVector>(field_key_, tag, wrt_key, wrt_tag);
-    for (auto* result : results) {
-      UpwindDerivative_(S, dfield_dp, *result);
-      ApplyClobber_(S, *result, /*is_derivative=*/true);
-    }
+  if (!S.GetEvaluator(field_key_, tag).IsDifferentiableWRT(S, wrt_key, wrt_tag)) return;
+
+  const auto& dfield_dp = S.GetDerivative<CompositeVector>(field_key_, tag, wrt_key, wrt_tag);
+
+  for (auto* result : results) {
+    SeedBoundaryFaces_(S, *result, /*is_derivative=*/true, wrt_key, wrt_tag);
+    UpwindDerivative_(S, dfield_dp, *result);
+    ApplyClobber_(S, *result, /*is_derivative=*/true, wrt_key, wrt_tag);
   }
 }
 
@@ -125,13 +119,17 @@ EvaluatorUpwinding::UpdateDerivative_(State& S, const Key& wrt_key, const Tag& w
 void
 EvaluatorUpwinding::SeedBoundaryFaces_(const State& S,
                                       CompositeVector& result,
-                                      bool is_derivative) const
+                                      bool is_derivative,
+                                      const Key& wrt_key,
+                                      const Tag& wrt_tag) const
 {
   Tag tag = my_keys_.front().second;
-  const auto& field = S.Get<CompositeVector>(field_key_, tag);
-  if (!field.hasComponent("boundary_face")) return;
-
   auto mesh = result.getMesh();
+
+  const auto& field = is_derivative ?
+    S.GetDerivative<CompositeVector>(field_key_, tag, wrt_key, wrt_tag) :
+    S.Get<CompositeVector>(field_key_, tag);
+  if (!field.hasComponent("boundary_face")) return;
   const auto& field_bf = *field.getComponent("boundary_face", false);
 
   if (!is_derivative) {
@@ -139,9 +137,11 @@ EvaluatorUpwinding::SeedBoundaryFaces_(const State& S,
     auto& result_f = *result.getComponent("face", false);
     result_f.doExport(field_bf, vandelay, Tpetra::CombineMode::INSERT);
   } else {
-    // 2-DoF derivative: the seed only sets the first DoF (matching a
-    // single-neighbor-cell/Dirichlet-style face), the second DoF (the
-    // nonexistent "other side") stays zero.
+    // Writes field_key_'s own "boundary_face" derivative (wrt wrt_key) into
+    // slot 0, whatever value State's dependency graph reports for it. Each
+    // concrete rule's UpwindDerivative_ reads this value back and places it
+    // into the correct final slot (0 for d/d(p_cell), 1 for
+    // d/d(p_boundary)) alongside the interior cell's own derivative.
     auto result_f = result.viewComponent("face", false);
     auto field_bf_v = field.viewComponent("boundary_face", false);
     const auto vandelay_map = mesh->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE, false);
@@ -157,10 +157,14 @@ EvaluatorUpwinding::SeedBoundaryFaces_(const State& S,
 
 
 void
-EvaluatorUpwinding::ApplyClobber_(const State& S, CompositeVector& result, bool is_derivative) const
+EvaluatorUpwinding::ApplyClobber_(const State& S,
+                                  CompositeVector& result,
+                                  bool is_derivative,
+                                  const Key& wrt_key,
+                                  const Tag& wrt_tag) const
 {
-  if (clobber_policy_ != "clobber") return;
-  SeedBoundaryFaces_(S, result, is_derivative);
+  if (strategy_ != "clobber") return;
+  SeedBoundaryFaces_(S, result, is_derivative, wrt_key, wrt_tag);
 }
 
 } // namespace Relations

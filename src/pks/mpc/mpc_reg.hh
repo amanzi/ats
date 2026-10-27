@@ -9,9 +9,11 @@
 
 
 #include "mpc_coupled_water.hh"
+#include "mpc_coupled_water_noninjected.hh"
 
 namespace Amanzi {
 
 REGISTER_PK(MPCCoupledWater);
+REGISTER_PK(MPCCoupledWaterNonInjected);
 
 } // namespace Amanzi

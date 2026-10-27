@@ -50,18 +50,8 @@ OverlandPressureFlow::FunctionalResidual(double t_old,
                << "Residual calculation: t0 = " << t_old << " t1 = " << t_new << " h = " << h
                << std::endl;
 
-  // update boundary conditions
+  // update boundary conditions (also stamps Dirichlet data into ponded depth)
   UpdateBoundaryConditions_(tag_next_);
-
-  // update ponded depth
-  S_->GetEvaluator(pd_key_, tag_next_).Update(*S_, name_);
-  {
-    // stamp ponded depth with dirichlet data -- doing this now so it shows up in debugging
-    const auto& bcs = S_->Get<Operators::BCs>(name_ + "_bcs", tag_next_);
-    const auto& elev = S_->Get<CompositeVector>(elev_key_, tag_next_);
-    auto& pd = S_->GetW<CompositeVector>(pd_key_, tag_next_, S_->GetRecord(pd_key_, tag_next_).owner());
-    ApplyDirichletBCs_(bcs, pd, elev);
-  }
 
   // updated h + z: unnecessary here if not debeugging, but doesn't hurt either
   S_->GetEvaluator(potential_key_, tag_next_).Update(*S_, name_);

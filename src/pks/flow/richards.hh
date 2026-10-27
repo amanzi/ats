@@ -308,6 +308,11 @@ class Richards : public PK_PhysicalBDF_Default {
   // PK_BDF method
   virtual Teuchos::RCP<Operators::Operator> getPreconditioner() override { return preconditioner_; }
 
+  Teuchos::RCP<Operators::PDE_DiffusionWithGravity> getDiffusionPreconditioner()
+  {
+    return preconditioner_diff_;
+  }
+
   //
   // methods used only for testing
   // ------------------------------------------------------------------

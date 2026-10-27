@@ -15,8 +15,31 @@ relative conductivity) and produces a face-based value, used by a div-grad
 operator's nonlinear coefficient.  Rules differ in how they decide, per face,
 which neighboring cell's value (or what blend of the two) to use -- but all
 share the same output structure (FACE, 1 DoF for the value) and the same
-derivative structure (FACE, 2 DoF for the derivative wrt pressure -- one slot
-per neighboring cell, ordered by the mesh's own `getFaceCells(f)` convention).
+derivative structure (FACE, 2 DoF for the derivative).
+
+The 2 DoFs are per PRESSURE, not per cell: slot 0 is always d(value)/d(p0)
+and slot 1 is always d(value)/d(p1), where {p0, p1} are the two pressures the
+face value can depend on. For an INTERIOR face, both are neighboring cells'
+own pressures, ordered by the mesh's own `getFaceCells(f)` convention. For a
+BOUNDARY face, p0 is the one real neighbor cell's pressure and p1 is the
+boundary candidate's own pressure. Both slots are always computed as real,
+separate numbers -- never collapsed into one slot by upwind direction, even
+in the hard-upwind case (where the non-governing side's own slot is a
+genuine, computed zero, not an absent/repurposed slot).
+
+The boundary candidate is always `field_key_`'s own `"boundary_face"`
+component -- this evaluator has no knowledge of where that value came from
+(e.g. the ordinary WRM-at-boundary-pressure chain, or a surface-domain
+override stamped in by another evaluator upstream, such as
+RelativeHydraulicConductivityEvaluator's `"use surface rel perm"`). It only
+distinguishes two upwind POLICIES, selected by `"clobber policy"`:
+
+- `"none"` (default): blend the interior cell's value against
+  `field_key_`'s own `"boundary_face"` value using the ordinary per-rule
+  upwind decision, exactly as at an interior face (just with one "cell"
+  replaced by the boundary_face component).
+- `"clobber"`: skip the upwind decision entirely -- always use
+  `field_key_`'s own `"boundary_face"` value, regardless of flux direction.
 
 Because the dependencies of this evaluator live on different mesh entity
 kinds than its own output (a CELL-based field to upwind, plus a directional
@@ -55,9 +78,9 @@ class EvaluatorUpwinding : public EvaluatorSecondaryMonotypeCV {
 
   // Structure: push explicit, named, per-dependency requirements instead of
   // the CV default (which pushes a single factory uniformly to every
-  // dependency).  The field-to-upwind dependency always needs CELL; each
-  // concrete rule adds its own requirement for its directional dependency in
-  // its own override, calling this one first.
+  // dependency).  The field-to-upwind dependency always needs CELL plus
+  // BOUNDARY_FACE; each concrete rule adds its own requirement for its
+  // directional dependency in its own override, calling this one first.
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
   // Fully custom chain rule: pulls d(field)/dp on cells, then attributes it
@@ -91,26 +114,37 @@ class EvaluatorUpwinding : public EvaluatorSecondaryMonotypeCV {
                                  CompositeVector& result) const = 0;
 
   // Seeds boundary/exterior faces of `result` from field_key_'s own
-  // "boundary_face" component.  This is UNCONDITIONAL (independent of
-  // clobber_policy_) and must be called BEFORE the per-rule upwind loop
-  // runs: a boundary face has no "other side" cell, so the upwind decision
-  // for such faces (in particular the near-zero-flux blended case) reads
-  // back whatever is already sitting in `result`'s face component as the
-  // missing side's value.  Without this seed, that read is of
-  // uninitialized/stale data.
-  void SeedBoundaryFaces_(const State& S, CompositeVector& result, bool is_derivative) const;
+  // "boundary_face" component.  This must be called BEFORE the per-rule
+  // upwind loop runs: a boundary face has no "other side" cell, so the
+  // upwind decision for such faces (in particular the near-zero-flux
+  // blended case) reads back whatever is already sitting in `result`'s
+  // face component as the missing side's value.  Without this seed, that
+  // read is of uninitialized/stale data. A no-op when field_key_ has no
+  // "boundary_face" component at all.
+  //
+  // When is_derivative is true, `wrt_key`/`wrt_tag` select field_key_'s own
+  // "boundary_face" derivative wrt wrt_key to seed instead of its value.
+  void SeedBoundaryFaces_(const State& S,
+                          CompositeVector& result,
+                          bool is_derivative,
+                          const Key& wrt_key = "",
+                          const Tag& wrt_tag = Tags::DEFAULT) const;
 
-  // "Clobber" -- surface/boundary rel-perm override.  After the per-rule
-  // Evaluate_/UpwindDerivative_ core logic runs, if clobber_policy_ ==
-  // "clobber", unconditionally OVERWRITE boundary faces of `result` again
-  // with field_key_'s "boundary_face" component, undoing whatever the
-  // upwind decision chose there.  This reuses the same seeding logic as
-  // SeedBoundaryFaces_, just called a second time, after the upwind loop.
-  void ApplyClobber_(const State& S, CompositeVector& result, bool is_derivative) const;
+  // "Clobber" policy.  After the per-rule Evaluate_/UpwindDerivative_ core
+  // logic runs, if strategy_ == "clobber", unconditionally OVERWRITE
+  // boundary faces of `result` again with field_key_'s own "boundary_face"
+  // value, undoing whatever the upwind decision chose there. This reuses
+  // the same seeding logic as SeedBoundaryFaces_, just called a second
+  // time, after the upwind loop.
+  void ApplyClobber_(const State& S,
+                     CompositeVector& result,
+                     bool is_derivative,
+                     const Key& wrt_key = "",
+                     const Tag& wrt_tag = Tags::DEFAULT) const;
 
  protected:
   Key field_key_;
-  std::string clobber_policy_; // "none" or "clobber"
+  std::string strategy_; // "none" or "clobber"
 };
 
 } // namespace Relations
