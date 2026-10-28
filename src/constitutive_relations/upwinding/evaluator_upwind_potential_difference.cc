@@ -103,9 +103,9 @@ EvaluatorUpwindPotentialDifference::Evaluate_(const State& S,
       if (cells.size() == 1) {
         if (!have_boundary_candidate) {
           // no boundary-side coefficient candidate (field_key_ has no
-          // "boundary_face" and strategy_ == "none") -- the boundary
-          // potential alone has nothing to compare it against, so the
-          // face value is just the interior cell's value.
+          // "boundary_face" component) -- the boundary potential alone has
+          // nothing to compare it against, so the face value is just the
+          // interior cell's value.
           face_coef_f(f, 0) = cell_coef_c(cells[0], 0);
           return;
         }
@@ -136,8 +136,7 @@ EvaluatorUpwindPotentialDifference::Evaluate_(const State& S,
           face_coef_f(f, 0) = coef_bnd * param + cell_coef_c(cells[0], 0) * (1. - param);
         }
       } else {
-        // overlap region sized by the potential field itself (matching the
-        // "overlap defaults to potential" behavior of the ported class).
+        // overlap region sized by the potential field itself.
         double ol0 = Kokkos::fmax(0., potential_c(cells[0], 0));
         double ol1 = Kokkos::fmax(0., potential_c(cells[1], 0));
 

@@ -116,8 +116,15 @@ class MPCCoupledWaterNonInjected : public MPCStrong<PK_PhysicalBDF_Default> {
  protected:
   // Assembles the (0,1)/(1,0) off-diagonal coupling blocks of precon_. Also
   // folds the (0,0) surface-source Jacobian addition (d(exchange
-  // flux)/d(p_surf)) into block (1,1)'s existing diagonal
+  // flux)/d(p_surf)) into block (1,1)'s existing diagonal. Resolves
+  // Richards' diffusion preconditioner's concrete discretization exactly
+  // once (host-side, via WithTransmissibilityGravityFunctor), then
+  // dispatches into the templated kernel below -- this class never names a
+  // concrete discretization type itself.
   void UpdateCouplingBlocks_();
+
+  template <typename TransGravFunctor>
+  void UpdateCouplingBlocksImpl_(const TransGravFunctor& getTransGrav);
 
  protected:
   static const std::string pk_type_;

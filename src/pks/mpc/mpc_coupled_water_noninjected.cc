@@ -9,6 +9,7 @@
 
 #include "Teuchos_XMLParameterListHelpers.hpp"
 
+#include "PDE_DiffusionFactory.hh"
 #include "PK_Helpers.hh"
 #include "mpc_surface_subsurface_helpers.hh"
 #include "richards.hh"
@@ -278,8 +279,20 @@ MPCCoupledWaterNonInjected::UpdateCouplingBlocks_()
     Teuchos::rcp_dynamic_cast<Flow::Richards>(domain_flow_pk_);
   AMANZI_ASSERT(richards != Teuchos::null);
 
-  auto getTransGrav = richards->getDiffusionPreconditioner()->GetTransmissibilityGravityFunctor();
+  // Resolves Richards' diffusion preconditioner's concrete discretization
+  // (FV or MFD) exactly once, host-side, then calls the templated kernel
+  // below with that discretization's own transmissibility/gravity functor
+  // -- this class never names a concrete discretization type itself.
+  Operators::WithTransmissibilityGravityFunctor(
+    *richards->getDiffusionPreconditioner(),
+    [&](const auto& getTransGrav) { UpdateCouplingBlocksImpl_(getTransGrav); });
+}
 
+
+template <typename TransGravFunctor>
+void
+MPCCoupledWaterNonInjected::UpdateCouplingBlocksImpl_(const TransGravFunctor& getTransGrav)
+{
   const auto uw_coef_f =
     S_->Get<CompositeVector>(ss_uw_coef_key_, tag_next_).viewComponent("face", false);
 

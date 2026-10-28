@@ -370,15 +370,10 @@ Richards::SetupRichardsFlow_()
   if (jacobian_) {
     jacobian_lag_ = mfd_pc_plist.get<int>("Newton correction lag", 0);
 
-    // require the derivative drel_perm/dp, when coef_key_ is actually
-    // differentiable wrt pressure (nearly always true, but not guaranteed
-    // -- e.g. a frozen/fixed relative permeability model would not be).
-    // this is not valid until State always EnsureEvaluators! --ETC
-    // if (S_->GetEvaluator(coef_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
-      S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
-          coef_key_, tag_next_, key_, tag_next_)
-        .SetGhosted();
-    // }
+    // require the derivative drel_perm/dp
+    S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
+        coef_key_, tag_next_, key_, tag_next_)
+      .SetGhosted();
 
     if (mfd_pc_plist.get<std::string>("discretization primary") == "fv: default" &&
         coef_is_upwinded_) {
