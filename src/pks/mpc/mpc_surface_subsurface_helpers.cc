@@ -26,7 +26,16 @@ copySurfaceToSubsurface(const CompositeVector& surf, CompositeVector& sub)
       });
 
   } else if (sub.hasComponent("boundary_face")) {
-    AMANZI_ASSERT(false); // not yet implemented, but could be
+    // FV: "boundary_face" is a compact BOUNDARY_FACE-local numbering, not the
+    // full FACE numbering used by "parents" above -- translate via
+    // getFaceOnBoundaryBoundaryFace (parent face LID -> boundary_face LID).
+    auto sub_bf = sub.viewComponent("boundary_face", false);
+    const AmanziMesh::MeshCache& sub_mesh = sub.getMesh()->getCache();
+    Kokkos::parallel_for(
+      "MPCHelpers::copySubsurfaceToSurface bf", surf_c.extent(0), KOKKOS_LAMBDA(const int& sc) {
+        AmanziMesh::Entity_ID bf = AmanziMesh::getFaceOnBoundaryBoundaryFace(sub_mesh, parents(sc));
+        sub_bf(bf, 0) = surf_c(sc, 0);
+      });
   }
 }
 
@@ -42,7 +51,19 @@ copySubsurfaceToSurface(const CompositeVector& sub, CompositeVector& surf)
         surf_c(sc, 0) = sub_f(parents(sc), 0);
       });
   } else if (sub.hasComponent("boundary_face")) {
-    AMANZI_ASSERT(false); // not yet implemented, but could be
+    // FV: "boundary_face" is a compact BOUNDARY_FACE-local numbering, not the
+    // full FACE numbering used by "parents" above -- translate via
+    // getFaceOnBoundaryBoundaryFace (parent face LID -> boundary_face LID).
+    // This is the physically correct value to copy (the hydrostatic/BC value
+    // AT the shared interface face, not the subsurface's cell-centroid
+    // value), matching the MFD "face" branch above.
+    auto sub_bf = sub.viewComponent("boundary_face", false);
+    const AmanziMesh::MeshCache& sub_mesh = sub.getMesh()->getCache();
+    Kokkos::parallel_for(
+      "MPCHelpers::copySubsurfaceToSurface bf", surf_c.extent(0), KOKKOS_LAMBDA(const int& sc) {
+        AmanziMesh::Entity_ID bf = AmanziMesh::getFaceOnBoundaryBoundaryFace(sub_mesh, parents(sc));
+        surf_c(sc, 0) = sub_bf(bf, 0);
+      });
   }
 }
 

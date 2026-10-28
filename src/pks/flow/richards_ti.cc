@@ -193,12 +193,17 @@ Richards::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, doub
   // -- jacobian term
   Teuchos::RCP<const CompositeVector> dkrdp = Teuchos::null;
   if (jacobian_ && iter_ >= jacobian_lag_) {
-    if (!duw_coef_key_.empty()) {
+    if (coef_deriv_is_upwinded_) {
+      // MFD approximate Jacobian -- the 1-DoF, face-upwound derivative of
+      // the cell-based coefficient.
       dkrdp = S_->GetPtr<CompositeVector>(duw_coef_key_, tag_next_);
+    } else if (coef_is_upwinded_ &&
+               S_->GetEvaluator(uw_coef_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
+      // FV true Jacobian -- the 2-DoF, face-based derivative.
+      dkrdp = S_->GetDerivativePtr<CompositeVector>(uw_coef_key_, tag_next_, key_, tag_next_);
     } else {
       dkrdp = S_->GetDerivativePtr<CompositeVector>(coef_key_, tag_next_, key_, tag_next_);
     }
-    // dkrdp->print(std::cout);
   }
 
   // -- primary term

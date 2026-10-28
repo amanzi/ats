@@ -23,7 +23,6 @@ include_directories(${ATS_SOURCE_DIR}/src/pks/flow)
 # include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/wrm)
 # include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/porosity)
 # include_directories(${ATS_SOURCE_DIR}/src/pks/surface_balance/constitutive_relations/land_cover)
-include_directories(${ATS_SOURCE_DIR}/src/operators/upwinding)
 # include_directories(${ATS_SOURCE_DIR}/src/operators/advection)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/constitutive_relations)
@@ -40,6 +39,7 @@ set(ats_mpc_src_files
   # mpc_surface.cc
   mpc_delegate_water.cc
   mpc_coupled_water.cc
+  mpc_coupled_water_noninjected.cc
   #  mpc_coupled_dualmedia_water.cc
   # mpc_coupled_water_split_flux.cc
   # mpc_permafrost.cc
@@ -68,6 +68,7 @@ set(ats_mpc_inc_files
   # mpc_surface.hh
   mpc_delegate_water.hh
   mpc_coupled_water.hh
+  mpc_coupled_water_noninjected.hh
   # mpc_coupled_dualmedia_water.hh
   # mpc_permafrost.hh
   # mpc_coupled_transport.hh
@@ -94,7 +95,6 @@ set(ats_mpc_link_libs
   state
   pks
   # chemistry_pk
-  ats_operators
   # ats_eos
   # ats_generic_evals
   # ats_pks

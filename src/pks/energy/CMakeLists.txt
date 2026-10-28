@@ -53,7 +53,6 @@ set(ats_energy_link_libs
   time_integration
   state
   pks
-  ats_operators
   ats_eos
   ats_pks
   ats_energy_relations

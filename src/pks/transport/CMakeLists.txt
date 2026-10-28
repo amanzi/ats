@@ -48,7 +48,6 @@ set(ats_transport_link_libs
   pks
   chemistry_pk
   transport
-  ats_operators
   ats_eos
   ats_pks
   )

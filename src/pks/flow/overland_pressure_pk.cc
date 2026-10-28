@@ -14,11 +14,6 @@
 #include "PDE_DiffusionFactory.hh"
 #include "PDE_Accumulation.hh"
 
-#include "upwind_potential_difference.hh"
-#include "upwind_cell_centered.hh"
-#include "upwind_total_flux.hh"
-#include "UpwindFluxFactory.hh"
-
 #include "PK_Helpers.hh"
 
 #include "overland_pressure.hh"
@@ -38,6 +33,7 @@ OverlandPressureFlow::OverlandPressureFlow(const Comm_ptr_type& comm,
     coupled_to_subsurface_via_head_(false),
     coupled_to_subsurface_via_flux_(false),
     perm_update_required_(true),
+    coef_is_upwinded_(false),
     precon_used_(true),
     precon_scaled_(false),
     jacobian_(false),
@@ -226,14 +222,38 @@ OverlandPressureFlow::SetupOverlandFlow_()
 
   // -- nonlinear coefficients and upwinding
   Teuchos::ParameterList& upwind_plist = plist_->sublist("upwinding");
-  upwinding_ = Operators::UpwindFactory::Create(upwind_plist, *S_, name_, tag_next_, flux_dir_key_);
+  std::string model_type = upwind_plist.get<std::string>("upwind type", "manning upwind");
+  std::string coef_location;
+  if (model_type == "manning upwind") {
+    coef_location = "upwind: face";
+    coef_is_upwinded_ = true;
 
-  std::string coef_location = upwinding_->CoefficientLocation();
-  PKHelpers::requireNonlinearDiffusionCoefficient(uw_cond_key_, tag_next_, coef_location, *S_);
+    Teuchos::ParameterList& uw_plist = S_->GetEvaluatorList(uw_cond_key_);
+    uw_plist.set("evaluator type", "upwind: total flux");
+    uw_plist.set("field key", cond_key_);
+    uw_plist.set("flux direction key", flux_dir_key_);
+    uw_plist.set("flux epsilon", upwind_plist.get<double>("upwind flux epsilon", 1.e-8));
+    // overland flow always seeds/overwrites boundary faces from the
+    // conductivity's own boundary_face values (matching the prior
+    // unconditional vandelay-export-before-and-after behavior).
+    uw_plist.set("clobber policy", "none");
+    PKHelpers::requireNonlinearDiffusionCoefficient(uw_cond_key_, tag_next_, coef_location, *S_);
+    S_->RequireEvaluator(uw_cond_key_, tag_next_);
+  } else if (model_type == "manning cell centered") {
+    coef_location = "standard: cell";
+    coef_is_upwinded_ = false;
+    uw_cond_key_ = cond_key_;
+  } else {
+    Errors::Message msg;
+    msg << "OverlandPressureFlow: \"upwind type\" value \"" << model_type
+        << "\" not supported in this build -- only \"manning upwind\" and \"manning cell "
+           "centered\" are available.";
+    Exceptions::amanzi_throw(msg);
+  }
 
   // -- create the forward operator for the diffusion term
   Teuchos::ParameterList& mfd_plist = plist_->sublist("diffusion");
-  mfd_plist.set("nonlinear coefficient", coef_location);
+  mfd_plist.set("scalar coefficient type", coef_location);
   if (!mfd_plist.isParameter("scaled constraint equation"))
     mfd_plist.set("scaled constraint equation", true);
 
@@ -242,23 +262,19 @@ OverlandPressureFlow::SetupOverlandFlow_()
   matrix_diff_->SetTensorCoefficient(Teuchos::null);
   matrix_ = matrix_diff_->global_operator();
 
-  // -- create the operator, data for flux directions
-  Teuchos::ParameterList face_diff_list(mfd_plist);
-  face_diff_list.set("nonlinear coefficient", "none");
-  face_matrix_diff_ = opfactory.Create(face_diff_list, mesh_, bc_);
-  face_matrix_diff_->SetTensorCoefficient(Teuchos::null);
-  face_matrix_diff_->SetScalarCoefficient(Teuchos::null, Teuchos::null);
-  face_matrix_diff_->UpdateMatrices(Teuchos::null, Teuchos::null);
-
   S_->Require<CompositeVector, CompositeVectorSpace>(flux_dir_key_, tag_next_, name_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);
+  // flux_dir_key_ is set directly by the PK (via PDE_Diffusion::ComputeFluxDirection),
+  // not computed from a model -- register it as a primary variable so the
+  // total-flux upwinding evaluator's dependency on it resolves cleanly.
+  PKHelpers::requireEvaluatorPrimary(flux_dir_key_, tag_next_, *S_);
 
   // -- create the operators for the preconditioner
   //    diffusion
   Teuchos::ParameterList& mfd_pc_plist = plist_->sublist("diffusion preconditioner");
-  mfd_pc_plist.set("nonlinear coefficient", coef_location);
+  mfd_pc_plist.set("scalar coefficient type", coef_location);
   mfd_pc_plist.set("scaled constraint equation", mfd_plist.get<bool>("scaled constraint equation"));
   mfd_pc_plist.set("constraint equation scaling cutoff",
                    mfd_plist.get<double>("constraint equation scaling cutoff", 1.0));
@@ -292,7 +308,7 @@ OverlandPressureFlow::SetupOverlandFlow_()
   preconditioner_diff_->SetTensorCoefficient(Teuchos::null);
   preconditioner_ = preconditioner_diff_->global_operator();
 
-  // -- if using approximate Jacobian for the preconditioner, we also need
+  // -- if using Newton correction for the preconditioner, we also need
   // -- derivative information.
   jacobian_ = (mfd_pc_plist.get<std::string>("Newton correction", "none") != "none");
   if (jacobian_) {
@@ -302,21 +318,17 @@ OverlandPressureFlow::SetupOverlandFlow_()
     S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
         cond_key_, tag_next_, pd_key_, tag_next_)
       .SetGhosted();
-    if (mfd_pc_plist.get<std::string>("discretization primary") != "fv: default") {
-      // MFD -- upwind required, require data
-      duw_cond_key_ = Keys::getDerivKey(uw_cond_key_, pd_key_);
 
-      // note this is always done on faces using total flux upwinding
-      PKHelpers::requireNonlinearDiffusionCoefficient(
-        duw_cond_key_, tag_next_, "upwind: face", *S_);
-
-      double flux_eps = plist_->get<double>("upwind flux epsilon", 1.e-12);
-      upwinding_dkdp_ =
-        Teuchos::rcp(new Operators::UpwindTotalFlux(name_, tag_next_, flux_dir_key_, flux_eps));
-    } else {
-      // FV -- no upwinding of derivative
-      duw_cond_key_ = std::string();
+    if (mfd_pc_plist.get<std::string>("discretization primary") == "fv: default" &&
+        coef_is_upwinded_) {
+      // FV true Jacobian -- requires the upwinding evaluator's own 2-DoF,
+      // face-based derivative.
+      S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
+        uw_cond_key_, tag_next_, pd_key_, tag_next_)
+        .SetGhosted();
     }
+    // Otherwise (MFD approximate Jacobian, or "cell centered") falls back to
+    // the raw cell-based derivative required just above.
   }
 
   //
@@ -446,12 +458,9 @@ OverlandPressureFlow::initialize()
   PK_PhysicalBDF_Default::initialize();
 
   // Set extra fields as initialized -- these don't currently have evaluators.
-  S_->GetW<CompositeVector>(uw_cond_key_, tag_next_, uw_cond_key_).putScalar(0.0);
-  S_->GetRecordW(uw_cond_key_, tag_next_, uw_cond_key_).set_initialized();
-
-  if (!duw_cond_key_.empty()) {
-    S_->GetW<CompositeVector>(duw_cond_key_, tag_next_, name_).putScalar(1.0);
-    S_->GetRecordW(duw_cond_key_, tag_next_, name_).set_initialized();
+  if (coef_is_upwinded_) {
+    S_->GetW<CompositeVector>(uw_cond_key_, tag_next_, uw_cond_key_).putScalar(0.0);
+    S_->GetRecordW(uw_cond_key_, tag_next_, uw_cond_key_).set_initialized();
   }
 
   S_->GetW<CompositeVector>(flux_key_, tag_next_, getName()).putScalar(0.0);
@@ -469,7 +478,6 @@ OverlandPressureFlow::initialize()
   const auto& bc = S_->GetPtr<Operators::BCs>(name_ + "_bcs", tag_next_);
   matrix_diff_->SetBCs(bc, bc);
   preconditioner_diff_->SetBCs(bc, bc);
-  face_matrix_diff_->SetBCs(bc, bc);
 };
 
 
@@ -505,6 +513,7 @@ OverlandPressureFlow::UpdatePermeabilityData_(const Tag& tag)
   if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "  Updating permeability?";
 
   bool update_perm = S_->GetEvaluator(pd_key_, tag).Update(*S_, name_);
+
   update_perm |= S_->GetEvaluator(potential_key_, tag).Update(*S_, name_);
   update_perm |= S_->GetEvaluator(cond_key_, tag).Update(*S_, name_);
   update_perm |= perm_update_required_;
@@ -520,33 +529,19 @@ OverlandPressureFlow::UpdatePermeabilityData_(const Tag& tag)
       S_->GetPtr<CompositeVector>(potential_key_, tag);
 
     // -- need to apply BCs to get boundary flux directions correct
-    FixBCsForOperator_(tag, face_matrix_diff_.ptr()); // deals with zero gradient condition
+    FixBCsForOperator_(tag, matrix_diff_.ptr()); // deals with zero gradient condition
 
-    // -- now we can calculate the flux direction
-    // face_matrix_diff_->UpdateMatrices(Teuchos::null, Teuchos::null); // can this be removed?
-    face_matrix_diff_->UpdateFlux(pres_elev.ptr(), flux_dir.ptr());
+    // -- now we can calculate the flux direction, with the coefficient
+    //    temporarily set to unity (ComputeFluxDirection's convention) --
+    //    the caller (below, via the upwinding evaluator) sets the real
+    //    coefficient afterward.
+    matrix_diff_->ComputeFluxDirection(pres_elev.ptr(), flux_dir.ptr());
     flux_dir->scatterMasterToGhosted("face"); // for vis only
-    //face_matrix_diff_->ApplyBCs(true, true, true); // because we don't do this....
+    PKHelpers::changedEvaluatorPrimary(flux_dir_key_, tag, *S_);
 
-    // upwind
-    // -- get upwind conductivity data
-    Teuchos::RCP<CompositeVector> uw_cond =
-      S_->GetPtrW<CompositeVector>(uw_cond_key_, tag, uw_cond_key_);
-
-    // -- get conductivity data
-    Teuchos::RCP<const CompositeVector> cond = S_->GetPtr<CompositeVector>(cond_key_, tag);
-
-    // -- Move rel perm on boundary_faces into uw_rel_perm on faces
-    // Move rel perm on boundary_faces into uw_rel_perm on faces
-    const auto& vandelay = mesh_->getBoundaryFaceImporter();
-    {
-      const auto& cond_bf = *cond->getComponent("boundary_face", false);
-      auto& uw_cond_f = *uw_cond->getComponent("face", false);
-      uw_cond_f.doExport(cond_bf, vandelay, Tpetra::CombineMode::INSERT);
+    if (coef_is_upwinded_) {
+      S_->GetEvaluator(uw_cond_key_, tag).Update(*S_, name_);
     }
-
-    // -- upwind
-    upwinding_->Update(*cond, *uw_cond, *S_);
   }
 
   if (update_perm && vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << " TRUE." << std::endl;
@@ -564,19 +559,9 @@ OverlandPressureFlow::UpdatePermeabilityDerivativeData_(const Tag& tag)
   if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "  Updating permeability derivatives?";
 
   bool update_perm = S_->GetEvaluator(cond_key_, tag).UpdateDerivative(*S_, name_, pd_key_, tag);
-  Teuchos::RCP<const CompositeVector> dcond =
-    S_->GetDerivativePtr<CompositeVector>(cond_key_, tag, pd_key_, tag);
 
-  if (update_perm) {
-    if (!duw_cond_key_.empty()) {
-      // get upwind conductivity data
-      Teuchos::RCP<CompositeVector> duw_cond =
-        S_->GetPtrW<CompositeVector>(duw_cond_key_, tag, name_);
-      duw_cond->putScalar(0.);
-
-      // Then upwind.  This overwrites the boundary if upwinding says so.
-      upwinding_dkdp_->Update(*dcond, *duw_cond, *S_);
-    }
+  if (coef_is_upwinded_ && S_->GetEvaluator(uw_cond_key_, tag).IsDifferentiableWRT(*S_, pd_key_, tag)) {
+    update_perm |= S_->GetEvaluator(uw_cond_key_, tag).UpdateDerivative(*S_, name_, pd_key_, tag);
   }
 
   db_->WriteVector("dk_cond", S_->GetDerivativePtr<CompositeVector>(cond_key_, tag, pd_key_, tag).ptr(), true);
@@ -596,6 +581,16 @@ OverlandPressureFlow::UpdateBoundaryConditions_(const Tag& tag)
   if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "  Updating BCs." << std::endl;
 
   S_->GetEvaluator(name_ + "_bcs", tag_next_).Update(*S_, name_);
+
+  // stamp the current Dirichlet data (head units) into ponded depth's own
+  // boundary_face/face components, so every consumer sees live boundary data
+  // regardless of which call site triggered this update.
+  S_->GetEvaluator(pd_key_, tag).Update(*S_, name_);
+  S_->GetEvaluator(elev_key_, tag).Update(*S_, name_);
+  const auto& bcs = S_->Get<Operators::BCs>(name_ + "_bcs", tag_next_);
+  const auto& elev = S_->Get<CompositeVector>(elev_key_, tag);
+  auto& pd = S_->GetW<CompositeVector>(pd_key_, tag, S_->GetRecord(pd_key_, tag).owner());
+  ApplyDirichletBCs_(bcs, pd, elev);
 }
 
 
@@ -611,7 +606,7 @@ OverlandPressureFlow::ApplyDirichletBCs_(const Operators::BCs& bcs,
 {
   if (u.hasComponent("face")) {
     auto u_f = u.viewComponent("face", false);
-    auto elev_f = u.viewComponent("face", false);
+    auto elev_f = elev.viewComponent("face", false);
     auto bc_value = bcs.bc_value();
     auto bc_model = bcs.bc_model();
     Kokkos::parallel_for(
@@ -623,17 +618,17 @@ OverlandPressureFlow::ApplyDirichletBCs_(const Operators::BCs& bcs,
   }
 
   if (u.hasComponent("boundary_face")) {
-    auto u_f = u.viewComponent("boundary_face", false);
-    auto elev_f = u.viewComponent("face", false);
+    auto u_bf = u.viewComponent("boundary_face", false);
+    auto elev_bf = elev.viewComponent("boundary_face", false);
     auto bc_value = bcs.bc_value();
     auto bc_model = bcs.bc_model();
 
     const AmanziMesh::MeshCache& mesh = u.getMesh()->getCache();
     Kokkos::parallel_for(
-      "applyDirichletBCs", u_f.extent(0), KOKKOS_LAMBDA(const int& bf) {
+      "applyDirichletBCs", u_bf.extent(0), KOKKOS_LAMBDA(const int& bf) {
         auto f = mesh.getBoundaryFaceFace(bf);
         if (bc_model(f) == Operators::OPERATOR_BC_DIRICHLET) {
-          u_f(bf, 0) = bc_value(f) - elev_f(f, 0);
+          u_bf(bf, 0) = bc_value(f) - elev_bf(bf, 0);
         }
       });
   }
@@ -760,10 +755,6 @@ OverlandPressureFlow::ModifyPredictor(double h,
   // update boundary conditions
   UpdateBoundaryConditions_(tag_next_);
   // db_->WriteBoundaryConditions(bc_->model(), bc_->value());
-
-  // push Dirichlet data into predictor
-  const auto& bcs = S_->Get<Operators::BCs>(name_ + "_bcs", tag_next_);
-  PKHelpers::applyDirichletBCs(bcs, *u->getData());
 
   return false;
 };

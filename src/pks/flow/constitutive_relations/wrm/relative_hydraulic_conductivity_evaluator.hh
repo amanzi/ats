@@ -64,14 +64,32 @@ class RelativeHydraulicConductivityEvaluator
                                           const Tag& wrt_tag,
                                           const std::vector<CompositeVector*>& results) override;
 
+  // Overridden (rather than relying on the generic per-dependency chain
+  // rule) because, when use_surface_relperm_ is true, the "boundary_face"
+  // component's contribution from krel_key_ must be replaced by
+  // surf_krel_key_'s own derivative wrt the surface-domain counterpart of
+  // wrt_key -- a cross-mesh substitution the generic chain rule cannot
+  // perform, since it only ever asks dependencies about the SAME wrt_key
+  // it was itself asked about. dens_key_ and visc_key_, and krel_key_'s
+  // "cell" contribution, still go through the ordinary, generic chain rule.
+  virtual void UpdateDerivative_(State& S, const Key& wrt_key, const Tag& wrt_tag) override;
+
  protected:
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
+
+  // Requires surf_krel_key_'s own derivatives wrt the surface-domain
+  // counterpart of every wrt_key this evaluator's own derivative has been
+  // required for -- needed because the generic EnsureCompatibility_DepDerivs_
+  // only requires a dependency's derivative wrt the SAME wrt_key, which is
+  // never true for surf_krel_key_ (it depends on a surface-domain key).
+  void EnsureCompatibility_SurfDepDerivs_(State& S);
 
  protected:
   static const std::string eval_type;
 
   bool use_surface_relperm_;
   KeyTag surf_krel_key_;
+  Key surf_domain_; // only resolved/used when use_surface_relperm_
 
   KeyTag dens_key_, visc_key_, krel_key_;
 

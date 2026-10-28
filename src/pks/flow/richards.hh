@@ -227,8 +227,6 @@ Uses the PK type:
 #ifndef PK_FLOW_RICHARDS_HH_
 #define PK_FLOW_RICHARDS_HH_
 
-#include "upwinding.hh"
-
 #include "PKFactory.hh"
 #include "PK_PhysicalBDF_Default.hh"
 
@@ -310,6 +308,11 @@ class Richards : public PK_PhysicalBDF_Default {
   // PK_BDF method
   virtual Teuchos::RCP<Operators::Operator> getPreconditioner() override { return preconditioner_; }
 
+  Teuchos::RCP<Operators::PDE_DiffusionWithGravity> getDiffusionPreconditioner()
+  {
+    return preconditioner_diff_;
+  }
+
   //
   // methods used only for testing
   // ------------------------------------------------------------------
@@ -360,7 +363,7 @@ class Richards : public PK_PhysicalBDF_Default {
 
  protected:
   // control switches
-  Operators::UpwindMethod Krel_method_;
+  std::string Krel_method_;
   bool infiltrate_only_if_unfrozen_;
   bool modify_predictor_with_consistent_faces_;
   bool modify_predictor_wc_;
@@ -383,8 +386,6 @@ class Richards : public PK_PhysicalBDF_Default {
   double surface_head_eps_;
 
   // permeability
-  Teuchos::RCP<Operators::Upwinding> upwinding_;
-  Teuchos::RCP<Operators::Upwinding> upwinding_deriv_;
   bool upwind_from_prev_flux_;
 
   // mathematical operators
@@ -392,7 +393,6 @@ class Richards : public PK_PhysicalBDF_Default {
   Teuchos::RCP<Operators::Operator> preconditioner_; // pc in PKPhysicalBDFBase
   Teuchos::RCP<Operators::PDE_DiffusionWithGravity> matrix_diff_;
   Teuchos::RCP<Operators::PDE_DiffusionWithGravity> preconditioner_diff_;
-  Teuchos::RCP<Operators::PDE_DiffusionWithGravity> face_matrix_diff_;
   Teuchos::RCP<Operators::PDE_Accumulation> preconditioner_acc_;
   double perm_scale_;
 
@@ -421,7 +421,13 @@ class Richards : public PK_PhysicalBDF_Default {
   Key molar_dens_key_;
   Key perm_key_;
   Key coef_key_;
-  Key uw_coef_key_, duw_coef_key_;
+  Key uw_coef_key_;
+  Key dcoef_key_;   // d(coef_key_)/dp, as a plain primary-variable field (MFD only)
+  Key duw_coef_key_; // upwinded dcoef_key_, via its own upwinding evaluator (MFD only)
+
+  bool coef_is_upwinded_; // false for "cell centered" (uw_coef_key_ == coef_key_)
+  bool coef_deriv_is_upwinded_; // false for "cell centered" or FV
+
   Key flux_key_;
   Key flux_dir_key_;
   Key velocity_key_;

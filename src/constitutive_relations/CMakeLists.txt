@@ -5,6 +5,7 @@
 #add_subdirectory(surface_subsurface_fluxes)
 #add_subdirectory(generic_evaluators)
 add_subdirectory(column_integrators)
+add_subdirectory(upwinding)
 
 #================================================================
 # register evaluators/factories/pks

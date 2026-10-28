@@ -18,11 +18,6 @@
 
 #include "PK_Helpers.hh"
 
-#include "upwind_cell_centered.hh"
-#include "upwind_arithmetic_mean.hh"
-#include "upwind_total_flux.hh"
-//#include "upwind_gravity_flux.hh"
-
 #include "predictor_delegate_bc_flux.hh"
 //#include "BoundaryFlux.hh"
 
@@ -51,6 +46,8 @@ Richards::Richards(const Comm_ptr_type& comm,
     modify_predictor_first_bc_flux_(false),
     upwind_from_prev_flux_(false),
     clobber_boundary_flux_dir_(false),
+    coef_is_upwinded_(false),
+    coef_deriv_is_upwinded_(false),
     // perm_scale_(1.),
     jacobian_(false),
     jacobian_lag_(0),
@@ -179,6 +176,17 @@ Richards::parseParameterList()
     bcs_found.emplace_back(bc_flux_name);
   }
 
+  if (coupled_to_surface_via_head_) {
+    // Dirichlet condition, given by the surface's own pressure
+    std::string bc_pressure_name = name_ + "_bcs_surface_coupling_via_head";
+    Teuchos::ParameterList& bc_pressure_list = S_->GetEvaluatorList(bc_pressure_name);
+    bc_pressure_list.set<std::string>("evaluator type", "vector as patch")
+      .set<Teuchos::Array<std::string>>("dependencies",
+                                        std::vector<std::string>{ ss_primary_key_ })
+      .set<std::string>("region", "surface");
+    bcs_found.emplace_back(bc_pressure_name);
+  }
+
   // and the boundary condition aggregator
   S_->GetEvaluatorList(name_ + "_bcs")
     .set<std::string>("evaluator type", "boundary condition aggregator")
@@ -237,6 +245,12 @@ Richards::SetupRichardsFlow_()
     // THIS IS BROKEN AND FRAGILE.... HOW DO WE DO THIS CORRECTLY? --ETC
     mps.addPatch("surface", AmanziMesh::Entity_kind::FACE, 1);
   }
+  if (coupled_to_surface_via_head_) {
+    auto& mps = S_->Require<MultiPatch<double>, MultiPatchSpace>(
+      name_ + "_bcs_surface_coupling_via_head", tag_next_);
+    mps.set_flag(Operators::OPERATOR_BC_DIRICHLET);
+    mps.addPatch("surface", AmanziMesh::Entity_kind::FACE, 1);
+  }
 
   // -- nonlinear coefficients/upwinding
   // if coupled to the surface, how do we deal with the surface face
@@ -259,59 +273,65 @@ Richards::SetupRichardsFlow_()
   if (!deform_key_.empty()) S_->RequireEvaluator(deform_key_, tag_next_);
 
   // what upwinding method to use
-  std::string method_name =
+  Krel_method_ =
     plist_->get<std::string>("relative permeability method", "upwind with Darcy flux");
-  // if (method_name == "upwind with gravity") {
-  //   upwinding_ = Teuchos::rcp(new Operators::UpwindGravityFlux(name_, tag_next_, K_));
-  //   Krel_method_ = Operators::UPWIND_METHOD_GRAVITY;
-  // } else if (method_name == "cell centered") {
-  if (method_name == "cell centered") {
-    upwinding_ = Teuchos::rcp(new Operators::UpwindCellCentered(name_, tag_next_));
-    Krel_method_ = Operators::UPWIND_METHOD_CENTERED;
-  } else if (method_name == "upwind with Darcy flux") {
-    double flux_eps = plist_->get<double>("upwind flux epsilon", 1.e-5);
-    upwinding_ =
-      Teuchos::rcp(new Operators::UpwindTotalFlux(name_, tag_next_, flux_dir_key_, flux_eps));
-    Krel_method_ = Operators::UPWIND_METHOD_TOTAL_FLUX;
-  } else if (method_name == "arithmetic mean") {
-    upwinding_ = Teuchos::rcp(new Operators::UpwindArithmeticMean(name_, tag_next_));
-    Krel_method_ = Operators::UPWIND_METHOD_ARITHMETIC_MEAN;
+
+  // require the data on appropriate locations, and register the upwinding
+  // evaluator (if any) for uw_coef_key_.
+  std::string coef_location;
+  if (Krel_method_ == "cell centered") {
+    // no upwinding needed -- krel is used directly on cells.
+    coef_location = "standard: cell";
+    uw_coef_key_ = coef_key_;
+    coef_is_upwinded_ = false;
+  } else if (Krel_method_ == "upwind with Darcy flux" || Krel_method_ == "arithmetic mean") {
+    coef_location = "upwind: face";
+    coef_is_upwinded_ = true;
+
+    Teuchos::ParameterList& uw_plist = S_->GetEvaluatorList(uw_coef_key_);
+    uw_plist.set("field key", coef_key_);
+    if (Krel_method_ == "upwind with Darcy flux") {
+      uw_plist.set("evaluator type", "upwind: total flux");
+      uw_plist.set("flux direction key", flux_dir_key_);
+      uw_plist.set("flux epsilon", plist_->get<double>("upwind flux epsilon", 1.e-5));
+    } else {
+      uw_plist.set("evaluator type", "upwind: arithmetic mean");
+    }
+    uw_plist.set("clobber policy", clobber_policy_ == "clobber" ? "clobber" : "none");
+    PKHelpers::requireNonlinearDiffusionCoefficient(uw_coef_key_, tag_next_, coef_location, *S_);
+    S_->RequireEvaluator(uw_coef_key_, tag_next_);
+
   } else {
     std::stringstream messagestream;
-    messagestream << "Richards Flow PK has no upwinding method named: " << method_name;
+    messagestream << "Richards Flow PK has no upwinding method named: " << Krel_method_;
     Errors::Message message(messagestream.str());
     Exceptions::amanzi_throw(message);
   }
 
-  // require the data on appropriate locations
-  std::string coef_location = upwinding_->CoefficientLocation();
-  PKHelpers::requireNonlinearDiffusionCoefficient(uw_coef_key_, tag_next_, coef_location, *S_);
-
   // -- create the forward operator for the diffusion term
   Teuchos::ParameterList& mfd_plist = plist_->sublist("diffusion");
-  mfd_plist.set("nonlinear coefficient", coef_location);
+  mfd_plist.set("scalar coefficient type", coef_location);
   mfd_plist.set("gravity", true);
 
   Operators::PDE_DiffusionFactory opfactory;
   matrix_diff_ = opfactory.CreateWithGravity(mfd_plist, mesh_);
   matrix_ = matrix_diff_->global_operator();
 
-  // -- create the operator, data for flux directions
-  Teuchos::ParameterList face_diff_list(mfd_plist);
-  face_diff_list.set("nonlinear coefficient", "none");
-  face_matrix_diff_ = opfactory.CreateWithGravity(face_diff_list, mesh_);
-
   S_->Require<CompositeVector, CompositeVectorSpace>(flux_dir_key_, tag_next_, name_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);
+  // flux_dir_key_ is set directly by the PK (via PDE_Diffusion::ComputeFluxDirection),
+  // not computed from a model -- register it as a primary variable so the
+  // total-flux upwinding evaluator's dependency on it resolves cleanly.
+  PKHelpers::requireEvaluatorPrimary(flux_dir_key_, tag_next_, *S_);
 
   // -- create the operators for the preconditioner
   //    diffusion
   // NOTE: Can this be a clone of the primary operator? --etc
   //      get the discretiation type
   Teuchos::ParameterList& mfd_pc_plist = plist_->sublist("diffusion preconditioner");
-  mfd_pc_plist.set("nonlinear coefficient", coef_location);
+  mfd_pc_plist.set("scalar coefficient type", coef_location);
   mfd_pc_plist.set("gravity", true);
   if (!mfd_pc_plist.isParameter("discretization primary"))
     mfd_pc_plist.set("discretization primary",
@@ -344,8 +364,8 @@ Richards::SetupRichardsFlow_()
   preconditioner_diff_ = opfactory.CreateWithGravity(mfd_pc_plist, mesh_);
   preconditioner_ = preconditioner_diff_->global_operator();
 
-  //    If using approximate Jacobian for the preconditioner, we also need
-  //    derivative information.  For now this means upwinding the derivative.
+  //    If using Newton correction for the preconditioner, we also need
+  //    derivative information.
   jacobian_ = mfd_pc_plist.get<std::string>("Newton correction", "none") != "none";
   if (jacobian_) {
     jacobian_lag_ = mfd_pc_plist.get<int>("Newton correction lag", 0);
@@ -354,22 +374,42 @@ Richards::SetupRichardsFlow_()
     S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
         coef_key_, tag_next_, key_, tag_next_)
       .SetGhosted();
-    if (mfd_pc_plist.get<std::string>("discretization primary") != "fv: default") {
-      // MFD -- upwind required, require data
+
+    if (mfd_pc_plist.get<std::string>("discretization primary") == "fv: default" &&
+        coef_is_upwinded_) {
+      // FV true Jacobian -- requires the upwinding evaluator's own 2-DoF,
+      // face-based derivative (consistent with whichever upwind rule was
+      // selected above), not the raw cell-based derivative.
+      S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
+        uw_coef_key_, tag_next_, key_, tag_next_)
+        .SetGhosted();
+    } else if (mfd_pc_plist.get<std::string>("discretization primary") != "fv: default" &&
+               coef_is_upwinded_) {
+      // MFD approximate Jacobian -- upwinds the cell-based derivative itself
+      // (a separate, 1-DoF-per-face upwinding, not the 2-DoF structure FV
+      // needs). dcoef_key_ is a plain primary-variable field we fill by hand
+      // each time the derivative changes (see UpdatePermeabilityDerivativeData_);
+      // duw_coef_key_ is its own upwinding evaluator pointed at dcoef_key_.
+      coef_deriv_is_upwinded_ = true;
+      dcoef_key_ = Keys::getDerivKey(coef_key_, key_);
+      PKHelpers::requireEvaluatorPrimary(dcoef_key_, tag_next_, *S_);
+      S_->Require<CompositeVector, CompositeVectorSpace>(dcoef_key_, tag_next_, name_)
+        .SetMesh(mesh_)
+        ->SetGhosted()
+        ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+
       duw_coef_key_ = Keys::getDerivKey(uw_coef_key_, key_);
-
-      // note this is always done on faces using total flux upwinding
+      Teuchos::ParameterList& duw_plist = S_->GetEvaluatorList(duw_coef_key_);
+      duw_plist.setParameters(S_->GetEvaluatorList(uw_coef_key_));
+      duw_plist.set("field key", dcoef_key_);
+      duw_plist.set("clobber policy", "none"); // derivatives are never clobbered
       PKHelpers::requireNonlinearDiffusionCoefficient(
-        duw_coef_key_, tag_next_, "upwind: face", *S_);
-
-      // note, this is here to be consistent -- unclear whether the 1.e-3 is useful or not?
-      double flux_eps = plist_->get<double>("upwind flux epsilon", 1.e-5);
-      upwinding_deriv_ = Teuchos::rcp(
-        new Operators::UpwindTotalFlux(name_, tag_next_, flux_dir_key_, 1.e-3 * flux_eps));
-    } else {
-      // FV -- no upwinding of derivative
-      duw_coef_key_ = std::string();
+        duw_coef_key_, tag_next_, coef_location, *S_);
+      S_->RequireEvaluator(duw_coef_key_, tag_next_);
     }
+    // Otherwise ("cell centered" with no upwinding evaluator at all)
+    // richards_ti.cc falls back to the raw cell-based derivative required
+    // just above.
   }
 
   //
@@ -543,11 +583,18 @@ Richards::initialize()
 
   // Set extra fields as initialized -- these don't currently have evaluators,
   // and will be initialized in the call to commit_state()
-  S_->GetW<CompositeVector>(uw_coef_key_, tag_next_, uw_coef_key_).putScalar(1.0);
-  S_->GetRecordW(uw_coef_key_, tag_next_, uw_coef_key_).set_initialized();
+  if (!coef_is_upwinded_) {
+    // uw_coef_key_ == coef_key_, which has its own evaluator -- nothing
+    // extra to initialize here.
+  } else {
+    S_->GetW<CompositeVector>(uw_coef_key_, tag_next_, uw_coef_key_).putScalar(1.0);
+    S_->GetRecordW(uw_coef_key_, tag_next_, uw_coef_key_).set_initialized();
+  }
 
-  if (!duw_coef_key_.empty()) {
-    S_->GetW<CompositeVector>(duw_coef_key_, tag_next_, duw_coef_key_).putScalar(1.0);
+  if (coef_deriv_is_upwinded_) {
+    S_->GetW<CompositeVector>(dcoef_key_, tag_next_, name_).putScalar(0.0);
+    S_->GetRecordW(dcoef_key_, tag_next_, name_).set_initialized();
+    S_->GetW<CompositeVector>(duw_coef_key_, tag_next_, duw_coef_key_).putScalar(0.0);
     S_->GetRecordW(duw_coef_key_, tag_next_, duw_coef_key_).set_initialized();
   }
 
@@ -573,11 +620,6 @@ Richards::initialize()
   preconditioner_diff_->SetGravity(g);
   preconditioner_diff_->SetBCs(bc, bc);
   preconditioner_diff_->SetTensorCoefficient(K);
-
-  face_matrix_diff_->SetGravity(g);
-  face_matrix_diff_->SetBCs(bc, bc);
-  face_matrix_diff_->SetTensorCoefficient(K);
-  face_matrix_diff_->SetScalarCoefficient(Teuchos::null, Teuchos::null);
 };
 
 
@@ -595,9 +637,11 @@ Richards::InitializeHydrostatic_(const Tag& tag)
     double g = -gvec[z_index];
     double p_atm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
 
-    // set pressure on the column of faces and cells
+    // set pressure on the column of boundary_faces, faces and cells
     Teuchos::RCP<CompositeVector> pres = S_->GetPtrW<CompositeVector>(key_, tag, getName());
     bool has_faces = pres->hasComponent("face");
+    bool has_bfaces = pres->hasComponent("boundary_face");
+    AMANZI_ASSERT(!(has_faces && has_bfaces));
     Kokkos::View<int*> touched("touched", 0);
 
     { // context for viewcomponent -- do cells
@@ -609,6 +653,12 @@ Richards::InitializeHydrostatic_(const Tag& tag)
         Kokkos::deep_copy(touched, 0);
       }
 
+      decltype(pres_c) pres_bf;
+      if (has_bfaces) {
+        pres_bf = pres->viewComponent("boundary_face", false);
+        Kokkos::resize(touched, pres_bf.extent(0));
+        Kokkos::deep_copy(touched, 0);
+      }
       AMANZI_ASSERT(mesh_->columns->num_columns_owned >= 0);
       const AmanziMesh::MeshCache& m = mesh_->getCache();
 
@@ -624,8 +674,14 @@ Richards::InitializeHydrostatic_(const Tag& tag)
             pres_f(col_faces(0), 0) = p_atm + rho * g * head_wt;
             touched(col_faces(0)) = 1;
           }
+          if (has_bfaces) {
+            int bf = AmanziMesh::getFaceOnBoundaryBoundaryFace(m, col_faces(0));
+            pres_bf(bf, 0) = p_atm + rho * g * head_wt;
+            touched(bf) = 1;
+          }
 
-          for (int lcv_c = 0; lcv_c != col_cells.size(); ++lcv_c) {
+          int lcv_c;
+          for (lcv_c = 0; lcv_c != col_cells.size(); ++lcv_c) {
             AmanziMesh::Entity_ID c = col_cells(lcv_c);
             AmanziMesh::Entity_ID f = col_faces(lcv_c + 1);
             pres_c(c, 0) = p_atm + rho * g * (z_wt - m.getCellCentroid(c)[z_index]);
@@ -633,6 +689,12 @@ Richards::InitializeHydrostatic_(const Tag& tag)
               pres_f(f, 0) = p_atm + rho * g * (z_wt - m.getFaceCentroid(f)[z_index]);
               touched(f) = 1;
             }
+          }
+          if (has_bfaces) {
+            AmanziMesh::Entity_ID f = col_faces(lcv_c);
+            int bf = AmanziMesh::getFaceOnBoundaryBoundaryFace(m, f);
+            pres_bf(bf, 0) = p_atm + rho * g * (z_wt - m.getFaceCentroid(f)[z_index]);
+            touched(bf) = 1;
           }
         });
     }
@@ -658,6 +720,24 @@ Richards::InitializeHydrostatic_(const Tag& tag)
                 pres_f(f, 0) = (pres_c(f_cells(0), 0) + pres_c(f_cells(1), 0)) / 2.;
                 touched(f) = 1;
               }
+            }
+          });
+      }
+    }
+
+    if (has_bfaces) {
+      // communicate, then deal with horizontal-normal faces
+      pres->scatterMasterToGhosted("cell");
+      {
+        auto pres_c = pres->viewComponent("cell", false);
+        auto pres_bf = pres->viewComponent("boundary_face", false);
+        const AmanziMesh::MeshCache& m = mesh_->getCache();
+        Kokkos::parallel_for(
+          "Richards::InitializeHydrostatic boundary faces", pres_bf.extent(0), KOKKOS_LAMBDA(const int bf) {
+            if (!touched(bf)) {
+              auto bf_cell = AmanziMesh::getBoundaryFaceInternalCell(m, bf);
+              pres_bf(bf, 0) = pres_c(bf_cell, 0);
+              touched(bf) = 1;
             }
           });
       }
@@ -810,15 +890,16 @@ Richards::UpdatePermeabilityData_(const Tag& tag)
   if (fixed_kr_) return false;
 
   bool update_perm = S_->GetEvaluator(coef_key_, tag).Update(*S_, name_);
-  Teuchos::RCP<const CompositeVector> rel_perm = S_->GetPtr<CompositeVector>(coef_key_, tag);
 
-  // requirements due to the upwinding method
-  if (Krel_method_ == Operators::UPWIND_METHOD_TOTAL_FLUX) {
+  // requirements due to the upwinding method: the flux direction is needed
+  // by the total-flux upwinding evaluator to decide which neighboring cell
+  // is upwind.  Computed with the scalar coefficient temporarily set to
+  // unity (ComputeFluxDirection()'s convention) -- NOT the real Darcy flux.
+  if (Krel_method_ == "upwind with Darcy flux") {
     bool update_dir = S_->GetEvaluator(mass_dens_key_, tag).Update(*S_, name_);
     update_dir |= S_->GetEvaluator(key_, tag).Update(*S_, name_);
 
     if (update_dir) {
-      // update the direction of the flux -- note this is NOT the flux
       Teuchos::RCP<const CompositeVector> rho = S_->GetPtr<CompositeVector>(mass_dens_key_, tag);
       Teuchos::RCP<CompositeVector> flux_dir =
         S_->GetPtrW<CompositeVector>(flux_dir_key_, tag, name_);
@@ -828,86 +909,21 @@ Richards::UpdatePermeabilityData_(const Tag& tag)
           S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_ + " flux dir")) {
         S_->GetEvaluator(perm_key_, Tags::DEFAULT).Update(*S_, name_ + " flux_dir");
         auto K = S_->GetPtr<TensorVector>(perm_key_, Tags::DEFAULT);
-        face_matrix_diff_->SetTensorCoefficient(K);
+        matrix_diff_->SetTensorCoefficient(K);
       }
-      face_matrix_diff_->SetDensity(rho);
-      face_matrix_diff_->UpdateMatrices(Teuchos::null, pres.ptr());
-      face_matrix_diff_->UpdateFlux(pres.ptr(), flux_dir.ptr());
-
-      // if (clobber_boundary_flux_dir_) {
-      //   Epetra_MultiVector& flux_dir_f = *flux_dir->viewComponent("face", false);
-
-      //   auto& markers = bc_markers();
-      //   auto& values = bc_values();
-
-      //   for (int f = 0; f != markers.size(); ++f) {
-      //     if (markers[f] == Operators::OPERATOR_BC_NEUMANN) {
-      //       AmanziMesh::Entity_ID_List cells;
-      //       cells = mesh_->getFaceCells(f);
-      //       AMANZI_ASSERT(cells.size() == 1);
-      //       int c = cells[0];
-      //       AmanziMesh::Entity_ID_List faces;
-      //       std::vector<int> dirs;
-      //       mesh_->getCellFacesAndDirections(c, &faces, &dirs);
-      //       int i = std::find(faces.begin(), faces.end(), f) - faces.begin();
-
-      //       flux_dir_f[0][f] = values[f] * dirs[i];
-      //     }
-      //   }
-      // }
+      matrix_diff_->SetDensity(rho);
+      matrix_diff_->ComputeFluxDirection(pres.ptr(), flux_dir.ptr());
+      PKHelpers::changedEvaluatorPrimary(flux_dir_key_, tag, *S_);
     }
 
     update_perm |= update_dir;
   }
 
-  if (update_perm) {
-    Teuchos::RCP<CompositeVector> uw_rel_perm =
-      S_->GetPtrW<CompositeVector>(uw_coef_key_, tag, uw_coef_key_);
-
-    // Move rel perm on boundary_faces into uw_rel_perm on faces
-    const auto& vandelay = mesh_->getBoundaryFaceImporter();
-    const auto& rel_perm_bf = *rel_perm->getComponent("boundary_face", false);
-    {
-      auto& uw_rel_perm_f = *uw_rel_perm->getComponent("face", false);
-      uw_rel_perm_f.doExport(rel_perm_bf, vandelay, Tpetra::CombineMode::INSERT);
-    }
-
-    // Upwind, only overwriting boundary faces if the wind says to do so.
-    upwinding_->Update(*rel_perm, *uw_rel_perm, *S_);
-
-    if (clobber_policy_ == "clobber") {
-      auto& uw_rel_perm_f = *uw_rel_perm->getComponent("face", false);
-      uw_rel_perm_f.doExport(rel_perm_bf, vandelay, Tpetra::CombineMode::INSERT);
-    } else if (clobber_policy_ == "max") {
-      AMANZI_ASSERT(false);
-      // Epetra_MultiVector& uw_rel_perm_f = *uw_rel_perm->viewComponent("face", false);
-      // const auto& fmap = mesh_->getMap(AmanziMesh::Entity_kind::FACE,true);
-      // const auto& bfmap = mesh_->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,true);
-      // for (int bf = 0; bf != rel_perm_bf.MyLength(); ++bf) {
-      //   auto f = fmap.LID(bfmap.GID(bf));
-      //   if (rel_perm_bf[0][bf] > uw_rel_perm_f[0][f]) { uw_rel_perm_f[0][f] = rel_perm_bf[0][bf]; }
-      // }
-    } else if (clobber_policy_ == "unsaturated") {
-      // clobber only when the interior cell is unsaturated
-      AMANZI_ASSERT(false);
-      // Epetra_MultiVector& uw_rel_perm_f = *uw_rel_perm->viewComponent("face", false);
-      // const Epetra_MultiVector& pres =
-      //   *S_->Get<CompositeVector>(key_, tag).viewComponent("cell", false);
-      // const auto& fmap = mesh_->getMap(AmanziMesh::Entity_kind::FACE,true);
-      // const auto& bfmap = mesh_->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,true);
-      // for (int bf = 0; bf != rel_perm_bf.MyLength(); ++bf) {
-      //   auto f = fmap.LID(bfmap.GID(bf));
-      //   AmanziMesh::Entity_ID_List fcells;
-      //   fcells = mesh_->getFaceCells(f);
-      //   AMANZI_ASSERT(fcells.size() == 1);
-      //   if (pres[0][fcells[0]] < 101225.) {
-      //     uw_rel_perm_f[0][f] = rel_perm_bf[0][bf];
-      //   } else if (pres[0][fcells[0]] < 101325.) {
-      //     double frac = (101325. - pres[0][fcells[0]]) / 100.;
-      //     uw_rel_perm_f[0][f] = rel_perm_bf[0][bf] * frac + uw_rel_perm_f[0][f] * (1 - frac);
-      //   }
-      // }
-    }
+  if (update_perm && coef_is_upwinded_) {
+    // the upwinding evaluator depends on coef_key_ (just updated above) and,
+    // for total-flux, flux_dir_key_ (just updated above) -- Update() will
+    // pick up both changes.
+    S_->GetEvaluator(uw_coef_key_, tag).Update(*S_, name_);
   }
 
   // debugging
@@ -923,28 +939,29 @@ Richards::UpdatePermeabilityDerivativeData_(const Tag& tag)
   if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "  Updating permeability derivatives?";
   if (fixed_kr_) return false;
 
-  bool update_perm = S_->GetEvaluator(coef_key_, tag).UpdateDerivative(*S_, name_, key_, tag);
-  if (update_perm) {
-    const CompositeVector& drel_perm =
-      S_->GetDerivative<CompositeVector>(coef_key_, tag, key_, tag);
-
-    if (!duw_coef_key_.empty()) {
-      // must also upwind
-      CompositeVector& duw_rel_perm = S_->GetW<CompositeVector>(duw_coef_key_, tag, duw_coef_key_);
-      duw_rel_perm.putScalar(0.);
-
-      // Upwind, only overwriting boundary faces if the wind says to do so.
-      upwinding_deriv_->Update(drel_perm, duw_rel_perm, *S_);
-    }
+  bool update_perm = false;
+  if (S_->GetEvaluator(coef_key_, tag).IsDifferentiableWRT(*S_, key_, tag)) {
+    update_perm = S_->GetEvaluator(coef_key_, tag).UpdateDerivative(*S_, name_, key_, tag);
   }
 
-  if (!duw_coef_key_.empty()) {
-    std::vector<std::string> vnames{ "dkrel", "uw_dkrel" };
-    std::vector<Teuchos::Ptr<const CompositeVector>> vecs{
-      S_->GetDerivativePtr<CompositeVector>(coef_key_, tag, key_, tag).ptr(),
-      S_->GetPtr<CompositeVector>(duw_coef_key_, tag).ptr()
-    };
-    db_->WriteVectors(vnames, vecs, true);
+  if (coef_is_upwinded_ && !coef_deriv_is_upwinded_ &&
+      S_->GetEvaluator(uw_coef_key_, tag).IsDifferentiableWRT(*S_, key_, tag)) {
+    // FV true Jacobian -- the upwinding evaluator's own 2-DoF derivative,
+    // consistent with whichever upwind rule produced the value.
+    update_perm |= S_->GetEvaluator(uw_coef_key_, tag).UpdateDerivative(*S_, name_, key_, tag);
+  }
+
+  if (coef_deriv_is_upwinded_ && update_perm) {
+    // MFD approximate Jacobian -- upwind the cell-based derivative itself,
+    // as a separate field, via its own upwinding evaluator.  dcoef_key_ is a
+    // plain primary-variable field: fill it by hand from the real
+    // derivative, mark it changed, then let duw_coef_key_'s evaluator
+    // upwind it.
+    const CompositeVector& dcoef = S_->GetDerivative<CompositeVector>(coef_key_, tag, key_, tag);
+    S_->GetW<CompositeVector>(dcoef_key_, tag, name_).assign(dcoef);
+    PKHelpers::changedEvaluatorPrimary(dcoef_key_, tag, *S_);
+
+    S_->GetEvaluator(duw_coef_key_, tag).Update(*S_, name_);
   }
 
   // debugging
@@ -967,6 +984,14 @@ Richards::UpdateBoundaryConditions_(const Tag& tag, bool kr)
   S_->Get<CompositeVector>(flux_key_, tag).scatterMasterToGhosted("face");
 
   S_->GetEvaluator(name_ + "_bcs", tag_next_).Update(*S_, name_);
+
+  // stamp the current Dirichlet data into pressure's own boundary_face/face
+  // components, so every consumer (saturation, rel perm, hydraulic
+  // conductivity, ...) sees live boundary data regardless of which call site
+  // triggered this update.
+  const auto& bcs = S_->Get<Operators::BCs>(name_ + "_bcs", tag_next_);
+  auto& u = S_->GetW<CompositeVector>(key_, tag, S_->GetRecord(key_, tag).owner());
+  PKHelpers::applyDirichletBCs(bcs, u);
 };
 
 
@@ -976,13 +1001,9 @@ Richards::ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::
   Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "Modifying predictor:" << std::endl;
 
-  // update boundary conditions
+  // update boundary conditions (also stamps Dirichlet data into pressure)
   UpdateBoundaryConditions_(tag_next_);
   // db_->WriteBoundaryConditions(bc_->model(), bc_->value());
-
-  // push Dirichlet data into predictor
-  const auto& bcs = S_->Get<Operators::BCs>(name_ + "_bcs", tag_next_);
-  PKHelpers::applyDirichletBCs(bcs, *u->getData());
 
   bool changed(false);
   if (modify_predictor_bc_flux_ ||
