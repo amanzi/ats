@@ -22,11 +22,18 @@
   with dt.  With a tolerance between L*dt and L*dt/2 the first step must be
   rejected, dt reduced, and the retry accepted.
 
+  A further case applies ELM_ATSDriver's pro-rata tolerance,
+  elmInnerStepTolerance(tol, dt, T_END), with an error that grows like dt^2
+  (a constant leak cannot be cured by subcycling, since its sum over the outer
+  step is L*T_END regardless of dt).  Inner steps that would each pass the
+  unscaled tolerance are rejected so that the summed error stays within tol.
+
 */
 
 #include <cmath>
 #include <cstdio>
 #include <exception>
+#include <functional>
 #include <vector>
 #include <utility>
 
@@ -130,17 +137,39 @@ constexpr double PK_DT = 100.0;   // [s] dt the PK always requests
 constexpr double LEAK = 1.0e-3;   // [mm s-1] synthetic imbalance
 constexpr double T_END = 100.0;   // [s]
 
+// errh2o [mm] from the real ELM kernel for a step of dt with no storage change
+// and a constant sink of leak [mm s-1].
+double
+leakError(double leak, double dt)
+{
+  const double begwb = 100.0, endwb = begwb, zero = 0.0;
+  return elmWaterBalanceError(endwb, begwb, zero, leak, zero, zero, zero, dt);
+}
+
+// errh2o of a constant leak L
+double
+linearError(double dt)
+{
+  return leakError(LEAK, dt);
+}
+
 struct RunResult {
   std::vector<double> checked_dts;  // dt seen by each validity-check call
+  std::vector<double> checked_errs; // |errh2o| seen by each validity-check call
   std::vector<Interval> advanced, committed, failed;
   double t_final;
   int cycles;
 };
 
 // Runs one outer advance over [0, T_END] with the ELM-kernel validity check at
-// tolerance tol [mm].  reduction <= 0 keeps the TimeAdvancer default.
+// tolerance tol [mm].  reduction <= 0 keeps the TimeAdvancer default.  If
+// scale_tol, each inner step is held to ELM_ATSDriver's pro-rata share of tol.
 RunResult
-run(double tol, double reduction = -1.0)
+run(double tol,
+    double reduction = -1.0,
+    double pk_dt = PK_DT,
+    const std::function<double(double)>& error = linearError,
+    bool scale_tol = false)
 {
   using Amanzi::Tags::CURRENT;
   using Amanzi::Tags::NEXT;
@@ -154,7 +183,7 @@ run(double tol, double reduction = -1.0)
   S->require_time(CURRENT);
   S->require_time(NEXT);
 
-  auto pk = Teuchos::rcp(new StubPK(pk_tree, global_plist, S, PK_DT));
+  auto pk = Teuchos::rcp(new StubPK(pk_tree, global_plist, S, pk_dt));
   auto tsm = Teuchos::rcp(new Amanzi::Utils::TimeStepManager());
   auto vo = Teuchos::rcp(new Amanzi::VerboseObject("TimeAdvancerRetryTest", "low"));
 
@@ -164,13 +193,12 @@ run(double tol, double reduction = -1.0)
   ATS::TimeAdvancer ta(ta_plist, S, pk, tsm, CURRENT, NEXT, vo, Teuchos::null);
 
   RunResult r;
-  ta.set_step_validity_check([&r, tol](double t_old, double t_new) {
+  ta.set_step_validity_check([&r, tol, error, scale_tol](double t_old, double t_new) {
     const double dt = t_new - t_old;
+    const double err = std::abs(error(dt));
     r.checked_dts.push_back(dt);
-    const double begwb = 100.0, endwb = begwb, zero = 0.0, leak = LEAK;
-    const double errh2o =
-      elmWaterBalanceError(endwb, begwb, zero, leak, zero, zero, zero, dt);
-    return std::abs(errh2o) <= tol;
+    r.checked_errs.push_back(err);
+    return err <= (scale_tol ? elmInnerStepTolerance(tol, dt, T_END) : tol);
   });
 
   ta.setup();
@@ -240,6 +268,51 @@ LooseToleranceAccepts()
   CHECK(r.cycles == 1);
 }
 
+// Pro-rata tolerance: with err(dt) = C dt^2 and the PK requesting 50 s, each
+// 50 s step (err = 0.05 mm) would pass the unscaled tol = 0.075 mm but sum to
+// 0.1 mm > tol over the outer step.  Scaled, a 50 s step gets 0.0375 mm and is
+// rejected; the 25 s retry (err = 0.0125 <= 0.01875) is accepted.  The PK keeps
+// requesting 50 s, so every 50 s attempt is rejected and the outer step is
+// covered by four 25 s steps whose summed error (0.05 mm) is within tol.
+void
+ScaledToleranceBoundsOuterError()
+{
+  constexpr double C = 2.0e-5;  // [mm s-2]
+  constexpr double tol = 0.075;
+  const auto quadratic = [](double dt) { return leakError(C * dt, dt); };
+
+  // control: unscaled, two 50 s steps pass but exceed tol in sum
+  const RunResult u = run(tol, -1.0, 50.0, quadratic, false);
+  CHECK(u.failed.empty());
+  CHECK(same(u.committed, { { 0., 50. }, { 50., 100. } }));
+
+  const RunResult r = run(tol, -1.0, 50.0, quadratic, true);
+  CHECK(same(r.committed, { { 0., 25. }, { 25., 50. }, { 50., 75. }, { 75., 100. } }));
+  CHECK(same(r.failed, { { 0., 50. }, { 25., 75. }, { 50., 100. } }));
+  CHECK(close(r.t_final, T_END));
+
+  // sum |errh2o| over the accepted steps
+  double committed_dt = 0.0, committed_err = 0.0;
+  for (std::size_t i = 0; i != r.checked_dts.size(); ++i) {
+    if (r.checked_errs[i] <= elmInnerStepTolerance(tol, r.checked_dts[i], T_END)) {
+      committed_dt += r.checked_dts[i];
+      committed_err += r.checked_errs[i];
+    }
+  }
+  CHECK(close(committed_dt, T_END));
+  CHECK(committed_err <= tol);
+}
+
+// elmInnerStepTolerance splits tol pro rata and falls back to tol without an
+// outer step.
+void
+InnerStepTolerance()
+{
+  CHECK(close(elmInnerStepTolerance(1.0e-4, 450.0, 1800.0), 2.5e-5));
+  CHECK(close(elmInnerStepTolerance(1.0e-4, 1800.0, 1800.0), 1.0e-4));
+  CHECK(close(elmInnerStepTolerance(1.0e-4, 450.0, 0.0), 1.0e-4));
+}
+
 struct TestCase {
   const char* name;
   void (*fn)();
@@ -249,6 +322,8 @@ const TestCase TESTS[] = {
   { "RejectThenRetry", RejectThenRetry },
   { "ReductionFactor", ReductionFactor },
   { "LooseToleranceAccepts", LooseToleranceAccepts },
+  { "ScaledToleranceBoundsOuterError", ScaledToleranceBoundsOuterError },
+  { "InnerStepTolerance", InnerStepTolerance },
 };
 
 } // namespace

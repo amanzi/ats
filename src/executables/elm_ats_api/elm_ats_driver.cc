@@ -84,6 +84,7 @@ ELM_ATSDriver::ELM_ATSDriver(const Teuchos::RCP<Teuchos::ParameterList>& plist,
     ncolumns(-1),
     ncells_per_col_(-1),
     elm_plist_(Teuchos::sublist(Teuchos::sublist(plist, "cycle driver"), "ELM driver")),
+    elm_dt_outer_(0.0),
     elm_cycle_(0)
 {
 
@@ -260,8 +261,11 @@ ELM_ATSDriver::parseParameterList()
             vo_, wallclock_timer_));
 
   // Optionally gate ATS step acceptance on ELM's water mass-balance constraint.
-  // When "elm mass balance tolerance [mm]" is set (> 0), each inner ATS step is
-  // rejected (and dt reduced) unless every column's errh2o is within tolerance.
+  // When "elm mass balance tolerance [mm]" is set (> 0), it is the tolerance on
+  // ELM's errh2o over the outer ELM step.  Each inner ATS step is rejected (and
+  // dt reduced) unless every column's errh2o is within its pro-rata share,
+  // tol * dt_inner / dt_outer, so the summed inner errors stay within tol.
+  // Errors that do not shrink with dt will drive dt to the minimum timestep.
   elm_mb_tol_ = elm_plist_->get<double>("elm mass balance tolerance [mm]", -1.0);
   if (elm_mb_tol_ > 0.0) {
     time_advancer_->set_step_validity_check(
@@ -523,6 +527,7 @@ void ELM_ATSDriver::advance(double dt, bool force_chkp, bool force_vis)
     }
 
     // advance from t_now to t_now+dt; TimeAdvancer handles subcycling internally
+    elm_dt_outer_ = dt;
     bool fail = time_advancer_->advance(t_now, t_now + dt);
     if (fail) {
       Errors::Message msg("ELM_ATSDriver: advance(dt) failed.  Make ATS subcycle for proper ELM use.");
@@ -562,8 +567,15 @@ void ELM_ATSDriver::advance(double dt, bool force_chkp, bool force_vis)
 // exchange cancels, leaving only the true domain-boundary fluxes ELM cares
 // about: source in, evaporation/transpiration/baseflow/runoff out.
 //
-// Returns true iff every column's |errh2o| <= elm_mb_tol_ [mm].  A false
-// return makes the TimeAdvancer reject the step and retry with a smaller dt.
+// Returns true iff every column's |errh2o| <= elm_mb_tol_ * dt / elm_dt_outer_
+// [mm].  ELM checks errh2o once over its whole step, and that error is the sum
+// of the inner-step errors, so the pro-rata share bounds it by elm_mb_tol_.  A
+// false return makes the TimeAdvancer reject the step and retry with a smaller
+// dt.
+//
+// NOTE: this assumes ELM converts storage to mm as done here; also n_liq at
+// NEXT is used for both old and new storage, so the inner errors only sum to
+// the outer error exactly if n_liq is constant over the outer step.
 //
 // NOTE: the surface fluxes are assumed to be in [m/s] with sinks positive
 // (evaporation/transpiration/baseflow/runoff leave the column); this matches
@@ -630,12 +642,14 @@ bool ELM_ATSDriver::checkELMWaterBalance_(double t_old, double t_new)
   // reduce across ranks so all processes agree on accept/reject
   auto global = Amanzi::Reductions::reduceAllMaxLoc(*mesh_surf_->getComm(), local);
 
-  const bool ok = global.value <= elm_mb_tol_;
+  const double tol = elmInnerStepTolerance(elm_mb_tol_, dt, elm_dt_outer_);
+  const bool ok = global.value <= tol;
   if (!ok && vo_->os_OK(Teuchos::VERB_LOW)) {
     Teuchos::OSTab tab = vo_->getOSTab();
     *vo_->os() << "ELM water balance not satisfied: max|errh2o| = " << global.value
-               << " mm (column GID " << global.gid << ") > tol = " << elm_mb_tol_ << " mm"
-               << std::endl;
+               << " mm (column GID " << global.gid << ") > step tol = " << tol
+               << " mm (outer tol = " << elm_mb_tol_ << " mm, dt = " << dt
+               << " s of outer dt = " << elm_dt_outer_ << " s)" << std::endl;
   }
   return ok;
 }

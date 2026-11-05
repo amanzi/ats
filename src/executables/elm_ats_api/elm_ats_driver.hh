@@ -68,8 +68,9 @@ class ELM_ATSDriver : public Driver {
   Key setupIntegratedFlux_(const Key& flux_key, ELM::VarID varid);
 
   // Per-inner-step validity check: returns true iff every column's ELM water
-  // mass-balance error is within elm_mb_tol_.  Wired into the TimeAdvancer so
-  // an ATS step is only accepted when it satisfies ELM's balance constraint.
+  // mass-balance error is within the inner step's pro-rata share of
+  // elm_mb_tol_.  Wired into the TimeAdvancer so the summed inner-step errors
+  // over an outer ELM step stay within ELM's balance constraint.
   bool checkELMWaterBalance_(double t_old, double t_new);
 
  private:
@@ -110,8 +111,11 @@ class ELM_ATSDriver : public Driver {
   Key baseflow_raw_key_;
   Key runoff_raw_key_;
 
-  // ELM water mass-balance step gate: tolerance [mm]; <= 0 disables the check
+  // ELM water mass-balance step gate: tolerance [mm] over the outer ELM step;
+  // <= 0 disables the check
   double elm_mb_tol_;
+  // length [s] of the outer ELM step currently being advanced
+  double elm_dt_outer_;
 
   Key surf_mol_dens_key_;
   Key mol_dens_key_;

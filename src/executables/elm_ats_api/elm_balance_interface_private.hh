@@ -98,4 +98,14 @@ elmStorageDepth(double vol_m3, double area_m2)
   return vol_m3 * ELM_DENH2O / area_m2;
 }
 
+//! Share of the outer-step (ELM) tolerance [mm] allotted to an inner ATS step.
+//! ELM's errh2o over its step is the sum of the inner-step errors, so giving
+//! each inner step tol * dt_inner / dt_outer bounds that sum by tol.  A
+//! non-positive dt_outer (no outer step set) falls back to the full tol.
+inline double
+elmInnerStepTolerance(double tol_mm, double dt_inner, double dt_outer)
+{
+  return dt_outer > 0.0 ? tol_mm * dt_inner / dt_outer : tol_mm;
+}
+
 #endif
