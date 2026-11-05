@@ -13,8 +13,10 @@ module elm_water_balance_kernel
   !       elm_ats_water_balance_error_c() is called across the coupling
   !       boundary to gate ATS step acceptance on the ELM balance.
   !
-  ! Keeping one file compiled into both codes is what lets ATS reuse ELM's
-  ! balance formula without a second, drift-prone re-implementation.
+  ! RPF - note 261105: currently this implementation falls a bit short of this
+  ! goal since there are two copies of the file (one in E3SM, one in ATS).
+  ! Ultimately this should be combined to the same file when the relative
+  ! locations of ELM and ATS src files are settled.
   !
   ! Sign / unit conventions (identical to BalanceCheckMod.F90):
   !   - all storages in kg m-2 (mm H2O), all fluxes in mm H2O s-1,

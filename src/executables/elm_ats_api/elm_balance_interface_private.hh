@@ -9,12 +9,8 @@
 
 //! Declaration of the ELM water-balance kernel bound from Fortran.
 /*!
-
-  elm_ats_water_balance_error_c is implemented in the shared, dependency-free
-  Fortran module elm_water_balance_kernel.F90 (which lives in E3SM and is
-  compiled into both the ELM build and this elm_ats_api library).  It returns
-  ELM's column water-balance error errh2o [mm] given the subset of flux terms
-  ATS controls.  All arguments are passed by reference (Fortran convention).
+  It returns ELM's column water-balance error errh2o [mm] given the 
+  subset of flux terms ATS controls.
 
   Units (identical to ELM's BalanceCheckMod):
     endwb, begwb : column water storage end/begin of step [kg m-2 = mm]
