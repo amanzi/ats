@@ -40,7 +40,6 @@
 #include "Teuchos_GlobalMPISession.hpp"
 #include "Teuchos_ParameterList.hpp"
 #include "Teuchos_RCP.hpp"
-#include "Kokkos_Core.hpp"
 
 #include "VerboseObject_objs.hh"
 #include "State.hh"
@@ -361,7 +360,6 @@ const TestCase TESTS[] = {
 int
 main(int argc, char* argv[])
 {
-  Kokkos::initialize(argc, argv);
   int failed_tests = 0;
   {
     Teuchos::GlobalMPISession mpiSession(&argc, &argv);
@@ -387,6 +385,5 @@ main(int argc, char* argv[])
                  "(%d checks, %d failures)\n",
                  ntests - failed_tests, ntests, g_checks, g_failures);
   }
-  Kokkos::finalize();
   return g_failures == 0 ? 0 : 1;
 }
