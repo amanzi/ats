@@ -67,11 +67,11 @@ class ELM_ATSDriver : public Driver {
   // over the outer ELM timestep.  Returns the integrated key.
   Key setupIntegratedFlux_(const Key& flux_key, ELM::VarID varid);
 
-  // Per-inner-step validity check: returns true iff every column's ELM water
-  // mass-balance error is within the inner step's pro-rata share of
-  // elm_mb_tol_.  Wired into the TimeAdvancer so the summed inner-step errors
+  // Per-inner-step validity check: returns the largest ratio of a column's ELM
+  // water mass-balance error to the inner step's pro-rata share of
+  // elm_mb_tol_ (<= 1 accepts the step).  Wired into the TimeAdvancer so the summed inner-step errors
   // over an outer ELM step stay within ELM's balance constraint.
-  bool checkELMWaterBalance_(double t_old, double t_new);
+  double checkELMWaterBalance_(double t_old, double t_new);
 
  private:
   Teuchos::RCP<Teuchos::ParameterList> elm_plist_;

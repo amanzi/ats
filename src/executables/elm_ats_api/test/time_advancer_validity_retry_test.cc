@@ -12,15 +12,15 @@
 
   Exercises the reject-and-retry branch of TimeAdvancer::advance() that is
   taken when the optional step validity check (set by ELM_ATSDriver to gate
-  step acceptance on ELM's water mass balance) returns false for a step the
-  PK otherwise converged.
+  step acceptance on ELM's water mass balance) returns err/tol > 1 for a step
+  the PK otherwise converged.
 
   No mesh, physics PK, or input file is needed.  A stub PK always converges
   with a fixed requested dt and records every Advance/Commit/Fail call.  The
   validity check calls the real ELM kernel elm_ats_water_balance_error_c with
   a synthetic constant leak L (no storage change), so errh2o = L * dt grows
-  with dt.  With a tolerance between L*dt and L*dt/2 the first step must be
-  rejected, dt reduced, and the retry accepted.
+  with dt.  With a tolerance below L*dt the first step must be rejected, dt
+  scaled by roughly 0.9 * tol/err, and the retry accepted.
 
   A further case applies ELM_ATSDriver's pro-rata tolerance,
   elmInnerStepTolerance(tol, dt, T_END), with an error that grows like dt^2
@@ -198,7 +198,7 @@ run(double tol,
     const double err = std::abs(error(dt));
     r.checked_dts.push_back(dt);
     r.checked_errs.push_back(err);
-    return err <= (scale_tol ? elmInnerStepTolerance(tol, dt, T_END) : tol);
+    return err / (scale_tol ? elmInnerStepTolerance(tol, dt, T_END) : tol);
   });
 
   ta.setup();
@@ -222,8 +222,9 @@ run(double tol,
 
 // --- Test cases -------------------------------------------------------------
 
-// errh2o(dt=100) = 0.1 mm > tol, errh2o(dt=50) = 0.05 mm <= tol: the first
-// step is rejected, retried at half dt, then the remainder is taken.
+// errh2o(dt=100) = 0.1 mm > tol = 0.075 mm, so err/tol = 4/3 and the retry dt
+// is 100 * 0.9 / (4/3) = 67.5 s (errh2o = 0.0675 mm <= tol).  dt is then
+// capped at 67.5 s, so the remaining 32.5 s is taken without a rejection.
 void
 RejectThenRetry()
 {
@@ -231,17 +232,18 @@ RejectThenRetry()
   CHECK(r.checked_dts.size() == 3);
   if (r.checked_dts.size() == 3) {
     CHECK(close(r.checked_dts[0], 100.0));
-    CHECK(close(r.checked_dts[1], 50.0));
-    CHECK(close(r.checked_dts[2], 50.0));
+    CHECK(close(r.checked_dts[1], 67.5));
+    CHECK(close(r.checked_dts[2], 32.5));
   }
-  CHECK(same(r.advanced, { { 0., 100. }, { 0., 50. }, { 50., 100. } }));
+  CHECK(same(r.advanced, { { 0., 100. }, { 0., 67.5 }, { 67.5, 100. } }));
   CHECK(same(r.failed, { { 0., 100. } }));
-  CHECK(same(r.committed, { { 0., 50. }, { 50., 100. } }));
+  CHECK(same(r.committed, { { 0., 67.5 }, { 67.5, 100. } }));
   CHECK(close(r.t_final, T_END));
   CHECK(r.cycles == 2);
 }
 
-// The "validity timestep reduction factor" parameter sets the retry dt.
+// The "validity timestep reduction factor" parameter bounds the retry dt: the
+// scaled factor 0.675 is clamped to 0.25.
 void
 ReductionFactor()
 {
@@ -270,11 +272,11 @@ LooseToleranceAccepts()
 
 // Pro-rata tolerance: with err(dt) = C dt^2 and the PK requesting 50 s, each
 // 50 s step (err = 0.05 mm) would pass the unscaled tol = 0.075 mm but sum to
-// 0.1 mm > tol over the outer step.  Scaled, a 50 s step gets 0.0375 mm and is
-// rejected; the 25 s retry (err = 0.0125 <= 0.01875) is accepted.  The PK keeps
-// requesting 50 s, but dt is capped at the 25 s retry size for the rest of the
-// outer step, so there is only one rejection and the outer step is covered by
-// four 25 s steps whose summed error (0.05 mm) is within tol.
+// 0.1 mm > tol over the outer step.  Scaled, err/tol = dt / 37.5 s, so a 50 s
+// step is rejected and retried at 50 * 0.9 / (4/3) = 33.75 s.  The PK keeps
+// requesting 50 s, but dt is capped at 33.75 s for the rest of the outer step,
+// so there is only one rejection and the summed error (~0.067 mm) is within
+// tol.
 void
 ScaledToleranceBoundsOuterError()
 {
@@ -288,7 +290,7 @@ ScaledToleranceBoundsOuterError()
   CHECK(same(u.committed, { { 0., 50. }, { 50., 100. } }));
 
   const RunResult r = run(tol, -1.0, 50.0, quadratic, true);
-  CHECK(same(r.committed, { { 0., 25. }, { 25., 50. }, { 50., 75. }, { 75., 100. } }));
+  CHECK(same(r.committed, { { 0., 33.75 }, { 33.75, 67.5 }, { 67.5, 100. } }));
   CHECK(same(r.failed, { { 0., 50. } }));
   CHECK(close(r.t_final, T_END));
 
@@ -302,6 +304,32 @@ ScaledToleranceBoundsOuterError()
   }
   CHECK(close(committed_dt, T_END));
   CHECK(committed_err <= tol);
+}
+
+// A large overshoot is cut by at most the 0.1 floor per retry: err/tol = 66.7
+// at 100 s gives a 10 s retry, and err/tol = 6.67 there gives 10 * 0.135.
+// A NaN ratio rejects the step and also takes the floor.
+void
+RetryFactorClamp()
+{
+  const RunResult r = run(0.0015);
+  CHECK(r.checked_dts.size() >= 3);
+  if (r.checked_dts.size() >= 3) {
+    CHECK(close(r.checked_dts[0], 100.0));
+    CHECK(close(r.checked_dts[1], 10.0));
+    CHECK(close(r.checked_dts[2], 1.35));
+  }
+  CHECK(r.failed.size() == 2);
+  CHECK(close(r.t_final, T_END));
+
+  const auto nan_at_100 = [](double dt) {
+    return close(dt, 100.0) ? std::nan("") : linearError(dt);
+  };
+  const RunResult n = run(0.075, -1.0, PK_DT, nan_at_100);
+  CHECK(n.checked_dts.size() >= 2);
+  if (n.checked_dts.size() >= 2) CHECK(close(n.checked_dts[1], 10.0));
+  CHECK(same(n.failed, { { 0., 100. } }));
+  CHECK(close(n.t_final, T_END));
 }
 
 // elmInnerStepTolerance splits tol pro rata and falls back to tol without an
@@ -324,6 +352,7 @@ const TestCase TESTS[] = {
   { "ReductionFactor", ReductionFactor },
   { "LooseToleranceAccepts", LooseToleranceAccepts },
   { "ScaledToleranceBoundsOuterError", ScaledToleranceBoundsOuterError },
+  { "RetryFactorClamp", RetryFactorClamp },
   { "InnerStepTolerance", InnerStepTolerance },
 };
 

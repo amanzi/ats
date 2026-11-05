@@ -7,6 +7,8 @@
   Authors: Ethan Coon
 */
 
+#include <algorithm>
+#include <cmath>
 #include <iomanip>
 #include <limits>
 
@@ -51,7 +53,7 @@ TimeAdvancer::TimeAdvancer(const Teuchos::RCP<Teuchos::ParameterList>& plist,
     cycle1_(plist->get<int>("end cycle", -1)),
     duration_(plist->get<double>("wallclock duration [hrs]", -1.0)),
     subcycled_ts_(plist->get<bool>("subcycled timestep", false)),
-    validity_reduction_(plist->get<double>("validity timestep reduction factor", 0.5)),
+    validity_reduction_(plist->get<double>("validity timestep reduction factor", 0.9)),
     step_validity_check_(nullptr)
 {
   // Validate here rather than relying on a downstream guard: unlike
@@ -310,14 +312,28 @@ TimeAdvancer::advance(double t_start, double t_end)
     fail = pk_->AdvanceStep(t_now, t_now + dt, false);
 
     // An otherwise-successful step may still be rejected by the optional
-    // validity check (e.g. the ELM water mass-balance constraint).
+    // validity check (e.g. the ELM water mass-balance constraint).  The check
+    // returns err/tol; scale the retry dt by it, assuming the ratio is roughly
+    // linear in dt, with a safety margin, and bounded so a single cut is never
+    // milder than validity_reduction_ nor harsher than kMinValidityFactor.  A
+    // non-finite ratio rejects the step and takes the harshest cut.
     bool validity_reject = false;
-    if (!fail && step_validity_check_ && !step_validity_check_(t_now, t_now + dt)) {
-      fail = true;
-      validity_reject = true;
-      if (vo_->os_OK(Teuchos::VERB_LOW)) {
-        Teuchos::OSTab tab = vo_->getOSTab();
-        *vo_->os() << "Step rejected by validity check; reducing dt and retrying." << std::endl;
+    double validity_factor = 1.0;
+    if (!fail && step_validity_check_) {
+      const double ratio = step_validity_check_(t_now, t_now + dt);
+      if (!(ratio <= 1.0)) {
+        constexpr double kValiditySafety = 0.9;
+        constexpr double kMinValidityFactor = 0.1;
+        const double lo = std::min(kMinValidityFactor, validity_reduction_);
+        validity_factor = std::isfinite(ratio) ?
+          std::clamp(kValiditySafety / ratio, lo, validity_reduction_) : lo;
+        fail = true;
+        validity_reject = true;
+        if (vo_->os_OK(Teuchos::VERB_LOW)) {
+          Teuchos::OSTab tab = vo_->getOSTab();
+          *vo_->os() << "Step rejected by validity check (err/tol = " << ratio
+                     << "); reducing dt by " << validity_factor << " and retrying." << std::endl;
+        }
       }
     }
 
@@ -332,7 +348,7 @@ TimeAdvancer::advance(double t_start, double t_end)
       // The PK converged, so it may not have shrunk its own dt; force a
       // reduction so the retry actually uses a smaller step.
       if (validity_reject) {
-        dt = std::min(dt, dt_used * validity_reduction_);
+        dt = std::min(dt, dt_used * validity_factor);
         validity_dt_cap = dt;
       }
     } else {

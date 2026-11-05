@@ -263,8 +263,9 @@ ELM_ATSDriver::parseParameterList()
   // Optionally gate ATS step acceptance on ELM's water mass-balance constraint.
   // When "elm mass balance tolerance [mm]" is set (> 0), it is the tolerance on
   // ELM's errh2o over the outer ELM step.  Each inner ATS step is rejected (and
-  // dt reduced) unless every column's errh2o is within its pro-rata share,
-  // tol * dt_inner / dt_outer, so the summed inner errors stay within tol.
+  // dt reduced in proportion to the overshoot) unless every column's errh2o is
+  // within its pro-rata share, tol * dt_inner / dt_outer, so the summed inner
+  // errors stay within tol.
   // Errors that do not shrink with dt will drive dt to the minimum timestep.
   elm_mb_tol_ = elm_plist_->get<double>("elm mass balance tolerance [mm]", -1.0);
   if (elm_mb_tol_ > 0.0) {
@@ -567,11 +568,11 @@ void ELM_ATSDriver::advance(double dt, bool force_chkp, bool force_vis)
 // exchange cancels, leaving only the true domain-boundary fluxes ELM cares
 // about: source in, evaporation/transpiration/baseflow/runoff out.
 //
-// Returns true iff every column's |errh2o| <= elm_mb_tol_ * dt / elm_dt_outer_
-// [mm].  ELM checks errh2o once over its whole step, and that error is the sum
-// of the inner-step errors, so the pro-rata share bounds it by elm_mb_tol_.  A
-// false return makes the TimeAdvancer reject the step and retry with a smaller
-// dt.
+// Returns max over columns of |errh2o| / (elm_mb_tol_ * dt / elm_dt_outer_).
+// ELM checks errh2o once over its whole step, and that error is the sum of the
+// inner-step errors, so the pro-rata share bounds it by elm_mb_tol_.  A value
+// > 1 makes the TimeAdvancer reject the step and retry with dt scaled down by
+// roughly that ratio.
 //
 // NOTE: this assumes ELM converts storage to mm as done here; also n_liq at
 // NEXT is used for both old and new storage, so the inner errors only sum to
@@ -582,10 +583,10 @@ void ELM_ATSDriver::advance(double dt, bool force_chkp, bool force_vis)
 // the *_mps coupling convention and the +1e3 m/s->mm/s conversion ELM applies
 // on the values it receives (ExternalModelATS.F90).  Validate against a run.
 // -----------------------------------------------------------------------------
-bool ELM_ATSDriver::checkELMWaterBalance_(double t_old, double t_new)
+double ELM_ATSDriver::checkELMWaterBalance_(double t_old, double t_new)
 {
   const double dt = t_new - t_old;
-  if (dt <= 0.0) return true;
+  if (dt <= 0.0) return 0.0;
 
   // make sure flux and molar-density evaluators are current at NEXT
   for (const auto& k : { gross_water_source_key_, evap_raw_key_, trans_raw_key_,
@@ -643,15 +644,15 @@ bool ELM_ATSDriver::checkELMWaterBalance_(double t_old, double t_new)
   auto global = Amanzi::Reductions::reduceAllMaxLoc(*mesh_surf_->getComm(), local);
 
   const double tol = elmInnerStepTolerance(elm_mb_tol_, dt, elm_dt_outer_);
-  const bool ok = global.value <= tol;
-  if (!ok && vo_->os_OK(Teuchos::VERB_LOW)) {
+  const double ratio = global.value / tol;
+  if (!(ratio <= 1.0) && vo_->os_OK(Teuchos::VERB_LOW)) {
     Teuchos::OSTab tab = vo_->getOSTab();
     *vo_->os() << "ELM water balance not satisfied: max|errh2o| = " << global.value
                << " mm (column GID " << global.gid << ") > step tol = " << tol
                << " mm (outer tol = " << elm_mb_tol_ << " mm, dt = " << dt
                << " s of outer dt = " << elm_dt_outer_ << " s)" << std::endl;
   }
-  return ok;
+  return ratio;
 }
 
 

@@ -31,12 +31,14 @@ which drives the PK from t_start to t_end, subcycling internally as needed.
    * `"min timestep size [s]`" ``[double]`` **1e-12** If dt falls below this, throw.
    * `"subcycled timestep`" ``[bool]`` **false** If true, limit dt to the PK's
      suggested dt even after TSM expansion.
-   * `"validity timestep reduction factor`" ``[double]`` **0.5** Factor, in the open
-     interval (0,1), by which dt is reduced when an optional step validity check
-     (see set_step_validity_check()) rejects an otherwise-successful step.  A
-     validity rejection means the PK itself converged, so it may not have reduced
-     its own dt; this forces the retry to use a smaller step.  Values outside
-     (0,1) are an error.
+   * `"validity timestep reduction factor`" ``[double]`` **0.9** Largest
+     fraction, in the open interval (0,1), of the rejected dt used for the retry
+     when an optional step validity check (see set_step_validity_check()) rejects
+     an otherwise-successful step.  The retry dt is dt * clamp(0.9 / ratio,
+     min(0.1, factor), factor), where ratio = err/tol is returned by the check.
+     A validity rejection means the PK itself converged, so it may not have
+     reduced its own dt; this forces the retry to use a smaller step.  Values
+     outside (0,1) are an error.
    * `"checkpoint`" ``[checkpoint-spec]`` **optional** Checkpoint output spec.
    * `"observations`" ``[observation-spec-list]`` **optional** Observation specs.
    * `"visualization`" ``[visualization-spec-list]`` **optional** Vis specs.
@@ -110,13 +112,14 @@ class TimeAdvancer {
   bool advance(double t_start, double t_end);
 
   // Optional per-step validity check.  If set, it is invoked after each
-  // otherwise-successful inner step (before CommitStep) with (t_old, t_new).
-  // Returning false rejects the step: the step is failed, dt is reduced, and
-  // the inner step is retried.  For the rest of that advance() call dt is not
+  // otherwise-successful inner step (before CommitStep) with (t_old, t_new)
+  // and returns err/tol.  A value > 1 (or NaN) rejects the step: the step is
+  // failed, dt is reduced in proportion to the value, and the inner step is
+  // retried.  For the rest of that advance() call dt is not
   // allowed to grow past the retry size.  Used by ELM_ATSDriver to require that each
   // ATS step satisfies ELM's water mass-balance constraint.  Null by default,
   // so standalone drivers and MPCSubcycled are unaffected.
-  void set_step_validity_check(const std::function<bool(double, double)>& f)
+  void set_step_validity_check(const std::function<double(double, double)>& f)
   {
     step_validity_check_ = f;
   }
@@ -152,7 +155,7 @@ class TimeAdvancer {
 
   // factor by which dt is cut when the step_validity_check_ rejects a step
   double validity_reduction_;
-  std::function<bool(double, double)> step_validity_check_;
+  std::function<double(double, double)> step_validity_check_;
 
   std::vector<Teuchos::RCP<Amanzi::Visualization>> visualization_;
   std::vector<Teuchos::RCP<Amanzi::Visualization>> failed_visualization_;
