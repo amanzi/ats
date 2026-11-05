@@ -8,6 +8,7 @@
 */
 
 #include <iomanip>
+#include <limits>
 
 #include "errors.hh"
 #include "Teuchos_TimeMonitor.hpp"
@@ -227,6 +228,11 @@ TimeAdvancer::advance(double t_start, double t_end)
   if (dt > max_dt_) dt = max_dt_;
   bool fail = false;
 
+  // After a validity rejection the PK still believes its step succeeded and
+  // will happily grow dt back past the size that just failed, so cap dt at
+  // the last retry size for the remainder of this outer step.
+  double validity_dt_cap = std::numeric_limits<double>::infinity();
+
   while (true) {
     double t_now = S_->get_time(tag_current_);
 
@@ -325,7 +331,10 @@ TimeAdvancer::advance(double t_start, double t_end)
       dt = pk_->get_dt();
       // The PK converged, so it may not have shrunk its own dt; force a
       // reduction so the retry actually uses a smaller step.
-      if (validity_reject) dt = std::min(dt, dt_used * validity_reduction_);
+      if (validity_reject) {
+        dt = std::min(dt, dt_used * validity_reduction_);
+        validity_dt_cap = dt;
+      }
     } else {
       pk_->CommitStep(t_now, t_now + dt, tag_next_);
       S_->set_time(tag_current_, t_now + dt);
@@ -334,6 +343,7 @@ TimeAdvancer::advance(double t_start, double t_end)
       dt = pk_->get_dt();
     }
     if (dt > max_dt_) dt = max_dt_;
+    dt = std::min(dt, validity_dt_cap);
 
     WriteStateStatistics(*S_, *vo_, Teuchos::VERB_EXTREME);
   }

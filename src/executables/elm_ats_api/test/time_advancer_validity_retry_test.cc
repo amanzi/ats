@@ -272,8 +272,9 @@ LooseToleranceAccepts()
 // 50 s step (err = 0.05 mm) would pass the unscaled tol = 0.075 mm but sum to
 // 0.1 mm > tol over the outer step.  Scaled, a 50 s step gets 0.0375 mm and is
 // rejected; the 25 s retry (err = 0.0125 <= 0.01875) is accepted.  The PK keeps
-// requesting 50 s, so every 50 s attempt is rejected and the outer step is
-// covered by four 25 s steps whose summed error (0.05 mm) is within tol.
+// requesting 50 s, but dt is capped at the 25 s retry size for the rest of the
+// outer step, so there is only one rejection and the outer step is covered by
+// four 25 s steps whose summed error (0.05 mm) is within tol.
 void
 ScaledToleranceBoundsOuterError()
 {
@@ -288,7 +289,7 @@ ScaledToleranceBoundsOuterError()
 
   const RunResult r = run(tol, -1.0, 50.0, quadratic, true);
   CHECK(same(r.committed, { { 0., 25. }, { 25., 50. }, { 50., 75. }, { 75., 100. } }));
-  CHECK(same(r.failed, { { 0., 50. }, { 25., 75. }, { 50., 100. } }));
+  CHECK(same(r.failed, { { 0., 50. } }));
   CHECK(close(r.t_final, T_END));
 
   // sum |errh2o| over the accepted steps
