@@ -10,6 +10,7 @@ set(ats_surf_subsurf_src_files
   surface_top_cells_evaluator.cc
   top_cells_surface_evaluator.cc
   volumetric_darcy_flux_evaluator.cc
+  flux_divergence_evaluator.cc
  )
 
 file(GLOB ats_surf_subsurf_inc_files "*.hh")

@@ -7,6 +7,7 @@
   Authors: Ethan Coon
 */
 
+#include "time_advancer.hh"
 #include "mpc_coupled_water_split_flux.hh"
 #include "mpc_surface_subsurface_helpers.hh"
 #include "PK_Helpers.hh"
@@ -117,9 +118,25 @@ MPCCoupledWaterSplitFlux::Setup()
 void
 MPCCoupledWaterSplitFlux::Initialize()
 {
+  // Set subcycled tag times (normally done in MPCSubcycled::Initialize)
+  int i = 0;
+  for (const auto& tag : tags_) {
+    if (subcycling_[i]) {
+      S_->set_time(tag.first, S_->get_time(Amanzi::Tags::CURRENT));
+      S_->set_time(tag.second, S_->get_time(Amanzi::Tags::NEXT));
+    }
+    ++i;
+  }
+
+  // Custom sub-PK ordering: subsurface first, copy to star, then star PK.
+  // Cannot use MPC<PK>::Initialize() which iterates in declared order.
   sub_pks_[1]->Initialize();
   CopyPrimaryToStar_();
   sub_pks_[0]->Initialize();
+
+  // Initialize TimeAdvancers (sets dt initialized, IC vis/obs, mesh coord backup)
+  for (auto& ta : time_advancers_)
+    if (ta.get()) ta->initialize();
 
   // FIXME -- this order is logically wrong but currently necessary.  The
   // intention is the following initialization process:
@@ -154,11 +171,6 @@ MPCCoupledWaterSplitFlux::Initialize()
     }
   }
 
-  int i = 0;
-  for (const auto& tag : tags_) {
-    if (subcycling_[i]) S_->GetRecordW("dt", tag.second, name()).set_initialized();
-    ++i;
-  }
 }
 
 
