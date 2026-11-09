@@ -456,6 +456,8 @@ class EcoSIM : public PK_Physical_Default {
 
   double atm_n2_, atm_o2_, atm_co2_, atm_ch4_, atm_n2o_, atm_h2_, atm_nh3_;
   double pressure_at_field_capacity, pressure_at_wilting_point;
+  double wind_speed_ref_height_;
+  double soil_surface_roughness_;
 
  private:
   EcoConfig eco_config_ = {};

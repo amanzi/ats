@@ -113,6 +113,8 @@ extern "C" {
     bool a_bool;            /* prescribe snow albedo */
     bool pheno_bool;        /* prescribe phenology */
     bool microbe_bool;      /* microbe model (not copied by EcoSIM) */
+    double wind_speed_ref_height;  /* wind speed measurement height [m] */
+    double soil_surface_roughness; /* soil surface roughness height [m] */
     char* pft_file;         /* PFT parameter file, owned by the PK */
   } EcoConfig;
 

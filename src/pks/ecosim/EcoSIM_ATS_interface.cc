@@ -157,6 +157,8 @@ EcoSIM::EcoSIM(Teuchos::ParameterList& pk_tree,
     pheno_bool = plist_->get<bool>("prescribe phenology", false);
     microbe_bool = plist_->get<bool>("microbe model", false);
     num_pfts = plist_->get<int>("number of pfts", 1);
+    wind_speed_ref_height_ = plist_->get<double>("wind speed reference height [m]", 3.0);
+    soil_surface_roughness_ = plist_->get<double>("soil surface roughness height [m]", 0.001);
 
     // EcoSIM internal state entries (by ATS name) to visualize; none by default
     if (plist_->isParameter("visualize ecosim state")) {
@@ -1018,6 +1020,8 @@ void EcoSIM::CopyConfigToEcoSIM_(EcoConfig& config)
   config.a_bool = a_bool;
   config.pheno_bool = pheno_bool;
   config.microbe_bool = microbe_bool;
+  config.wind_speed_ref_height = wind_speed_ref_height_;
+  config.soil_surface_roughness = soil_surface_roughness_;
   config.pft_file = engine_inputfile.data();
 }
 
