@@ -295,7 +295,9 @@ class RegressionTest(object):
             else:
                 if self._mpiexec and self._mpiexec['always_mpiexec']:
                     command.append(str(self._mpiexec['mpiexec']))
-                    command.append(str(self._mpiexec['mpiexec_global_args']))
+                    if self._mpiexec['mpiexec_global_args'] is not None and \
+                       self._mpiexec['mpiexec_global_args'] != '':
+                        command.append(str(self._mpiexec['mpiexec_global_args']))
                     command.append(str(self._mpiexec['mpiexec_numprocs_flag']))
                     command.append('1')
 
