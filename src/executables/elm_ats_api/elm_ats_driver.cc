@@ -270,7 +270,7 @@ ELM_ATSDriver::parseParameterList()
   elm_mb_tol_ = elm_plist_->get<double>("elm mass balance tolerance [mm]", -1.0);
   if (elm_mb_tol_ > 0.0) {
     time_advancer_->set_step_validity_check(
-      [this](double t_old, double t_new) { return this->checkELMWaterBalance_(t_old, t_new); });
+      [this](double t_old, double t_new) { return checkELMWaterBalance_(t_old, t_new); });
     if (vo_->os_OK(Teuchos::VERB_LOW))
       *vo_->os() << "ELM water mass-balance step gate enabled, tolerance = "
                  << elm_mb_tol_ << " mm" << std::endl;
@@ -596,23 +596,26 @@ double ELM_ATSDriver::checkELMWaterBalance_(double t_old, double t_new)
       S_->GetEvaluator(k, Tags::NEXT).Update(*S_, "elm_water_balance_check");
   }
 
+  auto cell_view = [&](const Key& key, const Tag& tag) -> const auto& {
+    return *S_->Get<CompositeVector>(key, tag).ViewComponent("cell", false);
+  }
   // storage [mol]: subsurface (per cell) and surface (per column)
-  const auto& wc_new = *S_->Get<CompositeVector>(wc_key_, Tags::NEXT).ViewComponent("cell", false);
-  const auto& wc_old = *S_->Get<CompositeVector>(wc_key_, Tags::CURRENT).ViewComponent("cell", false);
-  const auto& swc_new = *S_->Get<CompositeVector>(surf_wc_key_, Tags::NEXT).ViewComponent("cell", false);
-  const auto& swc_old = *S_->Get<CompositeVector>(surf_wc_key_, Tags::CURRENT).ViewComponent("cell", false);
+  const auto& wc_new = cell_view(wc_key_, Tags::NEXT);
+  const auto& wc_old = cell_view(wc_key_, Tags::CURRENT);
+  const auto& swc_new = cell_view(surf_wc_key_, Tags::NEXT);
+  const auto& swc_old = cell_view(surf_wc_key_, Tags::CURRENT);
 
   // molar densities [mol/m^3] and surface cell areas [m^2]
-  const auto& n_liq = *S_->Get<CompositeVector>(mol_dens_key_, Tags::NEXT).ViewComponent("cell", false);
-  const auto& sn_liq = *S_->Get<CompositeVector>(surf_mol_dens_key_, Tags::NEXT).ViewComponent("cell", false);
-  const auto& area = *S_->Get<CompositeVector>(surf_cv_key_, Tags::NEXT).ViewComponent("cell", false);
+  const auto& n_liq = cell_view(mol_dens_key_, Tags::NEXT);
+  const auto& sn_liq = cell_view(surf_mol_dens_key_, Tags::NEXT);
+  const auto& area = cell_view(surf_cv_key_, Tags::NEXT);
 
   // surface boundary fluxes [m/s]
-  const auto& source = *S_->Get<CompositeVector>(gross_water_source_key_, Tags::NEXT).ViewComponent("cell", false);
-  const auto& evap = *S_->Get<CompositeVector>(evap_raw_key_, Tags::NEXT).ViewComponent("cell", false);
-  const auto& tran = *S_->Get<CompositeVector>(trans_raw_key_, Tags::NEXT).ViewComponent("cell", false);
-  const auto& baseflow = *S_->Get<CompositeVector>(baseflow_raw_key_, Tags::NEXT).ViewComponent("cell", false);
-  const auto& runoff = *S_->Get<CompositeVector>(runoff_raw_key_, Tags::NEXT).ViewComponent("cell", false);
+  const auto& source = cell_view(gross_water_source_key_, Tags::NEXT);
+  const auto& evap = cell_view(evap_raw_key_, Tags::NEXT);
+  const auto& tran = cell_view(trans_raw_key_, Tags::NEXT);
+  const auto& baseflow = cell_view(baseflow_raw_key_, Tags::NEXT);
+  const auto& runoff = cell_view(runoff_raw_key_, Tags::NEXT);
 
   const auto& surf_cell_map = mesh_surf_->getMap(AmanziMesh::Entity_kind::CELL, false);
 
