@@ -128,11 +128,48 @@ jobs:
         else
           echo "ARCH=amd64" >> $GITHUB_ENV
         fi
+    - name: Write failed-test log collector
+      run: |
+        mkdir -p test-logs && chmod 777 test-logs
+        cat > collect-failed-logs.sh <<'EOF'
+        #!/bin/bash
+        # usage: collect-failed-logs.sh <tag>
+        # Copy ctest logs and regression-test output of the tests that failed in
+        # the most recent ctest run into /test-logs/<tag>.
+        shopt -s nullglob
+        out=/test-logs/$1
+        mkdir -p "$out"
+        cd ~/amanzi_builddir/ats
+        cp Testing/Temporary/LastTest.log "$out"/ 2>/dev/null
+        [ -f Testing/Temporary/LastTestsFailed.log ] || exit 0
+        cp Testing/Temporary/LastTestsFailed.log "$out"/
+        while IFS=: read -r num name; do
+          rest=${name#ats_regression_test-}
+          [ "$rest" = "$name" ] && continue  # not a regression test; see LastTest.log
+          suite=${rest%%-*}
+          test=${rest#*-}
+          for d in $(find ~ -type d -path "*/ats-regression-tests/$suite" 2>/dev/null); do
+            mkdir -p "$out/$suite"
+            cp "$d/$test"*.stdout "$d/$test"*.regression "$out/$suite"/ 2>/dev/null
+            [ -d "$d/LOGS" ] && cp -r "$d/LOGS" "$out/$suite"/
+          done
+        done < Testing/Temporary/LastTestsFailed.log
+        exit 0
+        EOF
+        chmod +x collect-failed-logs.sh
     - name: Run tests
       id: tests
       working-directory: Docker
-      run:
-        docker run --rm ${{secrets.DOCKERHUB_USERNAME}}/ats:${{env.ATS_BRANCH_TAG}}-${{env.ARCH}}-latest /bin/bash -c "cd ~/amanzi_builddir/ats; ctest --output-on-failure -LE PARALLEL -E 'ats_regression_test-[1-9][0-9]|ats_regression_test-0[6-9]'"
+      run: |
+        docker run --rm -v ${{github.workspace}}/test-logs:/test-logs -v ${{github.workspace}}/collect-failed-logs.sh:/collect-failed-logs.sh:ro ${{secrets.DOCKERHUB_USERNAME}}/ats:${{env.ATS_BRANCH_TAG}}-${{env.ARCH}}-latest /bin/bash -c "cd ~/amanzi_builddir/ats; ctest --output-on-failure -LE PARALLEL -E 'ats_regression_test-[1-9][0-9]|ats_regression_test-0[6-9]'; rc=\$?; /collect-failed-logs.sh serial-reg15; exit \$rc"
+    - name: Upload failing test logs
+      if: failure()
+      uses: actions/upload-artifact@v7
+      with:
+        name: failed-test-logs-serial-reg15-${{matrix.os}}
+        path: test-logs/
+        if-no-files-found: ignore
+        retention-days: 14
   parallel-tests:
     strategy:
       matrix:
@@ -167,11 +204,48 @@ jobs:
         else
           echo "ARCH=amd64" >> $GITHUB_ENV
         fi
+    - name: Write failed-test log collector
+      run: |
+        mkdir -p test-logs && chmod 777 test-logs
+        cat > collect-failed-logs.sh <<'EOF'
+        #!/bin/bash
+        # usage: collect-failed-logs.sh <tag>
+        # Copy ctest logs and regression-test output of the tests that failed in
+        # the most recent ctest run into /test-logs/<tag>.
+        shopt -s nullglob
+        out=/test-logs/$1
+        mkdir -p "$out"
+        cd ~/amanzi_builddir/ats
+        cp Testing/Temporary/LastTest.log "$out"/ 2>/dev/null
+        [ -f Testing/Temporary/LastTestsFailed.log ] || exit 0
+        cp Testing/Temporary/LastTestsFailed.log "$out"/
+        while IFS=: read -r num name; do
+          rest=${name#ats_regression_test-}
+          [ "$rest" = "$name" ] && continue  # not a regression test; see LastTest.log
+          suite=${rest%%-*}
+          test=${rest#*-}
+          for d in $(find ~ -type d -path "*/ats-regression-tests/$suite" 2>/dev/null); do
+            mkdir -p "$out/$suite"
+            cp "$d/$test"*.stdout "$d/$test"*.regression "$out/$suite"/ 2>/dev/null
+            [ -d "$d/LOGS" ] && cp -r "$d/LOGS" "$out/$suite"/
+          done
+        done < Testing/Temporary/LastTestsFailed.log
+        exit 0
+        EOF
+        chmod +x collect-failed-logs.sh
     - name: Run tests
       id: tests
       working-directory: Docker
       run: |
-        docker run --rm ${{secrets.DOCKERHUB_USERNAME}}/ats:${{env.ATS_BRANCH_TAG}}-${{env.ARCH}}-latest /bin/bash -c "cd ~/amanzi_builddir/ats; ctest --output-on-failure -L PARALLEL; ctest --output-on-failure -R 'ats_regression_test-0[6-9]|ats_regression_test-[1-9][0-9]'"
+        docker run --rm -v ${{github.workspace}}/test-logs:/test-logs -v ${{github.workspace}}/collect-failed-logs.sh:/collect-failed-logs.sh:ro ${{secrets.DOCKERHUB_USERNAME}}/ats:${{env.ATS_BRANCH_TAG}}-${{env.ARCH}}-latest /bin/bash -c "cd ~/amanzi_builddir/ats; ctest --output-on-failure -L PARALLEL; rc1=\$?; /collect-failed-logs.sh parallel; ctest --output-on-failure -R 'ats_regression_test-0[6-9]|ats_regression_test-[1-9][0-9]'; rc2=\$?; /collect-failed-logs.sh reg6-10; exit \$((rc1 || rc2))"
+    - name: Upload failing test logs
+      if: failure()
+      uses: actions/upload-artifact@v7
+      with:
+        name: failed-test-logs-parallel-${{matrix.os}}
+        path: test-logs/
+        if-no-files-found: ignore
+        retention-days: 14
   fix-manifest:
     runs-on: ubuntu-latest
     needs: [serial-reg15-tests, parallel-tests]
