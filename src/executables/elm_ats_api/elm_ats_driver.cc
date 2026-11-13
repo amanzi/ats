@@ -620,7 +620,7 @@ double ELM_ATSDriver::checkELMWaterBalance_(double t_old, double t_new)
 
   auto cell_view = [&](const Key& key, const Tag& tag) -> const auto& {
     return *S_->Get<CompositeVector>(key, tag).ViewComponent("cell", false);
-  }
+  };
   // storage [mol]: subsurface (per cell) and surface (per column)
   const auto& wc_new = cell_view(wc_key_, Tags::NEXT);
   const auto& wc_old = cell_view(wc_key_, Tags::CURRENT);
