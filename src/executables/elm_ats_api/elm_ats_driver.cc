@@ -4,7 +4,6 @@
 #include <sys/resource.h>
 #include <filesystem>
 #include <cmath>
-#include <algorithm>
 #include "errors.hh"
 #include "dbc.hh"
 
@@ -84,6 +83,7 @@ ELM_ATSDriver::ELM_ATSDriver(const Teuchos::RCP<Teuchos::ParameterList>& plist,
     ncolumns(-1),
     ncells_per_col_(-1),
     elm_plist_(Teuchos::sublist(Teuchos::sublist(plist, "cycle driver"), "ELM driver")),
+    elm_mb_tol_(-1.0),
     elm_dt_outer_(0.0),
     elm_cycle_(0)
 {
@@ -261,19 +261,41 @@ ELM_ATSDriver::parseParameterList()
             vo_, wallclock_timer_));
 
   // Optionally gate ATS step acceptance on ELM's water mass-balance constraint.
-  // When "elm mass balance tolerance [mm]" is set (> 0), it is the tolerance on
-  // ELM's errh2o over the outer ELM step.  Each inner ATS step is rejected (and
-  // dt reduced in proportion to the overshoot) unless every column's errh2o is
-  // within its pro-rata share, tol * dt_inner / dt_outer, so the summed inner
-  // errors stay within tol.
+  //
+  // Parameter (in the "cycle driver" -> "ELM driver" sublist):
+  //   "elm mass balance tolerance fraction"  double, default -1 (gate disabled;
+  //                                          any value <= 0 disables it)
+  //
+  // When set, it must be in (0, 1) and is the fraction of ELM's errh2o abort
+  // limit (wb_errh2o_abort_tol, from the shared WaterBalanceKernel.F90) used as
+  // the tolerance on ELM's errh2o over the outer ELM step, so the gate cannot be
+  // configured looser than ELM's own check.  Each inner ATS step is rejected
+  // (and dt reduced in proportion to the overshoot) unless every column's
+  // errh2o is within its pro-rata share, tol * dt_inner / dt_outer, so the
+  // summed inner errors stay within tol.
+  //
   // Errors that do not shrink with dt will drive dt to the minimum timestep.
-  elm_mb_tol_ = elm_plist_->get<double>("elm mass balance tolerance [mm]", -1.0);
-  if (elm_mb_tol_ > 0.0) {
+  if (elm_plist_->isParameter("elm mass balance tolerance [mm]")) {
+    Errors::Message msg;
+    msg << "ELM_ATSDriver: \"elm mass balance tolerance [mm]\" has been replaced by "
+        << "\"elm mass balance tolerance fraction\" (fraction of ELM's abort limit, in (0,1)).";
+    Exceptions::amanzi_throw(msg);
+  }
+  double elm_mb_frac = elm_plist_->get<double>("elm mass balance tolerance fraction", -1.0);
+  if (elm_mb_frac > 0.0) {
+    if (elm_mb_frac >= 1.0) {
+      Errors::Message msg;
+      msg << "ELM_ATSDriver: \"elm mass balance tolerance fraction\" must be in (0,1), got "
+          << elm_mb_frac << ", since the tolerance must be below ELM's abort limit.";
+      Exceptions::amanzi_throw(msg);
+    }
+    elm_mb_tol_ = elm_mb_frac * elm_ats_water_balance_abort_tol_c();
     time_advancer_->set_step_validity_check(
       [this](double t_old, double t_new) { return checkELMWaterBalance_(t_old, t_new); });
     if (vo_->os_OK(Teuchos::VERB_LOW))
       *vo_->os() << "ELM water mass-balance step gate enabled, tolerance = "
-                 << elm_mb_tol_ << " mm" << std::endl;
+                 << elm_mb_tol_ << " mm (" << elm_mb_frac << " of ELM's abort limit)"
+                 << std::endl;
   }
 
   if (vo_->os_OK(Teuchos::VERB_LOW)) {

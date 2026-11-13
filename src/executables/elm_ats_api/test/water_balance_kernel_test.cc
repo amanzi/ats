@@ -73,6 +73,13 @@ reference(double endwb, double begwb, double source, double evap, double tran,
 
 constexpr double TIGHT = 1.0e-12;
 
+// The shared abort limit is exposed across the C boundary at ELM's 1e-4 mm.
+void
+AbortTolGetter()
+{
+  CHECK_CLOSE(1.0e-4, elm_ats_water_balance_abort_tol_c(), 1.0e-18);
+}
+
 // --- Test cases -------------------------------------------------------------
 
 // Storage change exactly matches net flux over the step -> zero error.
@@ -288,6 +295,7 @@ struct TestCase {
 };
 
 const TestCase TESTS[] = {
+  { "AbortTolGetter", AbortTolGetter },
   { "PerfectBalance", PerfectBalance },
   { "PureSource", PureSource },
   { "EvapSink", EvapSink },

@@ -111,7 +111,8 @@ class ELM_ATSDriver : public Driver {
   Key baseflow_raw_key_;
   Key runoff_raw_key_;
 
-  // ELM water mass-balance step gate: tolerance [mm] over the outer ELM step;
+  // ELM water mass-balance step gate: tolerance [mm] over the outer ELM step,
+  // derived from "elm mass balance tolerance fraction" times ELM's abort limit;
   // <= 0 disables the check
   double elm_mb_tol_;
   // length [s] of the outer ELM step currently being advanced

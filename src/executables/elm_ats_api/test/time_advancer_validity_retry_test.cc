@@ -161,8 +161,10 @@ struct RunResult {
 };
 
 // Runs one outer advance over [0, T_END] with the ELM-kernel validity check at
-// tolerance tol [mm].  reduction <= 0 keeps the TimeAdvancer default.  If
-// scale_tol, each inner step is held to ELM_ATSDriver's pro-rata share of tol.
+// tolerance tol [mm].  tol is synthetic: the test drives the TimeAdvancer
+// directly, not through ELM_ATSDriver's "elm mass balance tolerance fraction".
+// reduction <= 0 keeps the TimeAdvancer default.  If scale_tol, each inner step
+// is held to ELM_ATSDriver's pro-rata share of tol.
 RunResult
 run(double tol,
     double reduction = -1.0,

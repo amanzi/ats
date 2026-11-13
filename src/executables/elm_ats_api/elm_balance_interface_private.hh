@@ -37,6 +37,9 @@ extern "C"
                                        const double* baseflow,
                                        const double* runoff,
                                        const double* dtime);
+
+  // ELM's abort limit on |errh2o| [mm], from the shared kernel
+  double elm_ats_water_balance_abort_tol_c();
 }
 
 inline double
