@@ -1,3 +1,4 @@
+#include "ecosim_interface.h"
 /*--------------------------------------------------------------------------
   ATS
 
@@ -205,13 +206,117 @@ EcoSIM::EcoSIM(Teuchos::ParameterList& pk_tree,
 void EcoSIM::parseParameterList()
 {
   PK_Physical_Default::parseParameterList();
+  semi_implicit_heat_ = plist_->get<bool>("semi-implicit surface heat exchange", true);
+  shared_layer0_=plist_->get<bool>("shared surface layer",true);
+  auto surface_domain=Keys::getDomain(T_surf_key_);
+  layer0_material_key_=Keys::getKey(surface_domain,"ecosim_layer0_material");
+  layer0_resistance_key_=Keys::getKey(surface_domain,"ecosim_layer0_thermal_resistance");
+  layer0_water_key_=Keys::getKey(surface_domain,"water_content");
+  layer0_energy_key_=Keys::getKey(surface_domain,"energy");
+  layer0_depth_key_=Keys::getKey(surface_domain,"ponded_depth");
+  layer0_pressure_key_=Keys::getKey(surface_domain,"pressure");
+  layer0_fraction_key_=Keys::getKey(surface_domain,"unfrozen_fraction");
+  layer0_nl_key_=Keys::getKey(surface_domain,"molar_density_liquid");
+  layer0_ni_key_=Keys::readKey(S_->GetEvaluatorList(layer0_energy_key_),surface_domain,
+                             "molar density ice","molar_density_ice");
+  if(shared_layer0_){
+    for(const auto& key:{layer0_water_key_,layer0_energy_key_,layer0_water_key_+"_bar"}){
+      auto original=S_->GetEvaluatorList(key);
+      auto base=key+"_mobile";
+      S_->GetEvaluatorList(base)=original;
+      auto& spec=S_->GetEvaluatorList(key);
+      spec=Teuchos::ParameterList(key);
+      spec.set("evaluator type","ecosim layer zero storage");
+      spec.set("quantity",key==layer0_energy_key_?"energy":"water");
+      spec.set("mobile storage key",base);
+    }
+  }
+
+  layer0_water_flux_key_=Keys::getKey(surface_domain,"ecosim_layer0_water_source");
+  layer0_energy_flux_key_=Keys::getKey(surface_domain,"ecosim_layer0_energy_source");
+  ground_water_flux_key_=Keys::getKey(surface_domain,"ecosim_ground_water_source");
+  ground_energy_flux_key_=Keys::getKey(surface_domain,"ecosim_ground_energy_source");
+  total_water_flux_key_=Keys::getKey(surface_domain,"ecosim_total_water_source");
+  total_energy_flux_key_=Keys::getKey(surface_domain,"ecosim_total_energy_source");
+  layer0_cover_key_=Keys::getKey(surface_domain,"ecosim_layer0_fraction");
+  layer0_exchange_fraction_key_=Keys::getKey(surface_domain,"ecosim_layer0_exchange_fraction");
+  auto surface_kr=Keys::getKey(surface_domain,"relative_permeability");
+  if(shared_layer0_ && S_->HasEvaluatorList(surface_kr)){
+    auto bare_kr=surface_kr+"_without_ecosim_coverage";
+    S_->GetEvaluatorList(bare_kr)=S_->GetEvaluatorList(surface_kr);
+    auto& covered=S_->GetEvaluatorList(surface_kr);
+    covered=Teuchos::ParameterList(surface_kr);
+    covered.set("evaluator type","multiplicative evaluator");
+    covered.set("dependencies",Teuchos::Array<std::string>{bare_kr,layer0_exchange_fraction_key_});
+  }
+  ground_heat_slope_key_=subsurface_energy_source_ecosim_key_+"_dtemperature";
+  ground_heat_reference_key_=subsurface_energy_source_ecosim_key_+"_temperature_ref";
+  ground_heat_linearized_key_=subsurface_energy_source_ecosim_key_+"_linearized";
+  if(shared_layer0_){
+    S_->GetEvaluatorList(T_key_).set("additional energy source key",
+      semi_implicit_heat_?ground_heat_linearized_key_:subsurface_energy_source_ecosim_key_);
+    S_->GetEvaluatorList(Keys::getKey(domain_,"pressure"))
+      .set("additional water source key",subsurface_water_source_ecosim_key_);
+    auto delta_key=subsurface_energy_source_ecosim_key_+"_temperature_increment";
+    auto correction_key=subsurface_energy_source_ecosim_key_+"_temperature_correction";
+    auto& delta=S_->GetEvaluatorList(delta_key);
+    delta.set("evaluator type","additive evaluator");
+    delta.set("dependencies",Teuchos::Array<std::string>{T_key_,ground_heat_reference_key_});
+    delta.set(ground_heat_reference_key_+" coefficient",-1.);
+    auto& correction=S_->GetEvaluatorList(correction_key);
+    correction.set("evaluator type","multiplicative evaluator");
+    correction.set("dependencies",Teuchos::Array<std::string>{ground_heat_slope_key_,delta_key});
+    auto& linearized=S_->GetEvaluatorList(ground_heat_linearized_key_);
+    linearized.set("evaluator type","additive evaluator");
+    linearized.set("dependencies",Teuchos::Array<std::string>{subsurface_energy_source_ecosim_key_,correction_key});
+    linearized.set("raw coupled source key",subsurface_energy_source_ecosim_key_);
+    linearized.set("coupled temperature correction key",correction_key);
+    if(semi_implicit_heat_)S_->GetEvaluatorList(subsurface_energy_source_ecosim_key_)
+      .set("temperature linearized source key",ground_heat_linearized_key_);
+  }
+  heat_slope_key_ = surface_energy_source_ecosim_key_ + "_dtemperature";
+  heat_reference_temperature_key_ = surface_energy_source_ecosim_key_ + "_temperature_ref";
+  heat_linearized_key_ = surface_energy_source_ecosim_key_ + "_linearized";
+  heat_temperature_increment_key_ = surface_energy_source_ecosim_key_ + "_temperature_increment";
+  heat_correction_key_ = surface_energy_source_ecosim_key_ + "_temperature_correction";
+  heat_correction_energy_key_ = surface_energy_source_ecosim_key_ + "_correction_energy";
+  heat_applied_key_ = surface_energy_source_ecosim_key_ + "_applied";
+  heat_last_advance_time_key_ = surface_energy_source_ecosim_key_ + "_last_advance_time";
+
+  if (semi_implicit_heat_) {
+    // Reuse the generic evaluator DAG so both the residual and its analytic
+    // derivative see q(T) = q_ref + K_ref * (T - T_ref). Reference fields are
+    // owned by this PK and stay fixed throughout the physical solve.
+    // Energy PKs consuming the raw EcoSIM source discover this replacement
+    // after all PKs have parsed, preserving existing input source keys.
+    S_->GetEvaluatorList(surface_energy_source_ecosim_key_)
+      .set("temperature linearized source key", heat_linearized_key_);
+    auto& delta = S_->GetEvaluatorList(heat_temperature_increment_key_);
+    delta.set("evaluator type", "additive evaluator");
+    delta.set("dependencies", Teuchos::Array<std::string>{T_surf_key_, heat_reference_temperature_key_});
+    delta.set(heat_reference_temperature_key_ + " coefficient", -1.0);
+    auto& correction = S_->GetEvaluatorList(heat_correction_key_);
+    correction.set("evaluator type", "multiplicative evaluator");
+    correction.set("dependencies", Teuchos::Array<std::string>{heat_slope_key_, heat_temperature_increment_key_});
+    auto& source = S_->GetEvaluatorList(heat_linearized_key_);
+    source.set("evaluator type", "additive evaluator");
+    source.set("dependencies", Teuchos::Array<std::string>{surface_energy_source_ecosim_key_, heat_correction_key_});
+  }
+
+  S_->GetEvaluatorList(layer0_material_key_).set("evaluator type","primary variable");
+  S_->GetEvaluatorList(layer0_resistance_key_).set("evaluator type","primary variable");
 
   // These sources are primary variables owned by this PK (see Setup). PKs
   // that use them (e.g. overland flow) are set up before this one, so declare
   // the evaluator type here: parseParameterList() runs for every PK before
   // any Setup().
   for (const auto& key : { surface_energy_source_ecosim_key_, surface_water_source_ecosim_key_,
-                           subsurface_energy_source_ecosim_key_, subsurface_water_source_ecosim_key_ }) {
+                           layer0_water_flux_key_, layer0_energy_flux_key_, ground_water_flux_key_, ground_energy_flux_key_,
+                           total_water_flux_key_, total_energy_flux_key_, layer0_cover_key_, layer0_exchange_fraction_key_,
+                           ground_heat_slope_key_, ground_heat_reference_key_,
+                           subsurface_energy_source_ecosim_key_, subsurface_water_source_ecosim_key_,
+                           heat_slope_key_, heat_reference_temperature_key_,
+                           heat_correction_energy_key_, heat_applied_key_ }) {
     if (S_->HasEvaluatorList(key) &&
         S_->GetEvaluatorList(key).get<std::string>("evaluator type", "primary variable") !=
           "primary variable") {
@@ -276,6 +381,11 @@ void EcoSIM::Setup() {
                                                         AmanziMesh::Parallel_kind::OWNED);
   layout_sizes.num_pfts = num_pfts;
   internal_state_layout_ = eco_engine_->InternalStateLayout(layout_sizes);
+  if(shared_layer0_)for(auto& entry:internal_state_layout_){
+    if(entry.ats_name=="litter_water" || entry.ats_name=="litter_ice" ||
+       entry.ats_name=="litter_temperature" || entry.ats_name=="litter_heat_capacity")
+      entry.role=kEcoRoleOutput;
+  }
 
   for (const auto& name : visualize_internal_state_) {
     auto entry = std::find_if(internal_state_layout_.begin(), internal_state_layout_.end(),
@@ -331,10 +441,39 @@ void EcoSIM::Setup() {
     ->SetGhosted(false)
     ->SetComponent("cell", AmanziMesh::CELL, 1);
 
+  for (const auto& key : {heat_slope_key_, heat_reference_temperature_key_,
+                          heat_correction_energy_key_, heat_applied_key_}) {
+    requireEvaluatorPrimary(key, tag_next_, *S_, name_)
+      .SetMesh(mesh_surf_)->SetGhosted(false)->SetComponent("cell", AmanziMesh::CELL, 1);
+  }
+  S_->Require<double>(heat_last_advance_time_key_, tag_next_, name_);
+  requireEvaluatorPrimary(layer0_material_key_,tag_next_,*S_,name_)
+    .SetMesh(mesh_surf_)->SetGhosted()->SetComponent("cell",AmanziMesh::CELL,14);
+  requireEvaluatorPrimary(layer0_resistance_key_,tag_next_,*S_,name_)
+    .SetMesh(mesh_surf_)->SetGhosted()->SetComponent("cell",AmanziMesh::CELL,1);
+  for(const auto& key:{layer0_water_key_,layer0_depth_key_,layer0_pressure_key_,
+                       layer0_fraction_key_,layer0_nl_key_,layer0_ni_key_})
+    S_->RequireEvaluator(key,tag_next_);
+
+  if (semi_implicit_heat_) S_->RequireEvaluator(heat_linearized_key_, tag_next_);
+
   requireEvaluatorPrimary(surface_water_source_ecosim_key_, tag_next_, *S_, name_)
     .SetMesh(mesh_surf_)
     ->SetGhosted(false)
     ->SetComponent("cell", AmanziMesh::CELL, 1);
+
+  for(const auto& key:{layer0_water_flux_key_,layer0_energy_flux_key_,ground_water_flux_key_,ground_energy_flux_key_,
+                       total_water_flux_key_,total_energy_flux_key_,layer0_cover_key_,layer0_exchange_fraction_key_})
+    requireEvaluatorPrimary(key,tag_next_,*S_,name_).SetMesh(mesh_surf_)
+      ->SetGhosted(false)->SetComponent("cell",AmanziMesh::CELL,1);
+  for(const auto& key:{ground_heat_slope_key_,ground_heat_reference_key_})
+    requireEvaluatorPrimary(key,tag_next_,*S_,name_).SetMesh(mesh_)
+      ->SetGhosted(false)->SetComponent("cell",AmanziMesh::CELL,1);
+  if(shared_layer0_ && semi_implicit_heat_){
+    S_->Require<CompositeVector,CompositeVectorSpace>(ground_heat_linearized_key_,tag_next_)
+      .SetMesh(mesh_)->AddComponent("cell",AmanziMesh::CELL,1);
+    S_->RequireEvaluator(ground_heat_linearized_key_,tag_next_);
+  }
 
   requireEvaluatorPrimary(subsurface_energy_source_ecosim_key_, tag_next_, *S_, name_)
     .SetMesh(mesh_)
@@ -447,6 +586,13 @@ void EcoSIM::Setup() {
 // -- Initialize owned (dependent) variables.
 void EcoSIM::Initialize() {
   PK_Physical_Default::Initialize();
+  S_->GetW<CompositeVector>(layer0_resistance_key_,tag_next_,name_).PutScalar(0.);
+  S_->GetRecordW(layer0_resistance_key_,tag_next_,name_).set_initialized();
+  changedEvaluatorPrimary(layer0_resistance_key_,tag_next_,*S_);
+  S_->GetW<CompositeVector>(layer0_material_key_,tag_next_,name_).PutScalar(0.);
+  S_->GetRecordW(layer0_material_key_,tag_next_,name_).set_initialized();
+  changedEvaluatorPrimary(layer0_material_key_,tag_next_,*S_);
+
   //Need to know the number of components to initialize data structures
 
   //Transport removal:
@@ -495,11 +641,27 @@ void EcoSIM::Initialize() {
   S_->GetRecordW(canopy_snow_key_, Tags::DEFAULT, canopy_snow_key_).set_initialized();
 
   for (const auto& key : { surface_energy_source_ecosim_key_, surface_water_source_ecosim_key_,
-                           subsurface_energy_source_ecosim_key_, subsurface_water_source_ecosim_key_ }) {
+                           layer0_water_flux_key_, layer0_energy_flux_key_, ground_water_flux_key_, ground_energy_flux_key_,
+                           total_water_flux_key_, total_energy_flux_key_, layer0_cover_key_, layer0_exchange_fraction_key_,
+                           ground_heat_slope_key_, ground_heat_reference_key_,
+                           subsurface_energy_source_ecosim_key_, subsurface_water_source_ecosim_key_,
+                           heat_slope_key_, heat_reference_temperature_key_,
+                           heat_correction_energy_key_, heat_applied_key_ }) {
     S_->GetW<CompositeVector>(key, tag_next_, name_).PutScalar(0.0);
     S_->GetRecordW(key, tag_next_, name_).set_initialized();
     changedEvaluatorPrimary(key, tag_next_, *S_);
   }
+
+  S_->GetW<CompositeVector>(layer0_exchange_fraction_key_,tag_next_,name_).PutScalar(1.);
+  changedEvaluatorPrimary(layer0_exchange_fraction_key_,tag_next_,*S_);
+
+  // Persist the per-PK refresh clock with the reference fields. Zero retains
+  // the former cold-start behavior of the process-static clock.
+  S_->GetW<double>(heat_last_advance_time_key_, tag_next_, name_) = 0.0;
+  S_->GetRecordW(heat_last_advance_time_key_, tag_next_, name_).set_initialized();
+
+  // Zero slope keeps the cold-start heat source explicit until the first
+  // EcoSIM refresh supplies the reference flux, temperature, and derivative.
 
   //S_->GetW<CompositeVector>(snow_temperature_key_, Tags::DEFAULT, snow_temperature_key_).PutScalar(0.0);
   //S_->GetRecordW(snow_temperature_key_, Tags::DEFAULT, snow_temperature_key_).set_initialized();
@@ -542,6 +704,24 @@ void EcoSIM::Initialize() {
       num_columns_local = mesh_surf_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
       InitializeSingleProcess(p_rank);
+      auto& material=*S_->GetW<CompositeVector>(layer0_material_key_,tag_next_,name_)
+                       .ViewComponent("cell",false);
+      for(int c=0;c<num_columns_local;++c){
+        double props[14],resistance;ecosim_layer0_material(c,props,&resistance);
+        (*S_->GetW<CompositeVector>(layer0_resistance_key_,tag_next_,name_).ViewComponent("cell",false))[0][c]=resistance;
+        for(int j=0;j<14;++j)material[j][c]=props[j];
+      }
+      changedEvaluatorPrimary(layer0_material_key_,tag_next_,*S_);
+      changedEvaluatorPrimary(layer0_resistance_key_,tag_next_,*S_);
+      if(shared_layer0_){
+        // Retention is now known: rebuild the environment before exporting mirrors.
+        S_->GetEvaluator(layer0_water_key_,tag_next_).Update(*S_,name_);
+        S_->GetEvaluator(layer0_energy_key_,tag_next_).Update(*S_,name_);
+        CopyToEcoSIM_process(p_rank,eco_env_,eco_feedback_,Tags::DEFAULT);
+        ecosim_sync_layer0(&eco_env_,&eco_sizes_,&eco_istate_);
+        CopyInternalStateFromEcoSIM_(eco_istate_);
+      }
+
     }
   }
 
@@ -559,6 +739,20 @@ void EcoSIM::CommitStep(double t_old, double t_new, const Tag& tag) {
   // Data to the pfts, which we won't be doing. In Alquimia they just save the time
   // As below.
 
+  // Do not accumulate trial/Newton corrections or count duplicate commits.
+  if (pending_heat_valid_ && t_new == pending_heat_time_ && t_new > t_old) {
+    auto& energy = *(*S_->GetW<CompositeVector>(heat_correction_energy_key_, tag_next_, name_)
+                       .ViewComponent("cell", false))(0);
+    auto& applied = *(*S_->GetW<CompositeVector>(heat_applied_key_, tag_next_, name_)
+                        .ViewComponent("cell", false))(0);
+    for (int c = 0; c != energy.MyLength(); ++c) {
+      energy[c] += (t_new - t_old) * pending_heat_correction_[c]; // MJ m^-2
+      applied[c] = pending_heat_applied_[c];                    // MW m^-2
+    }
+    changedEvaluatorPrimary(heat_correction_energy_key_, tag_next_, *S_);
+    changedEvaluatorPrimary(heat_applied_key_, tag_next_, *S_);
+    pending_heat_valid_ = false;
+  }
   saved_time_ = t_new;
 
 }
@@ -566,6 +760,26 @@ void EcoSIM::CommitStep(double t_old, double t_new, const Tag& tag) {
 bool EcoSIM::AdvanceStep(double t_old, double t_new, bool reinit) {
   double dt = t_new - t_old;
   current_time_ = saved_time_ + dt;
+  pending_heat_valid_ = false;
+  // Physical PKs have solved the candidate temperature. Capture the source
+  // they used BEFORE EcoSIM replaces the reference triple for the next step.
+  const auto& raw_heat = *(*S_->Get<CompositeVector>(surface_energy_source_ecosim_key_, tag_next_)
+                             .ViewComponent("cell", false))(0);
+  pending_heat_correction_.assign(raw_heat.MyLength(), 0.0);
+  pending_heat_applied_.resize(raw_heat.MyLength());
+  if (semi_implicit_heat_) {
+    S_->GetEvaluator(heat_linearized_key_, tag_next_).Update(*S_, name_);
+    const auto& used_heat = *(*S_->Get<CompositeVector>(heat_linearized_key_, tag_next_)
+                                .ViewComponent("cell", false))(0);
+    for (int c = 0; c != raw_heat.MyLength(); ++c) {
+      pending_heat_applied_[c] = used_heat[c];
+      pending_heat_correction_[c] = used_heat[c] - raw_heat[c];
+    }
+  } else {
+    for (int c = 0; c != raw_heat.MyLength(); ++c) pending_heat_applied_[c] = raw_heat[c];
+  }
+  pending_heat_time_ = t_new;
+  pending_heat_valid_ = true;
 
 
   Teuchos::OSTab out = vo_->getOSTab();
@@ -1011,6 +1225,7 @@ double EcoSIM::ReadSiteParameter_(const std::string& name, const std::string& he
 
 void EcoSIM::CopyConfigToEcoSIM_(EcoConfig& config)
 {
+  config.shared_surface_layer=shared_layer0_;
   config.heat_capacity = c_m_;
   config.field_capacity = pressure_at_field_capacity;
   config.wilting_point = pressure_at_wilting_point;
@@ -1060,6 +1275,13 @@ void EcoSIM::CopyToEcoSIM_process(int proc_rank,
   const Epetra_Vector& capillary_pressure = *(*S_->Get<CompositeVector>(cap_pres_key_, water_tag).ViewComponent("cell", false))(0);
 
   //const auto& shortwave_radiation = *S_.Get<CompositeVector>(sw_key_, water_tag).ViewComponent("cell", false);
+
+  for(const auto& key:{layer0_water_key_,layer0_depth_key_,layer0_pressure_key_,
+                      layer0_fraction_key_,layer0_nl_key_,layer0_ni_key_})
+    S_->GetEvaluator(key,water_tag).Update(*S_,name_);
+  auto layer0=[&](const Key& key)->const Epetra_MultiVector&{
+    return *S_->Get<CompositeVector>(key,water_tag).ViewComponent("cell",false);
+  };
   const Epetra_Vector& temp_surf = *(*S_->Get<CompositeVector>(T_surf_key_, water_tag).ViewComponent("cell", false))(0);
   const Epetra_Vector& shortwave_radiation = *(*S_->Get<CompositeVector>(sw_key_, water_tag).ViewComponent("cell", false))(0);
   const Epetra_Vector& shortwave_incident_radiation = *(*S_->Get<CompositeVector>(sw_incident_key_, water_tag).ViewComponent("cell", false))(0);
@@ -1221,6 +1443,17 @@ void EcoSIM::CopyToEcoSIM_process(int proc_rank,
     //fill surface variables
 
     environment.surface_temperature.data[column] = temp_surf[column];
+    const double h=layer0(layer0_depth_key_)[0][column];
+    const double uf=layer0(layer0_fraction_key_)[0][column];
+    const double nl=layer0(layer0_nl_key_)[0][column], ni=layer0(layer0_ni_key_)[0][column];
+    const double mobile=column_area*h*(uf*nl+(1-uf)*ni);
+    const double retained=std::max(0.,layer0(layer0_water_key_)[0][column]-mobile);
+    environment.surface_water_liquid.data[column]=(column_area*h*uf*nl+retained*uf)*0.0180153/1000.;
+    environment.surface_water_ice.data[column]=(column_area*h*(1-uf)*ni+retained*(1-uf))*0.0180153/917.;
+    environment.ponded_depth.data[column]=h;
+    environment.surface_gauge_pressure.data[column]=layer0(layer0_pressure_key_)[0][column]
+      -S_->Get<double>("atmospheric_pressure",Tags::DEFAULT);
+
     feedback.snow_depth.data[column] = snow_depth[0][column];
     for (int pft = 0; pft != num_pfts; ++pft) {
       feedback.canopy_snow.data[column * num_pfts + pft] = canopy_snow_in[pft][column];
@@ -1345,9 +1578,25 @@ void EcoSIM::CopyFromEcoSIM_process(const int column,
   }
 
   num_columns_local = mesh_surf_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+  if(shared_layer0_){
+    auto& material=*S_->GetW<CompositeVector>(layer0_material_key_,tag_next_,name_).ViewComponent("cell",false);
+    auto& resistance=*S_->GetW<CompositeVector>(layer0_resistance_key_,tag_next_,name_).ViewComponent("cell",false);
+    for(int c=0;c<num_columns_local;++c){
+      double props[14],r;ecosim_layer0_material(c,props,&r);
+      for(int j=0;j<14;++j)material[j][c]=props[j];
+      resistance[0][c]=r;
+    }
+    changedEvaluatorPrimary(layer0_material_key_,tag_next_,*S_);
+    changedEvaluatorPrimary(layer0_resistance_key_,tag_next_,*S_);
+  }
   double energy_source_tot = feedback.surface_energy_source.data[0];
   double water_source_tot = feedback.surface_water_source.data[0];
   double snow_depth_cell = feedback.snow_depth.data[0];
+
+  auto& slope = *(*S_->GetW<CompositeVector>(heat_slope_key_, tag_next_, name_)
+                      .ViewComponent("cell", false))(0);
+  auto& reference = *(*S_->GetW<CompositeVector>(heat_reference_temperature_key_, tag_next_, name_)
+                          .ViewComponent("cell", false))(0);
 
   for (int col=0; col!=num_columns_local; ++col) {
     
@@ -1363,8 +1612,24 @@ void EcoSIM::CopyFromEcoSIM_process(const int column,
     ColumnToField_(col, snow_temperature, col_snow_temperature.ptr());
     ColumnToField_(col, canopy_snow, col_canopy_snow.ptr());*/
     
-    surface_energy_source[col] = feedback.surface_energy_source.data[col]/(3600.0);
-    surface_water_source[col] = feedback.surface_water_source.data[col]/(3600.0);
+    auto set_surface=[&](const Key& key,double value){
+      (*S_->GetW<CompositeVector>(key,tag_next_,name_).ViewComponent("cell",false))[0][col]=value;
+    };
+    const double q0=feedback.layer0_water_source.data[col]/3600.;
+    const double e0=feedback.layer0_energy_source.data[col]/3600.;
+    const double qg=feedback.ground_water_source.data[col]/3600.;
+    const double eg=feedback.ground_energy_source.data[col]/3600.;
+    set_surface(layer0_water_flux_key_,q0);set_surface(layer0_energy_flux_key_,e0);
+    set_surface(ground_water_flux_key_,qg);set_surface(ground_energy_flux_key_,eg);
+    set_surface(total_water_flux_key_,shared_layer0_?q0+qg:feedback.surface_water_source.data[col]/3600.);
+    set_surface(total_energy_flux_key_,shared_layer0_?e0+eg:feedback.surface_energy_source.data[col]/3600.);
+    set_surface(layer0_cover_key_,shared_layer0_?feedback.layer0_fraction.data[col]:0.);
+    double coverage=shared_layer0_?feedback.layer0_fraction.data[col]:0.;
+    set_surface(layer0_exchange_fraction_key_,coverage>0.?coverage:1.);
+    surface_energy_source[col] = shared_layer0_?e0:feedback.surface_energy_source.data[col]/3600.;
+    slope[col] = feedback.surface_energy_source_dtemperature.data[col] / 3600.0;
+    reference[col] = feedback.surface_energy_reference_temperature.data[col];
+    surface_water_source[col] = shared_layer0_?q0:feedback.surface_water_source.data[col]/3600.;
     snow_depth[0][col] = feedback.snow_depth.data[col];
     for (int pft = 0; pft != num_pfts; ++pft) {
       canopy_snow_out[pft][col] = feedback.canopy_snow.data[col * num_pfts + pft];
@@ -1395,11 +1660,29 @@ void EcoSIM::CopyFromEcoSIM_process(const int column,
     subsurface_water_source[c] *= liquid_density[c] / (3600.0 * cell_volume[c]);
   }
 
+  // Only the exposed-ground path enters the top subsurface cell. Root uptake
+  // is already in subsurface_water_source; these components are added once.
+  auto& ground_slope=*S_->GetW<CompositeVector>(ground_heat_slope_key_,tag_next_,name_).ViewComponent("cell",false);
+  auto& ground_reference=*S_->GetW<CompositeVector>(ground_heat_reference_key_,tag_next_,name_).ViewComponent("cell",false);
+  ground_slope.PutScalar(0.);ground_reference.PutScalar(0.);subsurface_energy_source.PutScalar(0.);
+  if(shared_layer0_)for(int col=0;col<num_columns_local;++col){
+    int top=mesh_->columns.getCells(col)[0];
+    double area=mesh_surf_->getCellVolume(col),volume=cell_volume[top];
+    subsurface_water_source[top]+=feedback.ground_water_source.data[col]*area*liquid_density[top]/(3600.*volume);
+    subsurface_energy_source[top]=feedback.ground_energy_source.data[col]*area/(3600.*volume);
+    ground_slope[0][top]=feedback.ground_energy_source_dtemperature.data[col]*area/(3600.*volume);
+    ground_reference[0][top]=feedback.ground_energy_reference_temperature.data[col];
+  }
+
   CopyInternalStateFromEcoSIM_(eco_istate_);
 
   // tell the evaluators that use EcoSIM's sources that they changed
   for (const auto& key : { surface_energy_source_ecosim_key_, surface_water_source_ecosim_key_,
-                           subsurface_energy_source_ecosim_key_, subsurface_water_source_ecosim_key_ }) {
+                           layer0_water_flux_key_, layer0_energy_flux_key_, ground_water_flux_key_, ground_energy_flux_key_,
+                           total_water_flux_key_, total_energy_flux_key_, layer0_cover_key_, layer0_exchange_fraction_key_,
+                           ground_heat_slope_key_, ground_heat_reference_key_,
+                           subsurface_energy_source_ecosim_key_, subsurface_water_source_ecosim_key_,
+                           heat_slope_key_, heat_reference_temperature_key_ }) {
     changedEvaluatorPrimary(key, tag_next_, *S_);
   }
 }
@@ -1481,7 +1764,8 @@ int EcoSIM::AdvanceSingleProcess(double dt, int proc)
 
   // Time tracking variables
   current_time_ = S_->get_time();        //Current time
-  static double last_ecosim_time = 0.0;
+  double& last_ecosim_time =
+    S_->GetW<double>(heat_last_advance_time_key_, tag_next_, name_);
   // clock: time 0 is the starting year, day and hour (365-day calendar)
   double t_clock = current_time_ + hour0_ * 3600.0;
   int total_days = static_cast<int>(t_clock / 86400.0);

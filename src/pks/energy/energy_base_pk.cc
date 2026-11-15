@@ -27,6 +27,8 @@
 #include "MeshAlgorithms.hh"
 
 #include "energy_base.hh"
+#include "ecosim_surface_resistance.hh"
+#include "ecosim_source_routing.hh"
 
 #define MORE_DEBUG_FLAG 0
 
@@ -125,6 +127,17 @@ void
 EnergyBase::Setup()
 {
   PK_PhysicalBDF_Default::Setup();
+  // A coupled source may supply a temperature-dependent evaluator while
+  // retaining its original primary field for checkpoint compatibility.
+  if (is_source_term_ && S_->HasEvaluatorList(source_key_)) {
+    const auto& spec = S_->GetEvaluatorList(source_key_);
+    if (spec.isParameter("temperature linearized source key")) {
+      source_key_ = spec.get<std::string>("temperature linearized source key");
+      is_source_term_finite_differentiable_ = false; // use the evaluator's analytic derivative
+    }
+  }
+
+  source_key_=AttachEcoSIMCellSource(*S_,key_,tag_next_,"additional energy source key",source_key_,is_source_term_);
   SetupEnergy_();
   SetupPhysicalEvaluators_();
 };
@@ -491,11 +504,20 @@ EnergyBase::UpdateConductivityData_(const Tag& tag)
 {
   Teuchos::RCP<const CompositeVector> cond = S_->GetPtr<CompositeVector>(conductivity_key_, tag);
   bool update = S_->GetEvaluator(conductivity_key_, tag).Update(*S_, name_);
+  auto sd=(domain_.empty() || domain_=="domain")?std::string("surface"):std::string("surface_")+domain_;
+  auto resistance_key=Keys::getKey(sd,"ecosim_layer0_thermal_resistance");
+  if(coupled_to_surface_via_flux_ && S_->HasRecord(resistance_key,tag))
+    update |= S_->GetEvaluator(resistance_key,tag).Update(*S_,name_+" conductivity");
+  auto fraction_key=Keys::getKey(sd,"ecosim_layer0_fraction");
+  if(coupled_to_surface_via_flux_ && S_->HasRecord(fraction_key,tag))
+    update |= S_->GetEvaluator(fraction_key,tag).Update(*S_,name_+" conductivity");
+
 
   if (update) {
     Teuchos::RCP<CompositeVector> uw_cond =
       S_->GetPtrW<CompositeVector>(uw_conductivity_key_, tag, name_);
     upwinding_->Update(*cond, *uw_cond, *S_);
+    if(coupled_to_surface_via_flux_)EcoSurfaceResistance(*S_,domain_,tag,*uw_cond,*uw_cond);
 
     if (uw_cond->HasComponent("face") ) uw_cond->ScatterMasterToGhosted("face");
   }
@@ -511,6 +533,14 @@ EnergyBase::UpdateConductivityDerivativeData_(const Tag& tag)
 
   bool update = S_->GetEvaluator(conductivity_key_, tag).UpdateDerivative(*S_, name_, key_, tag);
 
+  auto sd=(domain_.empty() || domain_=="domain")?std::string("surface"):std::string("surface_")+domain_;
+  auto resistance_key=Keys::getKey(sd,"ecosim_layer0_thermal_resistance");
+  if(coupled_to_surface_via_flux_ && S_->HasRecord(resistance_key,tag))
+    update |= S_->GetEvaluator(resistance_key,tag).Update(*S_,name_+" conductivity derivative");
+  auto fraction_key=Keys::getKey(sd,"ecosim_layer0_fraction");
+  if(coupled_to_surface_via_flux_ && S_->HasRecord(fraction_key,tag))
+    update |= S_->GetEvaluator(fraction_key,tag).Update(*S_,name_+" conductivity derivative");
+
   if (update) {
     Teuchos::RCP<const CompositeVector> dcond =
       S_->GetDerivativePtr<CompositeVector>(conductivity_key_, tag, key_, tag);
@@ -520,6 +550,8 @@ EnergyBase::UpdateConductivityDerivativeData_(const Tag& tag)
         S_->GetPtrW<CompositeVector>(duw_conductivity_key_, tag, name_);
       duw_cond->PutScalar(0.);
       upwinding_deriv_->Update(*dcond, *duw_cond, *S_);
+      if(coupled_to_surface_via_flux_)EcoSurfaceResistance(*S_,domain_,tag,
+        S_->Get<CompositeVector>(uw_conductivity_key_,tag),*duw_cond,true);
       if (duw_cond->HasComponent("face") ) duw_cond->ScatterMasterToGhosted("face");
     } else {
       dcond->ScatterMasterToGhosted("cell");

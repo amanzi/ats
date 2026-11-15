@@ -215,7 +215,13 @@ EnergyBase::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, do
     const double& p_atm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
 
     for (unsigned int c = 0; c != ncells; ++c) {
-      acc_c[0][c] = pres[0][c] >= p_atm ? de_dT[0][c] / h : 0.;
+      bool retained=false;
+      auto material=Keys::getKey(domain_,"ecosim_layer0_material");
+      if(S_->HasRecord(material,tag_next_)){
+        const auto& props=*S_->Get<CompositeVector>(material,tag_next_).ViewComponent("cell",false);
+        retained=props[0][c]>0. || props[1][c]>0.;
+      }
+      acc_c[0][c] = (pres[0][c] >= p_atm || retained) ? de_dT[0][c] / h : 0.;
     }
   } else {
     if (precon_used_) {

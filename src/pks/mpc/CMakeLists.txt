@@ -70,6 +70,7 @@ set(ats_mpc_inc_files
   mpc_coupled_water.hh
   mpc_coupled_dualmedia_water.hh
   mpc_permafrost.hh
+  pond_soil_exchange_control.hh
   mpc_coupled_transport.hh
   mpc_reactivetransport.hh
   mpc_coupled_reactivetransport.hh
@@ -201,3 +202,11 @@ generate_evaluators_registration_header(
   LISTNAME   ATS_MPC_REG
   INSTALL    True
 )
+
+if (BUILD_TESTS)
+  add_amanzi_test(pond_soil_exchange_control pond_soil_exchange_control
+    KIND unit
+    SOURCE test/pond_soil_exchange_control.cc
+    LINK_LIBS ${Teuchos_LIBRARIES})
+  target_include_directories(pond_soil_exchange_control PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+endif()

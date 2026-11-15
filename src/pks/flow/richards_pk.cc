@@ -32,6 +32,7 @@
 #include "TensorVector.hh"
 
 #include "richards.hh"
+#include "../energy/ecosim_source_routing.hh"
 
 namespace Amanzi {
 namespace Flow {
@@ -152,6 +153,9 @@ void
 Richards::Setup()
 {
   PK_PhysicalBDF_Default::Setup();
+  bool had_source=is_source_term_;
+  source_key_=AttachEcoSIMCellSource(*S_,key_,tag_next_,"additional water source key",source_key_,is_source_term_);
+  if(!had_source && is_source_term_)explicit_source_=false;
   SetupRichardsFlow_();
   SetupPhysicalEvaluators_();
 };
@@ -318,6 +322,11 @@ Richards::SetupRichardsFlow_()
   jacobian_ = mfd_pc_plist.get<std::string>("Newton correction", "none") != "none";
   if (jacobian_) {
     jacobian_lag_ = mfd_pc_plist.get<int>("Newton correction lag", 0);
+
+    auto sd=Keys::readDomainHint(*plist_,domain_,"subsurface","surface");
+    auto sk=Keys::getKey(sd,"relative_permeability");
+    if(clobber_policy_=="clobber" && S_->HasEvaluatorList(sk))
+      S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(sk,tag_next_,Keys::getKey(sd,"pressure"),tag_next_);
 
     // require the derivative drel_perm/dp
     S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
@@ -937,6 +946,24 @@ Richards::UpdatePermeabilityDerivativeData_(const Tag& tag)
 
       // Upwind, only overwriting boundary faces if the wind says to do so.
       upwinding_deriv_->Update(drel_perm, duw_rel_perm, *S_);
+      auto sd=Keys::readDomainHint(*plist_,domain_,"subsurface","surface");
+      auto sk=Keys::getKey(sd,"relative_permeability");
+      if(clobber_policy_=="clobber" && S_->HasEvaluatorList(sk)){
+        auto sp=Keys::getKey(sd,"pressure");
+        S_->GetEvaluator(sk,tag).UpdateDerivative(*S_,name_,sp,tag);
+        const auto& surf=*S_->Get<CompositeVector>(sk,tag).ViewComponent("cell",false);
+        const auto& ds=*S_->GetDerivative<CompositeVector>(sk,tag,sp,tag).ViewComponent("cell",false);
+        const auto& raw=*S_->Get<CompositeVector>(coef_key_,tag).ViewComponent("boundary_face",false);
+        const auto& local=*drel_perm.ViewComponent("boundary_face",false);
+        auto& face=*duw_rel_perm.ViewComponent("face",false);const auto sm=S_->GetMesh(sd);
+        for(int c=0;c<surf.MyLength();++c){
+          int f=sm->getEntityParent(AmanziMesh::CELL,c);
+          int bf=mesh_->getMap(AmanziMesh::BOUNDARY_FACE,false).LID(mesh_->getMap(AmanziMesh::FACE,false).GID(f));
+          face[0][f]=local[0][bf];
+          if(surf[0][c]>0.)face[0][f]+=raw[0][bf]/surf[0][c]*ds[0][c];
+        }
+      }
+
     }
   }
 

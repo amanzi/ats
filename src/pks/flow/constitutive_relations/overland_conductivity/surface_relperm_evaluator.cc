@@ -92,7 +92,18 @@ SurfaceRelPermEvaluator::EvaluatePartialDerivative_(const State& S,
                                                     const Tag& wrt_tag,
                                                     const std::vector<CompositeVector*>& result)
 {
-  AMANZI_ASSERT(0);
+  const auto tag=my_keys_.front().second;
+  const auto& pressure=S.Get<CompositeVector>(h_key_,tag);
+  const CompositeVector* fraction=is_temp_?&S.Get<CompositeVector>(uf_key_,tag):nullptr;
+  for(auto comp=result[0]->begin();comp!=result[0]->end();++comp){
+    auto& output=*result[0]->ViewComponent(*comp,false);
+    const auto& p=*pressure.ViewComponent(*comp,false);
+    for(int c=0;c<output.MyLength();++c){
+      const double uf=fraction?(*fraction->ViewComponent(*comp,false))[0][c]:0.;
+      output[0][c]=wrt_key==h_key_?model_->DSurfaceRelPermDPondedDepth(uf,p[0][c]):
+        wrt_key==uf_key_?model_->DSurfaceRelPermDUnfrozenFraction(uf,p[0][c]):0.;
+    }
+  }
 }
 
 

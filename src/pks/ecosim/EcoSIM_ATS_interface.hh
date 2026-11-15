@@ -435,7 +435,21 @@ class EcoSIM : public PK_Physical_Default {
   Key subsurface_energy_source_key_;
   Key surface_water_source_key_;
   Key subsurface_water_source_key_;
+  Key layer0_water_flux_key_, layer0_energy_flux_key_, ground_water_flux_key_, ground_energy_flux_key_;
+  Key total_water_flux_key_, total_energy_flux_key_, layer0_cover_key_, layer0_exchange_fraction_key_;
+  Key ground_heat_slope_key_, ground_heat_reference_key_, ground_heat_linearized_key_;
   Key surface_energy_source_ecosim_key_;
+  // Paired heat reference, the default linearized source, and accepted-energy ledger.
+  Key heat_slope_key_, heat_reference_temperature_key_, heat_linearized_key_;
+  Key heat_temperature_increment_key_, heat_correction_key_;
+  Key heat_correction_energy_key_, heat_applied_key_, heat_last_advance_time_key_;
+  bool semi_implicit_heat_ = true;
+  bool shared_layer0_ = true;
+  Key layer0_material_key_, layer0_resistance_key_, layer0_water_key_, layer0_energy_key_;
+  Key layer0_depth_key_, layer0_pressure_key_, layer0_fraction_key_, layer0_nl_key_, layer0_ni_key_;
+  bool pending_heat_valid_ = false;
+  double pending_heat_time_ = 0.;
+  std::vector<double> pending_heat_correction_, pending_heat_applied_;
   Key surface_water_source_ecosim_key_;
   Key subsurface_energy_source_ecosim_key_;
   Key subsurface_water_source_ecosim_key_;

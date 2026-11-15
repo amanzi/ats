@@ -23,6 +23,9 @@
 #include "PK_Helpers.hh"
 
 #include "mpc_permafrost.hh"
+#include "pond_soil_exchange_control.hh"
+#include <limits>
+#include <cmath>
 
 namespace Amanzi {
 
@@ -155,6 +158,36 @@ MPCPermafrost::Setup()
     .SetMesh(surf_mesh_)
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   requireEvaluatorAtCurrent(surf_pd_key_, tag_current_, *S_, surf_pd_key_);
+
+  // All PKs have parsed before Setup, including EcoSIM's storage wrappers.
+  auto& exchange = plist_->sublist("pond soil exchange timestep control");
+  const bool shared_ecosim = S_->HasEvaluatorList(surf_e_key_) &&
+    S_->GetEvaluatorList(surf_e_key_).get<std::string>("evaluator type", "") ==
+      "ecosim layer zero storage";
+  pond_soil_control_ = exchange.get<bool>("enabled", shared_ecosim);
+  pond_soil_max_exchange_ = exchange.get<double>("maximum exchange number", 4.);
+  pond_soil_min_contrast_ = exchange.get<double>("minimum heat capacity contrast", 10.);
+  pond_soil_min_depth_ = exchange.get<double>("minimum ponded depth [m]", 1.e-5);
+  pond_soil_reference_dt_ = exchange.get<double>("reference timestep [s]", 3600.);
+  if (pond_soil_control_) {
+    if (!(std::isfinite(pond_soil_max_exchange_) && pond_soil_max_exchange_ > 0. &&
+          std::isfinite(pond_soil_min_contrast_) && pond_soil_min_contrast_ >= 1. &&
+          std::isfinite(pond_soil_min_depth_) && pond_soil_min_depth_ >= 0. &&
+          std::isfinite(pond_soil_reference_dt_) && pond_soil_reference_dt_ > 0.)) {
+      Errors::Message msg("Pond-soil exchange timestep control: invalid thresholds.");
+      Exceptions::amanzi_throw(msg);
+    }
+    pond_liquid_energy_key_ = Keys::readKey(exchange, domain_surf_,
+      "liquid internal energy", "internal_energy_liquid");
+    pond_ice_energy_key_ = Keys::readKey(exchange, domain_surf_,
+      "ice internal energy", "internal_energy_ice");
+    for (const auto& key : {pond_liquid_energy_key_, pond_ice_energy_key_}) {
+      S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(surf_e_key_, tag_next_, key, tag_next_);
+      S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(key, tag_next_, surf_temp_key_, tag_next_);
+    }
+    S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(surf_e_key_, tag_next_, surf_temp_key_, tag_next_);
+    S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(e_key_, tag_next_, temp_key_, tag_next_);
+  }
 
   // require surface derivatives
   S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
@@ -391,6 +424,83 @@ MPCPermafrost::set_tags(const Tag& tag_current, const Tag& tag_next)
   MPCSubsurface::set_tags(tag_current, tag_next);
   if (water_.get() ) water_->set_tags(tag_current, tag_next);
   if (surf_ewc_ != Teuchos::null) surf_ewc_->set_tags(tag_current, tag_next);
+}
+
+
+double
+MPCPermafrost::get_dt()
+{
+  const double proposed = MPCSubsurface::get_dt();
+  if (!pond_soil_control_) return proposed;
+  // At this point NEXT is the accepted state (or has been restored after failure).
+  auto derivative = [&](const Key& key, const Key& wrt) -> const Epetra_MultiVector& {
+    S_->GetEvaluator(key, tag_next_).UpdateDerivative(*S_, name_, wrt, tag_next_);
+    return *S_->GetDerivative<CompositeVector>(key, tag_next_, wrt, tag_next_).ViewComponent("cell", false);
+  };
+  const auto& cp = derivative(surf_e_key_, surf_temp_key_);
+  const auto& cs = derivative(e_key_, temp_key_);
+  const auto& ne_liq = derivative(surf_e_key_, pond_liquid_energy_key_);
+  const auto& ne_ice = derivative(surf_e_key_, pond_ice_energy_key_);
+  const auto& cv_liq = derivative(pond_liquid_energy_key_, surf_temp_key_);
+  const auto& cv_ice = derivative(pond_ice_energy_key_, surf_temp_key_);
+  S_->GetEvaluator(tc_key_, tag_next_).Update(*S_, name_);
+  S_->GetEvaluator(surf_pd_key_, tag_next_).Update(*S_, name_);
+  const auto& k = *S_->Get<CompositeVector>(tc_key_, tag_next_).ViewComponent("cell", false);
+  const auto& h = *S_->Get<CompositeVector>(surf_pd_key_, tag_next_).ViewComponent("cell", false);
+  const Key material_key = Keys::getKey(domain_surf_, "ecosim_layer0_material");
+  const Key resistance_key = Keys::getKey(domain_surf_, "ecosim_layer0_thermal_resistance");
+  const Key fraction_key = Keys::getKey(domain_surf_, "ecosim_layer0_fraction");
+  auto optional = [&](const Key& key) -> const Epetra_MultiVector* {
+    return S_->HasRecord(key, tag_next_) ?
+      S_->Get<CompositeVector>(key, tag_next_).ViewComponent("cell", false).get() : nullptr;
+  };
+  const auto material = optional(material_key);
+  const auto resistance = optional(resistance_key);
+  const auto fraction = optional(fraction_key);
+  double local_cap = std::numeric_limits<double>::max();
+  double local_number = 0.;
+  double local_tau = 0.;
+  double local_apparent_tau = 0.;
+  double local_contrast = 0.;
+  for (int sc = 0; sc != cp.MyLength(); ++sc) {
+    const int face = surf_mesh_->getEntityParent(AmanziMesh::CELL, sc);
+    const auto cells = domain_mesh_->getFaceCells(face);
+    AMANZI_ASSERT(cells.size() == 1);
+    const int c = cells[0];
+    const double area = domain_mesh_->getFaceArea(face);
+    const double distance = AmanziGeometry::norm(
+      domain_mesh_->getFaceCentroid(face) - domain_mesh_->getCellCentroid(c));
+    // Match boundary cell-centered/arithmetic-mean conductivity and the existing
+    // covered series resistance. Units: MJ/K for C, MJ/s/K for G, seconds for tau.
+    const double coverage = fraction ? (*fraction)[0][sc] : 1.;
+    const double r = resistance ? (*resistance)[0][sc] : 0.;
+    const double conductance = distance > 0. ?
+      area * coverage * k[0][c] / (distance + k[0][c] * r) : 0.;
+    const double dry_litter = material ? area * (*material)[1][sc] : 0.;
+    const double sensible = ne_liq[0][sc] * cv_liq[0][sc] +
+      ne_ice[0][sc] * cv_ice[0][sc] + dry_litter;
+    const auto decision = PondSoilExchangeLimit(h[0][sc], cp[0][sc], sensible,
+      cs[0][c], conductance, pond_soil_min_depth_, pond_soil_min_contrast_,
+      pond_soil_max_exchange_, pond_soil_reference_dt_);
+    if (decision.timestep < local_cap) {
+      local_cap = decision.timestep;
+      local_number = decision.exchange_number;
+      local_tau = decision.tau;
+      local_apparent_tau = decision.apparent_tau;
+      local_contrast = decision.contrast;
+    }
+  }
+  // Every MPI rank takes the same minimum, including ranks without surface cells.
+  double cap;
+  solution_->Comm()->MinAll(&local_cap, &cap, 1);
+  if (cap < proposed && vo_->os_OK(Teuchos::VERB_HIGH)) {
+    double values[4] = {local_number, local_tau, local_apparent_tau, local_contrast};
+    *vo_->os() << "Pond-soil exchange control: time_s=" << S_->get_time(tag_next_)
+      << " cap_s=" << cap << " local_number=" << values[0]
+      << " local_tau_s=" << values[1] << " local_apparent_tau_s=" << values[2]
+      << " local_capacity_contrast=" << values[3] << std::endl;
+  }
+  return std::min(proposed, cap);
 }
 
 

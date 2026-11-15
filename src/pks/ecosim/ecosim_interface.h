@@ -63,6 +63,12 @@ void ecosim_internal_state_entry(int i,
                                  int* num_components,
                                  int* role);
 
+void ecosim_sync_layer0(const EcoEnvironment* env, const EcoSizes* sizes, EcoInternalState* state);
+
+/* Native layer-zero properties and stateless retained-water closure. */
+void ecosim_layer0_material(int column, double* properties, double* resistance);
+void ecosim_layer0_retention(const double* properties, double pressure, double patm, double* depth, double* derivative, int* status);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

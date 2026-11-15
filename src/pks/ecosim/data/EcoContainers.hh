@@ -115,6 +115,7 @@ extern "C" {
     bool microbe_bool;      /* microbe model (not copied by EcoSIM) */
     double wind_speed_ref_height;  /* wind speed measurement height [m] */
     double soil_surface_roughness; /* soil surface roughness height [m] */
+    bool shared_surface_layer; /* ATS owns combined layer-zero water and energy */
     char* pft_file;         /* PFT parameter file, owned by the PK */
   } EcoConfig;
 
@@ -159,6 +160,10 @@ extern "C" {
     EcoVectorDouble slope;
     EcoVectorDouble vegetation_type;        /* not filled */
     EcoVectorDouble snow_albedo;
+    EcoVectorDouble surface_water_liquid; /* layer-zero liquid [m3 per column] */
+    EcoVectorDouble surface_water_ice; /* layer-zero physical ice [m3 per column] */
+    EcoVectorDouble ponded_depth; /* mobile ATS ponding [m] */
+    EcoVectorDouble surface_gauge_pressure; /* layer-zero gauge pressure p - patm [Pa] */
     EcoVectorDouble surface_temperature;    /* surface-temperature [K] */
     /* atmosphere composition (not initialized by the PK) */
     double atm_n2;
@@ -178,8 +183,19 @@ extern "C" {
   typedef struct {
     EcoMatrixDouble subsurface_water_source;  /* EcoSIM: m3 per grid cell per hour */
     EcoMatrixDouble subsurface_energy_source; /* not read back by ATS */
-    EcoVectorDouble surface_water_source;     /* EcoSIM: m h-1 */
-    EcoVectorDouble surface_energy_source;    /* EcoSIM: per hour */
+    EcoVectorDouble surface_water_source;     /* shared: layer 0; legacy: ground [m h-1] */
+    EcoVectorDouble surface_energy_source;    /* same receiver as water [MJ m^-2 h^-1] */
+    EcoVectorDouble surface_energy_source_dtemperature; /* MJ m^-2 K^-1 per hour; radiation+sensible */
+    EcoVectorDouble surface_energy_reference_temperature; /* K, paired with the source and slope */
+    /* Area-weighted external components; shared surface_* aliases layer0_*.
+       ATS computes layer0-to-soil exchange itself. */
+    EcoVectorDouble layer0_water_source;
+    EcoVectorDouble layer0_energy_source;
+    EcoVectorDouble ground_water_source;
+    EcoVectorDouble ground_energy_source;
+    EcoVectorDouble ground_energy_source_dtemperature;
+    EcoVectorDouble ground_energy_reference_temperature;
+    EcoVectorDouble layer0_fraction;
     EcoVectorDouble snow_depth;               /* also sent in: EcoSIM's snow state */
     EcoMatrixDouble canopy_snow;              /* num_pfts x num_columns; also sent in */
   } EcoFeedback;

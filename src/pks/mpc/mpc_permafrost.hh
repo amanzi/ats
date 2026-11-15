@@ -49,6 +49,18 @@ This is the implementation of the model described in `Painter et al WRR 2016
    * `"surface ewc delegate`" ``[mpc-delegate-ewc-spec]`` A :ref:`EWC
      Globalization Delegate` spec.
 
+   * `"pond soil exchange timestep control`" ``[ParameterList]`` Optional
+     accepted-state numerical timestep control. `"enabled`" defaults true only
+     for EcoSIM shared layer-zero storage, false otherwise. Defaults:
+     `"maximum exchange number`" = 4, `"minimum heat capacity contrast`" = 10,
+     `"minimum ponded depth [m]`" = 1e-5, `"reference timestep [s]`" = 3600.
+     The exchange time uses the smaller of pond sensible/apparent capacities,
+     top-soil apparent capacity, and covered conductive conductance. This
+     protects against a nonlinear trial leaving the freezing interval without
+     changing storage or physical fluxes. Prescribed schedules must explicitly
+     enable `"prescribed timesteps are maximum`" in the cycle-driver timestep
+     manager to permit these caps and failure retries.
+
    INCLUDES:
 
    - ``[mpc-subsurface-spec]`` *Is a* :ref:`Subsurface Flow & Energy`
@@ -78,6 +90,7 @@ class MPCPermafrost : public MPCSubsurface {
 
   virtual void Setup() override;
   virtual void Initialize() override;
+  virtual double get_dt() override;
   //virtual void set_tags(const Tag& tag_current, const Tag& tag_next);
 
   virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
@@ -110,6 +123,14 @@ class MPCPermafrost : public MPCSubsurface {
     Teuchos::RCP<TreeVector> du) override;
 
  protected:
+  // Optional accepted-state timestep control; defaults on for EcoSIM shared storage.
+  bool pond_soil_control_ = false;
+  double pond_soil_max_exchange_ = 4.;
+  double pond_soil_min_contrast_ = 10.;
+  double pond_soil_min_depth_ = 1.e-5;
+  double pond_soil_reference_dt_ = 3600.;
+  Key pond_liquid_energy_key_, pond_ice_energy_key_;
+
   // sub PKs
   Teuchos::RCP<PK_PhysicalBDF_Default> domain_flow_pk_;
   Teuchos::RCP<PK_PhysicalBDF_Default> domain_energy_pk_;

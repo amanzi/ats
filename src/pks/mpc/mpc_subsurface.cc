@@ -31,6 +31,7 @@ with freezing.
 #include "richards.hh"
 #include "mpc_delegate_ewc_subsurface.hh"
 #include "mpc_subsurface.hh"
+#include "ecosim_surface_resistance.hh"
 
 #define DEBUG_FLAG 1
 
@@ -184,6 +185,11 @@ MPCSubsurface::Setup()
       // require the derivative drel_perm/dT
       S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
         kr_key_, tag_next_, temp_key_, tag_next_);
+      auto sd=Keys::readDomainHint(*plist_,domain_name_,"subsurface","surface");
+      auto sk=Keys::getKey(sd,"relative_permeability");
+      if(pks_list_->sublist(pk_order[0]).get<std::string>("surface rel perm strategy","none")=="clobber" && S_->HasEvaluatorList(sk))
+        S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(sk,tag_next_,Keys::getKey(sd,"temperature"),tag_next_);
+
 
       if (!is_fv_) {
         duw_krdT_key_ = Keys::getDerivKey(uw_kr_key_, temp_key_);
@@ -548,6 +554,29 @@ MPCSubsurface::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up,
           S_->GetPtrW<CompositeVector>(duw_krdT_key_, tag_next_, name_);
         duw_kr->PutScalar(0.0);
         upwinding_dkrdT_->Update(*dkrdT, *duw_kr, *S_);
+        // Forward clobbering uses surface mobility even during infiltration.
+        // Its surface-temperature derivative must reach the matching boundary
+        // temperature DOF, rather than disappearing in cell-only upwinding.
+        auto boundary_order=plist_->get<Teuchos::Array<std::string>>("PKs order");
+        auto sd=Keys::readDomainHint(*plist_,domain_name_,"subsurface","surface");
+        auto sk=Keys::getKey(sd,"relative_permeability");
+        if(pks_list_->sublist(boundary_order[0]).get<std::string>("surface rel perm strategy","none")=="clobber" && S_->HasEvaluatorList(sk)){
+          auto st=Keys::getKey(sd,"temperature");
+          S_->GetEvaluator(sk,tag_next_).UpdateDerivative(*S_,name_,st,tag_next_);
+          const auto& surf=*S_->Get<CompositeVector>(sk,tag_next_).ViewComponent("cell",false);
+          const auto& ds=*S_->GetDerivative<CompositeVector>(sk,tag_next_,st,tag_next_).ViewComponent("cell",false);
+          const auto& raw=*S_->Get<CompositeVector>(kr_key_,tag_next_).ViewComponent("boundary_face",false);
+          const auto& local=*dkrdT->ViewComponent("boundary_face",false);
+          auto& face=*duw_kr->ViewComponent("face",false);
+          const auto sm=S_->GetMesh(sd);
+          for(int c=0;c<surf.MyLength();++c){
+            int f=sm->getEntityParent(AmanziMesh::CELL,c);
+            int bf=mesh_->getMap(AmanziMesh::BOUNDARY_FACE,false).LID(mesh_->getMap(AmanziMesh::FACE,false).GID(f));
+            face[0][f]=local[0][bf]; // density/viscosity response at this boundary
+            if(surf[0][c]>0.)face[0][f]+=raw[0][bf]/surf[0][c]*ds[0][c];
+          }
+        }
+
         dkrdT = S_->GetPtr<CompositeVector>(duw_krdT_key_, tag_next_);
       }
 
@@ -586,6 +615,8 @@ MPCSubsurface::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up,
           S_->GetPtrW<CompositeVector>(duw_tcdp_key_, tag_next_, name_);
         duw_kappa_dp->PutScalar(0.0);
         upwinding_dkappa_dp_->Update(*dkappa_dp, *duw_kappa_dp, *S_);
+        Energy::EcoSurfaceResistance(*S_,domain_name_,tag_next_,
+          S_->Get<CompositeVector>(uw_tc_key_,tag_next_),*duw_kappa_dp,true);
         dkappa_dp = S_->GetPtr<CompositeVector>(duw_tcdp_key_, tag_next_);
       }
 

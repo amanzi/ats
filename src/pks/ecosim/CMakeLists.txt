@@ -49,11 +49,13 @@ if(ENABLE_ECOSIM)
     set(ats_ecosim_src_files
       EcoSIM_ATS_interface.cc
       EcoEngine.cc
+      EcoLayer0Evaluator.cc
     )
 
     set(ats_ecosim_inc_files
       EcoSIM_ATS_interface.hh
       EcoEngine.hh
+      EcoLayer0Evaluator.hh
       ecosim_interface.h
   )
 
@@ -108,6 +110,8 @@ if(ENABLE_ECOSIM)
   HEADERFILE EcoSIM_ATS_interface_reg.hh
   LISTNAME ATS_ECOSIM_REG
   )
+
+    register_evaluator_with_factory(HEADERFILE EcoLayer0Evaluator_reg.hh LISTNAME ATS_ECOSIM_REG)
 
     generate_evaluators_registration_header(
   HEADERFILE ats_ecosim_registration.hh

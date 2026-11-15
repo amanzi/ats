@@ -15,6 +15,7 @@
 #ifndef AMANZI_FLOWRELATIONS_ONE_UNFROZEN_FRACTION_KR_MODEL_
 #define AMANZI_FLOWRELATIONS_ONE_UNFROZEN_FRACTION_KR_MODEL_
 
+#include <cmath>
 #include "Teuchos_ParameterList.hpp"
 #include "dbc.hh"
 #include "Factory.hh"
@@ -33,14 +34,15 @@ class OneUFRelPermModel : public SurfaceRelPermModel {
 
   virtual double DSurfaceRelPermDUnfrozenFraction(double uf, double h)
   {
-    AMANZI_ASSERT(0);
-    return 0.;
+    if(h<=101325.+h_cutoff_dn_ || alpha_==0)return 0.;
+    double factor=h>=101325.+h_cutoff_up_?1.:(h-101325.-h_cutoff_dn_)/(h_cutoff_up_-h_cutoff_dn_);
+    return factor*alpha_*pi_/2.*std::cos(pi_*uf/2.)*std::pow(std::sin(pi_*uf/2.),alpha_-1);
   }
 
   virtual double DSurfaceRelPermDPondedDepth(double uf, double h)
   {
-    AMANZI_ASSERT(0);
-    return 0.;
+    if(h<=101325.+h_cutoff_dn_ || h>=101325.+h_cutoff_up_)return 0.;
+    return (std::pow(std::sin(pi_*uf/2.),alpha_)-1.)/(h_cutoff_up_-h_cutoff_dn_);
   }
 
  protected:

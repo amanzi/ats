@@ -33,6 +33,8 @@ set(ats_energy_src_files
 set(ats_energy_inc_files
   energy_bc_factory.hh
   energy_base.hh
+  ecosim_surface_resistance.hh
+  ecosim_source_routing.hh
   energy_surface_ice.hh
   energy_two_phase.hh
   energy_three_phase.hh
