@@ -296,7 +296,7 @@ Transport_ATS::InvertTccNew_(const Epetra_MultiVector& conserve_qty,
     for (int i = 0; i != num_components_; ++i) {
       double tcc_max = tcc_max_[component_names_[i]];
 
-      if (water_new > water_tolerance_ / cv[0][c] && conserve_qty[i][c] > 0) {
+      if (water_new > water_tolerance_ * cv[0][c] && conserve_qty[i][c] > 0) {
         // there is both water and stuff present at the new time this is stuff
         // at the new time + stuff leaving through the domain coupling, divided
         // by water of both
@@ -308,7 +308,7 @@ Transport_ATS::InvertTccNew_(const Epetra_MultiVector& conserve_qty,
           tcc[i][c] = tcc_max;
         }
 
-      } else if (water_sink > water_tolerance_ / cv[0][c] && conserve_qty[i][c] > 0) {
+      } else if (water_sink > water_tolerance_ * cv[0][c] && conserve_qty[i][c] > 0) {
         // there is water and stuff leaving through the domain coupling, but it
         // all leaves (none at the new time)
         tcc[i][c] = 0.;
@@ -322,11 +322,11 @@ Transport_ATS::InvertTccNew_(const Epetra_MultiVector& conserve_qty,
 
       // dissolve solid
       if (solid_qty &&
-          water_total > water_tolerance_ / cv[0][c] && // water available for dissolution
+          water_total > water_tolerance_ * cv[0][c] && // water available for dissolution
           (*solid_qty)[i][c] > 0. &&                   // solid available to dissolve
           tcc[i][c] < tcc_max) {
         double dissolved_qty = std::min((tcc_max - tcc[i][c]) * water_total, (*solid_qty)[i][c]);
-        if (water_new > water_tolerance_ / cv[0][c]) {
+        if (water_new > water_tolerance_ * cv[0][c]) {
           // new water -- dissolve in place
           tcc[i][c] += dissolved_qty / water_total;
         } // otherwise dissolve into water_sink, advect out, tcc stays 0

@@ -334,7 +334,7 @@ class Transport_ATS : public PK_Physical_Default {
 
   ParameterMap molec_diff_; // molecular diffusivity by component [m^2 s^-1]
   ParameterMap tortuosity_; // phase-based tortuosity [-]
-  double water_tolerance_;  // mol H2O / m^d (d = 2 for surface, d = 3 for subsurface)
+  double water_tolerance_;  // mol H2O m^-d (d = 2 for surface, d = 3 for subsurface)
 
 #ifdef ALQUIMIA_ENABLED
   Teuchos::RCP<AmanziChemistry::Alquimia_PK> chem_pk_;
