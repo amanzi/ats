@@ -103,7 +103,9 @@ SedimentTransport_PK::parseParameterList()
 
   // other parameters
   // -- a small amount of water, used to define when we are going to completely dry out a grid cell
-  water_tolerance_ = plist_->get<double>("water tolerance [mol H2O / m^d]", 1e-6);
+  int d = mesh_->getManifoldDimension();
+  std::string wtol_name = std::string("water tolerance [mol H2O m^-") + std::to_string(d) + "]";
+  water_tolerance_ = plist_->get<double>(wtol_name, 1.e-6);
 
   // global transport parameters
   cfl_ = plist_->get<double>("cfl", 1.0);
