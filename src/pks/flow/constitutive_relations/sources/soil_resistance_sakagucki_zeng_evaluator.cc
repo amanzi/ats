@@ -37,7 +37,7 @@ SoilResistanceSakaguckiZengEvaluator::SoilResistanceSakaguckiZengEvaluator(
 
   std::string params_name = plist_.get<std::string>("model parameters", "WRM parameters");
   Teuchos::ParameterList& sublist = plist_.sublist(params_name);
-  models_ = createSoilResistanceModelPartition(sublist);
+  models_ = createRegionModelPartition<SoilResistanceSakaguckiZengModel>(sublist);
 }
 
 Teuchos::RCP<Evaluator>

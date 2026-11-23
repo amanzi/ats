@@ -71,18 +71,19 @@ Example:
 
 #include "Factory.hh"
 #include "EvaluatorSecondaryMonotype.hh"
-#include "soil_resistance_model_partition.hh"
+#include "region_model_partition.hh"
 
 namespace Amanzi {
 namespace Flow {
+
+class SoilResistanceSakaguckiZengModel;
+using SoilResistanceSakaguckiZengModelPartition = RegionModelPartition<SoilResistanceSakaguckiZengModel>;
 
 class SoilResistanceSakaguckiZengEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
   explicit SoilResistanceSakaguckiZengEvaluator(Teuchos::ParameterList& plist);
   SoilResistanceSakaguckiZengEvaluator(const SoilResistanceSakaguckiZengEvaluator& other) = default;
   Teuchos::RCP<Evaluator> Clone() const override;
-
-  Teuchos::RCP<SoilResistanceModelPartition> get_Models() { return models_; }
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
@@ -98,7 +99,7 @@ class SoilResistanceSakaguckiZengEvaluator : public EvaluatorSecondaryMonotypeCV
   Key sat_gas_key_;
   Key poro_key_;
 
-  Teuchos::RCP<SoilResistanceModelPartition> models_;
+  Teuchos::RCP<SoilResistanceSakaguckiZengModelPartition> models_;
 
  private:
   static Utils::RegisteredFactory<Evaluator, SoilResistanceSakaguckiZengEvaluator> fac_;

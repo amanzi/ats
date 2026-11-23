@@ -4,30 +4,37 @@
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
-           Bo Gao (gaob@ornl.gov)
+  Authors: Bo Gao (gaob@ornl.gov)
 */
 
 /*
-  Mesh Partition for soil type determined soil resistance.
-  Currently this is only used for Sakagucki-Zeng model, but
-  probably useful for other soil type determined soil resistance
-  models that might be added in future.
+  Provides a collection of models along with a Mesh Partition: 
+  per region with mesh partition of that region.
 */
 
+#pragma once
 
+#include "Teuchos_ParameterList.hpp"
 #include "dbc.hh"
-#include "soil_resistance_model_partition.hh"
-
+#include "MeshPartition.hh"
 
 namespace Amanzi {
 namespace Flow {
 
+template<class Model>
+using RegionModelList = std::vector<Teuchos::RCP<Model>>;
+
+template<class Model>
+using RegionModelPartition =
+  std::pair<Teuchos::RCP<Functions::MeshPartition>, RegionModelList<Model>>;
+
+
 // Non-member factory
-Teuchos::RCP<SoilResistanceModelPartition>
-createSoilResistanceModelPartition(Teuchos::ParameterList& plist)
+template<class Model>
+Teuchos::RCP<RegionModelPartition<Model>>
+createRegionModelPartition(Teuchos::ParameterList& plist)
 {
-  SoilResistanceSakaguckiZengModelList rs_list;
+  RegionModelList<Model> model_list;
   std::vector<std::string> region_list;
 
   for (Teuchos::ParameterList::ConstIterator lcv = plist.begin(); lcv != plist.end(); ++lcv) {
@@ -35,7 +42,7 @@ createSoilResistanceModelPartition(Teuchos::ParameterList& plist)
     if (plist.isSublist(name)) {
       Teuchos::ParameterList sublist = plist.sublist(name);
       region_list.push_back(sublist.get<std::string>("region"));
-      rs_list.push_back(Teuchos::rcp(new SoilResistanceSakaguckiZengModel(sublist)));
+      model_list.push_back(Teuchos::rcp(new Model(sublist)));
     } else {
       AMANZI_ASSERT(0);
     }
@@ -43,8 +50,7 @@ createSoilResistanceModelPartition(Teuchos::ParameterList& plist)
 
   Teuchos::RCP<Functions::MeshPartition> part =
     Teuchos::rcp(new Functions::MeshPartition(AmanziMesh::CELL, region_list));
-
-  return Teuchos::rcp(new SoilResistanceModelPartition(part, rs_list));
+  return Teuchos::rcp(new RegionModelPartition<Model>(part, model_list));
 }
 
 } // namespace Flow
