@@ -258,17 +258,7 @@ TimeAdvancer::advance(double t_start, double t_end)
     // constrain dt via TSM, then clamp
     dt = tsm_->TimeStep(t_now, dt, fail);
 
-    // Land exactly on t_end without registering it as a TSM event: tsm_ is a
-    // persistent, simulation-lifetime object and advance() is called once
-    // per outer coupling step by ELM_ATSDriver and MPCSubcycled/
-    // MPCWeakSubdomain's internal subcycling, each with a different t_end;
-    // TimeStepManager has no unregister, so registering here would append
-    // one Event per call forever (unbounded memory, and TimeStep()'s linear
-    // scan over events grows every outer step). These are the same three
-    // rules TimeStepManager::TimeStep() applies to a registered event, so
-    // the dt sequence is unchanged from when t_end was a registered event:
-    // dt never overshoots t_end, and a tiny leftover remainder step is
-    // avoided the same way TSM avoids it for any other event.
+    // Land exactly on t_end without registering it as a TSM event
     {
       const double t_remaining = t_end - t_now;
       constexpr double kEventNearEqualTol = 1.e4 * Amanzi::Utils::Event_EPS<double>::value;
