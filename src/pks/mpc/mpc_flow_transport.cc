@@ -213,11 +213,15 @@ MPCFlowTransport::parseParameterList()
     // interpolator that depends upon this.
     requireEvaluatorAtNext(sub_lwc_key, flow_next_tag, *S_);
     requireEvaluatorAtNext("porosity", flow_next_tag, *S_);
-    requireEvaluatorAtCurrent("porosity", flow_current_tag, *S_, name_);
+    if (transport_next_tag != flow_next_tag) {
+      requireEvaluatorAtCurrent("porosity", flow_current_tag, *S_, name_);
+    }
 
     if (chemistry_) {
       requireEvaluatorAtNext("mass_density_liquid", flow_next_tag, *S_);
-      requireEvaluatorAtCurrent("mass_density_liquid", flow_current_tag, *S_, name_);
+      if (transport_next_tag != flow_next_tag) {
+        requireEvaluatorAtCurrent("mass_density_liquid", flow_current_tag, *S_, name_);
+      }
 
       requireEvaluatorAtNext("saturation_liquid", flow_next_tag, *S_);
     }
@@ -239,7 +243,9 @@ MPCFlowTransport::parseParameterList()
     requireEvaluatorAtNext(surf_lwc_key, flow_next_tag, *S_);
     if (chemistry_) {
       requireEvaluatorAtNext("surface-mass_density_liquid", flow_next_tag, *S_);
-      requireEvaluatorAtCurrent("surface-mass_density_liquid", flow_current_tag, *S_, name_);
+      if (transport_next_tag != flow_next_tag) {
+        requireEvaluatorAtCurrent("surface-mass_density_liquid", flow_current_tag, *S_, name_);
+      }
 
       requireEvaluatorAtNext("surface-ponded_depth", flow_next_tag, *S_);
     }
@@ -265,15 +271,16 @@ MPCFlowTransport::CommitStep(double t_old, double t_new, const Tag& tag)
 
   // also save our flow quantities, needed for interpolation
   auto [flow_current_tag, flow_next_tag] = tags_[0];
+  auto [transport_current_tag, transport_next_tag] = tags_[1];
 
   if (subsurface_) {
     assign("porosity", flow_current_tag, flow_next_tag, *S_);
-    if (chemistry_) {
+    if (chemistry_ && transport_next_tag != flow_next_tag) {
       assign("mass_density_liquid", flow_current_tag, flow_next_tag, *S_);
     }
   }
 
-  if (surface_ && chemistry_) {
+  if (surface_ && chemistry_ && transport_next_tag != flow_next_tag) {
     assign("surface-mass_density_liquid", flow_current_tag, flow_next_tag, *S_);
   }
 }
