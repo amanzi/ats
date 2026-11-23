@@ -65,7 +65,7 @@ if (BUILD_TESTS)
 
   add_amanzi_test(elm_ats_water_balance_kernel elm_ats_water_balance_kernel
     KIND unit
-    SOURCE test/water_balance_kernel_test.cc
+    SOURCE test/elm_ats_water_balance_kernel_test.cc
            ${elm_water_balance_kernel_src})
 
   # On Apple the mixed C++/Fortran link may need the same undefined-symbol
@@ -82,7 +82,7 @@ if (BUILD_TESTS)
 
   add_amanzi_test(elm_ats_time_advancer_validity_retry elm_ats_time_advancer_validity_retry
     KIND unit
-    SOURCE test/time_advancer_validity_retry_test.cc
+    SOURCE test/elm_ats_time_advancer_validity_retry_test.cc
            ${elm_water_balance_kernel_src}
     LINK_LIBS ${tpl_link_libs} ${ats_link_libs} ${amanzi_link_libs})
 
