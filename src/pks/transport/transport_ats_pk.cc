@@ -989,14 +989,12 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   }
 
   // advance advection term
-  if (is_advection_) {
-    if (temporal_disc_order_ == 1) {
-      AdvanceAdvectionSources_RK1_(t_old, t_new, adv_spatial_disc_order_);
-    } else if (temporal_disc_order_ == 2) {
-      AdvanceAdvectionSources_RK2_(t_old, t_new, adv_spatial_disc_order_);
-    } else {
-      AMANZI_ASSERT(false);
-    }
+  if (temporal_disc_order_ == 1) {
+    AdvanceAdvectionSources_RK1_(t_old, t_new, adv_spatial_disc_order_);
+  } else if (temporal_disc_order_ == 2) {
+    AdvanceAdvectionSources_RK2_(t_old, t_new, adv_spatial_disc_order_);
+  } else {
+    AMANZI_ASSERT(false);
   }
 
   // advance dispersion and diffusion term
@@ -1199,7 +1197,8 @@ Transport_ATS::AdvanceAdvectionSources_RK1_(double t_old, double t_new, int spat
       "qnty (old)", conserve_qty, S_->GetRecordSet(conserve_qty_key_).subfieldnames());
   }
 
-  { // context for advection -- on all cells
+  if (is_advection_) { 
+    // context for advection -- on all cells
     const Epetra_MultiVector& tcc_old =
       *S_->Get<CompositeVector>(key_, tag_current_).ViewComponent("cell", true);
     Epetra_MultiVector& conserve_qty =
@@ -1289,7 +1288,8 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(double t_old, double t_new, int spat
       "qnty (start)", conserve_qty, S_->GetRecordSet(conserve_qty_key_).subfieldnames());
   }
 
-  { // context for advection -- on all cells
+  if (is_advection_) {
+    // context for advection -- on all cells
     const Epetra_MultiVector& tcc_old =
       *S_->Get<CompositeVector>(key_, tag_current_).ViewComponent("cell", true);
     Epetra_MultiVector& conserve_qty =
@@ -1308,8 +1308,11 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(double t_old, double t_new, int spat
     }
     db_->WriteCellVector(
       "qnty (pred adv)", conserve_qty, S_->GetRecordSet(conserve_qty_key_).subfieldnames());
+  }
 
-    // -- process external sources: M <-- M + dt * Q(t0)
+  { // -- process external sources: M <-- M + dt * Q(t0)
+    Epetra_MultiVector& conserve_qty =
+      *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_).ViewComponent("cell", false);
     AddSourceTerms_(t_old, t_new, conserve_qty);
     db_->WriteCellVector(
       "qnty (pred src)", conserve_qty, S_->GetRecordSet(conserve_qty_key_).subfieldnames());
@@ -1354,7 +1357,8 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(double t_old, double t_new, int spat
   // scatter updated values
   S_->Get<CompositeVector>(key_, tag_next_).ScatterMasterToGhosted();
 
-  { // -- advect the predicted C'
+  if (is_advection_) {
+    // -- advect the predicted C'
     const Epetra_MultiVector& tcc_new =
       *S_->Get<CompositeVector>(key_, tag_next_).ViewComponent("cell", true);
     Epetra_MultiVector& conserve_qty =
