@@ -4,7 +4,7 @@
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Authors:
+  Authors: Ethan Coon
 */
 
 #include <iostream>
@@ -13,33 +13,21 @@
 #include <Epetra_MpiComm.h>
 
 #include "Teuchos_ParameterList.hpp"
-#include "Teuchos_CommandLineProcessor.hpp"
-#include "Teuchos_VerboseObjectParameterListHelpers.hpp"
-#include "Teuchos_XMLParameterListHelpers.hpp"
 #include "Teuchos_TimeMonitor.hpp"
 #include "VerboseObject.hh"
 
 #include "AmanziComm.hh"
 #include "AmanziTypes.hh"
 
-#include "InputAnalysis.hh"
-#include "Units.hh"
-#include "CompositeVector.hh"
 #include "TimeStepManager.hh"
-#include "Visualization.hh"
-#include "VisualizationDomainSet.hh"
-#include "IO.hh"
-#include "Checkpoint.hh"
-#include "UnstructuredObservations.hh"
 #include "State.hh"
 #include "PK.hh"
-#include "TreeVector.hh"
-#include "PK_Factory.hh"
+#include "IO.hh"
 
-#include "PK_Helpers.hh"
 #include "exceptions.hh"
 #include "errors.hh"
 
+#include "time_advancer.hh"
 #include "ats_driver.hh"
 
 // won't run if DEBUG_MODE == false
@@ -49,16 +37,32 @@
 
 namespace ATS {
 
-// -----------------------------------------------------------------------------
-// setup and initialize, then run until time >= duration_
-// -----------------------------------------------------------------------------
 void
-ATSDriver::cycle_driver()
+ATSDriver::createTimeAdvancer_()
+{
+  // build a combined plist: done conditions + dt bounds from coordinator_list_,
+  // vis/obs/checkpoint from plist_ top-level sublists
+  auto ta_plist = Teuchos::rcp(new Teuchos::ParameterList(*coordinator_list_));
+  if (plist_->isSublist("checkpoint"))
+    ta_plist->sublist("checkpoint") = plist_->sublist("checkpoint");
+  if (plist_->isSublist("observations"))
+    ta_plist->sublist("observations") = plist_->sublist("observations");
+  if (plist_->isSublist("visualization"))
+    ta_plist->sublist("visualization") = plist_->sublist("visualization");
+  if (plist_->isSublist("visualization failed"))
+    ta_plist->sublist("visualization failed") = plist_->sublist("visualization failed");
+
+  time_advancer_ = Teuchos::rcp(new TimeAdvancer(
+    ta_plist, S_, pk_, tsm_,
+    Amanzi::Tags::CURRENT, Amanzi::Tags::NEXT,
+    vo_, wallclock_timer_));
+}
+
+
+void
+ATSDriver::cycle_driver_()
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-
-  // wallclock duration -- in seconds
-  const double duration(duration_ * 3600);
 
   //
   // setup phase
@@ -69,10 +73,20 @@ ATSDriver::cycle_driver()
                << "Beginning setup stage..." << std::endl
                << std::flush;
   }
+  parseParameterList();
+  if (vo_->os_OK(Teuchos::VERB_LOW)) {
+    *vo_->os() << "  ... completed: ";
+    reportOneTimer_("2a: parseParameterList");
+  }
+
+  // TimeAdvancer must be created after parseParameterList (tags/PKs set up)
+  // but before setup() so observations can call Setup(S_) before State::Setup()
+  createTimeAdvancer_();
+
   setup();
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
     *vo_->os() << "  ... completed: ";
-    reportOneTimer_("2: setup");
+    reportOneTimer_("2b: setup");
   }
 
   //
@@ -86,18 +100,8 @@ ATSDriver::cycle_driver()
   }
   initialize();
 
-  // get the intial timestep
-  double dt = get_dt(false);
-  S_->Assign<double>("dt", Amanzi::Tags::DEFAULT, "dt", dt);
-
-  // Write dependency graph, initial state
   S_->WriteDependencyGraph();
   WriteStateStatistics(*S_, *vo_);
-
-  // checkpoint, observe, and vis at initial time
-  visualize();
-  observe();
-  checkpoint();
 
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
     *vo_->os() << "  ... completed: ";
@@ -114,65 +118,22 @@ ATSDriver::cycle_driver()
                << std::flush;
   }
 
-  // iterate process kernels
-  //
-  // Make sure times are set up correctly
   {
     Teuchos::TimeMonitor timer(*timers_.at("4: solve"));
-    AMANZI_ASSERT(std::abs(S_->get_time(Amanzi::Tags::NEXT) - S_->get_time(Amanzi::Tags::CURRENT)) <
-                  1.e-4);
-    AMANZI_ASSERT(std::abs(dt - S_->Get<double>("dt", Amanzi::Tags::DEFAULT)) < 1.e-4);
 
 #if !DEBUG_MODE
     try {
 #endif
-      while (((t1_ < 0) || (S_->get_time() < t1_)) &&
-             ((cycle1_ == -1) || (S_->get_cycle() <= cycle1_)) &&
-             ((duration_ < 0) || (wallclock_timer_->totalElapsedTime(true) < duration)) &&
-             (dt > 0.)) {
-        if (vo_->os_OK(Teuchos::VERB_LOW)) {
-          *vo_->os()
-            << "================================================================================"
-            << std::endl
-            << std::endl
-            << "Cycle = " << S_->get_cycle() << ",  Time [days] = " << std::setprecision(16)
-            << S_->get_time() / (60 * 60 * 24) << ",  dt [days] = " << std::setprecision(16)
-            << dt / (60 * 60 * 24) << std::endl
-            << "--------------------------------------------------------------------------------"
-            << std::endl;
-        }
-
-        S_->Assign<double>("dt", Amanzi::Tags::DEFAULT, "dt", dt);
-        S_->advance_time(Amanzi::Tags::NEXT, dt);
-        bool fail = advance();
-
-        if (fail) {
-          // reset t_new
-          S_->set_time(Amanzi::Tags::NEXT, S_->get_time(Amanzi::Tags::CURRENT));
-        } else {
-          S_->set_time(Amanzi::Tags::CURRENT, S_->get_time(Amanzi::Tags::NEXT));
-          S_->advance_cycle();
-
-          visualize();
-          observe();
-          checkpoint();
-        }
-
-        dt = get_dt(fail);
-      } // while not finished
-
+      time_advancer_->advance(t0_, t1_);
 #if !DEBUG_MODE
     } catch (Errors::TimestepCrash& e) {
       // write one more vis for help debugging
       S_->advance_cycle(Amanzi::Tags::NEXT);
-      visualize(true); // force vis
+      time_advancer_->visualize(true);
+      time_advancer_->observe();
 
-      // flush observations to make sure they are saved
-      for (const auto& obs : observations_) obs->Flush();
-
-      // dump a post_mortem checkpoint file for debugging
-      checkpoint_->set_filebasename("post_mortem");
-      checkpoint_->Write(*S_, Amanzi::Checkpoint::WriteType::POST_MORTEM);
+      // dump a post_mortem checkpoint for debugging
+      // TODO: expose post_mortem write through TimeAdvancer
       throw e;
     }
 #endif
@@ -182,8 +143,9 @@ ATSDriver::cycle_driver()
     reportOneTimer_("4: solve");
   }
 
-
-  // finalizing simulation
+  //
+  // finalize phase
+  // ----------------------------------------
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
     *vo_->os() << "================================================================================"
                << std::endl
@@ -195,19 +157,14 @@ ATSDriver::cycle_driver()
     *vo_->os() << "  ... completed: ";
     reportOneTimer_("5: finalize");
   }
-} // cycle driver
+}
 
 
-// -----------------------------------------------------------------------------
-// run simulation
-// -----------------------------------------------------------------------------
 int
 ATSDriver::run()
 {
-  // run the simulation
-  cycle_driver();
+  cycle_driver_();
   return 0;
 }
-
 
 } // end namespace ATS
