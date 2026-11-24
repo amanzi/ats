@@ -40,8 +40,7 @@ if (BUILD_TESTS)
   include_directories(${MESH_FACTORY_SOURCE_DIR})
   include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-  # FluxDivergenceEvaluator must not depend on the mesh partition: the np2 run
-  # compares a distributed mesh against a serial copy cell by cell.
+  # FluxDivergenceEvaluator output must not depend on the mesh partition
   add_amanzi_test(surf_subsurf_flux_divergence surf_subsurf_flux_divergence
     KIND int
     SOURCE test/Main.cc test/surf_subsurf_flux_divergence.cc

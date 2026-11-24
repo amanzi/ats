@@ -47,8 +47,6 @@ void
 FluxDivergenceEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& result)
 {
   auto tag = my_keys_.front().second;
-  // Faces on a partition boundary are ghosts on one side.  PKs write fluxes on
-  // owned faces only, so scatter before reading the ghosted view.
   const auto& flux = S.Get<CompositeVector>(flux_key_, tag);
   flux.ScatterMasterToGhosted("face");
   const auto& flux_f = *flux.ViewComponent("face", true);
