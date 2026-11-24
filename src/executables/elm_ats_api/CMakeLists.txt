@@ -72,18 +72,13 @@ endif()
 
 if (BUILD_TESTS)
 
-  # Unit test for the shared ELM water-balance kernel used by ATS.  It compiles
-  # the *same* dependency-free WaterBalanceKernel.F90 the elm_ats library uses
-  # (via elm_water_balance_kernel_src) and calls the bind(C) entry point
-  # elm_ats_water_balance_error_c directly -- no ATS mesh/state/XML/Kokkos/MPI
-  # needed.  This both checks ELM's balance formula and guards the C ABI symbol
-  # that ELM_ATSDriver::checkELMWaterBalance_ relies on.
+  # Unit test for the shared ELM water-balance kernel used by ATS
   include_directories(${UnitTest_INCLUDE_DIRS})
   include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
   add_amanzi_test(elm_ats_water_balance_kernel elm_ats_water_balance_kernel
     KIND unit
-    SOURCE test/KernelTestMain.cc test/water_balance_kernel_test.cc
+    SOURCE test/elm_ats_KernelTestMain.cc test/elm_ats_water_balance_kernel_test.cc
            ${elm_water_balance_kernel_src}
     LINK_LIBS ${UnitTest_LIBRARIES})
 

@@ -2,26 +2,16 @@ module elm_water_balance_kernel
 
   !-----------------------------------------------------------------------
   ! !DESCRIPTION:
-  ! Dependency-free kernel for the ELM column water-balance error (errh2o).
+  ! kernel for the ELM column water-balance error (errh2o).
   !
-  ! This module is deliberately self-contained (it uses only iso_c_binding)
-  ! so that the *same source file* can be compiled into both:
+  ! Kernel pulled out so that eventually the *same source file* can be 
+  ! compiled into both:
   !   (1) the ELM/E3SM build, where ColWaterBalanceCheck calls
   !       elm_water_balance_error() so ELM's balance check has a single
   !       source of truth, and
   !   (2) the ATS elm_ats_api library, where the C-bound entry point
   !       elm_ats_water_balance_error_c() is called across the coupling
   !       boundary to gate ATS step acceptance on the ELM balance.
-  !
-  ! Keeping one file compiled into both codes is what lets ATS reuse ELM's
-  ! balance formula without a second, drift-prone re-implementation.
-  !
-  ! Sign / unit conventions (identical to BalanceCheckMod.F90):
-  !   - all storages in kg m-2 (mm H2O), all fluxes in mm H2O s-1,
-  !     dtime in s; result errh2o in mm H2O.
-  !   - sources (precip, irrigation, flood, from_uphill, floodplain drain
-  !     in) enter with +, evaporation/transpiration and all runoff/drainage
-  !     terms are sinks (subtracted).
   !-----------------------------------------------------------------------
   use iso_c_binding, only : c_double
 
@@ -75,8 +65,6 @@ contains
   !   runoff    -> qflx_surf           (surface runoff)
   !   baseflow  -> qflx_drain          (subsurface runoff)
   !   dStorage  -> endwb - begwb
-  ! All arguments are passed by reference (Fortran convention); the C++
-  ! caller passes double* .  Result returned by value as a C double.
   !-----------------------------------------------------------------------
   function elm_ats_water_balance_error_c(endwb, begwb, source, evap, tran, &
        baseflow, runoff, dtime) result(errh2o) &

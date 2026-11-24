@@ -257,14 +257,20 @@ ELM_ATSDriver::parseParameterList()
             Amanzi::Tags::CURRENT, Amanzi::Tags::NEXT,
             vo_, wallclock_timer_));
 
-  // Optionally gate ATS step acceptance on ELM's water mass-balance constraint.
+  // Option to enforce ELM's mass balance constraint.
   // When "elm mass balance tolerance [mm]" is set (> 0), each inner ATS step is
   // rejected (and dt reduced) unless every column's errh2o is within tolerance.
+  // RPF note: this is an interim strategy. We need ELM's mass balance to pass
+  // at the end of the outer step - enforcing this on each inner ATS step may 
+  // be overly strict on dt reductions while still not ensuring that the sum of
+  // errors from each "inner" ATS step is less than elm_mb_tol_. A better strategy
+  // would be to just check at the end of the "outer" step and then reduce dt in ATS
+  // if the terms passed back to ELM would trigger the mass balance failure.
   elm_mb_tol_ = elm_plist_->get<double>("elm mass balance tolerance [mm]", -1.0);
   if (elm_mb_tol_ > 0.0) {
     time_advancer_->set_step_validity_check(
       [this](double t_old, double t_new) { return this->checkELMWaterBalance_(t_old, t_new); });
-    if (vo_->os_OK(Teuchos::VERB_LOW))
+    if (vo_->os_OK(Teuchos::VERB_MEDIUM))
       *vo_->os() << "ELM water mass-balance step gate enabled, tolerance = "
                  << elm_mb_tol_ << " mm" << std::endl;
   }
@@ -548,24 +554,14 @@ void ELM_ATSDriver::advance(double dt, bool force_chkp, bool force_vis)
 }
 
 
-// -----------------------------------------------------------------------------
+
 // Per-inner-step ELM water mass-balance check.
-//
-// Called by the TimeAdvancer after each otherwise-successful inner ATS step
-// (before CommitStep), so Tags::CURRENT holds the start-of-step storage and
-// Tags::NEXT holds the end-of-step storage and fluxes.  Combining the surface
-// and subsurface storage means the internal surface<->subsurface infiltration
-// exchange cancels, leaving only the true domain-boundary fluxes ELM cares
-// about: source in, evaporation/transpiration/baseflow/runoff out.
-//
-// Returns true iff every column's |errh2o| <= elm_mb_tol_ [mm].  A false
-// return makes the TimeAdvancer reject the step and retry with a smaller dt.
-//
-// NOTE: the surface fluxes are assumed to be in [m/s] with sinks positive
-// (evaporation/transpiration/baseflow/runoff leave the column); this matches
-// the *_mps coupling convention and the +1e3 m/s->mm/s conversion ELM applies
-// on the values it receives (ExternalModelATS.F90).  Validate against a run.
-// -----------------------------------------------------------------------------
+// RPF note: this might be the wrong approach and overkill. We need ELM's mass balance to pass
+// at the end of the outer step - enforcing this on each inner ATS step may 
+// be overly strict on dt reductions while still not ensuring that the sum of
+// errors from each "inner" ATS step is less than elm_mb_tol_. A better strategy
+// would be to just check at the end of the "outer" step and then reduce dt in ATS
+// if the terms passed back to ELM would trigger the mass balance failure. 
 bool ELM_ATSDriver::checkELMWaterBalance_(double t_old, double t_new)
 {
   const double dt = t_new - t_old;

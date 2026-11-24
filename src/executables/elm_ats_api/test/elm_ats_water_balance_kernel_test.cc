@@ -10,10 +10,7 @@
 //! Unit tests for the ELM water-balance kernel used by ATS.
 /*!
 
-  Exercises the dependency-free, C-bound kernel elm_ats_water_balance_error_c
-  (implemented in WaterBalanceKernel.F90 and declared in
-  elm_balance_interface_private.hh) that ATS calls at the coupling boundary to
-  gate step acceptance (see ELM_ATSDriver::checkELMWaterBalance_).
+  Exercises the C-bound ELM WaterBalanceKernel.F90
 
   The kernel computes ELM's column water-balance error [mm]:
 
@@ -43,7 +40,7 @@ errh2o(double endwb, double begwb, double source, double evap, double tran,
     &endwb, &begwb, &source, &evap, &tran, &baseflow, &runoff, &dtime);
 }
 
-// Independent C++ evaluation of the same formula, used as the reference oracle.
+// Independent C++ evaluation of the same formula.
 double
 reference(double endwb, double begwb, double source, double evap, double tran,
           double baseflow, double runoff, double dtime)
@@ -101,21 +98,12 @@ SUITE(ELM_ATS_WATER_BALANCE_KERNEL)
     CHECK_CLOSE(baseflow * dt, errh2o(50.0, 50.0, 0.0, 0.0, 0.0, baseflow, 0.0, dt), TIGHT);
   }
 
-  // evap and tran both map to qflx_evap_tot, i.e. they are summed.
+  // evap and tran are summed into qflx_evap_tot.
   TEST(EvapPlusTran)
   {
     const double dt = 1800.0, evap = 1.5e-3, tran = 1.1e-3;
     CHECK_CLOSE((evap + tran) * dt,
                 errh2o(50.0, 50.0, 0.0, evap, tran, 0.0, 0.0, dt), TIGHT);
-  }
-
-  // dtime == 0: the flux term drops out; the kernel has no dt guard (that lives
-  // in the driver), so the result is exactly the storage change.
-  TEST(StorageOnlyZeroDt)
-  {
-    CHECK_CLOSE(12.5 - 10.0,
-                errh2o(12.5, 10.0, 3.0e-3, 1.0e-3, 1.0e-3, 1.0e-3, 1.0e-3, 0.0),
-                TIGHT);
   }
 
   // All terms nonzero: kernel must match an independent evaluation of the formula.

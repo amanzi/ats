@@ -99,12 +99,7 @@ class TimeAdvancer {
   // Advance the PK from t_start to t_end.  Returns true on unrecoverable failure.
   bool advance(double t_start, double t_end);
 
-  // Optional per-step validity check.  If set, it is invoked after each
-  // otherwise-successful inner step (before CommitStep) with (t_old, t_new).
-  // Returning false rejects the step: the step is failed, dt is reduced, and
-  // the inner step is retried.  Used by ELM_ATSDriver to require that each
-  // ATS step satisfies ELM's water mass-balance constraint.  Null by default,
-  // so standalone drivers and MPCSubcycled are unaffected.
+  // (Optional) per-step ELM mass balancevalidity check.
   void set_step_validity_check(const std::function<bool(double, double)>& f)
   {
     step_validity_check_ = f;

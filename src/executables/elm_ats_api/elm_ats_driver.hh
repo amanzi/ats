@@ -67,9 +67,7 @@ class ELM_ATSDriver : public Driver {
   // over the outer ELM timestep.  Returns the integrated key.
   Key setupIntegratedFlux_(const Key& flux_key, ELM::VarID varid);
 
-  // Per-inner-step validity check: returns true iff every column's ELM water
-  // mass-balance error is within elm_mb_tol_.  Wired into the TimeAdvancer so
-  // an ATS step is only accepted when it satisfies ELM's balance constraint.
+  // Check ELM water balance after ATS step
   bool checkELMWaterBalance_(double t_old, double t_new);
 
  private:
@@ -103,8 +101,7 @@ class ELM_ATSDriver : public Driver {
   Key col_baseflow_key_;
   Key col_runoff_key_;
 
-  // raw (instantaneous) surface flux keys, needed for the per-step ELM water
-  // balance check (the *_key_ above point at the step-integrated evaluators)
+  // raw (instantaneous) surface flux keys, needed for the per-step ELM water balance check
   Key evap_raw_key_;
   Key trans_raw_key_;
   Key baseflow_raw_key_;
