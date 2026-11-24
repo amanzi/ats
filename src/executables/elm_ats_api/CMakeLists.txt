@@ -13,22 +13,10 @@ FortranCInterface_VERIFY(CXX)
 
 include_directories(${ATS_SOURCE_DIR}/src/executables)
 
-# RPF - initial version (commented section belowy)  attempted to use the same F90 file only
+# RPF - initial version attempted to use the same F90 file only
 # in one place for ATS and E3SM. But, locating it only in the E3SM submodule
 # seemed a bit too complicated for now and might be a better strategy if 
-# one becomes a submodule of the other at any point ///
-# Shared ELM water-balance kernel: the *same* dependency-free Fortran source
-# that ELM compiles into BalanceCheckMod is compiled here so ATS calls ELM's
-# balance formula (via bind(C)) rather than duplicating it.  Resolve its path
-# from E3SM_SRC_DIR (set per the project environment; see CLAUDE.md).
-#if (DEFINED ENV{E3SM_SRC_DIR})
-#  set(_e3sm_src_dir "$ENV{E3SM_SRC_DIR}")
-#else()
-#  set(_e3sm_src_dir "${ATS_SOURCE_DIR}/../../../../../E3SM")
-#endif()
-#set(elm_water_balance_kernel_src
-#  "${_e3sm_src_dir}/components/elm/src/biogeophys/elm_water_balance_kernel.F90")
-
+# one becomes a submodule of the other at any point
 set(elm_water_balance_kernel_src "${CMAKE_CURRENT_SOURCE_DIR}/WaterBalanceKernel.F90")
 if (NOT EXISTS "${elm_water_balance_kernel_src}")
   message(FATAL_ERROR
@@ -72,25 +60,34 @@ endif()
 
 if (BUILD_TESTS)
 
-  # Unit test for the shared ELM water-balance kernel used by ATS.  It compiles
-  # the *same* dependency-free WaterBalanceKernel.F90 the elm_ats library uses
-  # (via elm_water_balance_kernel_src) and calls the bind(C) entry point
-  # elm_ats_water_balance_error_c directly -- no ATS mesh/state/XML/Kokkos/MPI
-  # needed.  This both checks ELM's balance formula and guards the C ABI symbol
-  # that ELM_ATSDriver::checkELMWaterBalance_ relies on.
-  include_directories(${UnitTest_INCLUDE_DIRS})
+  # Unit test for the ELM water-balance kernel.
   include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
   add_amanzi_test(elm_ats_water_balance_kernel elm_ats_water_balance_kernel
     KIND unit
-    SOURCE test/KernelTestMain.cc test/water_balance_kernel_test.cc
-           ${elm_water_balance_kernel_src}
-    LINK_LIBS ${UnitTest_LIBRARIES})
+    SOURCE test/elm_ats_water_balance_kernel_test.cc
+           ${elm_water_balance_kernel_src})
 
   # On Apple the mixed C++/Fortran link may need the same undefined-symbol
   # relaxation the shared library uses for the Fortran runtime.
   if (APPLE)
     set_target_properties(elm_ats_water_balance_kernel
+      PROPERTIES LINK_FLAGS "-Wl,-undefined,dynamic_lookup")
+  endif()
+
+  # Unit test for the TimeAdvancer reject-and-retry path taken when the step
+  # validity check (the ELM water-balance gate) fails.  Uses a stub PK and the
+  # real kernel with a synthetic leak, so no mesh or input file is needed.
+  include_directories(${ATS_SOURCE_DIR}/src/pks)
+
+  add_amanzi_test(elm_ats_time_advancer_validity_retry elm_ats_time_advancer_validity_retry
+    KIND unit
+    SOURCE test/elm_ats_time_advancer_validity_retry_test.cc
+           ${elm_water_balance_kernel_src}
+    LINK_LIBS ${tpl_link_libs} ${ats_link_libs} ${amanzi_link_libs})
+
+  if (APPLE)
+    set_target_properties(elm_ats_time_advancer_validity_retry
       PROPERTIES LINK_FLAGS "-Wl,-undefined,dynamic_lookup")
   endif()
 

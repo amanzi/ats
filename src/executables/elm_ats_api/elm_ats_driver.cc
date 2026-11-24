@@ -4,7 +4,6 @@
 #include <sys/resource.h>
 #include <filesystem>
 #include <cmath>
-#include <algorithm>
 #include "errors.hh"
 #include "dbc.hh"
 
@@ -22,6 +21,7 @@
 
 #include "AmanziComm.hh"
 #include "CompositeVector.hh"
+#include "Reductions.hh"
 #include "IO.hh"
 #include "UnstructuredObservations.hh"
 #include "PK_Helpers.hh"
@@ -41,9 +41,10 @@ createELM_ATSDriver(MPI_Fint *f_comm, const char *infile, const char *logfile, i
   auto rank = comm->MyPID();
 
   // convert input file to std::string for easier handling
-  // infile must be null-terminated
-  std::string input_filename(infile);
-  std::string logfile_filename(logfile);
+  // infile must be null-terminated; a null pointer is treated as empty
+  // (constructing std::string from nullptr is undefined behavior)
+  std::string input_filename(infile ? infile : "");
+  std::string logfile_filename(logfile ? logfile : "");
 
   // check validity of input file name
   if (input_filename.empty()) {
@@ -82,6 +83,8 @@ ELM_ATSDriver::ELM_ATSDriver(const Teuchos::RCP<Teuchos::ParameterList>& plist,
     ncolumns(-1),
     ncells_per_col_(-1),
     elm_plist_(Teuchos::sublist(Teuchos::sublist(plist, "cycle driver"), "ELM driver")),
+    elm_mb_tol_(-1.0),
+    elm_dt_outer_(0.0),
     elm_cycle_(0)
 {
 
@@ -234,8 +237,7 @@ ELM_ATSDriver::parseParameterList()
 
   // -- mesh info
   ncolumns = mesh_surf_->getNumEntities(AmanziMesh::CELL, AmanziMesh::Parallel_kind::OWNED);
-  auto col_zero = mesh_subsurf_->columns.getCells(0);
-  ncells_per_col_ = col_zero.size();
+  ncells_per_col_ = mesh_subsurf_->columns.getCells(0).size();
 
   // require my primary variables
   // parameters set by ELM
@@ -257,16 +259,28 @@ ELM_ATSDriver::parseParameterList()
             Amanzi::Tags::CURRENT, Amanzi::Tags::NEXT,
             vo_, wallclock_timer_));
 
-  // Optionally gate ATS step acceptance on ELM's water mass-balance constraint.
-  // When "elm mass balance tolerance [mm]" is set (> 0), each inner ATS step is
-  // rejected (and dt reduced) unless every column's errh2o is within tolerance.
-  elm_mb_tol_ = elm_plist_->get<double>("elm mass balance tolerance [mm]", -1.0);
-  if (elm_mb_tol_ > 0.0) {
+  // Option to require ELM mass balance constraint to be satisfied before ATS accepts step.
+  if (elm_plist_->isParameter("elm mass balance tolerance [mm]")) {
+    Errors::Message msg;
+    msg << "ELM_ATSDriver: \"elm mass balance tolerance [mm]\" has been replaced by "
+        << "\"elm mass balance tolerance fraction\" (fraction of ELM's abort limit, in (0,1)).";
+    Exceptions::amanzi_throw(msg);
+  }
+  double elm_mb_frac = elm_plist_->get<double>("elm mass balance tolerance fraction", -1.0);
+  if (elm_mb_frac > 0.0) {
+    if (elm_mb_frac >= 1.0) {
+      Errors::Message msg;
+      msg << "ELM_ATSDriver: \"elm mass balance tolerance fraction\" must be in (0,1), got "
+          << elm_mb_frac << ", since the tolerance must be below ELM's abort limit.";
+      Exceptions::amanzi_throw(msg);
+    }
+    elm_mb_tol_ = elm_mb_frac * elm_ats_water_balance_abort_tol_c();
     time_advancer_->set_step_validity_check(
-      [this](double t_old, double t_new) { return this->checkELMWaterBalance_(t_old, t_new); });
-    if (vo_->os_OK(Teuchos::VERB_LOW))
+      [this](double t_old, double t_new) { return checkELMWaterBalance_(t_old, t_new); });
+    if (vo_->os_OK(Teuchos::VERB_MEDIUM))
       *vo_->os() << "ELM water mass-balance step gate enabled, tolerance = "
-                 << elm_mb_tol_ << " mm" << std::endl;
+                 << elm_mb_tol_ << " mm (" << elm_mb_frac << " of ELM's abort limit)"
+                 << std::endl;
   }
 
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
@@ -373,10 +387,12 @@ ELM_ATSDriver::MeshInfo ELM_ATSDriver::getMeshInfo()
 
   // compute dzs on one column only -- presumed terrain following!
   info.dzs.resize(ncells_per_col_);
-  const auto& col_cells = mesh_subsurf_->columns.getCells(0);
-  double surface_area = mesh_surf_->getCellVolume(0);
-  for (int i = 0; i != ncells_per_col_; ++i) {
-    info.dzs[i] = mesh_subsurf_->getCellVolume(i) / surface_area;
+  if (ncolumns > 0) {
+    const auto& col_cells = mesh_subsurf_->columns.getCells(0);
+    double surface_area = mesh_surf_->getCellVolume(0);
+    for (int i = 0; i != ncells_per_col_; ++i) {
+      info.dzs[i] = mesh_subsurf_->getCellVolume(i) / surface_area;
+    }
   }
 
   // surface area
@@ -519,6 +535,7 @@ void ELM_ATSDriver::advance(double dt, bool force_chkp, bool force_vis)
     }
 
     // advance from t_now to t_now+dt; TimeAdvancer handles subcycling internally
+    elm_dt_outer_ = dt;
     bool fail = time_advancer_->advance(t_now, t_now + dt);
     if (fail) {
       Errors::Message msg("ELM_ATSDriver: advance(dt) failed.  Make ATS subcycle for proper ELM use.");
@@ -548,31 +565,15 @@ void ELM_ATSDriver::advance(double dt, bool force_chkp, bool force_vis)
 }
 
 
-// -----------------------------------------------------------------------------
 // Per-inner-step ELM water mass-balance check.
-//
-// Called by the TimeAdvancer after each otherwise-successful inner ATS step
-// (before CommitStep), so Tags::CURRENT holds the start-of-step storage and
-// Tags::NEXT holds the end-of-step storage and fluxes.  Combining the surface
-// and subsurface storage means the internal surface<->subsurface infiltration
-// exchange cancels, leaving only the true domain-boundary fluxes ELM cares
-// about: source in, evaporation/transpiration/baseflow/runoff out.
-//
-// Returns true iff every column's |errh2o| <= elm_mb_tol_ [mm].  A false
-// return makes the TimeAdvancer reject the step and retry with a smaller dt.
-//
-// NOTE: the surface fluxes are assumed to be in [m/s] with sinks positive
-// (evaporation/transpiration/baseflow/runoff leave the column); this matches
-// the *_mps coupling convention and the +1e3 m/s->mm/s conversion ELM applies
-// on the values it receives (ExternalModelATS.F90).  Validate against a run.
-// -----------------------------------------------------------------------------
-bool ELM_ATSDriver::checkELMWaterBalance_(double t_old, double t_new)
+// RPF note - need to resolve ETC's validity scaling comment here.
+// the validity scaling stuff originated out of an attempt to resolve
+// why ATS timesteps were shrinking to ~O(seconds) when the ELM mass constraint
+// was added, but perhaps there's a way to do this more simply
+double ELM_ATSDriver::checkELMWaterBalance_(double t_old, double t_new)
 {
   const double dt = t_new - t_old;
-  if (dt <= 0.0) return true;
-
-  constexpr double denh2o = 1000.0;            // [kg/m^3], matches ELM
-  constexpr double m_per_s_to_mm_per_s = 1.0e3;
+  if (dt <= 0.0) return 0.0;
 
   // make sure flux and molar-density evaluators are current at NEXT
   for (const auto& k : { gross_water_source_key_, evap_raw_key_, trans_raw_key_,
@@ -583,62 +584,62 @@ bool ELM_ATSDriver::checkELMWaterBalance_(double t_old, double t_new)
   }
 
   // storage [mol]: subsurface (per cell) and surface (per column)
-  const auto& wc_new = *S_->Get<CompositeVector>(wc_key_, Tags::NEXT).ViewComponent("cell", false);
-  const auto& wc_old = *S_->Get<CompositeVector>(wc_key_, Tags::CURRENT).ViewComponent("cell", false);
-  const auto& swc_new = *S_->Get<CompositeVector>(surf_wc_key_, Tags::NEXT).ViewComponent("cell", false);
-  const auto& swc_old = *S_->Get<CompositeVector>(surf_wc_key_, Tags::CURRENT).ViewComponent("cell", false);
+  const auto& wc_new = *S_->Get<CompositeVector>(wc_key_, Tags::NEXT).ViewComponent("cell",false);
+  const auto& wc_old = *S_->Get<CompositeVector>(wc_key_, Tags::CURRENT).ViewComponent("cell",false);
+  const auto& swc_new = *S_->Get<CompositeVector>(surf_wc_key_, Tags::NEXT).ViewComponent("cell",false);
+  const auto& swc_old = *S_->Get<CompositeVector>(surf_wc_key_, Tags::CURRENT).ViewComponent("cell",false);
 
   // molar densities [mol/m^3] and surface cell areas [m^2]
-  const auto& n_liq = *S_->Get<CompositeVector>(mol_dens_key_, Tags::NEXT).ViewComponent("cell", false);
-  const auto& sn_liq = *S_->Get<CompositeVector>(surf_mol_dens_key_, Tags::NEXT).ViewComponent("cell", false);
-  const auto& area = *S_->Get<CompositeVector>(surf_cv_key_, Tags::NEXT).ViewComponent("cell", false);
+  const auto& n_liq = *S_->Get<CompositeVector>(mol_dens_key_, Tags::NEXT).ViewComponent("cell",false);
+  const auto& sn_liq = *S_->Get<CompositeVector>(surf_mol_dens_key_, Tags::NEXT).ViewComponent("cell",false);
+  const auto& area = *S_->Get<CompositeVector>(surf_cv_key_, Tags::NEXT).ViewComponent("cell",false);
 
   // surface boundary fluxes [m/s]
-  const auto& source = *S_->Get<CompositeVector>(gross_water_source_key_, Tags::NEXT).ViewComponent("cell", false);
-  const auto& evap = *S_->Get<CompositeVector>(evap_raw_key_, Tags::NEXT).ViewComponent("cell", false);
-  const auto& tran = *S_->Get<CompositeVector>(trans_raw_key_, Tags::NEXT).ViewComponent("cell", false);
-  const auto& baseflow = *S_->Get<CompositeVector>(baseflow_raw_key_, Tags::NEXT).ViewComponent("cell", false);
-  const auto& runoff = *S_->Get<CompositeVector>(runoff_raw_key_, Tags::NEXT).ViewComponent("cell", false);
+  const auto& source = *S_->Get<CompositeVector>(gross_water_source_key_, Tags::NEXT).ViewComponent("cell",false);
+  const auto& evap = *S_->Get<CompositeVector>(evap_raw_key_, Tags::NEXT).ViewComponent("cell",false);
+  const auto& tran = *S_->Get<CompositeVector>(trans_raw_key_, Tags::NEXT).ViewComponent("cell",false);
+  const auto& baseflow = *S_->Get<CompositeVector>(baseflow_raw_key_, Tags::NEXT).ViewComponent("cell",false);
+  const auto& runoff = *S_->Get<CompositeVector>(runoff_raw_key_, Tags::NEXT).ViewComponent("cell",false);
 
-  double max_err = 0.0;
+  const auto& surf_cell_map = mesh_surf_->getMap(AmanziMesh::Entity_kind::CELL, false);
+
+  Amanzi::Reductions::MaxLoc local = Amanzi::Reductions::createEmptyMaxLoc();
   for (int i = 0; i != ncolumns; ++i) {
     const double a = area[0][i];
-
-    // column storage [kg/m^2 = mm] = (m^3 water) * denh2o / area
-    double vol_new = swc_new[0][i] / sn_liq[0][i];   // surface, m^3
-    double vol_old = swc_old[0][i] / sn_liq[0][i];
     auto col_cells = mesh_subsurf_->columns.getCells(i);
-    for (std::size_t j = 0; j != col_cells.size(); ++j) {
-      int c = col_cells[j];
-      vol_new += wc_new[0][c] / n_liq[0][c];
-      vol_old += wc_old[0][c] / n_liq[0][c];
+
+    // column storage [mol] -> [m^3] -> [mm]; see elm_balance_interface_private.hh
+    const double endwb = elmStorageDepth(
+      elmColumnWaterVolume(swc_new[0][i], sn_liq[0][i], wc_new[0], n_liq[0], col_cells), a);
+    const double begwb = elmStorageDepth(
+      elmColumnWaterVolume(swc_old[0][i], sn_liq[0][i], wc_old[0], n_liq[0], col_cells), a);
+
+    const double errh2o = elmWaterBalanceError(
+      endwb, begwb,
+      source[0][i]   * ELM_M_PER_S_TO_MM_PER_S,
+      evap[0][i]     * ELM_M_PER_S_TO_MM_PER_S,
+      tran[0][i]     * ELM_M_PER_S_TO_MM_PER_S,
+      baseflow[0][i] * ELM_M_PER_S_TO_MM_PER_S,
+      runoff[0][i]   * ELM_M_PER_S_TO_MM_PER_S,
+      dt);
+    if (std::abs(errh2o) > local.value) {
+      local = { std::abs(errh2o), surf_cell_map.GID(i) };
     }
-    const double endwb = vol_new * denh2o / a;   // mm
-    const double begwb = vol_old * denh2o / a;   // mm
-
-    // fluxes m/s -> mm/s (already per unit area)
-    const double src_mm  = source[0][i]   * m_per_s_to_mm_per_s;
-    const double evap_mm = evap[0][i]     * m_per_s_to_mm_per_s;
-    const double tran_mm = tran[0][i]     * m_per_s_to_mm_per_s;
-    const double base_mm = baseflow[0][i] * m_per_s_to_mm_per_s;
-    const double run_mm  = runoff[0][i]   * m_per_s_to_mm_per_s;
-
-    const double errh2o = elm_ats_water_balance_error_c(
-      &endwb, &begwb, &src_mm, &evap_mm, &tran_mm, &base_mm, &run_mm, &dt);
-    max_err = std::max(max_err, std::abs(errh2o));
   }
 
   // reduce across ranks so all processes agree on accept/reject
-  double global_max_err = max_err;
-  mesh_surf_->getComm()->MaxAll(&max_err, &global_max_err, 1);
+  auto global = Amanzi::Reductions::reduceAllMaxLoc(*mesh_surf_->getComm(), local);
 
-  const bool ok = global_max_err <= elm_mb_tol_;
-  if (!ok && vo_->os_OK(Teuchos::VERB_LOW)) {
+  const double tol = elmInnerStepTolerance(elm_mb_tol_, dt, elm_dt_outer_);
+  const double ratio = global.value / tol;
+  if (!(ratio <= 1.0) && vo_->os_OK(Teuchos::VERB_LOW)) {
     Teuchos::OSTab tab = vo_->getOSTab();
-    *vo_->os() << "ELM water balance not satisfied: max|errh2o| = " << global_max_err
-               << " mm > tol = " << elm_mb_tol_ << " mm" << std::endl;
+    *vo_->os() << "ELM water balance not satisfied: max|errh2o| = " << global.value
+               << " mm (column GID " << global.gid << ") > step tol = " << tol
+               << " mm (outer tol = " << elm_mb_tol_ << " mm, dt = " << dt
+               << " s of outer dt = " << elm_dt_outer_ << " s)" << std::endl;
   }
-  return ok;
+  return ratio;
 }
 
 

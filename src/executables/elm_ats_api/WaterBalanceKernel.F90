@@ -13,8 +13,10 @@ module elm_water_balance_kernel
   !       elm_ats_water_balance_error_c() is called across the coupling
   !       boundary to gate ATS step acceptance on the ELM balance.
   !
-  ! Keeping one file compiled into both codes is what lets ATS reuse ELM's
-  ! balance formula without a second, drift-prone re-implementation.
+  ! RPF - note 261105: currently this implementation falls a bit short of this
+  ! goal since there are two copies of the file (one in E3SM, one in ATS).
+  ! Ultimately this should be combined to the same file when the relative
+  ! locations of ELM and ATS src files are settled.
   !
   ! Sign / unit conventions (identical to BalanceCheckMod.F90):
   !   - all storages in kg m-2 (mm H2O), all fluxes in mm H2O s-1,
@@ -29,10 +31,17 @@ module elm_water_balance_kernel
   private
 
   ! kind used throughout; c_double matches ELM's shr_kind_r8 (8-byte real)
-  integer, parameter :: wb_r8 = c_double
+  integer, parameter :: wbtol_r8 = c_double
 
   public :: elm_water_balance_error       ! pure Fortran formula (used by ELM)
   public :: elm_ats_water_balance_error_c ! C-bound entry (used by ATS)
+  public :: elm_ats_water_balance_abort_tol_c ! C-bound getter for the limit below
+  public :: wb_errh2o_abort_tol           ! ELM abort limit on |errh2o|
+
+  ! ELM aborts when a column's |errh2o| exceeds this [mm].  Single source of
+  ! truth: ELM's BalanceCheckMod should use this constant, and ATS derives its
+  ! step-gate tolerance as a fraction of it.
+  real(wbtol_r8), parameter :: wb_errh2o_abort_tol = 1.0e-4_wbtol_r8
 
 contains
 
@@ -47,13 +56,13 @@ contains
        qflx_h2osfc_surf, qflx_to_downhill, qflx_qrgwl, qflx_drain, &
        qflx_drain_perched, qflx_snwcp_ice, qflx_ice_runoff_xs, qflx_lateral, &
        qflx_h2orof_drain, qflx_lnd2ocn, qflx_h2oocn_drain, dtime) result(errh2o)
-    real(wb_r8), intent(in) :: endwb, begwb
-    real(wb_r8), intent(in) :: forc_rain, forc_snow, qflx_floodc, qflx_from_uphill
-    real(wb_r8), intent(in) :: qflx_surf_irrig, qflx_over_supply, qflx_evap_tot, qflx_surf
-    real(wb_r8), intent(in) :: qflx_h2osfc_surf, qflx_to_downhill, qflx_qrgwl, qflx_drain
-    real(wb_r8), intent(in) :: qflx_drain_perched, qflx_snwcp_ice, qflx_ice_runoff_xs, qflx_lateral
-    real(wb_r8), intent(in) :: qflx_h2orof_drain, qflx_lnd2ocn, qflx_h2oocn_drain, dtime
-    real(wb_r8) :: errh2o
+    real(wbtol_r8), intent(in) :: endwb, begwb
+    real(wbtol_r8), intent(in) :: forc_rain, forc_snow, qflx_floodc, qflx_from_uphill
+    real(wbtol_r8), intent(in) :: qflx_surf_irrig, qflx_over_supply, qflx_evap_tot, qflx_surf
+    real(wbtol_r8), intent(in) :: qflx_h2osfc_surf, qflx_to_downhill, qflx_qrgwl, qflx_drain
+    real(wbtol_r8), intent(in) :: qflx_drain_perched, qflx_snwcp_ice, qflx_ice_runoff_xs, qflx_lateral
+    real(wbtol_r8), intent(in) :: qflx_h2orof_drain, qflx_lnd2ocn, qflx_h2oocn_drain, dtime
+    real(wbtol_r8) :: errh2o
 
     errh2o = endwb - begwb &
          - (forc_rain + forc_snow + qflx_floodc + qflx_from_uphill &
@@ -87,12 +96,23 @@ contains
     real(c_double), parameter :: z = 0.0_c_double
 
     errh2o = elm_water_balance_error( &
-         endwb, begwb, &
-         source, z, z, z, &        ! forc_rain=source, forc_snow, qflx_floodc, qflx_from_uphill
-         z, z, evap + tran, runoff, & ! qflx_surf_irrig, qflx_over_supply, qflx_evap_tot, qflx_surf
-         z, z, z, baseflow, &      ! qflx_h2osfc_surf, qflx_to_downhill, qflx_qrgwl, qflx_drain
-         z, z, z, z, &             ! qflx_drain_perched, qflx_snwcp_ice, qflx_ice_runoff_xs, qflx_lateral
-         z, z, z, dtime)           ! qflx_h2orof_drain, qflx_lnd2ocn, qflx_h2oocn_drain, dtime
+      endwb=endwb, begwb=begwb, &
+      forc_rain=source, forc_snow=z, qflx_floodc=z, qflx_from_uphill=z, &
+      qflx_surf_irrig=z, qflx_over_supply=z, &
+      qflx_evap_tot=evap + tran, qflx_surf=runoff, &
+      qflx_h2osfc_surf=z, qflx_to_downhill=z, qflx_qrgwl=z, qflx_drain=baseflow, &
+      qflx_drain_perched=z, qflx_snwcp_ice=z, qflx_ice_runoff_xs=z, qflx_lateral=z, &
+      qflx_h2orof_drain=z, qflx_lnd2ocn=z, qflx_h2oocn_drain=z, dtime=dtime)
   end function elm_ats_water_balance_error_c
+
+  !-----------------------------------------------------------------------
+  ! C-bound getter for ELM's errh2o abort limit [mm], so ATS can derive its
+  ! step-gate tolerance from it instead of duplicating the number.
+  !-----------------------------------------------------------------------
+  function elm_ats_water_balance_abort_tol_c() result(tol) &
+       bind(C, name="elm_ats_water_balance_abort_tol_c")
+    real(c_double) :: tol
+    tol = wb_errh2o_abort_tol
+  end function elm_ats_water_balance_abort_tol_c
 
 end module elm_water_balance_kernel
