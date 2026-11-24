@@ -59,12 +59,25 @@ evaluator`".
      transport are dependent on the boundary conditions for flow. See
      :ref:`Transport-specific Boundary Conditions`
 
+   Physics options:
+
    * `"molecular diffusivity [m^2 s^-1]`" ``[molecular-diffusivity-spec]`` See
-     below.
+     below -- if present, does molecular diffusion.  If not, does not.
+     
+   * `"has dispersion`" ``[bool]`` **true** Include dispersion.  If set, uses
+     this flag to determine whether to do dispersion. If NOT set, then look for
+     a dispersivity key and evaluator.
+     
+   * `"tortuosity [-]`" ``[tortuosity-spec]`` See below, used in dispersion.
 
-   * `"tortuosity [-]`" ``[tortuosity-spec]`` See below.
+   * `"has advection`" ``[bool]`` **true** If true, do advection.
 
-   * `"source terms`" ``[transport-source-spec-list]`` Provides solute source.
+   * `"source term`" ``[bool]`` **false** If true, read a source term from a
+     key and evaluator in the "new, ATS style" of sources.
+     
+   * `"source terms`" ``[transport-source-spec-list]`` If present, this list is
+     parsed to read "old, Amanzi style" sources.  Note that none, one, or both
+     of these two options for source terms may co-exist.
 
    Math and solver algorithm options:
 
@@ -316,7 +329,7 @@ class Transport_ATS : public PK_Physical_Default {
   Key water_flux_key_; // advecting water flux [mol / s] on faces
   Key lwc_key_;        // liquid water content [mol]
   Key source_key_;
-  bool is_source_term_;
+  bool is_new_style_source_term_;
   Key cv_key_;
   Key molec_diff_key_;
 
@@ -367,6 +380,7 @@ class Transport_ATS : public PK_Physical_Default {
   std::vector<Teuchos::RCP<TransportDomainFunction>> srcs_; // Source or sink for components
 
   // operators for advection
+  bool is_advection_;
   int adv_spatial_disc_order_;
   Teuchos::RCP<Epetra_IntVector> upwind_cell_, downwind_cell_;
   Teuchos::RCP<Operators::ReconstructionCellLinear> lifting_;
@@ -376,7 +390,8 @@ class Transport_ATS : public PK_Physical_Default {
   std::vector<Teuchos::RCP<TransportDomainFunction>> bcs_;
 
   // operators for dispersion/diffusion
-  bool has_diffusion_, has_dispersion_, enforce_bc_;
+  bool is_diffusion_, is_dispersion_;
+  bool enforce_bc_;
   Teuchos::RCP<TensorVector> D_; // workspace, disp + diff
   Teuchos::RCP<Operators::BCs> diff_bcs_;
   Teuchos::RCP<Operators::Operator> diff_global_op_;

@@ -26,7 +26,7 @@ MPCFlowTransport::parseParameterList()
       surf_lwc_key = Keys::readKey(*getSubPKPlist_(1), domain, "water content", "water_content");
     } else {
       subsurface_ = true;
-      sub_lwc_key = Keys::readKey(*getSubPKPlist_(1), domain, "water content", "water_content");
+      sub_lwc_key = Keys::readKey(*getSubPKPlist_(1), domain, "liquid water content", "water_content");
     }
   } else {
     // no domain name means it is an MPC, likely coupled water, but maybe permafrost
@@ -76,13 +76,13 @@ MPCFlowTransport::parseParameterList()
         flux_list.set<std::string>("target", Keys::getKey("water_flux", flow_next_tag, true));
       }
 
-      // velocity for dispersivity
-      Teuchos::ParameterList& velo_list =
-        S_->GetEvaluatorList(Keys::getKey("darcy_velocity", transport_next_tag));
-      if (!velo_list.isParameter("evaluator type")) {
-        velo_list.set<std::string>("evaluator type", "alias");
-        velo_list.set<std::string>("target", Keys::getKey("darcy_velocity", flow_next_tag, true));
-      }
+      // // velocity for dispersivity
+      // Teuchos::ParameterList& velo_list =
+      //   S_->GetEvaluatorList(Keys::getKey("darcy_velocity", transport_next_tag));
+      // if (!velo_list.isParameter("evaluator type")) {
+      //   velo_list.set<std::string>("evaluator type", "alias");
+      //   velo_list.set<std::string>("target", Keys::getKey("darcy_velocity", flow_next_tag, true));
+      // }
 
       // now set the liquid water content as an interpolated field at next
       // note that flow_current copy is kept by flow PK, and transport_current copy is kept by transport PK
@@ -155,13 +155,13 @@ MPCFlowTransport::parseParameterList()
                                    Keys::getKey("surface-water_flux", flow_next_tag, true));
       }
 
-      // velocity for evaluators
-      Teuchos::ParameterList& velo_list =
-        S_->GetEvaluatorList(Keys::getKey("surface-velocity", transport_next_tag));
-      if (!velo_list.isParameter("evaluator type")) {
-        velo_list.set<std::string>("evaluator type", "alias");
-        velo_list.set<std::string>("target", Keys::getKey("surface-velocity", flow_next_tag, true));
-      }
+      // // velocity for evaluators
+      // Teuchos::ParameterList& velo_list =
+      //   S_->GetEvaluatorList(Keys::getKey("surface-velocity", transport_next_tag));
+      // if (!velo_list.isParameter("evaluator type")) {
+      //   velo_list.set<std::string>("evaluator type", "alias");
+      //   velo_list.set<std::string>("target", Keys::getKey("surface-velocity", flow_next_tag, true));
+      // }
 
       // set the liquid water content as an interpolated field
       // -- flow's current is a kept by flow
