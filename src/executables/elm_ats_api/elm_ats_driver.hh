@@ -67,6 +67,9 @@ class ELM_ATSDriver : public Driver {
   // over the outer ELM timestep.  Returns the integrated key.
   Key setupIntegratedFlux_(const Key& flux_key, ELM::VarID varid);
 
+  // Check ELM water balance after ATS step
+  bool checkELMWaterBalance_(double t_old, double t_new);
+
  private:
   Teuchos::RCP<Teuchos::ParameterList> elm_plist_;
 
@@ -97,6 +100,15 @@ class ELM_ATSDriver : public Driver {
   Key col_trans_key_;
   Key col_baseflow_key_;
   Key col_runoff_key_;
+
+  // raw (instantaneous) surface flux keys, needed for the per-step ELM water balance check
+  Key evap_raw_key_;
+  Key trans_raw_key_;
+  Key baseflow_raw_key_;
+  Key runoff_raw_key_;
+
+  // ELM water mass-balance step gate: tolerance [mm]; <= 0 disables the check
+  double elm_mb_tol_;
 
   Key surf_mol_dens_key_;
   Key mol_dens_key_;
