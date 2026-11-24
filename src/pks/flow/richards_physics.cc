@@ -9,6 +9,7 @@
 
 #include "Teuchos_LAPACK.hpp"
 #include "Teuchos_SerialDenseMatrix.hpp"
+#include "Teuchos_SerialDenseVector.hpp"
 
 #include "Evaluator.hh"
 #include "Op.hh"
@@ -151,7 +152,7 @@ Richards::UpdateVelocity_(const Tag& tag)
 
   Teuchos::LAPACK<int, double> lapack;
   Teuchos::SerialDenseMatrix<int, double> matrix(d, d);
-  double rhs[d];
+  Teuchos::SerialDenseVector<int, double> rhs(d);
 
   int ncells_owned =
     mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
@@ -177,7 +178,7 @@ Richards::UpdateVelocity_(const Tag& tag)
     }
 
     int info;
-    lapack.POSV('U', d, 1, matrix.values(), d, rhs, d, &info);
+    lapack.POSV('U', d, 1, matrix.values(), d, rhs.values(), d, &info);
 
     for (int i = 0; i != d; ++i) velocity[i][c] = rhs[i] / nliq_c[0][c];
   }
