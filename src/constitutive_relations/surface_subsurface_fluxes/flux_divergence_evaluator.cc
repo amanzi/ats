@@ -37,7 +37,7 @@ FluxDivergenceEvaluator::EnsureCompatibility_ToDeps_(State& S)
   if (my_fac.Mesh() != Teuchos::null) {
     for (auto dep : dependencies_) {
       auto& fac = S.Require<CompositeVector, CompositeVectorSpace>(dep.first, dep.second);
-      fac.SetMesh(my_fac.Mesh())->AddComponent("face", AmanziMesh::Entity_kind::FACE, 1);
+      fac.SetMesh(my_fac.Mesh())->SetGhosted()->AddComponent("face", AmanziMesh::Entity_kind::FACE, 1);
     }
   }
 }

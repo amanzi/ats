@@ -57,7 +57,6 @@ evaluateDivergence(const Teuchos::RCP<AmanziMesh::Mesh>& mesh, State& S)
   div_list.set<std::string>("tag", "");
   S.Require<CompositeVector, CompositeVectorSpace>("water_flux_divergence", Tags::DEFAULT)
     .SetMesh(mesh)
-    ->SetGhosted(true)
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   auto div_eval = Teuchos::rcp(new Relations::FluxDivergenceEvaluator(div_list));
   S.SetEvaluator("water_flux_divergence", Tags::DEFAULT, div_eval);
