@@ -97,6 +97,9 @@ WRMConstant::InitializeFromPlist_()
 {
   a_ = plist_.get<double>("constant value [-]", 1.0);
   sr_ = plist_.get<double>("residual saturation [-]", 1.0);
+
+  double k_rel_fc = plist_.get<double>("field capacity relative permeability [-]", 1.e-3);
+  sat_fc_ = computeFieldCapacity(*this, k_rel_fc);
 };
 
 

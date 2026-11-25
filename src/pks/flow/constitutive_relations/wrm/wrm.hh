@@ -55,9 +55,22 @@ class WRM {
   virtual double residualSaturation() = 0;
   virtual double suction_head(double saturation) { return 0.; };
   virtual double d_suction_head(double saturation) { return 0.; };
+
+  // liquid saturation at field capacity -- the saturation at which
+  // k_relative(saturation) == k_rel_fc.  Concrete WRMs compute and cache
+  // this once at construction; see computeFieldCapacity() below.
+  virtual double field_capacity() = 0;
 };
 
 typedef double (WRM::*KRelFn)(double pc);
+
+// Shared helper for concrete WRMs: inverts k_relative(saturation) == k_rel_fc
+// for saturation, via root-finding on [wrm.residualSaturation(), 1].
+// Assumes k_relative() is monotonically increasing in saturation over that
+// interval, with k_relative(residualSaturation()) <= 0 <= k_rel_fc <= 1 ==
+// k_relative(1). Intended to be called once, from a concrete WRM's
+// InitializeFromPlist_(), with the result cached rather than recomputed.
+double computeFieldCapacity(WRM& wrm, double k_rel_fc);
 
 } // namespace Flow
 } // namespace Amanzi

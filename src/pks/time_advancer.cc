@@ -182,9 +182,9 @@ TimeAdvancer::initialize()
   }
 
   // dump initial conditions
-  visualize_();
-  observe_();
-  checkpoint_();
+  visualize();
+  observe();
+  checkpoint();
 }
 
 
@@ -216,7 +216,7 @@ TimeAdvancer::advance(double t_start, double t_end)
 
     // done?
     if (std::abs(t_end - t_now) < 1.e-10 * std::abs(t_end + 1.)) break;
-    if (extraDoneCheck_(t_now, S_->get_cycle())) break;
+    if (extraDoneCheck_(t_now, S_->get_cycle(tag_next_))) break;
     if (dt <= 0.) break;
 
     // constrain dt via TSM, then clamp
@@ -276,9 +276,9 @@ void
 TimeAdvancer::CommitStep_(double t_old, double t_new)
 {
   for (auto* acc : accumulators_) acc->Update(*S_, "time_advancer");
-  visualize_();
-  observe_();
-  checkpoint_();
+  visualize();
+  observe();
+  checkpoint();
 }
 
 
@@ -302,11 +302,11 @@ TimeAdvancer::extraDoneCheck_(double t, int cycle) const
 
 
 bool
-TimeAdvancer::visualize_(bool force)
+TimeAdvancer::visualize(bool force)
 {
   bool dump = force;
-  int cycle = S_->get_cycle();
-  double time = S_->get_time();
+  int cycle = S_->get_cycle(tag_next_);
+  double time = S_->get_time(tag_next_);
   if (!dump) {
     for (const auto& vis : visualization_) dump |= vis->DumpRequested(cycle, time);
   }
@@ -319,17 +319,17 @@ TimeAdvancer::visualize_(bool force)
 
 
 void
-TimeAdvancer::observe_()
+TimeAdvancer::observe()
 {
   for (const auto& obs : observations_) obs->MakeObservations(S_.ptr());
 }
 
 
 bool
-TimeAdvancer::checkpoint_(bool force)
+TimeAdvancer::checkpoint(bool force)
 {
-  int cycle = S_->get_cycle();
-  double time = S_->get_time();
+  int cycle = S_->get_cycle(tag_next_);
+  double time = S_->get_time(tag_next_);
   bool dump = force || checkpoint_obj_->DumpRequested(cycle, time);
   if (dump) checkpoint_obj_->Write(*S_);
   return dump;

@@ -81,51 +81,17 @@ ELM_ATSDriver::ELM_ATSDriver(const Teuchos::RCP<Teuchos::ParameterList>& plist,
     elm_plist_(Teuchos::sublist(Teuchos::sublist(plist, "cycle driver"), "ELM driver")),
     elm_cycle_(0)
 {
-
-  if (plist_->isSublist("visualization")) {
-    auto vis_list = Teuchos::sublist(plist_, "visualization");
-    for (auto& entry : *vis_list) {
-      std::string domain_name = entry.first;
-      if (S_->HasMesh(domain_name)) {
-        auto mesh_p = S_->GetMesh(domain_name);
-        auto sublist_p = Teuchos::sublist(vis_list, domain_name);
-        if (!sublist_p->isParameter("file name base")) {
-          if (domain_name.empty() || domain_name == "domain") {
-            sublist_p->set<std::string>("file name base", std::string("ats_vis"));
-          } else {
-            sublist_p->set<std::string>("file name base", std::string("ats_vis_") + domain_name);
-          }
-        }
-        if (S_->HasMesh(domain_name + "_3d") && sublist_p->get<bool>("visualize on 3D mesh", true))
-          mesh_p = S_->GetMesh(domain_name + "_3d");
-        auto vis = Teuchos::rcp(new Amanzi::Visualization(*sublist_p));
-        vis->set_name(domain_name);
-        vis->set_mesh(mesh_p);
-        vis->CreateFiles(false);
-        visualization_.push_back(vis);
-      }
-    }
-  }
+  // Visualization and checkpointing are owned solely by time_advancer_
+  // (constructed in parseParameterList(), from this same plist's
+  // "visualization"/"checkpoint" sublists) and exposed here via the
+  // visualize()/checkpoint() methods below, which ELM calls explicitly
+  // between advance() calls, on its own history/restart cadence. This
+  // driver does not construct its own separate Visualization objects --
+  // doing so previously caused two independent objects to contend over the
+  // same output file, since both were built from the same "visualization"
+  // sublist and both called Visualization::CreateFiles() (which truncates
+  // the file), corrupting/emptying whichever object wrote last.
 }
-
-
-bool
-ELM_ATSDriver::visualize_(bool force)
-{
-  bool dump = force;
-  double time = S_->get_time();
-  int cycle = elm_cycle_;
-
-  if (!dump) {
-    for (const auto& vis : visualization_) dump |= vis->DumpRequested(cycle, time);
-  }
-  if (dump) pk_->CalculateDiagnostics(Tags::NEXT);
-  for (const auto& vis : visualization_) {
-    if (force || vis->DumpRequested(cycle, time)) WriteVis(*vis, *S_);
-  }
-  return dump;
-}
-
 
 
 Key
@@ -250,9 +216,25 @@ ELM_ATSDriver::parseParameterList()
 
   // construct TimeAdvancer here so time_advancer_->setup() is called in Driver::setup()
   // before State::Setup() allocates memory.
-  // ELM controls checkpointing, so no checkpoint sublist.
+  //
+  // Build a combined plist the same way ATSDriver::createTimeAdvancer_() does:
+  // done conditions + dt bounds from "cycle driver", vis/observations from
+  // plist_'s top-level sublists (they live at the XML root, not nested under
+  // "cycle driver" -- passing "cycle driver" alone, as this used to do, meant
+  // TimeAdvancer's plist_->isSublist("visualization") checked for a
+  // "visualization" sublist *inside* "cycle driver", which never exists, so
+  // the XML's real top-level "visualization" list was silently ignored).
+  // ELM controls checkpointing, so no checkpoint sublist is copied in.
+  auto ta_plist = Teuchos::rcp(new Teuchos::ParameterList(plist_->sublist("cycle driver")));
+  if (plist_->isSublist("observations"))
+    ta_plist->sublist("observations") = plist_->sublist("observations");
+  if (plist_->isSublist("visualization"))
+    ta_plist->sublist("visualization") = plist_->sublist("visualization");
+  if (plist_->isSublist("visualization failed"))
+    ta_plist->sublist("visualization failed") = plist_->sublist("visualization failed");
+
   time_advancer_ = Teuchos::rcp(new ATS::TimeAdvancer(
-            Teuchos::sublist(plist_, "cycle driver"),
+            ta_plist,
             S_, pk_, tsm_,
             Amanzi::Tags::CURRENT, Amanzi::Tags::NEXT,
             vo_, wallclock_timer_));
@@ -444,7 +426,7 @@ void ELM_ATSDriver::initialize()
 
 
 
-void ELM_ATSDriver::advance(double dt, bool force_chkp, bool force_vis)
+void ELM_ATSDriver::advance(double dt)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
   {
@@ -513,9 +495,6 @@ void ELM_ATSDriver::advance(double dt, bool force_chkp, bool force_vis)
       Exceptions::amanzi_throw(msg);
     }
 
-    // potentially visualize
-    visualize_();
-
     // convert ATS water content units [mol] to ELM units [m^3 water per m^3 volume] before returning control to ELM
     {
       auto& wc = *S_->GetW<CompositeVector>(wc_key_, Tags::NEXT,
@@ -536,6 +515,18 @@ void ELM_ATSDriver::advance(double dt, bool force_chkp, bool force_vis)
 }
 
 
+void ELM_ATSDriver::visualize()
+{
+  time_advancer_->visualize(true);
+}
+
+
+void ELM_ATSDriver::checkpoint()
+{
+  time_advancer_->checkpoint(true);
+}
+
+
 // simulates external timeloop with dt coming from calling model
 void ELM_ATSDriver::advanceTest()
 {
@@ -543,7 +534,7 @@ void ELM_ATSDriver::advanceTest()
     // use dt from ATS for testing
     double dt = pk_->get_dt();
     // call main method
-    advance(dt, false, false);
+    advance(dt);
   }
 }
 

@@ -128,7 +128,6 @@ EvaluatorTimeAccumulated::Update_(State& S)
     if (vo_.os_OK(Teuchos::VERB_EXTREME)) {
       Teuchos::OSTab tab = vo_.getOSTab();
       *vo_.os() << "Updated time accumulation time from " << acc_dt << " to " << acc_dt + dt_inner << std::endl;
-      cv.Print(std::cout);
     }
   }
 }

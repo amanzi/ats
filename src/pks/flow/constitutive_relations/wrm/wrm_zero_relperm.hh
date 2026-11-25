@@ -34,6 +34,7 @@ class WRMZeroRelPerm : public WRM {
   double capillaryPressure(double sat) { return wrm_->capillaryPressure(sat); }
   double d_capillaryPressure(double sat) { return wrm_->d_capillaryPressure(sat); }
   double residualSaturation() { return wrm_->residualSaturation(); }
+  double field_capacity() { return wrm_->field_capacity(); }
 
  private:
   void InitializeFromPlist_();

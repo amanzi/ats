@@ -228,6 +228,9 @@ WRMVanGenuchten::InitializeFromPlist_()
   if (pc0_ > 0.) {
     fit_s_.Setup(0.0, 1.0, 0.0, pc0_, saturation(pc0_), d_saturation(pc0_));
   }
+
+  double k_rel_fc = plist_.get<double>("field capacity relative permeability [-]", 1.e-3);
+  sat_fc_ = computeFieldCapacity(*this, k_rel_fc);
 };
 
 /* ******************************************************************

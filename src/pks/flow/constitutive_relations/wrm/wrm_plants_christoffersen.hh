@@ -45,6 +45,7 @@ class WRMPlantChristoffersen : public WRM {
   double capillaryPressure(double saturation);
   double d_capillaryPressure(double saturation);
   double residualSaturation() { return sr_; }
+  double field_capacity() { return sat_fc_; }
 
   double operator()(const double& s) const
   {
@@ -101,6 +102,8 @@ class WRMPlantChristoffersen : public WRM {
   int function_;
   double pc0_;                  // regularization threshold (usually 0 to 500 Pa)
   double a_, b_, factor_dSdPc_; // frequently used constant
+
+  double sat_fc_; // cached liquid saturation at field capacity
 
   static Utils::RegisteredFactory<WRM, WRMPlantChristoffersen> factory_;
 };

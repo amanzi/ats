@@ -26,6 +26,9 @@ to Brooks-Corey parameters.
      saturated matric suction in Pa
    * `"residual saturation [-]`" ``[double]`` **0.0**
    * `"smoothing interval width [saturation]`" ``[double]`` **0.0**
+   * `"field capacity relative permeability [-]`" ``[double]`` **1.e-3**
+     Relative permeability threshold defining field capacity -- the liquid
+     saturation at which ``k_relative(saturation) == `` this value.
 
 Example:
 
@@ -66,6 +69,7 @@ class WRMBrooksCorey : public WRM {
   double capillaryPressure(double saturation);
   double d_capillaryPressure(double saturation);
   double residualSaturation() { return sr_; }
+  double field_capacity() { return sat_fc_; }
 
  private:
   void InitializeFromPlist_();
@@ -78,6 +82,8 @@ class WRMBrooksCorey : public WRM {
 
   double s0_; // regularization threshold in saturation
   Amanzi::Utils::Spline fit_kr_;
+
+  double sat_fc_; // cached liquid saturation at field capacity
 
   static Utils::RegisteredFactory<WRM, WRMBrooksCorey> factory_;
 };

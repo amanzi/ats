@@ -48,6 +48,11 @@ class WRMInterfrost : public WRM {
     AMANZI_ASSERT(0);
     return 0.;
   }
+  double field_capacity()
+  {
+    AMANZI_ASSERT(0);
+    return 0.;
+  }
 
  private:
   static Utils::RegisteredFactory<WRM, WRMInterfrost> factory_;
