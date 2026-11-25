@@ -37,7 +37,7 @@ FluxDivergenceEvaluator::EnsureCompatibility_ToDeps_(State& S)
   if (my_fac.Mesh() != Teuchos::null) {
     for (auto dep : dependencies_) {
       auto& fac = S.Require<CompositeVector, CompositeVectorSpace>(dep.first, dep.second);
-      fac.SetMesh(my_fac.Mesh())->AddComponent("face", AmanziMesh::Entity_kind::FACE, 1);
+      fac.SetMesh(my_fac.Mesh())->SetGhosted()->AddComponent("face", AmanziMesh::Entity_kind::FACE, 1);
     }
   }
 }
@@ -47,7 +47,9 @@ void
 FluxDivergenceEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& result)
 {
   auto tag = my_keys_.front().second;
-  const auto& flux_f = *S.Get<CompositeVector>(flux_key_, tag).ViewComponent("face", true);
+  const auto& flux = S.Get<CompositeVector>(flux_key_, tag);
+  flux.ScatterMasterToGhosted("face");
+  const auto& flux_f = *flux.ViewComponent("face", true);
   const AmanziMesh::Mesh& m = *result[0]->Mesh();
   auto& div_flux = *result[0]->ViewComponent("cell", false);
   div_flux.PutScalar(0.);
