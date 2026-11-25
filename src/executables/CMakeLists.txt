@@ -42,6 +42,7 @@ include_directories(${ATS_SOURCE_DIR}/src/pks/energy)
 include_directories(${ATS_SOURCE_DIR}/src/pks/flow)
 include_directories(${ATS_SOURCE_DIR}/src/pks/deform)
 include_directories(${ATS_SOURCE_DIR}/src/pks/transport)
+include_directories(${ATS_SOURCE_DIR}/src/pks/ecosim)
 include_directories(${ATS_SOURCE_DIR}/src/operators/upwinding)
 include_directories(${ATS_SOURCE_DIR}/src/operators/advection)
 include_directories(${ATS_SOURCE_DIR}/src/operators/deformation)
@@ -62,6 +63,12 @@ include_evaluators_directories(LISTNAME ATS_SURFACE_BALANCE_REG_INCLUDES)
 include_evaluators_directories(LISTNAME ATS_BGC_REG_INCLUDES)
 include_evaluators_directories(LISTNAME ATS_MPC_REG_INCLUDES)
 include_evaluators_directories(LISTNAME SED_TRANSPORT_REG_INCLUDES)
+
+
+include_evaluators_directories(LISTNAME ATS_ECOSIM_REG_INCLUDES)
+include_evaluators_directories(LISTNAME ATS_ECOSIM_RELATIONS_REG_INCLUDES)
+include_evaluators_directories(LISTNAME ATS_ECOSIM_DATA_REG_INCLUDES)
+
 
 set(ats_src_files
   ats_mesh_factory.cc
@@ -122,6 +129,21 @@ set(ats_link_libs
   ats_transport_relations
   )
 
+if (ENABLE_ECOSIM)
+  list(APPEND ats_link_libs
+    ats_ecosim
+    ats_ecosim_data
+ #   ats_ecosim_relations
+  )
+endif()
+
+#In theory covered by ECOSIM_LIBRARIES:
+#If not place this in an if statement?
+#  ats_ecosim
+#  ats_ecosim_data
+#  ats_ecosim_relations
+
+message(STATUS ">>>> JDM: In ATS ECOSIM_LIBRARIES = ${ECOSIM_LIBRARIES}")
 
 # note, we can be inclusive here, because if they aren't enabled,
 # these won't be defined and will result in empty strings.
@@ -137,7 +159,8 @@ set(tpl_link_libs
   ${HYPRE_LIBRARIES}
   ${HDF5_LIBRARIES}
   ${CLM_LIBRARIES}
-  )
+  ${ECOSIM_LIBRARIES}
+ )
 
 add_amanzi_library(ats_executable
   SOURCE ${ats_src_files}
