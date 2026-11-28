@@ -9,18 +9,12 @@
            Phong Le (lepv@ornl.gov)
 */
 
-/*
-  Transport PK
-
-*/
-
 #include <algorithm>
 #include <vector>
 
 #include "Epetra_Vector.h"
 #include "Epetra_IntVector.h"
 #include "Epetra_MultiVector.h"
-#include "Epetra_Import.h"
 #include "Teuchos_RCP.hpp"
 
 #include "errors.hh"
@@ -43,7 +37,6 @@
 #include "TransportBoundaryFunction_Alquimia.hh"
 #include "TransportSourceFunction_Alquimia.hh"
 #include "TransportDomainFunction_UnitConversion.hh"
-
 #include "PK_DomainFunction.hh"
 
 #include "transport_ats.hh"
@@ -62,8 +55,10 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
     PK_Physical_Default(pk_tree, global_plist, S, solution),
     dt_stable_(-1.0),
     dt_max_(-1.0),
-    has_diffusion_(false),
-    has_dispersion_(false),
+    is_diffusion_(false),
+    is_dispersion_(false),
+    is_advection_(true),
+    is_new_style_source_term_(false),
     enforce_bc_(false)
 {
   // initialize io
@@ -77,7 +72,7 @@ Transport_ATS::parseParameterList()
     plist_->set<std::string>("primary variable key suffix", "mole_fraction");
   }
 
-  // with subfield names, the header width is often insufficient
+  // with subfield names, the default header width is often insufficient
   if (!plist_->sublist("verbose object").isParameter("debug cell header width"))
     plist_->sublist("verbose object").set("debug cell header width", 34);
   PK_Physical_Default::parseParameterList();
@@ -92,13 +87,16 @@ Transport_ATS::parseParameterList()
     Exceptions::amanzi_throw(msg);
   }
 
+  // ensure we have component names
+  // NOTE: names MUST be {aqueous_names..., solid_names..., gas_names...}
   if (component_names_.size() == 0) {
     // not set by chemistry... must get set by user
     component_names_ = plist_->get<Teuchos::Array<std::string>>("component names").toVector();
     num_components_ = component_names_.size();
   }
 
-  // NOTE: names MUST be aqueous, solid, gaseous
+  // defaults to all aqueous -- user must specify otherwise
+  // NOTE: why is this not also accessible from chemistry? --etc
   num_aqueous_ = plist_->get<int>("number of aqueous components", component_names_.size());
 
   // parameters
@@ -107,34 +105,15 @@ Transport_ATS::parseParameterList()
   tcc_max_ = readParameterMapByComponent(
     plist_->sublist("component maximum concentration [mol C / mol H2O]"), -1.0);
 
-  if (plist_->isSublist("molecular diffusivity [m^2 s^-1]")) {
-    has_diffusion_ = true;
-    molec_diff_ =
-      readParameterMapByComponent(plist_->sublist("molecular diffusivity [m^2 s^-1]"), 0.);
-
-    tortuosity_ = readParameterMapByPhase(plist_->sublist("tortuosity [-]"), 1.);
-  }
-
-  // keys, dependencies, etc
-  // -- flux -- only needed at new time, evaluator controlled elsewhere
-  water_flux_key_ = Keys::readKey(*plist_, domain_, "water flux", "water_flux");
-
-  mass_flux_advection_key_ =
-    Keys::readKey(*plist_, domain_, "mass flux advection", "mass_flux_advection");
-  requireEvaluatorAtNext(mass_flux_advection_key_, tag_next_, *S_, name_);
-
-  mass_flux_diffusion_key_ =
-    Keys::readKey(*plist_, domain_, "mass flux diffusion", "mass_flux_diffusion");
-  requireEvaluatorAtNext(mass_flux_diffusion_key_, tag_next_, *S_, name_);
-
-  // -- liquid water content - need at new time, copy at current time
+  // liquid water content - need at new time, copy at current time
   lwc_key_ = Keys::readKey(*plist_, domain_, "liquid water content", "water_content");
   requireEvaluatorAtCurrent(lwc_key_, tag_current_, *S_, name_);
 
-  // NOTE: these to go away in 1.7
-  default_water_src_key_ = Keys::readKey(*plist_, domain_, "water source", "water_source");
-  default_water_src_in_meters_ = plist_->get<bool>("water source in meters", false);
+  // solid residue is used to store component when water evaporates
+  solid_residue_mass_key_ =
+    Keys::readKey(*plist_, domain_, "solid residue", "solid_residue_quantity");
 
+  // cell volume
   cv_key_ = Keys::readKey(*plist_, domain_, "cell volume", "cell_volume");
 
   // workspace, no evaluator
@@ -142,19 +121,80 @@ Transport_ATS::parseParameterList()
     Keys::readKey(*plist_, domain_, "conserved quantity", "total_component_quantity");
   requireEvaluatorAtNext(conserve_qty_key_, tag_next_, *S_, name_);
 
-  solid_residue_mass_key_ =
-    Keys::readKey(*plist_, domain_, "solid residue", "solid_residue_quantity");
+  // is there molecular diffusion?
+  if (plist_->isSublist("molecular diffusivity [m^2 s^-1]")) {
+    is_diffusion_ = true;
 
+    // NOTE: here we use a molecular diffusivity that is either non-negative
+    // for scalar values or -1 for field-based values.
+    molec_diff_key_ = Keys::readKey(*plist_, domain_, "molecular diffusivity", "molecular_diffusivity");
+    molec_diff_ = readParameterMapByComponent(plist_->sublist("molecular diffusivity [m^2 s^-1]"), 0.,
+      molec_diff_key_);
+
+    Teuchos::ParameterList& tort_list = plist_->sublist("tortuosity [-]");
+    std::string phase = plist_->get<std::string>("diffusivity phase", "aqueous");
+    if (tort_list.numParams() > 0 && !tort_list.isParameter(phase)) {
+      Errors::Message msg;
+      msg << "In transport pk for \"" << name_ << "\": the phase \"" << phase
+          << "\" given in \"diffusivity phase\" is not provided in tortuosity list.";
+    }
+    tortuosity_ = tort_list.get<double>(phase, 1.);
+  }
+
+  // is there dispersion?
+  // -- dispersion coefficient tensor
+  if (plist_->isParameter("has dispersion")) {
+    is_dispersion_ = plist_->get<bool>("has dispersion");
+    if (is_dispersion_)
+      dispersion_tensor_key_ =
+        Keys::readKey(*plist_, domain_, "dispersion coefficient", "dispersion_coefficient");
+  } else {
+    dispersion_tensor_key_ =
+      Keys::readKey(*plist_, domain_, "dispersion coefficient", "dispersion_coefficient");
+    is_dispersion_ = S_->HasEvaluatorList(dispersion_tensor_key_);
+  }
+
+  if (is_diffusion_ || is_dispersion_) {
+    mass_flux_diffusion_key_ =
+      Keys::readKey(*plist_, domain_, "mass flux diffusion", "mass_flux_diffusion");
+    // NOTE: should probably be at current?  Aren't these treated explicitly? --ETC
+    requireEvaluatorAtNext(mass_flux_diffusion_key_, tag_next_, *S_, name_);
+  }
+
+  // is there advection?
+  // -- flux -- only needed at new time, evaluator controlled elsewhere
+  is_advection_ = plist_->get<bool>("has advection", true);
+  if (is_advection_) {
+    water_flux_key_ = Keys::readKey(*plist_, domain_, "water flux", "water_flux");
+
+    mass_flux_advection_key_ =
+      Keys::readKey(*plist_, domain_, "mass flux advection", "mass_flux_advection");
+    // NOTE: should probably be at current?  Aren't these treated explicitly? --ETC
+    requireEvaluatorAtNext(mass_flux_advection_key_, tag_next_, *S_, name_);
+  }
+
+  // is there reactions?
   if (chem_engine_ != Teuchos::null) {
     // needed by geochemical bcs
     molar_dens_key_ =
       Keys::readKey(*plist_, domain_, "molar density liquid", "molar_density_liquid");
   }
 
-  // dispersion coefficient tensor
-  dispersion_tensor_key_ =
-    Keys::readKey(*plist_, domain_, "dispersion coefficient", "dispersion_coefficient");
-  has_dispersion_ = S_->HasEvaluatorList(dispersion_tensor_key_);
+  // is there other source terms?
+  //
+  // NOTE: there are two mechanisms for source terms here.  This one "source
+  // term" refers to the "new-style" PK where sources are from evaluators
+  //
+  // The other one, lower, is called "source terms" and is the "old" style,
+  // kept for backward compatibility (FIXME) that uses PK_DomainFunctions (see
+  // below).
+  is_new_style_source_term_ = plist_->get<bool>("source term", false);
+  if (is_new_style_source_term_) {
+    default_water_src_key_ = Keys::readKey(*plist_, domain_, "water source", "water_source");
+    default_water_src_in_meters_ = plist_->get<bool>("water source in meters", false);
+
+    source_key_ = Keys::readKey(*plist_, domain_, "source", "component_source");
+  }
 
   // other parameters
   // -- a small amount of water, used to define when we are going to completely dry out a grid cell
@@ -182,22 +222,26 @@ Transport_ATS::parseParameterList()
     Exceptions::amanzi_throw(msg);
   }
 
-  // source terms
-  is_source_term_ = plist_->get<bool>("source term", false);
-  if (is_source_term_) {
-    source_key_ = Keys::readKey(*plist_, domain_, "source", "component_source");
-  }
-
   db_ = Teuchos::rcp(new Debugger(mesh_, name_, *plist_));
 }
 
 
 Transport_ATS::ParameterMap
-Transport_ATS::readParameterMapByComponent(Teuchos::ParameterList& plist, double default_val)
+Transport_ATS::readParameterMapByComponent(Teuchos::ParameterList& plist, double default_val,
+        const Key& field_key, double field_val)
 {
   Transport_ATS::ParameterMap map;
   for (int i = 0; i != num_components_; ++i) {
-    map[component_names_[i]] = plist.get<double>(component_names_[i], default_val);
+    if (plist.isParameter(component_names_[i])) {
+      // scalar
+      map[component_names_[i]] = plist.get<double>(component_names_[i]);
+    } else if (!field_key.empty() && S_->HasEvaluatorList(field_key + "." + component_names_[i])) {
+      // field-based
+      map[component_names_[i]] = field_val;
+    } else {
+      // default value scalar
+      map[component_names_[i]] = default_val;
+    }
   }
   return map;
 }
@@ -252,32 +296,34 @@ Transport_ATS::Setup()
 void
 Transport_ATS::SetupTransport_()
 {
-  // upwind and downwind vectors
-  const Epetra_Map& fmap_wghost = mesh_->getMap(AmanziMesh::Entity_kind::FACE, true);
-  upwind_cell_ = Teuchos::rcp(new Epetra_IntVector(fmap_wghost));
-  downwind_cell_ = Teuchos::rcp(new Epetra_IntVector(fmap_wghost));
+  if (is_advection_) {
+    // upwind and downwind vectors
+    const Epetra_Map& fmap_wghost = mesh_->getMap(AmanziMesh::Entity_kind::FACE, true);
+    upwind_cell_ = Teuchos::rcp(new Epetra_IntVector(fmap_wghost));
+    downwind_cell_ = Teuchos::rcp(new Epetra_IntVector(fmap_wghost));
 
-  if (adv_spatial_disc_order_ == 2) {
-    // reconstruction initialization
-    Teuchos::ParameterList& recon_list = plist_->sublist("reconstruction");
+    if (adv_spatial_disc_order_ == 2) {
+      // reconstruction initialization
+      Teuchos::ParameterList& recon_list = plist_->sublist("reconstruction");
 
-    // check and set defaults
-    if (!recon_list.isParameter("limiter extension for transport"))
-      recon_list.set<bool>("limiter extension for transport", true);
-    if (!recon_list.isParameter("limiter") ) recon_list.set<std::string>("limiter", "tensorial");
+      // check and set defaults
+      if (!recon_list.isParameter("limiter extension for transport"))
+        recon_list.set<bool>("limiter extension for transport", true);
+      if (!recon_list.isParameter("limiter") ) recon_list.set<std::string>("limiter", "tensorial");
 
-    lifting_ = Teuchos::rcp(new Operators::ReconstructionCellLinear(mesh_));
-    lifting_->Init(recon_list);
+      lifting_ = Teuchos::rcp(new Operators::ReconstructionCellLinear(mesh_));
+      lifting_->Init(recon_list);
 
-    limiter_ = Teuchos::rcp(new Operators::LimiterCell(mesh_));
-    limiter_->Init(recon_list);
+      limiter_ = Teuchos::rcp(new Operators::LimiterCell(mesh_));
+      limiter_->Init(recon_list);
+    }
+
+    adv_bcs_ = Teuchos::rcp(
+      new Operators::BCs(mesh_, AmanziMesh::Entity_kind::FACE, WhetStone::DOF_Type::SCALAR));
   }
 
-  adv_bcs_ = Teuchos::rcp(
-    new Operators::BCs(mesh_, AmanziMesh::Entity_kind::FACE, WhetStone::DOF_Type::SCALAR));
-
   // workspace for diffusion and dispersion solve
-  if (has_dispersion_) {
+  if (is_dispersion_) {
     // note this space has the wrong number of DoFs, but that will be corrected
     // by the evaluator later.  The rest of the info (name, location, and mesh)
     // are needed.
@@ -289,17 +335,30 @@ Transport_ATS::SetupTransport_()
     S_->RequireEvaluator(dispersion_tensor_key_, tag_next_);
   }
 
+  // field- and component-based diffusivity (as opposed to component-based scalers)
+  if (is_diffusion_) {
+    // NOTE: should probably be at current?  Aren't these treated explicitly? --ETC
+    for (const auto& name_val : molec_diff_) {
+      if (std::isnan(name_val.second)) {
+        requireEvaluatorAtNext(molec_diff_key_+"."+name_val.first, tag_next_, *S_)
+          .SetMesh(mesh_)
+          ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+      }
+    }
+  }
+
   // operator and boundary conditions for diffusion/dispersion solve
-  if (has_dispersion_ || has_diffusion_) {
+  if (is_dispersion_ || is_diffusion_) {
     // default boundary conditions (none inside domain and Neumann on its boundary)
-    diff_bcs_ = Teuchos::rcp(
-                             new Operators::BCs(mesh_, AmanziMesh::Entity_kind::FACE, WhetStone::DOF_Type::SCALAR));
+    diff_bcs_ = Teuchos::rcp(new Operators::BCs(mesh_, AmanziMesh::Entity_kind::FACE,
+            WhetStone::DOF_Type::SCALAR));
 
     PopulateBoundaryData_(-1, *diff_bcs_);
 
     // diffusion operator
     Operators::PDE_DiffusionFactory opfactory;
     Teuchos::ParameterList& op_list = plist_->sublist("diffusion");
+    // -- what does this mean?  When should this get used? --etc
     enforce_bc_ = op_list.get("enforce boundary conditions", false);
     diff_op_ = opfactory.Create(op_list, mesh_, diff_bcs_);
     diff_global_op_ = diff_op_->global_operator();
@@ -311,8 +370,7 @@ Transport_ATS::SetupTransport_()
     diff_sol_ = Teuchos::rcp(new CompositeVector(cvs));
   }
 
-  
-  // source term setup
+  // source term setup -- see above NOTE -- old-style source terms
   // --------------------------------------------------------------------------------
   if (plist_->isSublist("source terms")) {
     auto sources_list = Teuchos::sublist(plist_, "source terms");
@@ -455,7 +513,7 @@ Transport_ATS::SetupTransport_()
     auto bcs_list = Teuchos::sublist(plist_, "boundary conditions");
     auto conc_bcs_list = Teuchos::sublist(bcs_list, "mole fraction");
 
-    int m = 0;    
+    int m = 0;
     for (const auto& it : *conc_bcs_list) {
       std::string name = it.first;
       if (conc_bcs_list->isSublist(name)) {
@@ -471,6 +529,7 @@ Transport_ATS::SetupTransport_()
             bc->tcc_names().push_back(component_names_[i]);
             bc->tcc_index().push_back(i);
           }
+          bc->set_location("coupling boundary");
           bc->set_state(S_);
           bcs_.push_back(bc);
         } else if (bc_type == "subgrid") {
@@ -510,13 +569,13 @@ Transport_ATS::SetupTransport_()
 
           // set the component indicies
           for (const auto& n : bc->tcc_names()) {
-            bc->tcc_index().push_back(FindComponentNumber_(n));            
+            bc->tcc_index().push_back(FindComponentNumber_(n));
           }
           bcs_.push_back(bc);
         }
       }
     }
-    
+
 #ifdef ALQUIMIA_ENABLED
     // -- try geochemical conditions
     auto geochem_list = Teuchos::sublist(bcs_list, "geochemical");
@@ -559,10 +618,12 @@ Transport_ATS::SetupPhysicalEvaluators_()
   S_->GetRecordSetW(key_).set_subfieldnames(component_names_);
 
   // -- water flux
-  requireEvaluatorAtNext(water_flux_key_, tag_next_, *S_)
-    .SetMesh(mesh_)
-    ->SetGhosted(true)
-    ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);
+  if (is_advection_ || is_dispersion_) {
+    requireEvaluatorAtNext(water_flux_key_, tag_next_, *S_)
+      .SetMesh(mesh_)
+      ->SetGhosted(true)
+      ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);
+  }
 
   // -- water state
   requireEvaluatorAtNext(lwc_key_, tag_next_, *S_)
@@ -593,11 +654,12 @@ Transport_ATS::SetupPhysicalEvaluators_()
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_components_);
 
   S_->GetRecordSetW(solid_residue_mass_key_).set_subfieldnames(subfield_names);
-  S_->GetRecordSetW(mass_flux_advection_key_).set_subfieldnames(subfield_names);
-  S_->GetRecordSetW(mass_flux_diffusion_key_).set_subfieldnames(subfield_names);
+  if (is_advection_) S_->GetRecordSetW(mass_flux_advection_key_).set_subfieldnames(subfield_names);
+  if (is_diffusion_ || is_dispersion_)
+    S_->GetRecordSetW(mass_flux_diffusion_key_).set_subfieldnames(subfield_names);
 
   // source term -- at next to match regression tests -- should this be at current?
-  if (!source_key_.empty()) {
+  if (is_new_style_source_term_) {
     requireEvaluatorAtNext(source_key_, tag_next_, *S_)
       .SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_aqueous_);
@@ -626,21 +688,25 @@ Transport_ATS::SetupPhysicalEvaluators_()
   // etc.
   //
   // solute mass advective flux
-  requireEvaluatorAtNext(mass_flux_advection_key_, tag_next_, *S_)
-    .SetMesh(mesh_)
-    ->SetGhosted(true)
-    ->SetComponent("face", AmanziMesh::Entity_kind::FACE, num_aqueous_);
-  S_->GetRecordSetW(mass_flux_advection_key_).set_subfieldnames(subfield_names);
+  if (is_advection_) {
+    requireEvaluatorAtNext(mass_flux_advection_key_, tag_next_, *S_)
+      .SetMesh(mesh_)
+      ->SetGhosted(true)
+      ->SetComponent("face", AmanziMesh::Entity_kind::FACE, num_aqueous_);
+    S_->GetRecordSetW(mass_flux_advection_key_).set_subfieldnames(subfield_names);
+  }
 
   // solute mass diffusive flux
-  requireEvaluatorAtNext(mass_flux_diffusion_key_, tag_next_, *S_)
-    .SetMesh(mesh_)
-    ->SetGhosted(true)
-    ->SetComponent("face", AmanziMesh::Entity_kind::FACE, num_aqueous_);
-  S_->GetRecordSetW(mass_flux_diffusion_key_).set_subfieldnames(subfield_names);
+  if (is_diffusion_ || is_dispersion_) {
+    requireEvaluatorAtNext(mass_flux_diffusion_key_, tag_next_, *S_)
+      .SetMesh(mesh_)
+      ->SetGhosted(true)
+      ->SetComponent("face", AmanziMesh::Entity_kind::FACE, num_aqueous_);
+    S_->GetRecordSetW(mass_flux_diffusion_key_).set_subfieldnames(subfield_names);
+  }
 
   // source term -- at next to match regression tests -- should this be at current?
-  if (!source_key_.empty()) {
+  if (is_new_style_source_term_) {
     requireEvaluatorAtNext(source_key_, tag_next_, *S_)
       .SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_aqueous_);
@@ -707,8 +773,8 @@ Transport_ATS::Initialize()
   // This cannot be done in setup because it needs the rank? --ETC
   int D_rank = -1;
   int D_dim = mesh_->getSpaceDimension();
-  if (has_diffusion_) D_rank = 1; // scalar
-  if (has_dispersion_) {
+  if (is_diffusion_) D_rank = 1; // scalar
+  if (is_dispersion_) {
     // dispersion rank is 1 or 2
     D_rank =
       S_->Require<TensorVector, TensorVector_Factory>(dispersion_tensor_key_, tag_next_).get_rank();
@@ -775,63 +841,65 @@ Transport_ATS::ComputeStableTimeStep_()
 {
   double dt = TRANSPORT_LARGE_TIME_STEP;
 
-  // Get flux at faces for time NEXT
-  IdentifyUpwindCells_();
+  if (is_advection_) {
+    // Get flux at faces for time NEXT
+    IdentifyUpwindCells_();
 
-  int ncells_owned = S_->GetMesh(domain_)->getNumEntities(AmanziMesh::Entity_kind::CELL,
-                                                          AmanziMesh::Parallel_kind::OWNED);
+    int ncells_owned = S_->GetMesh(domain_)->getNumEntities(AmanziMesh::Entity_kind::CELL,
+            AmanziMesh::Parallel_kind::OWNED);
 
-  // flux at next tag
-  S_->GetEvaluator(water_flux_key_, tag_next_).Update(*S_, name_);
-  const CompositeVector& flux_cv = S_->Get<CompositeVector>(water_flux_key_, tag_next_);
-  flux_cv.ScatterMasterToGhosted();
-  const Epetra_MultiVector& flux = *flux_cv.ViewComponent("face", true);
+    // flux at next tag
+    S_->GetEvaluator(water_flux_key_, tag_next_).Update(*S_, name_);
+    const CompositeVector& flux_cv = S_->Get<CompositeVector>(water_flux_key_, tag_next_);
+    flux_cv.ScatterMasterToGhosted();
+    const Epetra_MultiVector& flux = *flux_cv.ViewComponent("face", true);
 
-  // extensive liquid water content at start and end of step
-  S_->GetEvaluator(lwc_key_, tag_next_).Update(*S_, name_);
-  const Epetra_MultiVector& lwc_old =
-    *S_->Get<CompositeVector>(lwc_key_, tag_current_).ViewComponent("cell");
-  const Epetra_MultiVector& lwc_new =
-    *S_->Get<CompositeVector>(lwc_key_, tag_next_).ViewComponent("cell");
+    // extensive liquid water content at start and end of step
+    S_->GetEvaluator(lwc_key_, tag_next_).Update(*S_, name_);
+    const Epetra_MultiVector& lwc_old =
+      *S_->Get<CompositeVector>(lwc_key_, tag_current_).ViewComponent("cell");
+    const Epetra_MultiVector& lwc_new =
+      *S_->Get<CompositeVector>(lwc_key_, tag_next_).ViewComponent("cell");
 
-  // loop over ALL faces and accumulate outgoing fluxes from each OWNED cell
-  std::vector<double> total_outflux(ncells_owned, 0.0);
+    // loop over ALL faces and accumulate outgoing fluxes from each OWNED cell
+    std::vector<double> total_outflux(ncells_owned, 0.0);
 
-  for (int f = 0; f < flux.MyLength(); f++) {
-    int c = (*upwind_cell_)[f];
-    if (c >= 0 && c < ncells_owned) {
-      total_outflux[c] += std::abs(flux[0][f]);
+    for (int f = 0; f < flux.MyLength(); f++) {
+      int c = (*upwind_cell_)[f];
+      if (c >= 0 && c < ncells_owned) {
+        total_outflux[c] += std::abs(flux[0][f]);
+      }
     }
+
+    // loop over cells and calculate minimal timestep
+    double min_dt_lwc = 0.;
+    double min_dt_outflux = 0.;
+    int min_dt_cell = 0;
+
+    for (int c = 0; c != ncells_owned; ++c) {
+      double outflux = total_outflux[c];
+      double min_lwc = std::min(lwc_old[0][c], lwc_new[0][c]);
+      double dt_cell = TRANSPORT_LARGE_TIME_STEP;
+
+      if (outflux > 0 && min_lwc > 0) {
+        dt_cell = min_lwc / outflux;
+      }
+
+      if (dt_cell < dt) {
+        dt = dt_cell;
+        min_dt_cell = c;
+        min_dt_lwc = min_lwc;
+        min_dt_outflux = total_outflux[c];
+      }
+    }
+
+    if (adv_spatial_disc_order_ == 2) dt /= 2;
+
+    // communicate global timestep
+    double dt_tmp = dt;
+    auto comm = mesh_->getComm();
+    comm->MinAll(&dt_tmp, &dt, 1);
   }
-
-  // loop over cells and calculate minimal timestep
-  double min_dt_lwc = 0.;
-  double min_dt_outflux = 0.;
-  int min_dt_cell = 0;
-
-  for (int c = 0; c != ncells_owned; ++c) {
-    double outflux = total_outflux[c];
-    double min_lwc = std::min(lwc_old[0][c], lwc_new[0][c]);
-    double dt_cell = TRANSPORT_LARGE_TIME_STEP;
-
-    if (outflux > 0 && min_lwc > 0) {
-      dt_cell = min_lwc / outflux;
-    }
-
-    if (dt_cell < dt) {
-      dt = dt_cell;
-      min_dt_cell = c;
-      min_dt_lwc = min_lwc;
-      min_dt_outflux = total_outflux[c];
-    }
-  }
-
-  if (adv_spatial_disc_order_ == 2) dt /= 2;
-
-  // communicate global timestep
-  double dt_tmp = dt;
-  auto comm = mesh_->getComm();
-  comm->MinAll(&dt_tmp, &dt, 1);
 
   // incorporate developers and CFL constraints
   dt = std::min(dt, dt_max_);
@@ -938,7 +1006,8 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   }
 
   // advance dispersion and diffusion term
-  AdvanceDispersionDiffusion_(t_old, t_new);
+  if (is_diffusion_ || is_dispersion_)
+    AdvanceDispersionDiffusion_(t_old, t_new);
 
   // statistics output
   const Epetra_MultiVector& tcc_new =
@@ -953,11 +1022,10 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
 
 
 void
-Transport_ATS ::AdvanceDispersionDiffusion_(double t_old, double t_new)
+Transport_ATS::AdvanceDispersionDiffusion_(double t_old, double t_new)
 {
-  if (!has_diffusion_ && !has_dispersion_) return;
   double dt = t_new - t_old;
-  
+
   Epetra_MultiVector& tcc_new =
     *S_->GetW<CompositeVector>(key_, tag_next_, passwd_).ViewComponent("cell", false);
 
@@ -970,7 +1038,7 @@ Transport_ATS ::AdvanceDispersionDiffusion_(double t_old, double t_new)
   //
   // first step  -- aqueous dispersion + diffusion
   //
-  if (has_dispersion_) {
+  if (is_dispersion_) {
     //
     // The dispersion tensor is consistent for all aqueous phase components.
     S_->GetEvaluator(dispersion_tensor_key_, tag_next_).Update(*S_, name_);
@@ -989,23 +1057,39 @@ Transport_ATS ::AdvanceDispersionDiffusion_(double t_old, double t_new)
   // change and can be reused.
   double md_old(0.0);
 
-  for (int i = 0; i != num_aqueous_; ++i) {
+  if (S_->HasEvaluator(molec_diff_key_, tag_next_))
+    S_->GetEvaluator(molec_diff_key_, tag_next_).Update(*S_, name_);
 
-    // Set Dirichlet_BC for 
+  Epetra_MultiVector const * molec_diff_i_prev = nullptr;
+  for (int i = 0; i != num_aqueous_; ++i) {
+    // Set Dirichlet_BC for Diffusion
     if (enforce_bc_) PopulateBoundaryData_(i, *diff_bcs_);
+
     // add molecular diffusion to the dispersion tensor
     bool changed_tensor(false);
-    if (has_diffusion_) {
-      double md_new = molec_diff_[component_names_[i]] * tortuosity_["aqueous"];
-      double md_change = md_new - md_old;
-      if (std::abs(md_change) > 1.e-12) {
-        // shift the tensor diagonal by the lwc * delta diff coef
-        for (int c = 0; c != cv.MyLength(); ++c) {
+    if (is_diffusion_) {
+      Epetra_MultiVector const * molec_diff_i = nullptr;
+      if (std::isnan(molec_diff_[component_names_[i]])) {
+        // is a field-based value
+        S_->GetEvaluator(molec_diff_key_+"."+component_names_[i], tag_next_).Update(*S_, name_);
+        molec_diff_i = &*S_->Get<CompositeVector>(molec_diff_key_+"."+component_names_[i], tag_next_)
+          .ViewComponent("cell", false);
+      }
+
+      // loop over each cell and compute the difference
+      for (int c = 0; c != cv.MyLength(); ++c) {
+        double md_new = molec_diff_i ? (*molec_diff_i)[0][c] * tortuosity_
+          : molec_diff_[component_names_[i]] * tortuosity_;
+        double md_old = molec_diff_i_prev ? (*molec_diff_i_prev)[0][c] * tortuosity_
+          : i == 0 ? 0. : molec_diff_[component_names_[i-1]] * tortuosity_;
+        double md_change = md_new - md_old;
+        if (std::abs(md_change) > 1.e-12) {
+          // shift the tensor diagonal by the lwc * delta diff coef
           (*D_)[c] += md_change * lwc[0][c] / cv[0][c];
         }
-        md_old = md_new;
         changed_tensor = true;
       }
+      molec_diff_i_prev = molec_diff_i;
     }
 
     //
@@ -1121,7 +1205,8 @@ Transport_ATS::AdvanceAdvectionSources_RK1_(double t_old, double t_new, int spat
       "qnty (old)", conserve_qty, S_->GetRecordSet(conserve_qty_key_).subfieldnames());
   }
 
-  { // context for advection -- on all cells
+  if (is_advection_) { 
+    // context for advection -- on all cells
     const Epetra_MultiVector& tcc_old =
       *S_->Get<CompositeVector>(key_, tag_current_).ViewComponent("cell", true);
     Epetra_MultiVector& conserve_qty =
@@ -1211,7 +1296,8 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(double t_old, double t_new, int spat
       "qnty (start)", conserve_qty, S_->GetRecordSet(conserve_qty_key_).subfieldnames());
   }
 
-  { // context for advection -- on all cells
+  if (is_advection_) {
+    // context for advection -- on all cells
     const Epetra_MultiVector& tcc_old =
       *S_->Get<CompositeVector>(key_, tag_current_).ViewComponent("cell", true);
     Epetra_MultiVector& conserve_qty =
@@ -1230,8 +1316,11 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(double t_old, double t_new, int spat
     }
     db_->WriteCellVector(
       "qnty (pred adv)", conserve_qty, S_->GetRecordSet(conserve_qty_key_).subfieldnames());
+  }
 
-    // -- process external sources: M <-- M + dt * Q(t0)
+  { // -- process external sources: M <-- M + dt * Q(t0)
+    Epetra_MultiVector& conserve_qty =
+      *S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_).ViewComponent("cell", false);
     AddSourceTerms_(t_old, t_new, conserve_qty);
     db_->WriteCellVector(
       "qnty (pred src)", conserve_qty, S_->GetRecordSet(conserve_qty_key_).subfieldnames());
@@ -1276,7 +1365,8 @@ Transport_ATS::AdvanceAdvectionSources_RK2_(double t_old, double t_new, int spat
   // scatter updated values
   S_->Get<CompositeVector>(key_, tag_next_).ScatterMasterToGhosted();
 
-  { // -- advect the predicted C'
+  if (is_advection_) {
+    // -- advect the predicted C'
     const Epetra_MultiVector& tcc_new =
       *S_->Get<CompositeVector>(key_, tag_next_).ViewComponent("cell", true);
     Epetra_MultiVector& conserve_qty =
@@ -1355,8 +1445,10 @@ Transport_ATS::PopulateBoundaryData_(int component, Operators::BCs& bc)
 
   if (component >= 0) {
     for (int m = 0; m < bcs_.size(); m++) {
+      bool is_coupling = (bcs_[m]->get_location() == "coupling boundary");
+      if (is_coupling) continue;
       std::vector<int>& tcc_index = bcs_[m]->tcc_index();
-      int ncomp = tcc_index.size();                                        
+      int ncomp = tcc_index.size();
       for (auto it = bcs_[m]->begin(); it != bcs_[m]->end(); ++it) {
         int f = it->first;
         std::vector<double>& values = it->second;

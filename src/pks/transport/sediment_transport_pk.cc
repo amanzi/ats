@@ -64,14 +64,13 @@ SedimentTransport_PK::parseParameterList()
 
   porosity_key_ = Keys::readKey(*plist_, domain_, "soil porosity", "soil_porosity");
 
-  has_dispersion_ = false;
-  has_diffusion_ = false;
+  is_dispersion_ = false;
+  is_diffusion_ = false;
 
   if (plist_->isSublist("sediment diffusion coefficient [m^2 s^-1]")) {
-    has_diffusion_ = true;
+    is_diffusion_ = true;
     molec_diff_ =
       readParameterMapByComponent(plist_->sublist("sediment diffusion coefficient [m^2 s^-1]"), 0.);
-    tortuosity_ = readParameterMapByPhase(plist_->sublist("tortuosity [-]"), 1.);
   }
 
   // keys, dependencies, etc
@@ -115,7 +114,7 @@ SedimentTransport_PK::parseParameterList()
   // dispersion coefficient tensor
   dispersion_tensor_key_ =
     Keys::readKey(*plist_, domain_, "sediment dispersion coefficient", "horizontal_mixing");
-  has_dispersion_ = S_->HasEvaluatorList(dispersion_tensor_key_);
+  is_dispersion_ = S_->HasEvaluatorList(dispersion_tensor_key_);
 
 
   adv_spatial_disc_order_ = plist_->get<int>("advection spatial discretization order", 1);
@@ -195,7 +194,7 @@ SedimentTransport_PK::Initialize()
   // can also now setup the joint diffusion/dispersion workspace tensor
   int D_rank = -1;
   int D_dim = mesh_->getSpaceDimension();
-  if (has_diffusion_) D_rank = 1; // scalar
+  if (is_diffusion_) D_rank = 1; // scalar
 
   if (D_rank >= 0) {
     CompositeVectorSpace D_space;
