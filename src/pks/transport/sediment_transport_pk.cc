@@ -71,7 +71,6 @@ SedimentTransport_PK::parseParameterList()
     is_diffusion_ = true;
     molec_diff_ =
       readParameterMapByComponent(plist_->sublist("sediment diffusion coefficient [m^2 s^-1]"), 0.);
-    tortuosity_ = readParameterMapByPhase(plist_->sublist("tortuosity [-]"), 1.);
   }
 
   // keys, dependencies, etc

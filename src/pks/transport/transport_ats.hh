@@ -350,7 +350,7 @@ class Transport_ATS : public PK_Physical_Default {
   ParameterMap tcc_max_;      // maximum valid concentration [mol C / mol H2O] by component
 
   ParameterMap molec_diff_; // molecular diffusivity by component [m^2 s^-1]
-  ParameterMap tortuosity_; // phase-based tortuosity [-]
+  double tortuosity_;       // phase-based tortuosity [-]
   double water_tolerance_;  // mol H2O m^-d (d = 2 for surface, d = 3 for subsurface)
 
 #ifdef ALQUIMIA_ENABLED

@@ -69,6 +69,9 @@ class MPCFlowTransport : public MPCSubcycled {
   void CommitStep(double t_old, double t_new, const Tag& tag) override;
 
  protected:
+  std::vector<Key> aliasDiffusivity_(Teuchos::ParameterList& plist,
+                                     const Key& domain,
+                                     const Tag& pk_next_tag);
   bool chemistry_, surface_, subsurface_;
 
  private:

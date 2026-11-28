@@ -129,8 +129,16 @@ Transport_ATS::parseParameterList()
     // for scalar values or -1 for field-based values.
     molec_diff_key_ = Keys::readKey(*plist_, domain_, "molecular diffusivity", "molecular_diffusivity");
     molec_diff_ = readParameterMapByComponent(plist_->sublist("molecular diffusivity [m^2 s^-1]"), 0.,
-            molec_diff_key_);
-    tortuosity_ = readParameterMapByPhase(plist_->sublist("tortuosity [-]"), 1.);
+      molec_diff_key_);
+
+    Teuchos::ParameterList& tort_list = plist_->sublist("tortuosity [-]");
+    std::string phase = plist_->get<std::string>("diffusivity phase", "aqueous");
+    if (tort_list.numParams() > 0 && !tort_list.isParameter(phase)) {
+      Errors::Message msg;
+      msg << "In transport pk for \"" << name_ << "\": the phase \"" << phase
+          << "\" given in \"diffusivity phase\" is not provided in tortuosity list.";
+    }
+    tortuosity_ = tort_list.get<double>(phase, 1.);
   }
 
   // is there dispersion?
@@ -1014,7 +1022,7 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
 
 
 void
-Transport_ATS ::AdvanceDispersionDiffusion_(double t_old, double t_new)
+Transport_ATS::AdvanceDispersionDiffusion_(double t_old, double t_new)
 {
   double dt = t_new - t_old;
 
@@ -1070,10 +1078,10 @@ Transport_ATS ::AdvanceDispersionDiffusion_(double t_old, double t_new)
 
       // loop over each cell and compute the difference
       for (int c = 0; c != cv.MyLength(); ++c) {
-        double md_new = molec_diff_i ? (*molec_diff_i)[0][c] * tortuosity_["aqueous"]
-          : molec_diff_[component_names_[i]] * tortuosity_["aqueous"];
-        double md_old = molec_diff_i_prev ? (*molec_diff_i_prev)[0][c] * tortuosity_["aqueous"]
-          : i == 0 ? 0. : molec_diff_[component_names_[i-1]] * tortuosity_["aqueous"];
+        double md_new = molec_diff_i ? (*molec_diff_i)[0][c] * tortuosity_
+          : molec_diff_[component_names_[i]] * tortuosity_;
+        double md_old = molec_diff_i_prev ? (*molec_diff_i_prev)[0][c] * tortuosity_
+          : i == 0 ? 0. : molec_diff_[component_names_[i-1]] * tortuosity_;
         double md_change = md_new - md_old;
         if (std::abs(md_change) > 1.e-12) {
           // shift the tensor diagonal by the lwc * delta diff coef

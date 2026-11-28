@@ -12,21 +12,60 @@
 
 namespace Amanzi {
 
+std::vector<Key>
+MPCFlowTransport::aliasDiffusivity_(Teuchos::ParameterList& plist,
+                                    const Key& domain,
+                                    const Tag& pk_next_tag)
+{
+  std::vector<Key> keys;
+  const Tag& flow_next_tag = tags_[0].second;
+
+  if (!plist.isSublist("molecular diffusivity [m^2 s^-1]")) return keys;
+
+  // collect all molecular_diffusivity.component from evaluators
+  Key molec_diff_key = Keys::readKey(plist, domain, "molecular diffusivity", "molecular_diffusivity");
+  const Teuchos::ParameterList& fe_list = S_->FEList();
+  for (auto it = fe_list.begin(); it != fe_list.end(); ++it) {
+    const std::string& name = fe_list.name(it);
+    if (name.rfind(molec_diff_key + ".", 0) == 0 && name.find("@") == std::string::npos) { 
+      keys.push_back(name);
+    }
+  }
+
+  // create an alias evaluator for each molecular_diffusivity.component
+  for (const auto& key : keys) {
+    Teuchos::ParameterList& key_list_next = 
+      S_->GetEvaluatorList(Keys::getKey(key, pk_next_tag));
+    if (!key_list_next.isParameter("evaluator type")) {
+      key_list_next.set<std::string>("evaluator type", "alias");
+      key_list_next.set<std::string>("target", Keys::getKey(key, flow_next_tag, true));
+    }
+  }
+  return keys;
+}
+
+
 void
 MPCFlowTransport::parseParameterList()
 {
   // are we doing surface, subsurface, or integrated transport?
   auto flow_plist = getSubPKPlist_(0);
   Key surf_lwc_key, sub_lwc_key;
+  Key surf_domain, subsurf_domain;
+  Teuchos::RCP<Teuchos::ParameterList> sub_trp_plist, surf_trp_plist;
 
   if (flow_plist->isParameter("domain name")) {
     std::string domain = Keys::readDomain(*flow_plist);
     if (Keys::in(domain, "surface")) {
       surface_ = true;
-      surf_lwc_key = Keys::readKey(*getSubPKPlist_(1), domain, "water content", "water_content");
+      surf_domain = domain;
+      surf_trp_plist = getSubPKPlist_(1);
+      surf_lwc_key = Keys::readKey(*surf_trp_plist, surf_domain, "liquid water content", "water_content");
     } else {
       subsurface_ = true;
-      sub_lwc_key = Keys::readKey(*getSubPKPlist_(1), domain, "liquid water content", "water_content");
+      subsurf_domain = domain;
+      sub_trp_plist = getSubPKPlist_(1);
+      sub_lwc_key = Keys::readKey(*sub_trp_plist, subsurf_domain, "liquid water content", "water_content");
     }
   } else {
     // no domain name means it is an MPC, likely coupled water, but maybe permafrost
@@ -47,19 +86,18 @@ MPCFlowTransport::parseParameterList()
     }
 
     // now we have the actual transport names!
-    auto subsurf_domain = Keys::readDomain(pks_list_->sublist(transport_names[0]));
-    sub_lwc_key = Keys::readKey(pks_list_->sublist(transport_names[0]),
-                                subsurf_domain,
-                                "liquid water content",
-                                "water_content");
+    sub_trp_plist = Teuchos::sublist(pks_list_, transport_names[0]);
+    subsurf_domain = Keys::readDomain(*sub_trp_plist);
+    sub_lwc_key = Keys::readKey(*sub_trp_plist, subsurf_domain, "liquid water content", "water_content");
 
-    auto surf_domain = Keys::readDomain(pks_list_->sublist(transport_names[1]));
-    surf_lwc_key = Keys::readKey(
-      pks_list_->sublist(transport_names[1]), surf_domain, "liquid water content", "water_content");
+    surf_trp_plist = Teuchos::sublist(pks_list_, transport_names[1]);
+    surf_domain = Keys::readDomain(*surf_trp_plist);
+    surf_lwc_key = Keys::readKey(*surf_trp_plist, surf_domain, "liquid water content", "water_content");
   }
 
   auto [flow_current_tag, flow_next_tag] = tags_[0];
   auto [transport_current_tag, transport_next_tag] = tags_[1];
+  std::vector<Key> sub_diff_keys, surf_diff_keys, gas_diff_keys;
 
   if (subsurface_) {
     if (transport_next_tag != flow_next_tag) {
@@ -83,6 +121,9 @@ MPCFlowTransport::parseParameterList()
          velo_list.set<std::string>("evaluator type", "alias");
          velo_list.set<std::string>("target", Keys::getKey("darcy_velocity", flow_next_tag, true));
        }
+
+      // diffusivity of each component given by evaluators
+      sub_diff_keys = aliasDiffusivity_(*sub_trp_plist, subsurf_domain, transport_next_tag);
 
       // now set the liquid water content as an interpolated field at next
       // note that flow_current copy is kept by flow PK, and transport_current copy is kept by transport PK
@@ -163,6 +204,9 @@ MPCFlowTransport::parseParameterList()
          velo_list.set<std::string>("target", Keys::getKey("surface-velocity", flow_next_tag, true));
        }
 
+      // diffusivity of each component given by evaluators
+      surf_diff_keys = aliasDiffusivity_(*surf_trp_plist, surf_domain, transport_next_tag);
+
       // set the liquid water content as an interpolated field
       // -- flow's current is a kept by flow
       // -- transport's next is an interpolation
@@ -200,6 +244,31 @@ MPCFlowTransport::parseParameterList()
     }
   }
 
+  Key gas_sub_lwc_key;
+  Tag gas_transport_current_tag, gas_transport_next_tag;
+  if (sub_pks_.size() == 3) {
+    // Pass in keys coupling flow to the gas-diffusion split
+    Teuchos::ParameterList& gas_trp_plist = *getSubPKPlist_(2);
+    Key gas_domain = Keys::readDomain(gas_trp_plist);
+    gas_sub_lwc_key = Keys::readKey(gas_trp_plist, gas_domain, "liquid water content", "water_content");
+    std::tie(gas_transport_current_tag, gas_transport_next_tag) = tags_[2];
+    if (gas_transport_next_tag != flow_next_tag) {
+      // now set the liquid water content as an interpolated field at next note
+      // that flow_current copy is kept by flow PK, and transport_current copy
+      // is kept by transport PK
+      Teuchos::ParameterList& lwc_list_next =
+        S_->GetEvaluatorList(Keys::getKey(gas_sub_lwc_key, gas_transport_next_tag));
+      if (!lwc_list_next.isParameter("evaluator type")) {
+        lwc_list_next.set<std::string>("evaluator type", "temporal interpolation");
+        lwc_list_next.set<std::string>("current tag", flow_current_tag.get());
+        lwc_list_next.set<std::string>("next tag", flow_next_tag.get());
+      }
+
+      // diffusivity of each component given by evaluators
+      gas_diff_keys = aliasDiffusivity_(gas_trp_plist, gas_domain, gas_transport_next_tag);
+    }
+  }
+
   MPCSubcycled::parseParameterList();
   if (subcycling_[0]) {
     Errors::Message msg;
@@ -210,9 +279,10 @@ MPCFlowTransport::parseParameterList()
   if (subsurface_) {
     // for interpolated evaluators, we must first require key@NEXT -- otherwise
     // it will get called to be an alias key@TRANSPORT_NEXT, which is an
-    // interpolator that depends upon this.
+    // interpolator that depends upon this
     requireEvaluatorAtNext(sub_lwc_key, flow_next_tag, *S_);
     requireEvaluatorAtNext("porosity", flow_next_tag, *S_);
+    for (const auto& key : sub_diff_keys) requireEvaluatorAtNext(key, flow_next_tag, *S_);
     if (transport_next_tag != flow_next_tag) {
       requireEvaluatorAtCurrent("porosity", flow_current_tag, *S_, name_);
     }
@@ -241,6 +311,7 @@ MPCFlowTransport::parseParameterList()
     // it will get called to be an alias key@TRANSPORT_NEXT, which is an
     // interpolator that depends upon this.
     requireEvaluatorAtNext(surf_lwc_key, flow_next_tag, *S_);
+    for (const auto& key : surf_diff_keys) requireEvaluatorAtNext(key, flow_next_tag, *S_);
     if (chemistry_) {
       requireEvaluatorAtNext("surface-mass_density_liquid", flow_next_tag, *S_);
       if (transport_next_tag != flow_next_tag) {
@@ -260,23 +331,8 @@ MPCFlowTransport::parseParameterList()
   }
 
   if (sub_pks_.size() == 3) {
-    // Pass in keys coupling flow to the gas-diffusion split
-    Key gas_sub_lwc_key = Keys::readKey(*getSubPKPlist_(2), "subsurface", "liquid water content", "water_content");
-    auto [gas_transport_current_tag, gas_transport_next_tag] = tags_[2];
-    if (gas_transport_next_tag != flow_next_tag) {
-      // now set the liquid water content as an interpolated field at next note
-      // that flow_current copy is kept by flow PK, and transport_current copy
-      // is kept by transport PK
-      Teuchos::ParameterList& lwc_list_next =
-        S_->GetEvaluatorList(Keys::getKey(gas_sub_lwc_key, gas_transport_next_tag));
-      if (!lwc_list_next.isParameter("evaluator type")) {
-        lwc_list_next.set<std::string>("evaluator type", "temporal interpolation");
-        lwc_list_next.set<std::string>("current tag", flow_current_tag.get());
-        lwc_list_next.set<std::string>("next tag", flow_next_tag.get());
-      }
-    }
-
     requireEvaluatorAtNext(gas_sub_lwc_key, flow_next_tag, *S_);
+    for (const auto& key : gas_diff_keys) requireEvaluatorAtNext(key, flow_next_tag, *S_);
     requireEvaluatorAtNext(gas_sub_lwc_key, gas_transport_next_tag, *S_);
   }
 }
